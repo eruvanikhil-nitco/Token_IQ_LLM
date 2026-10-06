@@ -7,15 +7,15 @@ import httpx
 import pytest
 from httpx import Request, Response
 
-import litellm
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy.guardrails.guardrail_hooks.alice.alice import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.alice.alice import (
     GUARDRAIL_NAME,
     AliceGuardrail,
     AliceGuardrailMissingSecrets,
     _json_safe,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def _guardrail(**overrides: object) -> AliceGuardrail:

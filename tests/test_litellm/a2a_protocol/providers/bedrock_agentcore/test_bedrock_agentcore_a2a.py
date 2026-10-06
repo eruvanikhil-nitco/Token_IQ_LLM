@@ -38,7 +38,7 @@ class TestTransformation:
 
     def test_json_rpc_envelope_structure(self):
         """Verify JSON-RPC body has jsonrpc, method, id, and params."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -58,7 +58,7 @@ class TestTransformation:
 
     def test_url_derived_from_arn(self):
         """Verify URL is constructed from the ARN, not from api_base."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -73,7 +73,7 @@ class TestTransformation:
 
     def test_jwt_auth_uses_bearer_header(self):
         """When api_key is set, Authorization header uses Bearer token."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -86,7 +86,7 @@ class TestTransformation:
 
     def test_session_id_header_set(self):
         """Verify X-Amzn-Bedrock-AgentCore-Runtime-Session-Id is set."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -100,7 +100,7 @@ class TestTransformation:
 
     def test_custom_session_id_header(self):
         """Verify custom runtimeSessionId is used when provided."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -114,7 +114,7 @@ class TestTransformation:
 
     def test_agent_extra_headers_merged_into_signed_headers_jwt(self):
         """agent_extra_headers should appear on the outbound request (JWT path)."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -129,7 +129,7 @@ class TestTransformation:
 
     def test_agent_extra_headers_signed_for_sigv4(self):
         """agent_extra_headers must be present in the dict passed to _sign_request."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -148,7 +148,7 @@ class TestTransformation:
             return headers, b'{"jsonrpc":"2.0"}'
 
         with patch(
-            "litellm.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
+            "token_iq.gateway.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
             new=fake_sign,
         ):
             BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
@@ -166,7 +166,7 @@ class TestTransformation:
         caller could spoof the runtime user identity via the x-a2a-{agent}-*
         header rewrite.
         """
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -217,7 +217,7 @@ class TestTransformation:
         SigV4 signer sees them, so the signature does not bind a spoofed
         runtime user identity into a valid SigV4 request.
         """
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -237,7 +237,7 @@ class TestTransformation:
             return headers, b'{"jsonrpc":"2.0"}'
 
         with patch(
-            "litellm.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
+            "token_iq.gateway.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
             new=fake_sign,
         ):
             BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
@@ -261,7 +261,7 @@ class TestTransformation:
 
     def test_sigv4_auth_when_no_api_key(self):
         """When no api_key, falls through to SigV4 signing."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -282,7 +282,7 @@ class TestTransformation:
         fake_body = b'{"jsonrpc":"2.0"}'
 
         with patch(
-            "litellm.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
+            "token_iq.gateway.llms.bedrock.chat.agentcore.transformation.AmazonAgentCoreConfig._sign_request",
             return_value=(fake_sigv4_headers, fake_body),
         ):
             _, headers, _ = (
@@ -313,7 +313,7 @@ def _scoped(context_id: str, key_hash: str) -> str:
 
 
 def _session_header(params: dict, litellm_params: dict) -> str:
-    from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+    from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
         BedrockAgentCoreA2ATransformation,
     )
 
@@ -327,7 +327,7 @@ def _session_header(params: dict, litellm_params: dict) -> str:
 
 @pytest.fixture
 def httpx_transport(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
     monkeypatch.setenv("DISABLE_AIOHTTP_TRANSPORT", "True")
@@ -340,7 +340,7 @@ class TestRequestScopedRuntimeSession:
     """message.contextId selects the AgentCore runtime session, scoped to the calling key."""
 
     def test_context_id_scoped_to_calling_key(self):
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
@@ -361,7 +361,7 @@ class TestRequestScopedRuntimeSession:
         assert other != first
 
     def test_same_context_id_from_different_keys_is_isolated(self):
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
@@ -397,7 +397,7 @@ class TestRequestScopedRuntimeSession:
         ],
     )
     def test_invalid_context_id_rejected_with_clear_error(self, context_id):
-        import litellm
+        from token_iq import gateway as litellm
 
         with pytest.raises(litellm.BadRequestError, match="Invalid AgentCore runtime session id") as exc_info:
             _session_header(_params_with_context(context_id), SAMPLE_LITELLM_PARAMS)
@@ -405,8 +405,8 @@ class TestRequestScopedRuntimeSession:
         assert "33-256" in str(exc_info.value)
 
     def test_scoped_context_id_shorter_than_33_rejected(self):
-        import litellm
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
@@ -416,7 +416,7 @@ class TestRequestScopedRuntimeSession:
         assert _session_header(_params_with_context("c" * 16), litellm_params) == _scoped("c" * 16, KEY_HASH)
 
     def test_invalid_configured_session_rejected(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "too-short"}
         with pytest.raises(litellm.BadRequestError, match="Invalid AgentCore runtime session id"):
@@ -427,7 +427,7 @@ class TestRequestScopedRuntimeSession:
         assert _session_header(_params_with_context(12345), litellm_params) == "a" * 40
 
     def test_spoofed_session_header_does_not_override_context_id(self):
-        from litellm.a2a_protocol.providers.bedrock_agentcore.transformation import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.transformation import (
             BedrockAgentCoreA2ATransformation,
         )
 
@@ -441,10 +441,10 @@ class TestRequestScopedRuntimeSession:
 
     @pytest.mark.asyncio
     async def test_context_id_session_header_on_outbound_non_streaming_post(self, httpx_transport):
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
 
@@ -462,10 +462,10 @@ class TestRequestScopedRuntimeSession:
 
     @pytest.mark.asyncio
     async def test_context_id_session_header_on_outbound_streaming_post(self, httpx_transport):
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
 
@@ -492,7 +492,7 @@ class TestNonStreaming:
     @pytest.mark.asyncio
     async def test_json_rpc_body_sent_to_agentcore(self):
         """Verify the full JSON-RPC envelope is POSTed, not {"prompt": "..."}."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
 
@@ -511,7 +511,7 @@ class TestNonStreaming:
         mock_response.raise_for_status = MagicMock()
 
         with patch(
-            "litellm.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
+            "token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
@@ -541,7 +541,7 @@ class TestNonStreaming:
     @pytest.mark.asyncio
     async def test_agent_extra_headers_forwarded_on_outbound_post(self):
         """End-to-end: agent_extra_headers from the bridge land on the HTTP POST."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
 
@@ -554,7 +554,7 @@ class TestNonStreaming:
         mock_response.raise_for_status = MagicMock()
 
         with patch(
-            "litellm.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
+            "token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
@@ -574,7 +574,7 @@ class TestNonStreaming:
     @pytest.mark.asyncio
     async def test_a2a_error_response_passthrough(self):
         """JSON-RPC error responses from the agent are returned as-is."""
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
 
@@ -588,7 +588,7 @@ class TestNonStreaming:
         mock_response.raise_for_status = MagicMock()
 
         with patch(
-            "litellm.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
+            "token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.post = AsyncMock(return_value=mock_response)
@@ -609,10 +609,10 @@ class TestConfigManager:
     """Test that config manager routes 'bedrock' correctly."""
 
     def test_bedrock_returns_config(self):
-        from litellm.a2a_protocol.providers.bedrock_agentcore.config import (
+        from token_iq.gateway.a2a_protocol.providers.bedrock_agentcore.config import (
             BedrockAgentCoreA2AConfig,
         )
-        from litellm.a2a_protocol.providers.config_manager import (
+        from token_iq.gateway.a2a_protocol.providers.config_manager import (
             A2AProviderConfigManager,
         )
 
@@ -624,7 +624,7 @@ class TestConfigManager:
 
     def test_bedrock_non_agentcore_returns_none(self):
         """Non-agentcore bedrock models should fall through to completion bridge."""
-        from litellm.a2a_protocol.providers.config_manager import (
+        from token_iq.gateway.a2a_protocol.providers.config_manager import (
             A2AProviderConfigManager,
         )
 
@@ -634,7 +634,7 @@ class TestConfigManager:
         assert config is None
 
     def test_unknown_provider_returns_none(self):
-        from litellm.a2a_protocol.providers.config_manager import (
+        from token_iq.gateway.a2a_protocol.providers.config_manager import (
             A2AProviderConfigManager,
         )
 
@@ -647,7 +647,7 @@ class TestHandlerIntegration:
     @pytest.mark.asyncio
     async def test_provider_config_receives_litellm_params(self):
         """Verify handler passes litellm_params to provider config via kwargs."""
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2ACompletionBridgeHandler,
         )
 
@@ -657,7 +657,7 @@ class TestHandlerIntegration:
         )
 
         with patch(
-            "litellm.a2a_protocol.litellm_completion_bridge.handler.A2AProviderConfigManager.get_provider_config",
+            "token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler.A2AProviderConfigManager.get_provider_config",
             return_value=mock_config,
         ):
             await A2ACompletionBridgeHandler.handle_non_streaming(
@@ -678,7 +678,7 @@ class TestHandlerIntegration:
     @pytest.mark.asyncio
     async def test_api_base_none_allowed_with_provider_config(self):
         """api_base=None no longer raises when a provider config is registered."""
-        from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2ACompletionBridgeHandler,
         )
 
@@ -688,7 +688,7 @@ class TestHandlerIntegration:
         )
 
         with patch(
-            "litellm.a2a_protocol.litellm_completion_bridge.handler.A2AProviderConfigManager.get_provider_config",
+            "token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler.A2AProviderConfigManager.get_provider_config",
             return_value=mock_config,
         ):
             # Should NOT raise ValueError

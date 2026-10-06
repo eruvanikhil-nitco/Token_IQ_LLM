@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from fastapi import Request
 
-from litellm.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
-from litellm.proxy.auth.auth_checks import common_checks
-from litellm.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.auth_checks import common_checks
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
 
 class MockRequest:
@@ -52,7 +52,7 @@ class TestEnforceUserParamPostGetFiltering:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -85,7 +85,7 @@ class TestEnforceUserParamPostGetFiltering:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -114,7 +114,7 @@ class TestEnforceUserParamPostGetFiltering:
         request_body = {}  # GET requests typically don't have body
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -143,7 +143,7 @@ class TestEnforceUserParamPostGetFiltering:
         request_body = {}
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -171,7 +171,7 @@ class TestEnforceUserParamPostGetFiltering:
         request_body = {"model": "text-embedding-ada-002", "input": "test"}
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -204,7 +204,7 @@ class TestEnforceUserParamPostGetFiltering:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -236,7 +236,7 @@ class TestEnforceUserParamMCPExclusion:
         request_body = {"action": "list_tools"}
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -265,7 +265,7 @@ class TestEnforceUserParamMCPExclusion:
         request_body = {"data": "test"}
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -300,7 +300,7 @@ class TestEnforceUserParamDisabled:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -331,7 +331,7 @@ class TestEnforceUserParamDisabled:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -369,7 +369,7 @@ class TestEnforceUserParamEdgeCases:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -401,7 +401,7 @@ class TestEnforceUserParamEdgeCases:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -433,7 +433,7 @@ class TestEnforceUserParamEdgeCases:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -465,7 +465,7 @@ class TestEnforceUserParamEdgeCases:
         }
 
         with patch(
-            "litellm.proxy.auth.auth_checks._is_api_route_allowed",
+            "token_iq.gateway.proxy.auth.auth_checks._is_api_route_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ):

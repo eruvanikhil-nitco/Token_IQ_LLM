@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from litellm._logging import verbose_proxy_logger
+from token_iq.gateway._logging import verbose_proxy_logger
 
 
 def register_tool_connectors_once() -> None:
@@ -18,8 +18,8 @@ def register_tool_connectors_once() -> None:
     Idempotent, because the proxy can import this more than once under a reloader and
     registering twice is an error rather than a no-op.
     """
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
     from token_iq.connectors.tools.claude_code import ClaudeCodeConnector
     from token_iq.connectors.tools.connector import register_tool_connector, registered_tool_connectors
     from token_iq.connectors.tools.cursor import CursorConnector

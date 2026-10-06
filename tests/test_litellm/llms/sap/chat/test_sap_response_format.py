@@ -8,7 +8,7 @@ is correctly passed through to the API for supported models.
 
 import pytest
 
-from litellm.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
+from token_iq.gateway.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
 
 
 class TestResponseFormatSupport:
@@ -180,14 +180,14 @@ class TestStreamIterators:
 
     def test_sync_stream_iterator_basic(self):
         """SAPStreamIterator should work without json_mode parameter."""
-        from litellm.llms.sap.chat.handler import SAPStreamIterator
+        from token_iq.gateway.llms.sap.chat.handler import SAPStreamIterator
 
         iterator = SAPStreamIterator(response=iter([]))
         assert iterator._done is False
 
     def test_async_stream_iterator_basic(self):
         """AsyncSAPStreamIterator should work without json_mode parameter."""
-        from litellm.llms.sap.chat.handler import AsyncSAPStreamIterator
+        from token_iq.gateway.llms.sap.chat.handler import AsyncSAPStreamIterator
 
         async def async_gen():
             yield ""
@@ -204,7 +204,7 @@ class TestStreamIterators:
             sync_stream=True,
         )
 
-        from litellm.llms.sap.chat.handler import SAPStreamIterator
+        from token_iq.gateway.llms.sap.chat.handler import SAPStreamIterator
 
         assert isinstance(iterator, SAPStreamIterator)
 
@@ -220,7 +220,7 @@ class TestStreamIterators:
             sync_stream=False,
         )
 
-        from litellm.llms.sap.chat.handler import AsyncSAPStreamIterator
+        from token_iq.gateway.llms.sap.chat.handler import AsyncSAPStreamIterator
 
         assert isinstance(iterator, AsyncSAPStreamIterator)
 
@@ -280,7 +280,7 @@ class TestTransformResponseWithResponseFormat:
     def test_transform_response_strips_markdown_for_json_schema(self):
         """transform_response should strip markdown when response_format.type=json_schema."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -329,7 +329,7 @@ class TestTransformResponseWithResponseFormat:
     def test_transform_response_strips_markdown_for_json_object(self):
         """transform_response should strip markdown when response_format.type=json_object."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -371,7 +371,7 @@ class TestTransformResponseWithResponseFormat:
     def test_transform_response_no_strip_for_text_type(self):
         """transform_response should NOT strip markdown when response_format.type=text."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -414,7 +414,7 @@ class TestTransformResponseWithResponseFormat:
     def test_transform_response_no_strip_without_response_format(self):
         """transform_response should NOT strip markdown when no response_format provided."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -460,7 +460,7 @@ class TestMarkdownStripping:
 
     def test_strip_markdown_json_wrapper(self):
         """Should strip ```json ... ``` wrapper from content."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
         response = ModelResponse(
@@ -482,7 +482,7 @@ class TestMarkdownStripping:
 
     def test_strip_plain_markdown_wrapper(self):
         """Should strip ``` ... ``` wrapper (without json label)."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
         response = ModelResponse(
@@ -504,7 +504,7 @@ class TestMarkdownStripping:
 
     def test_no_strip_when_no_markdown(self):
         """Should not modify content without markdown wrapper."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
         response = ModelResponse(
@@ -532,7 +532,7 @@ class TestMarkdownStripping:
 
     def test_strip_multiple_choices(self):
         """Should strip markdown from all choices, not just the first."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
         response = ModelResponse(
@@ -570,7 +570,7 @@ class TestMarkdownStripping:
 
     def test_strip_with_whitespace_variations(self):
         """Should handle various whitespace patterns around JSON."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -605,7 +605,7 @@ class TestMarkdownStripping:
 
     def test_no_strip_partial_markdown(self):
         """Should not corrupt content with incomplete markdown (only opening ```)."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -630,7 +630,7 @@ class TestMarkdownStripping:
 
     def test_preserve_markdown_in_json_value(self):
         """Should preserve markdown code blocks inside JSON string values."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -661,7 +661,7 @@ class TestResponseFormatErrorHandling:
 
     def test_empty_content_handling(self):
         """_strip_markdown_json should handle None/empty content gracefully."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -699,7 +699,7 @@ class TestResponseFormatErrorHandling:
 
     def test_response_format_with_no_choices(self):
         """_strip_markdown_json should handle response with empty choices."""
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -712,7 +712,7 @@ class TestResponseFormatErrorHandling:
 
     def test_response_format_with_message_no_content(self):
         """_strip_markdown_json should handle choice with message but no content."""
-        from litellm.types.utils import ModelResponse, Choices, Message
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
         config = GenAIHubOrchestrationConfig()
 
@@ -879,7 +879,7 @@ class TestMarkdownStrippingModelGating:
     def test_gpt_model_no_markdown_strip_json_schema(self):
         """GPT models should NOT have markdown stripped for json_schema response_format."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -930,7 +930,7 @@ class TestMarkdownStrippingModelGating:
     def test_gpt_model_no_markdown_strip_json_object(self):
         """GPT models should NOT have markdown stripped for json_object response_format."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -973,7 +973,7 @@ class TestMarkdownStrippingModelGating:
     def test_gemini_model_no_markdown_strip(self):
         """Gemini models should NOT have markdown stripped."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -1016,7 +1016,7 @@ class TestMarkdownStrippingModelGating:
     def test_mistral_model_no_markdown_strip(self):
         """Mistral models should NOT have markdown stripped."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -1064,7 +1064,7 @@ class TestMarkdownStrippingModelGating:
     def test_anthropic_model_still_strips_markdown(self):
         """Anthropic models should still have markdown stripped (existing behavior)."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 
@@ -1112,7 +1112,7 @@ class TestMarkdownStrippingModelGating:
     def test_anthropic_claude_4_strips_markdown(self):
         """Claude 4 models should have markdown stripped."""
         from unittest.mock import MagicMock
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         config = GenAIHubOrchestrationConfig()
 

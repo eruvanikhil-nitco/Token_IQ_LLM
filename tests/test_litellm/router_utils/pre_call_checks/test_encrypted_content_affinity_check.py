@@ -22,9 +22,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-import litellm
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.llms.openai import ResponsesAPIResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -356,7 +356,7 @@ def test_encrypted_content_wrapping_with_multiple_semicolons():
 # Regression tests: affinity check must not break tag-based routing
 # ---------------------------------------------------------------------------
 
-from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
     EncryptedContentAffinityCheck,
 )
 
@@ -454,7 +454,7 @@ def test_boundary_fallback_no_router_ref_returns_empty():
     Standalone use (no router wired in) -> the boundary lookup short-circuits
     to ``[]`` instead of crashing on ``None.get_deployment``.
     """
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -481,7 +481,7 @@ def test_boundary_fallback_originating_deployment_removed_returns_empty():
     """
     from unittest.mock import MagicMock
 
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -515,10 +515,10 @@ def test_boundary_key_accepts_pydantic_litellm_params_instance():
     fall back to the full pool — which is the exact ``invalid_encrypted_content``
     failure this check exists to prevent.
     """
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
-    from litellm.types.router import LiteLLM_Params
+    from token_iq.gateway.types.router import LiteLLM_Params
 
     pydantic_params = LiteLLM_Params(
         model="azure/gpt-5.3-codex",
@@ -553,7 +553,7 @@ def test_boundary_key_rejects_non_dict_like_inputs():
     Guards against accidentally treating a stray non-dict-like value as a
     valid boundary.
     """
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -615,8 +615,8 @@ async def test_affinity_raises_service_unavailable_when_origin_cooled_for_non_42
     surface this as a 503 (transient, but not rate-limit-specific) rather than
     dispatching to a non-peer deployment.
     """
-    from litellm.exceptions import ServiceUnavailableError
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.exceptions import ServiceUnavailableError
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -676,8 +676,8 @@ async def test_affinity_raises_rate_limit_with_retry_after_when_origin_cooled_fo
     header derived from the cooldown's remaining window, so OpenAI-compatible
     clients respect the backoff instead of giving up on a 503.
     """
-    from litellm.exceptions import RateLimitError
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.exceptions import RateLimitError
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -738,8 +738,8 @@ async def test_affinity_raises_service_unavailable_when_origin_filtered_without_
     with no active cooldown entry. Surface as 503 (we cannot prove the cause
     was rate-limiting) rather than guessing 429.
     """
-    from litellm.exceptions import ServiceUnavailableError
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.exceptions import ServiceUnavailableError
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -784,8 +784,8 @@ async def test_affinity_raises_bad_request_when_origin_removed():
     """
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import BadRequestError
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.exceptions import BadRequestError
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -830,7 +830,7 @@ async def test_affinity_does_not_raise_when_boundary_peer_available():
     """
     from unittest.mock import MagicMock
 
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -871,7 +871,7 @@ async def test_affinity_does_not_raise_when_boundary_peer_available():
 
 @pytest.mark.asyncio
 async def test_model_group_affinity_config_enables_encrypted_content_affinity():
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -917,7 +917,7 @@ async def test_model_group_affinity_config_enables_encrypted_content_affinity():
 
 @pytest.mark.asyncio
 async def test_model_group_affinity_config_does_not_disable_global_encrypted_content_affinity():
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 

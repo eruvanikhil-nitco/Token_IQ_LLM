@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 
 def _make_rate_limit_error(message="Rate limited"):

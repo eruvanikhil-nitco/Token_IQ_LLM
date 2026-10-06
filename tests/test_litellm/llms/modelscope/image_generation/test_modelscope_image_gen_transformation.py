@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.llms.modelscope.image_generation.transformation import (
+from token_iq.gateway.llms.modelscope.image_generation.transformation import (
     ModelScopeImageGenerationConfig,
 )
-from litellm.types.utils import ImageResponse
+from token_iq.gateway.types.utils import ImageResponse
 
 
 class TestModelScopeImageGenerationTransformation:
@@ -106,7 +106,7 @@ class TestModelScopeImageGenerationTransformation:
 
         assert result == "https://custom.modelscope.cn/v1/images/generations"
 
-    @patch("litellm.llms.modelscope.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.modelscope.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         """Test that validate_environment correctly sets authorization header."""
         headers = {}
@@ -125,7 +125,7 @@ class TestModelScopeImageGenerationTransformation:
         assert result["Content-Type"] == "application/json"
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.modelscope.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.modelscope.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_secret_key(self, mock_get_secret):
         """Test that validate_environment uses secret API key when api_key is None."""
         mock_get_secret.return_value = "secret_api_key"
@@ -143,7 +143,7 @@ class TestModelScopeImageGenerationTransformation:
         assert result["Authorization"] == "Bearer secret_api_key"
         mock_get_secret.assert_called_once_with("MODELSCOPE_API_KEY")
 
-    @patch("litellm.llms.modelscope.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.modelscope.image_generation.transformation.get_secret_str")
     def test_validate_environment_no_api_key(self, mock_get_secret):
         """Test that validate_environment raises error when no API key is available."""
         mock_get_secret.return_value = None
@@ -404,7 +404,7 @@ class TestModelScopeImageGenerationTransformation:
 
     def test_get_error_class_bad_request(self):
         """Test that get_error_class returns BadRequestError for 400 status."""
-        from litellm.exceptions import BadRequestError
+        from token_iq.gateway.exceptions import BadRequestError
 
         error = self.config.get_error_class(
             error_message="Bad request",
@@ -416,7 +416,7 @@ class TestModelScopeImageGenerationTransformation:
 
     def test_get_error_class_authentication_error(self):
         """Test that get_error_class returns AuthenticationError for 401 status."""
-        from litellm.exceptions import AuthenticationError
+        from token_iq.gateway.exceptions import AuthenticationError
 
         error = self.config.get_error_class(
             error_message="Invalid API key",
@@ -428,7 +428,7 @@ class TestModelScopeImageGenerationTransformation:
 
     def test_get_error_class_internal_server_error(self):
         """Test that get_error_class returns InternalServerError for 500+ status."""
-        from litellm.exceptions import InternalServerError
+        from token_iq.gateway.exceptions import InternalServerError
 
         error = self.config.get_error_class(
             error_message="Internal server error",
@@ -440,7 +440,7 @@ class TestModelScopeImageGenerationTransformation:
 
     def test_get_error_class_default(self):
         """Test that get_error_class returns BadRequestError for other status codes."""
-        from litellm.exceptions import BadRequestError
+        from token_iq.gateway.exceptions import BadRequestError
 
         error = self.config.get_error_class(
             error_message="Some error",

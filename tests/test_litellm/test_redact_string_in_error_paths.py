@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm._logging import _ENABLE_SECRET_REDACTION, _redact_string
+from token_iq.gateway._logging import _ENABLE_SECRET_REDACTION, _redact_string
 
 
 class TestRedactStringFunction:
@@ -76,7 +76,7 @@ class TestOpenAIRealtimeRedaction:
     async def test_invalid_status_code_redacts_reason(self):
         import websockets.exceptions
 
-        from litellm.llms.openai.realtime.handler import OpenAIRealtime
+        from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
 
         handler = OpenAIRealtime()
         exc = websockets.exceptions.InvalidStatusCode(403, None)
@@ -93,7 +93,7 @@ class TestOpenAIRealtimeRedaction:
 
     @pytest.mark.asyncio
     async def test_generic_exception_redacts_reason(self):
-        from litellm.llms.openai.realtime.handler import OpenAIRealtime
+        from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
 
         handler = OpenAIRealtime()
         secret_error = RuntimeError(
@@ -118,7 +118,7 @@ class TestAzureRealtimeRedaction:
     async def test_invalid_status_code_redacts_reason(self):
         import websockets.exceptions
 
-        from litellm.llms.azure.realtime.handler import AzureOpenAIRealtime
+        from token_iq.gateway.llms.azure.realtime.handler import AzureOpenAIRealtime
 
         handler = AzureOpenAIRealtime()
         mock_ws = AsyncMock()
@@ -204,7 +204,7 @@ class TestRouterFallbackFailureTracebackRedaction:
         so an exc_info=True regression there would degrade to (None, None, None) and
         this test would pass against it.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         router = litellm.Router(
             model_list=[
@@ -222,7 +222,7 @@ class TestRouterFallbackFailureTracebackRedaction:
         secret = "sk-testsecretvalue1234567890abcdef"
 
         with patch(
-            "litellm.router.run_async_fallback",
+            "token_iq.gateway.router.run_async_fallback",
             new=AsyncMock(side_effect=RuntimeError(f"boom api_key={secret}")),
         ):
             try:
@@ -275,7 +275,7 @@ class TestGeminiIngestionHeaders:
 
     @pytest.mark.asyncio
     async def test_create_file_search_store_sends_header(self):
-        from litellm.rag.ingestion.gemini_ingestion import GeminiRAGIngestion
+        from token_iq.gateway.rag.ingestion.gemini_ingestion import GeminiRAGIngestion
 
         ingestion = GeminiRAGIngestion(ingest_options=_make_mock_ingest_options())
 
@@ -286,7 +286,7 @@ class TestGeminiIngestionHeaders:
         mock_client.post.return_value = mock_response
 
         with patch(
-            "litellm.rag.ingestion.gemini_ingestion.get_async_httpx_client",
+            "token_iq.gateway.rag.ingestion.gemini_ingestion.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await ingestion._create_file_search_store(
@@ -302,7 +302,7 @@ class TestGeminiIngestionHeaders:
 
     @pytest.mark.asyncio
     async def test_initiate_resumable_upload_sends_header(self):
-        from litellm.rag.ingestion.gemini_ingestion import GeminiRAGIngestion
+        from token_iq.gateway.rag.ingestion.gemini_ingestion import GeminiRAGIngestion
 
         ingestion = GeminiRAGIngestion(ingest_options=_make_mock_ingest_options())
 
@@ -315,7 +315,7 @@ class TestGeminiIngestionHeaders:
         mock_client.post.return_value = mock_response
 
         with patch(
-            "litellm.rag.ingestion.gemini_ingestion.get_async_httpx_client",
+            "token_iq.gateway.rag.ingestion.gemini_ingestion.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await ingestion._initiate_resumable_upload(

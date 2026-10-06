@@ -13,10 +13,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.litellm_core_utils.prompt_templates.factory import anthropic_messages_pt
+from token_iq import gateway as litellm
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 
@@ -514,7 +514,7 @@ async def test_anthropic_no_content_error():
 
 
 def test_parse_xml_params():
-    from litellm.litellm_core_utils.prompt_templates.factory import parse_xml_params
+    from token_iq.gateway.core_utils.prompt_templates.factory import parse_xml_params
 
     ## SCENARIO 1 ## - W/ ARRAY
     xml_content = """<invoke><tool_name>return_list_of_str</tool_name>\n<parameters>\n<value>\n<item>apple</item>\n<item>banana</item>\n<item>orange</item>\n</value>\n</parameters></invoke>"""
@@ -2139,7 +2139,7 @@ async def test_completion_functions_param():
         }
     ]
     try:
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
         messages = [{"role": "user", "content": "What is the weather like in Boston?"}]
 
@@ -2177,7 +2177,7 @@ def test_completion_azure_extra_headers():
     from httpx import Client
     from openai import AzureOpenAI
 
-    from litellm.llms.custom_httpx.httpx_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.httpx_handler import HTTPHandler
 
     http_client = Client()
 
@@ -2221,7 +2221,7 @@ def test_completion_azure_ad_token():
     # Ishaan will be very disappointed if this test is removed -> this is a standard way to pass api_key + the router + proxy use this
     from httpx import Client
 
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm.set_verbose = True
 
@@ -2634,7 +2634,7 @@ def test_bedrock_deepseek_custom_prompt_dict():
         },
     )
     assert model in litellm.known_tokenizer_config
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -2666,7 +2666,7 @@ def test_bedrock_deepseek_known_tokenizer_config(monkeypatch):
     model = (
         "deepseek_r1/arn:aws:bedrock:us-west-2:888602223428:imported-model/bnnr6463ejgf"
     )
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     from unittest.mock import Mock
     import httpx
 
@@ -3113,7 +3113,7 @@ def test_mistral_anyscale_stream():
 # test_completion_with_fallbacks_multiple_keys()
 def test_petals():
     try:
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
         with patch.object(client, "post") as mock_post:
@@ -3249,7 +3249,7 @@ def test_completion_deep_infra(drop_params):
     mock_raw.status_code = 200
 
     with patch(
-        "litellm.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request",
+        "token_iq.gateway.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request",
         return_value=(mock_raw, mock_response),
     ) as mock_create:
         if drop_params is False:
@@ -3331,7 +3331,7 @@ def test_completion_deep_infra_mistral():
     mock_raw.status_code = 200
 
     with patch(
-        "litellm.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request",
+        "token_iq.gateway.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request",
         return_value=(mock_raw, mock_response),
     ) as mock_create:
         response = completion(
@@ -3920,8 +3920,8 @@ def test_openai_hallucinated_tool_call_util(function_name, expect_modification):
         - get function name from recipient_name value
         - parameters will be JSON object for function arguments
     """
-    from litellm.utils import _handle_invalid_parallel_tool_calls
-    from litellm.types.utils import ChatCompletionMessageToolCall
+    from token_iq.gateway.utils import _handle_invalid_parallel_tool_calls
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall
 
     response = _handle_invalid_parallel_tool_calls(
         tool_calls=[

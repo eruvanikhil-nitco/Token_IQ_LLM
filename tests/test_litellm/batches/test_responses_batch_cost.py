@@ -16,9 +16,9 @@ from typing import Literal, get_args, get_type_hints
 
 import pytest
 
-import litellm
-import litellm.batches.batch_utils as bu
-from litellm.types.llms.openai import CreateBatchRequest
+from token_iq import gateway as litellm
+import token_iq.gateway.batches.batch_utils as bu
+from token_iq.gateway.types.llms.openai import CreateBatchRequest
 
 MODEL = "gpt-5.6"
 

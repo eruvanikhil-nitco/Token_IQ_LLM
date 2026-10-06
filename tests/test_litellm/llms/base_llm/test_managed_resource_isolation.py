@@ -4,12 +4,12 @@ Tests for managed-resource tenant isolation helpers.
 
 import pytest
 
-from litellm.llms.base_llm.managed_resources.isolation import (
+from token_iq.gateway.llms.base_llm.managed_resources.isolation import (
     build_owner_filter,
     can_access_resource,
     resolve_resource_owner_id,
 )
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 
 # ---------------------------------------------------------------------------

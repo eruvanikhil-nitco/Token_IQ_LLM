@@ -11,10 +11,10 @@ from typing import List, Optional
 
 import pytest
 
-from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     VertexGeminiConfig,
 )
-from litellm.types.llms.vertex_ai import HttpxPartType
+from token_iq.gateway.types.llms.vertex_ai import HttpxPartType
 
 
 class TestFunctionCallArgsSerialization:

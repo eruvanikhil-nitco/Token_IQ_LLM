@@ -12,8 +12,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from litellm.caching.dual_cache import DualCache
-from litellm.proxy.db.spend_counter_reseed import SpendCounterReseed
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.proxy.db.spend_counter_reseed import SpendCounterReseed
 
 WINDOW_START = datetime(2026, 8, 1, tzinfo=timezone.utc)
 

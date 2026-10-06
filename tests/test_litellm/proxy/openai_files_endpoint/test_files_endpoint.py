@@ -9,26 +9,26 @@ from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 
 
-import litellm
-from litellm import Router
-from litellm.files.types import FileContentStreamingResult
-from litellm.proxy._types import LiteLLM_UserTableFiltered, UserAPIKeyAuth
-from litellm.proxy.hooks import get_proxy_hook
-from litellm.proxy.management_endpoints.internal_user_endpoints import ui_view_users
-from litellm.proxy.openai_files_endpoints.file_content_streaming_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.files.types import FileContentStreamingResult
+from token_iq.gateway.proxy._types import LiteLLM_UserTableFiltered, UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks import get_proxy_hook
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import ui_view_users
+from token_iq.gateway.proxy.openai_files_endpoints.file_content_streaming_handler import (
     FileContentStreamingHandler,
 )
-from litellm.proxy.proxy_server import app
-from litellm.types.llms.openai import (
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.llms.openai import (
     FileListPage,
     HttpxBinaryResponseContent,
     OpenAIFileObject,
 )
 
 client = TestClient(app)
-from litellm.caching.caching import DualCache
-from litellm.proxy.proxy_server import hash_token
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy.proxy_server import hash_token
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 VALID_BATCH_LINE = (
     b'{"custom_id": "req-1", "method": "POST", "url": "/v1/chat/completions",'
@@ -82,7 +82,7 @@ def setup_proxy_logging_object(monkeypatch, llm_router: Router) -> ProxyLogging:
     )
     proxy_logging_object._add_proxy_hooks(llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_object
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_object
     )
     return proxy_logging_object
 
@@ -258,18 +258,18 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
     """
     Asserts 'create_file' is called with the correct arguments
     """
-    import litellm
-    import litellm.proxy.proxy_server as ps
-    from litellm import Router
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway import Router
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     # Mock create_file as an async function
     mock_create_file = mocker.patch(
-        "litellm.files.main.create_file", new=mocker.AsyncMock()
+        "token_iq.gateway.files.main.create_file", new=mocker.AsyncMock()
     )
 
     proxy_logging_obj = ProxyLogging(
@@ -279,7 +279,7 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
     proxy_logging_obj._add_proxy_hooks(llm_router)
 
     # Add managed_files hook to ensure the test reaches the mocked function
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
 
     class DummyManagedFiles(BaseFileEndpoints):
         async def acreate_file(
@@ -314,7 +314,7 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
                 purpose=purpose_data,
             )
             # Return a dummy response object as needed by the test
-            from litellm.types.llms.openai import OpenAIFileObject
+            from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
             return OpenAIFileObject(
                 id="dummy-id",
@@ -353,9 +353,9 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
     # Manually add the hook to the proxy_hook_mapping
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -419,14 +419,14 @@ def test_create_file_batch_streams_from_upload_spool(monkeypatch, llm_router: Ro
     (Starlette's already-spooled file), not read into an in-memory bytes object, so
     the proxy never buffers the whole payload. Non-batch uploads keep the bytes path.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.openai_files_endpoints import files_endpoints as fe
-    from litellm.types.llms.openai import OpenAIFileObject
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.openai_files_endpoints import files_endpoints as fe
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     captured: dict = {}
@@ -497,12 +497,12 @@ def test_target_storage_invokes_storage_backend(
     """
     Ensure target_storage is parsed and invokes the storage backend service.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -521,7 +521,7 @@ def test_target_storage_invokes_storage_backend(
         )
     )
     mocker.patch(
-        "litellm.proxy.openai_files_endpoints.storage_backend_service.StorageBackendFileService.upload_file_to_storage_backend",
+        "token_iq.gateway.proxy.openai_files_endpoints.storage_backend_service.StorageBackendFileService.upload_file_to_storage_backend",
         new=async_mock,
     )
 
@@ -556,12 +556,12 @@ def test_target_storage_with_target_models(
     """
     Ensure target_storage and target_model_names are parsed and passed through.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -580,7 +580,7 @@ def test_target_storage_with_target_models(
         )
     )
     mocker.patch(
-        "litellm.proxy.openai_files_endpoints.storage_backend_service.StorageBackendFileService.upload_file_to_storage_backend",
+        "token_iq.gateway.proxy.openai_files_endpoints.storage_backend_service.StorageBackendFileService.upload_file_to_storage_backend",
         new=async_mock,
     )
 
@@ -622,9 +622,9 @@ def test_create_file_and_call_chat_completion_e2e(
     mock = respx.mock()
     mock.start()
     try:
-        from litellm.types.llms.openai import OpenAIFileObject
+        from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
         proxy_logging_object = setup_proxy_logging_object(monkeypatch, llm_router)
 
         # Create a simple test file content
@@ -766,13 +766,13 @@ def test_create_file_for_each_model(
     """
     import asyncio
 
-    from litellm import CreateFileRequest
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.openai_files_endpoints.files_endpoints import (
+    from token_iq.gateway import CreateFileRequest
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.openai_files_endpoints.files_endpoints import (
         create_file_for_each_model,
     )
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.llms.openai import OpenAIFileObject, OpenAIFilesPurpose
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject, OpenAIFilesPurpose
 
     # Setup proxy logging
     proxy_logging_obj = ProxyLogging(
@@ -780,7 +780,7 @@ def test_create_file_for_each_model(
     )
     proxy_logging_obj._add_proxy_hooks(llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     # Mock user API key dict
@@ -869,8 +869,8 @@ def test_create_file_with_expires_after(
     """
     Test that expires_after is properly parsed and passed through when creating a file
     """
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import OpenAIFileObject
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -933,9 +933,9 @@ def test_create_file_with_expires_after(
             raise NotImplementedError("Not implemented for test")
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     # Create test file content
@@ -971,9 +971,9 @@ def test_create_file_with_expires_after_missing_anchor(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
     proxy_logging_obj._add_proxy_hooks(llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     test_file_content = b'{"prompt": "Hello", "completion": "Hi"}'
@@ -1008,9 +1008,9 @@ def test_create_file_with_expires_after_missing_seconds(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
     proxy_logging_obj._add_proxy_hooks(llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     test_file_content = b'{"prompt": "Hello", "completion": "Hi"}'
@@ -1041,8 +1041,8 @@ def test_create_file_with_expires_after_valid_values(
     """
     Test that expires_after works with valid anchor and seconds values
     """
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import OpenAIFileObject
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -1104,9 +1104,9 @@ def test_create_file_with_expires_after_valid_values(
             raise NotImplementedError("Not implemented for test")
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     test_file_content = b'{"prompt": "Hello", "completion": "Hi"}'
@@ -1137,8 +1137,8 @@ def test_create_file_without_expires_after(
     """
     Test that file creation works normally without expires_after
     """
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import OpenAIFileObject
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -1200,9 +1200,9 @@ def test_create_file_without_expires_after(
             raise NotImplementedError("Not implemented for test")
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     test_file_content = b'{"prompt": "Hello", "completion": "Hi"}'
@@ -1236,11 +1236,11 @@ def test_managed_files_with_loadbalancing(
     - managed files should take precedence over deprecated loadbalancing
     - managed files internally use llm_router.acreate_file() which provides loadbalancing
     """
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import OpenAIFileObject
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     # Enable loadbalancing on batch endpoints
-    monkeypatch.setattr("litellm.enable_loadbalancing_on_batch_endpoints", True)
+    monkeypatch.setattr("token_iq.gateway.enable_loadbalancing_on_batch_endpoints", True)
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -1304,17 +1304,17 @@ def test_managed_files_with_loadbalancing(
         ):
             raise NotImplementedError("Not implemented for test")
 
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = (
         ManagedFilesWithLoadbalancing()
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     # Override auth to avoid dependence on shared proxy state in parallel CI
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -1366,8 +1366,8 @@ def test_create_file_with_nested_litellm_metadata(
     Regression test for: litellm_metadata[spend_logs_metadata][owner] format should be
     correctly parsed into nested dictionary structure.
     """
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import OpenAIFileObject
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -1430,9 +1430,9 @@ def test_create_file_with_nested_litellm_metadata(
             raise NotImplementedError("Not implemented for test")
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     test_file_content = b'{"prompt": "Hello", "completion": "Hi"}'
@@ -1474,13 +1474,13 @@ def test_create_file_with_deep_nested_litellm_metadata(
 
     Regression test for: litellm_metadata[a][b][c] format should be correctly parsed.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.types.llms.openai import OpenAIFileObject
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
@@ -1542,9 +1542,9 @@ def test_create_file_with_deep_nested_litellm_metadata(
             raise NotImplementedError("Not implemented for test")
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -1592,7 +1592,7 @@ def test_create_file_with_deep_nested_litellm_metadata(
 
 def _make_capturing_managed_files():
     """Create a DummyManagedFiles that captures the expires_after from the request."""
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
 
     captured = {}
 
@@ -1655,16 +1655,16 @@ def _post_file_with_team_metadata(
     form_data: dict,
 ):
     """POST /v1/files with given team_metadata, return captured expires_after."""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
     dummy, captured = _make_capturing_managed_files()
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = dummy
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     user_key = UserAPIKeyAuth(api_key="test-key", team_metadata=team_metadata)
@@ -1759,16 +1759,16 @@ def _post_file_raw(
     monkeypatch, llm_router: Router, team_metadata: dict, form_data: dict
 ):
     """POST /v1/files and return the raw response (no status assertion)."""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
     dummy, _ = _make_capturing_managed_files()
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = dummy
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
     user_key = UserAPIKeyAuth(api_key="test-key", team_metadata=team_metadata)
@@ -1851,12 +1851,12 @@ def test_file_invalid_anchor_returns_500(
 def test_get_file_content_streams_openai_direct_path(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -1876,7 +1876,7 @@ def test_get_file_content_streams_openai_direct_path(
 
     monkeypatch.setattr(litellm, "afile_content", _mock_afile_content)
     monkeypatch.setattr(
-        "litellm.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
+        "token_iq.gateway.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
         lambda **kwargs: (False, None, None, None),
     )
 
@@ -1908,12 +1908,12 @@ def test_get_file_content_streams_openai_direct_path(
 def test_get_file_content_routed_provider_skips_streaming_when_resolved_provider_is_not_supported(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -1941,7 +1941,7 @@ def test_get_file_content_routed_provider_skips_streaming_when_resolved_provider
         mock_streaming_response,
     )
     monkeypatch.setattr(
-        "litellm.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
+        "token_iq.gateway.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
         lambda **kwargs: (
             True,
             "azure-gpt-3-5-turbo",
@@ -1982,12 +1982,12 @@ def test_get_file_content_routed_provider_skips_streaming_when_resolved_provider
 def test_get_file_content_non_openai_provider_skips_streaming_handler(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
     captured_kwargs = {}
@@ -2014,7 +2014,7 @@ def test_get_file_content_non_openai_provider_skips_streaming_handler(
         mock_streaming_response,
     )
     monkeypatch.setattr(
-        "litellm.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
+        "token_iq.gateway.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
         lambda **kwargs: (False, None, None, None),
     )
 
@@ -2046,16 +2046,16 @@ def test_get_file_content_non_openai_provider_skips_streaming_handler(
 def test_require_managed_files_rejects_missing_target_model_names(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
-    mock_acreate_file = mocker.patch("litellm.acreate_file", new=mocker.AsyncMock())
+    mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
@@ -2070,7 +2070,7 @@ def test_require_managed_files_rejects_missing_target_model_names(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 400, response.text
     error_message = response.json()["error"]["message"]
@@ -2082,14 +2082,14 @@ def test_require_managed_files_rejects_missing_target_model_names(
 def test_require_managed_files_allows_managed_file_upload(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
 
@@ -2138,7 +2138,7 @@ def test_require_managed_files_allows_managed_file_upload(
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
 
-    mock_acreate_file = mocker.patch("litellm.acreate_file", new=mocker.AsyncMock())
+    mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
@@ -2156,7 +2156,7 @@ def test_require_managed_files_allows_managed_file_upload(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 200, response.text
     assert response.json()["id"] == "litellm_managed_file_abc123"
@@ -2171,16 +2171,16 @@ def test_require_managed_files_rejects_model_param_bypass(
     route_create_file would otherwise take the model branch and call
     litellm.acreate_file directly instead of the managed-files hook.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
-    mock_acreate_file = mocker.patch("litellm.acreate_file", new=mocker.AsyncMock())
+    mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
@@ -2199,7 +2199,7 @@ def test_require_managed_files_rejects_model_param_bypass(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 400, response.text
     error_message = response.json()["error"]["message"]
@@ -2213,14 +2213,14 @@ def test_require_managed_files_accepts_target_model_names_bracket_form(
     """
     OpenAI SDK sends list extra_body as target_model_names[] in multipart form.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
 
@@ -2286,7 +2286,7 @@ def test_require_managed_files_accepts_target_model_names_bracket_form(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 200, response.text
     assert response.json()["id"] == "litellm_managed_file_bracket"
@@ -2299,14 +2299,14 @@ def test_require_managed_files_accepts_repeated_target_model_names_bracket_form(
     The OpenAI SDK serialises a list extra_body as repeated target_model_names[]
     fields. dict(form_data) keeps only the last one, so every value must survive.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
 
@@ -2374,7 +2374,7 @@ def test_require_managed_files_accepts_repeated_target_model_names_bracket_form(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 200, response.text
     assert response.json()["id"] == "litellm_managed_file_repeated"
@@ -2390,8 +2390,8 @@ def test_list_files_resolves_wildcard_deployment_credentials(
     through llm_router.afile_list(model=...), which reached OpenAI without an
     api_key and failed with "api_key client option must be set".
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     wildcard_router = Router(
         model_list=[
@@ -2406,9 +2406,9 @@ def test_list_files_resolves_wildcard_deployment_credentials(
     )
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, wildcard_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", wildcard_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", wildcard_router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -2444,13 +2444,13 @@ def test_list_files_resolves_wildcard_deployment_credentials(
 def test_list_files_model_routing_does_not_forward_custom_llm_provider_twice(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -2462,7 +2462,7 @@ def test_list_files_model_routing_does_not_forward_custom_llm_provider_twice(
 
     monkeypatch.setattr(litellm, "afile_list", _mock_afile_list)
     monkeypatch.setattr(
-        "litellm.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
+        "token_iq.gateway.proxy.openai_files_endpoints.files_endpoints.handle_model_based_routing",
         lambda **kwargs: (
             True,
             "azure-gpt-4o",
@@ -2502,8 +2502,8 @@ def test_list_files_without_target_model_names_uses_team_openai_deployment(
     api_key from the team's openai deployment instead of falling through to a
     keyless OpenAI client. Regression for "api_key client option must be set".
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     wildcard_router = Router(
         model_list=[
@@ -2518,9 +2518,9 @@ def test_list_files_without_target_model_names_uses_team_openai_deployment(
     )
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, wildcard_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", wildcard_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", wildcard_router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -2558,9 +2558,9 @@ def test_list_files_without_target_model_names_uses_team_openai_deployment(
 def test_unscoped_list_files_uses_managed_file_store(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     managed_file = OpenAIFileObject(
         id="unified-file-id",
@@ -2587,9 +2587,9 @@ def test_unscoped_list_files_uses_managed_file_store(
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=None)
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     provider_list = mocker.patch.object(litellm, "afile_list", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -2619,9 +2619,9 @@ def test_unscoped_list_files_uses_managed_file_store(
 def test_unscoped_list_files_forwards_limit_and_after_to_the_managed_file_store(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     second_page_file = OpenAIFileObject(
         id="unified-file-id-2",
@@ -2648,9 +2648,9 @@ def test_unscoped_list_files_forwards_limit_and_after_to_the_managed_file_store(
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=None)
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     provider_list = mocker.patch.object(litellm, "afile_list", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -2680,9 +2680,9 @@ def test_unscoped_list_files_forwards_limit_and_after_to_the_managed_file_store(
 
 def _setup_unscoped_list_files_route(mocker, monkeypatch, llm_router: Router, afile_list):
     """Wire GET /v1/files to the managed file store, with afile_list as the store."""
-    import litellm.proxy.proxy_server as ps
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     managed_files = mocker.MagicMock(spec=BaseFileEndpoints)
@@ -2691,9 +2691,9 @@ def _setup_unscoped_list_files_route(mocker, monkeypatch, llm_router: Router, af
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=None)
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     mocker.patch.object(litellm, "afile_list", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -2708,7 +2708,7 @@ def _get_list_files(path: str):
     try:
         return client.get(path, headers={"Authorization": "Bearer test-key"})
     finally:
-        import litellm.proxy.proxy_server as ps
+        import token_iq.gateway.proxy.proxy_server as ps
 
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -2728,7 +2728,7 @@ _EMPTY_FILE_LIST_PAGE: Final = {
 
 async def _validating_afile_list(**kwargs):
     """Stand in for the managed file store, applying the real request validation."""
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         validate_file_list_limit,
         validate_file_list_purpose,
     )
@@ -2813,7 +2813,7 @@ def test_list_files_validates_the_limit_on_every_branch(
 def test_unscoped_list_files_returns_400_for_an_unknown_after_cursor(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    from litellm.proxy._types import ProxyException
+    from token_iq.gateway.proxy._types import ProxyException
 
     async def _unknown_cursor(**kwargs):
         raise ProxyException(
@@ -2857,7 +2857,7 @@ def test_unscoped_list_files_hands_post_call_hooks_a_page_object(
     """Logging callbacks read ``response.data`` off a listing, so the managed
     branch has to hand them the same page shape the provider branch does. A bare
     mapping turns every registered callback into a 500 on this route."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     seen_by_callback: list[list[str]] = []
 
@@ -2960,8 +2960,8 @@ def test_list_files_restricted_team_does_not_leak_global_openai_credentials(
     openai deployment's api_key for plain GET /v1/files. Regression for the
     last-resort scan that ignored team access control.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = Router(
         model_list=[
@@ -2983,9 +2983,9 @@ def test_list_files_restricted_team_does_not_leak_global_openai_credentials(
     )
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -3025,8 +3025,8 @@ def test_list_files_prefers_team_byok_over_global_openai_deployment(
     When a team has its own BYOK openai deployment (model_info.team_id set), plain
     GET /v1/files must use the team's key, not a shared/global openai deployment.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = Router(
         model_list=[
@@ -3053,9 +3053,9 @@ def test_list_files_prefers_team_byok_over_global_openai_deployment(
     )
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -3097,8 +3097,8 @@ def test_list_files_with_all_proxy_models_team_uses_openai_deployment(
     Teams with all-proxy-models (or empty models) must still resolve openai
     credentials for plain GET /v1/files.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles, SpecialModelNames
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles, SpecialModelNames
 
     wildcard_router = Router(
         model_list=[
@@ -3120,9 +3120,9 @@ def test_list_files_with_all_proxy_models_team_uses_openai_deployment(
     )
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, wildcard_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", wildcard_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", wildcard_router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -3158,7 +3158,7 @@ def test_list_files_with_all_proxy_models_team_uses_openai_deployment(
 
 
 def _setup_vertex_named_credential_router(monkeypatch) -> Router:
-    from litellm.types.utils import CredentialItem
+    from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
         litellm,
@@ -3205,14 +3205,14 @@ def test_create_file_provider_only_resolves_named_vertex_credentials(
     the upstream call instead of falling through to google.auth.default(),
     which uploads into the hosting environment's GCP project.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -3259,14 +3259,14 @@ def test_create_file_provider_only_resolves_named_vertex_credentials(
 def test_get_file_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -3312,14 +3312,14 @@ def test_get_file_provider_only_resolves_named_vertex_credentials(
 def test_get_file_content_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -3364,14 +3364,14 @@ def test_get_file_content_provider_only_resolves_named_vertex_credentials(
 def test_delete_file_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -3423,8 +3423,8 @@ def test_create_file_provider_only_skips_other_team_vertex_deployment(
     team must use the global deployment's credentials, never the other
     team's.
     """
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     router = Router(
         model_list=[
@@ -3450,9 +3450,9 @@ def test_create_file_provider_only_skips_other_team_vertex_deployment(
         ]
     )
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
 
@@ -3527,13 +3527,13 @@ def _team_openai_plus_global_anthropic_router() -> Router:
 def _list_files_captured_kwargs(
     mocker: MockerFixture, monkeypatch, router: Router, key_models: list
 ) -> dict:
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=[])
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
@@ -3614,13 +3614,13 @@ def test_require_managed_files_rejects_raw_provider_file_id(
     url: str,
     patched_litellm_call: str,
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     mock_call = mocker.patch(patched_litellm_call, new=mocker.AsyncMock())
@@ -3635,7 +3635,7 @@ def test_require_managed_files_rejects_raw_provider_file_id(
         )
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
-        monkeypatch.setattr("litellm.require_managed_files", False)
+        monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     assert response.status_code == 400, response.text
     mock_call.assert_not_called()
@@ -3653,9 +3653,9 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
     import base64
     from types import MappingProxyType
 
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.types.utils import SpecialEnums
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.types.utils import SpecialEnums
 
     router = Router(
         model_list=[
@@ -3681,10 +3681,10 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
     prisma_stub = MagicMock()
     prisma_stub.db.litellm_managedfiletable.find_first = AsyncMock(return_value=managed_file_row)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma_stub)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_stub)
     setup_proxy_logging_object(monkeypatch, router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
 
     # One frozen snapshot per call rather than one dict merged across calls, so a second
     # invocation is visible instead of silently overwriting the first.
@@ -3737,7 +3737,7 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
 def _unified_managed_file_id() -> str:
     import base64
 
-    from litellm.types.utils import SpecialEnums
+    from token_iq.gateway.types.utils import SpecialEnums
 
     unified_id = SpecialEnums.LITELLM_MANAGED_FILE_COMPLETE_STR.value.format(
         "application/json", "victim-unified-id", "gpt-3.5-turbo", "file-victim-abc123", "gpt-3.5-turbo-id"
@@ -3763,11 +3763,11 @@ class _ManagedResourceAccessCheckerStub:
 
 @pytest.mark.asyncio
 async def test_require_managed_files_allows_owned_unified_managed_file_id(monkeypatch):
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         validate_managed_id_requirement,
     )
 
-    monkeypatch.setattr("litellm.require_managed_files", True)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
 
     await validate_managed_id_requirement(
         resource_id=_unified_managed_file_id(),
@@ -3779,11 +3779,11 @@ async def test_require_managed_files_allows_owned_unified_managed_file_id(monkey
 
 @pytest.mark.asyncio
 async def test_managed_file_id_requirement_is_opt_in(monkeypatch):
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         validate_managed_id_requirement,
     )
 
-    monkeypatch.setattr("litellm.require_managed_files", False)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
 
     await validate_managed_id_requirement(
         resource_id="file-victim-abc123",
@@ -3796,17 +3796,17 @@ async def test_managed_file_id_requirement_is_opt_in(monkeypatch):
 def test_raw_provider_file_id_retrieve_allowed_when_managed_files_not_required(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
-    monkeypatch.setattr("litellm.require_managed_files", False)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     mock_retrieve = mocker.patch(
-        "litellm.afile_retrieve",
+        "token_iq.gateway.afile_retrieve",
         new=mocker.AsyncMock(
             return_value=OpenAIFileObject(
                 id="file-victim-abc123",
@@ -3836,13 +3836,13 @@ def test_raw_provider_file_id_retrieve_allowed_when_managed_files_not_required(
 
 
 def _setup_batch_upload_endpoint(monkeypatch, llm_router: Router) -> list:
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.openai_files_endpoints import files_endpoints as fe
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.openai_files_endpoints import files_endpoints as fe
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     forwarded_calls: list = []
@@ -3867,7 +3867,7 @@ def _setup_batch_upload_endpoint(monkeypatch, llm_router: Router) -> list:
 
 
 def _teardown_batch_upload_endpoint():
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -3875,7 +3875,7 @@ def _teardown_batch_upload_endpoint():
 def test_create_file_batch_over_max_batch_file_size_mb_rejected_before_forwarding(
     monkeypatch, llm_router: Router
 ):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     forwarded_calls = _setup_batch_upload_endpoint(monkeypatch, llm_router)
     monkeypatch.setitem(ps.general_settings, "max_batch_file_size_mb", 1)
@@ -3901,7 +3901,7 @@ def test_create_file_batch_over_max_batch_file_size_mb_rejected_before_forwardin
 
 
 def test_create_file_batch_under_max_batch_file_size_mb_forwards(monkeypatch, llm_router: Router):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     forwarded_calls = _setup_batch_upload_endpoint(monkeypatch, llm_router)
     monkeypatch.setitem(ps.general_settings, "max_batch_file_size_mb", 1)
@@ -4042,12 +4042,12 @@ def test_batch_upload_runs_guardrails_on_each_record(
     monkeypatch, llm_router: Router, content, purpose, expected_status, expected_fragment
 ):
     """POST /v1/files with purpose=batch must reach the guardrail chain; other purposes must not."""
-    import litellm
-    import litellm.proxy.openai_files_endpoints.files_endpoints as fe
-    import litellm.proxy.proxy_server as ps
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -4056,9 +4056,9 @@ def test_batch_upload_runs_guardrails_on_each_record(
                     message["content"] = "***"
             return data
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr(litellm, "callbacks", [_Redactor(guardrail_name="g", default_on=True)])
     ProxyLogging._callback_capabilities_cache.clear()
@@ -4093,12 +4093,12 @@ def test_batch_upload_redacts_per_record(monkeypatch, llm_router: Router):
     expected_custom_ids = ["keep-1", "dirty", "keep-2"]
     import json as _json
 
-    import litellm
-    import litellm.proxy.openai_files_endpoints.files_endpoints as fe
-    import litellm.proxy.proxy_server as ps
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -4107,9 +4107,9 @@ def test_batch_upload_redacts_per_record(monkeypatch, llm_router: Router):
                     message["content"] = message["content"].replace("leak", "***")
             return data
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr(litellm, "callbacks", [_Redactor(guardrail_name="g", default_on=True)])
     ProxyLogging._callback_capabilities_cache.clear()
@@ -4199,9 +4199,9 @@ def test_create_file_omits_batch_guardrail_field_when_no_guardrail_configured(mo
 
 def test_create_file_omits_batch_guardrail_field_when_guardrail_made_no_changes(monkeypatch, llm_router: Router):
     """A guardrail that runs and changes nothing leaves the response the plain OpenAI file shape."""
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Passthrough(CustomGuardrail):
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -4230,13 +4230,13 @@ def test_batch_upload_closes_the_spools_it_opened(monkeypatch, llm_router: Route
     """The scan and the rewrite each open a spool; the request owns both and must not leak them."""
     import json as _json
 
-    import litellm
-    import litellm.proxy.openai_files_endpoints.batch_guardrails as bg
-    import litellm.proxy.openai_files_endpoints.files_endpoints as fe
-    import litellm.proxy.proxy_server as ps
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails as bg
+    import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -4245,9 +4245,9 @@ def test_batch_upload_closes_the_spools_it_opened(monkeypatch, llm_router: Route
                     message["content"] = message["content"].replace("leak", "***")
             return data
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr(litellm, "callbacks", [_Redactor(guardrail_name="g", default_on=True)])
     ProxyLogging._callback_capabilities_cache.clear()
@@ -4367,8 +4367,8 @@ def _setup_unscoped_list_files_route_over_real_hook(
     """Wire GET /v1/files to a real managed-files hook over `rows`, with no provider
     credentials in the process. The neighbouring setup stubs the hook with a
     MagicMock, so it cannot see anything past the route's argument plumbing."""
-    import litellm.proxy.proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    import token_iq.gateway.proxy.proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
     from litellm_enterprise.proxy.hooks.managed_files import (
         _PROXY_LiteLLMManagedFiles,
     )
@@ -4388,9 +4388,9 @@ def _setup_unscoped_list_files_route_over_real_hook(
     proxy_logging_obj.update_request_status = mocker.AsyncMock()
     proxy_logging_obj.post_call_success_hook = mocker.AsyncMock(return_value=None)
     proxy_logging_obj.post_call_failure_hook = mocker.AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
 
     provider_list = mocker.patch.object(litellm, "afile_list", new=mocker.AsyncMock())
 
@@ -4489,10 +4489,10 @@ def _post_user_data_file() -> httpx.Response:
 
 def _setup_create_file_over_pre_call_hook(monkeypatch, llm_router, hook):
     setup_proxy_logging_object(monkeypatch, llm_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(litellm, "callbacks", [hook])
     monkeypatch.setattr(
-        "litellm.proxy.openai_files_endpoints.files_endpoints.files_config",
+        "token_iq.gateway.proxy.openai_files_endpoints.files_endpoints.files_config",
         [{"custom_llm_provider": "openai", "api_key": "sk-test"}],
     )
     return respx.post("https://api.openai.com/v1/files").mock(
@@ -4515,7 +4515,7 @@ def _setup_create_file_over_pre_call_hook(monkeypatch, llm_router, hook):
 def test_create_file_triggers_async_pre_call_hook(monkeypatch, llm_router: Router):
     """`POST /v1/files` must run `async_pre_call_hook` so a hook can inspect the upload
     before it reaches the provider (LIT-5916)."""
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     recorded: dict = {}
 
@@ -4542,7 +4542,7 @@ def test_create_file_triggers_async_pre_call_hook(monkeypatch, llm_router: Route
 @respx.mock
 def test_create_file_async_pre_call_hook_rejection_blocks_upload(monkeypatch, llm_router: Router):
     """A hook rejecting the upload must 400 before the file reaches the provider."""
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class RejectingHook(CustomLogger):
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -4559,7 +4559,7 @@ def test_create_file_async_pre_call_hook_rejection_blocks_upload(monkeypatch, ll
 
 def test_create_file_non_batch_over_max_file_size_mb_rejected_before_forwarding(monkeypatch, llm_router: Router):
     """max_file_size_mb applies to every purpose, unlike the batch-only max_batch_file_size_mb."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     forwarded_calls = _setup_batch_upload_endpoint(monkeypatch, llm_router)
     monkeypatch.setitem(ps.general_settings, "max_file_size_mb", 1)
@@ -4585,7 +4585,7 @@ def test_create_file_non_batch_over_max_file_size_mb_rejected_before_forwarding(
 
 
 def test_create_file_non_batch_under_max_file_size_mb_forwards(monkeypatch, llm_router: Router):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     forwarded_calls = _setup_batch_upload_endpoint(monkeypatch, llm_router)
     monkeypatch.setitem(ps.general_settings, "max_file_size_mb", 1)
@@ -4605,7 +4605,7 @@ def test_create_file_non_batch_under_max_file_size_mb_forwards(monkeypatch, llm_
 
 
 def test_create_file_blocked_extension_rejected_before_forwarding(monkeypatch, llm_router: Router):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     forwarded_calls = _setup_batch_upload_endpoint(monkeypatch, llm_router)
     monkeypatch.setitem(ps.general_settings, "blocked_file_extensions", [".exe", ".sh"])

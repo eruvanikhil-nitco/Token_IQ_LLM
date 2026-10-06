@@ -4,21 +4,21 @@ import asyncio
 from typing import Optional, cast
 from unittest.mock import patch, AsyncMock
 import httpx
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 import time
 import json
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponseAPIUsage,
     IncompleteDetails,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from base_responses_api import BaseResponsesAPITest, validate_responses_api_response
 
 
@@ -649,7 +649,7 @@ async def test_openai_responses_litellm_router_no_metadata():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -747,7 +747,7 @@ async def test_openai_responses_litellm_router_with_metadata():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -830,7 +830,7 @@ async def test_openai_responses_litellm_router_with_prompt():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(mock_response, 200)
@@ -947,7 +947,7 @@ async def test_openai_o1_pro_response_api(sync_mode):
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -1044,7 +1044,7 @@ async def test_openai_o1_pro_response_api_streaming(sync_mode):
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -1057,7 +1057,7 @@ async def test_openai_o1_pro_response_api_streaming(sync_mode):
         if sync_mode:
             # For sync mode, we need to patch the sync HTTP handler
             with patch(
-                "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
                 return_value=MockResponse(mock_response, 200),
             ) as mock_sync_post:
                 response = litellm.responses(
@@ -1165,7 +1165,7 @@ def test_basic_computer_use_preview_tool_call():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=MockResponse(mock_response, 200),
     ) as mock_post:
         litellm._turn_on_debug()
@@ -1470,7 +1470,7 @@ async def test_aresponses_service_tier_and_safety_identifier():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -1567,7 +1567,7 @@ async def test_openai_gpt5_reasoning_effort_parameter():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -1654,8 +1654,8 @@ async def test_openai_responses_api_token_limit_error():
 async def test_openai_streaming_logging():
     """Test that OpenAI Responses API streaming logging is working correctly."""
     litellm._turn_on_debug()
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.types.utils import Usage
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.types.utils import Usage
 
     class TestCustomLogger(CustomLogger):
         validate_usage = False
@@ -1745,7 +1745,7 @@ def extra_body_mock_response_data():
 async def test_aresponses_extra_body_params_passed(extra_body_mock_response_data):
     """Test that extra_body parameters are passed in async mode."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(extra_body_mock_response_data, 200)
@@ -1779,7 +1779,7 @@ async def test_aresponses_extra_body_params_passed(extra_body_mock_response_data
 def test_responses_extra_body_params_passed_sync(extra_body_mock_response_data):
     """Test that extra_body parameters are passed in sync mode."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=MockResponse(extra_body_mock_response_data, 200),
     ) as mock_post:
         response = litellm.responses(
@@ -1808,7 +1808,7 @@ def test_responses_extra_body_params_passed_sync(extra_body_mock_response_data):
 async def test_extra_body_merges_with_request_data(extra_body_mock_response_data):
     """Test that extra_body is merged into the request data."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(extra_body_mock_response_data, 200)

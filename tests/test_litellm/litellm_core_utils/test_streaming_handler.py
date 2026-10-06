@@ -8,17 +8,17 @@ import asyncio
 import traceback
 from typing import Optional
 
-import litellm
-from litellm import verbose_logger
-from litellm._logging import session_id_var, trace_id_var
-from litellm.litellm_core_utils.litellm_logging import Logging
-from litellm.litellm_core_utils.streaming_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway import verbose_logger
+from token_iq.gateway._logging import session_id_var, trace_id_var
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.core_utils.streaming_handler import (
     AUDIO_ATTRIBUTE,
     CustomStreamWrapper,
     _ProviderChunkEarlyReturn,
     _ProviderChunkParsed,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     Delta,
     ModelResponse,
@@ -28,7 +28,7 @@ from litellm.types.utils import (
     StreamingChoices,
     Usage,
 )
-from litellm.utils import ModelResponseListIterator
+from token_iq.gateway.utils import ModelResponseListIterator
 
 
 @pytest.fixture
@@ -509,7 +509,7 @@ async def test_streaming_handler_with_usage(
 async def test_streaming_with_usage_and_logging(sync_mode: bool):
     import time
 
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MockCallback(CustomLogger):
         pass
@@ -733,7 +733,7 @@ def test_set_response_id_propagation_valid_to_invalid(
 @pytest.mark.asyncio
 async def test_streaming_completion_start_time(logging_obj: Logging):
     """Test that the start time is set correctly"""
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MockCallback(CustomLogger):
         pass
@@ -766,7 +766,7 @@ async def test_streaming_completion_start_time(logging_obj: Logging):
 @pytest.mark.asyncio
 async def test_vertex_streaming_bad_request_not_midstream(logging_obj: Logging):
     """Ensure Vertex bad request errors surface as 400, not mid-stream fallbacks."""
-    from litellm.llms.vertex_ai.common_utils import VertexAIError
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
     async def _raise_bad_request(**kwargs):
         raise VertexAIError(
@@ -796,8 +796,8 @@ async def test_vertex_streaming_rate_limit_triggers_midstream_fallback(
 
     Regression test for https://github.com/BerriAI/litellm/issues/20870
     """
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.llms.vertex_ai.common_utils import VertexAIError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
     async def _raise_rate_limit(**kwargs):
         raise VertexAIError(
@@ -826,8 +826,8 @@ def test_sync_streaming_rate_limit_triggers_midstream_fallback(logging_obj: Logg
     this fix, __next__ would raise RateLimitError directly, bypassing the
     Router's fallback chain entirely.
     """
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.llms.vertex_ai.common_utils import VertexAIError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
     def _raise_rate_limit(**kwargs):
         raise VertexAIError(
@@ -854,7 +854,7 @@ def test_sync_streaming_bad_request_not_midstream(logging_obj: Logging):
 
     Non-retriable 4xx errors should surface immediately to the caller.
     """
-    from litellm.llms.vertex_ai.common_utils import VertexAIError
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
     def _raise_bad_request(**kwargs):
         raise VertexAIError(
@@ -906,8 +906,8 @@ async def test_bedrock_midstream_internal_server_error_wraps_for_fallback(
     Calls the real AWSEventStreamDecoder, so reverting the decoder status fix
     makes the decoder raise BedrockError(400) and the gate raises BadRequestError
     directly -> this test fails without the fix."""
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
     decoder = AWSEventStreamDecoder(model="anthropic.claude-3-sonnet-20240229-v1:0")
 
@@ -936,8 +936,8 @@ async def test_bedrock_midstream_internal_server_error_wraps_for_fallback(
 async def test_bedrock_5xx_wraps_for_midstream_fallback(logging_obj: Logging):
     """Gate contract: a Bedrock 5xx (here 503 serviceUnavailableException) wraps
     into MidStreamFallbackError so the Router can run streaming fallback."""
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.llms.bedrock.chat.invoke_handler import BedrockError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import BedrockError
 
     async def _raise_503(**kwargs):
         raise BedrockError(
@@ -961,8 +961,8 @@ async def test_bedrock_5xx_wraps_for_midstream_fallback(logging_obj: Logging):
 async def test_bedrock_validation_error_raises_directly(logging_obj: Logging):
     """Gate contract: a Bedrock validationException (400) is a client error and
     must surface directly, never wrapped into MidStreamFallbackError."""
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.llms.bedrock.chat.invoke_handler import BedrockError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import BedrockError
 
     async def _raise_400(**kwargs):
         raise BedrockError(
@@ -988,7 +988,7 @@ def _hosted_vllm_stream_wrapper(logging_obj: Logging, error_payload: dict) -> Cu
     """A CustomStreamWrapper over the real OpenAI-compatible line iterator,
     fed an HTTP 200 SSE body that carries an in-body error payload the way
     vLLM/sglang emit it."""
-    from litellm.llms.openai.chat.gpt_transformation import (
+    from token_iq.gateway.llms.openai.chat.gpt_transformation import (
         OpenAIChatCompletionStreamingHandler,
     )
 
@@ -1013,7 +1013,7 @@ async def test_in_body_stream_error_400_raises_bad_request(logging_obj: Logging)
     error returned inside a 200 SSE body must surface as BadRequestError with
     the provider's message, not be parsed as an empty chunk that silently
     ends the stream (and never as an internal MidStreamFallbackError)."""
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     response = _hosted_vllm_stream_wrapper(
         logging_obj,
@@ -1042,7 +1042,7 @@ async def test_in_body_stream_error_500_wraps_for_midstream_fallback(
 ):
     """An in-body 5xx error wraps into MidStreamFallbackError so the Router's
     FallbackStreamWrapper can switch to a configured fallback deployment."""
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     response = _hosted_vllm_stream_wrapper(
         logging_obj,
@@ -1077,7 +1077,7 @@ async def test_async_streaming_read_timeout_triggers_midstream_fallback(
     """
     import httpx
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     async def _raise_read_timeout(**kwargs):
         raise httpx.ReadTimeout("Timeout on reading data from socket")
@@ -1392,7 +1392,7 @@ def test_has_any_special_delta_attributes(
 
 
 def test_calculate_total_usage_with_cost():
-    from litellm.litellm_core_utils.streaming_handler import calculate_total_usage
+    from token_iq.gateway.core_utils.streaming_handler import calculate_total_usage
 
     chunk1_usage = Usage(completion_tokens=1, prompt_tokens=10, total_tokens=11)
     chunk1 = ModelResponseStream(
@@ -1429,7 +1429,7 @@ def test_calculate_total_usage_with_cost():
 def test_calculate_total_usage_with_dict_usage_cost():
     """Regression: dict-shaped `usage` with a `cost` key must still surface
     provider cost even though `hasattr` on a dict does not consult its keys."""
-    from litellm.litellm_core_utils.streaming_handler import calculate_total_usage
+    from token_iq.gateway.core_utils.streaming_handler import calculate_total_usage
 
     chunk = {
         "usage": {
@@ -1450,7 +1450,7 @@ def test_calculate_total_usage_with_dict_usage_cost():
 def test_calculate_total_usage_preserves_prompt_cache_token_details():
     """Regression for #34801: dropping `prompt_tokens_details` here re-prices OpenAI
     cache-read tokens at the uncached input rate, overstating spend."""
-    from litellm.litellm_core_utils.streaming_handler import calculate_total_usage
+    from token_iq.gateway.core_utils.streaming_handler import calculate_total_usage
 
     usage_with_details = Usage(
         prompt_tokens=6017,
@@ -1494,8 +1494,8 @@ def test_calculate_total_usage_preserves_anthropic_cache_creation_ttl_breakdown(
     """Anthropic sends the 5m/1h cache-write split only on `message_start`; the later
     `message_delta` repeats the flat count without the split. Losing it here bills 1h
     cache writes at the cheaper 5m rate."""
-    from litellm.litellm_core_utils.streaming_handler import calculate_total_usage
-    from litellm.types.utils import CacheCreationTokenDetails
+    from token_iq.gateway.core_utils.streaming_handler import calculate_total_usage
+    from token_iq.gateway.types.utils import CacheCreationTokenDetails
 
     message_start_chunk = ModelResponseStream(
         id="chatcmpl-1",
@@ -1546,7 +1546,7 @@ def test_calculate_total_usage_preserves_anthropic_cache_creation_ttl_breakdown(
 
 @pytest.mark.asyncio
 async def test_openrouter_streaming_cost_after_finish_reason(logging_obj: Logging):
-    from litellm.utils import ModelResponseListIterator
+    from token_iq.gateway.utils import ModelResponseListIterator
 
     chunk1 = ModelResponseStream(
         id="chatcmpl-or",
@@ -1611,8 +1611,8 @@ async def test_openrouter_streaming_usage_only_chunk_without_stream_options():
     """
     import time
 
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.utils import ModelResponseListIterator
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.utils import ModelResponseListIterator
 
     chunk1 = ModelResponseStream(
         id="chatcmpl-or",
@@ -1706,7 +1706,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
     _hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"]
     on the complete streaming response, so litellm's cost calculator uses it.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     chunk1 = ModelResponseStream(
         id="chatcmpl-or",
@@ -1762,7 +1762,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
     )
 
     # Verify the cost calculator would pick this up
-    from litellm.cost_calculator import get_response_cost_from_hidden_params
+    from token_iq.gateway.cost_calculator import get_response_cost_from_hidden_params
 
     provider_cost = get_response_cost_from_hidden_params(
         complete_response._hidden_params
@@ -1771,8 +1771,8 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
 
 
 def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():
-    import litellm
-    from litellm.cost_calculator import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
     )
@@ -1840,8 +1840,8 @@ def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():
 
 
 def test_openai_compatible_streaming_cost_is_priced_from_the_cost_map():
-    import litellm
-    from litellm.cost_calculator import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
     )
@@ -1877,8 +1877,8 @@ def test_openai_compatible_streaming_cost_is_priced_from_the_cost_map():
 
 
 def test_xai_streaming_reported_cost_still_takes_the_margin(monkeypatch):
-    import litellm
-    from litellm.cost_calculator import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
     )
@@ -3162,7 +3162,7 @@ def test_gemini_legacy_vertex_stop_finish_reason_normalised():
     # Ensure the chunk is not treated as a ModelResponseStream
     mock_chunk.__class__ = type("FakeProtoChunk", (), {})
 
-    with patch("litellm.litellm_core_utils.streaming_handler.proto", create=True):
+    with patch("token_iq.gateway.core_utils.streaming_handler.proto", create=True):
         wrapper.chunk_creator(chunk=mock_chunk)
 
     assert wrapper.received_finish_reason == "stop", (
@@ -3193,7 +3193,7 @@ def test_gemini_legacy_vertex_tool_calls_finish_reason_with_stop_enum():
     mock_chunk.candidates = [mock_candidate]
     mock_chunk.__class__ = type("FakeProtoChunk", (), {})
 
-    with patch("litellm.litellm_core_utils.streaming_handler.proto", create=True):
+    with patch("token_iq.gateway.core_utils.streaming_handler.proto", create=True):
         wrapper.chunk_creator(chunk=mock_chunk)
 
     # Signal that tool_calls were present in the stream
@@ -3339,7 +3339,7 @@ def test_chunk_creator_tool_calls_not_dropped_on_finish(
     be silently dropped — tool_calls counts as content so the chunk is passed through
     (with finish_reason stripped) rather than returning None.
     """
-    from litellm.types.utils import ChatCompletionDeltaToolCall, Function
+    from token_iq.gateway.types.utils import ChatCompletionDeltaToolCall, Function
 
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
     litellm._custom_providers.append("my-custom-provider")
@@ -3666,7 +3666,7 @@ async def test_stream_chunk_builder_raise_and_usage_recovery_failure_does_not_cr
     """If end-of-stream assembly raises AND best-effort usage recovery from the raw
     chunks also fails, the stream must still complete cleanly rather than propagate
     the exception to the consumer."""
-    from litellm.litellm_core_utils import streaming_handler as sh_module
+    from token_iq.gateway.core_utils import streaming_handler as sh_module
 
     final_chunk = ModelResponseStream(
         id="chatcmpl-raise-recover-fail",
@@ -3804,7 +3804,7 @@ async def test_transport_read_error_before_finish_reason_raises(logging_obj: Log
     """
     import httpx
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     completion_stream = TransportErrorAfterChunksIterator(
         model_responses=[_reset_test_chunk(content="Hel")],
@@ -3843,7 +3843,7 @@ def test_openai_custom_tool_call_stream_deltas_survive_conversion(logging_obj: L
     """
     from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 
-    from litellm.types.utils import ChatCompletionDeltaCustomToolCall
+    from token_iq.gateway.types.utils import ChatCompletionDeltaCustomToolCall
 
     raw_chunks = [
         {
@@ -4526,9 +4526,9 @@ def test_handle_stream_fallback_error_restores_context_only_after_exception_mapp
             captured_ids["session_id"] = session_id_var.get()
             return ValueError("mapped boom")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.streaming_handler.exception_type", fake_exception_type)
+        monkeypatch.setattr("token_iq.gateway.core_utils.streaming_handler.exception_type", fake_exception_type)
 
-        from litellm.exceptions import MidStreamFallbackError
+        from token_iq.gateway.exceptions import MidStreamFallbackError
 
         with pytest.raises(MidStreamFallbackError):
             wrapper._handle_stream_fallback_error(RuntimeError("boom"))
@@ -4566,7 +4566,7 @@ def test_chunk_creator_preserves_hidden_provider_specific_fields_from_parsed_chu
 
 
 def test_chunk_creator_keeps_provider_model_private_across_stream():
-    from litellm.router_utils.add_retry_fallback_headers import (
+    from token_iq.gateway.router_utils.add_retry_fallback_headers import (
         get_hidden_params_dict,
     )
 
@@ -4627,7 +4627,7 @@ def test_chunk_creator_keeps_provider_model_private_across_stream():
 def test_assembled_stream_uses_later_provider_model_for_cost(
     monkeypatch: pytest.MonkeyPatch,
 ):
-    from litellm.router_utils.add_retry_fallback_headers import (
+    from token_iq.gateway.router_utils.add_retry_fallback_headers import (
         get_hidden_params_dict,
     )
 

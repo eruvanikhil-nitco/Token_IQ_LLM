@@ -7,36 +7,36 @@ from datetime import datetime
 import pytest
 from pydantic import BaseModel, TypeAdapter
 
-from litellm.models.access_group import LiteLLM_AccessGroupTable
-from litellm.models.budget import (
+from token_iq.gateway.models.access_group import LiteLLM_AccessGroupTable
+from token_iq.gateway.models.budget import (
     LiteLLM_BudgetTable,
     LiteLLM_BudgetTableFull,
     LiteLLM_TeamMemberTable,
 )
-from litellm.models.config import LiteLLM_Config
-from litellm.models.credentials import CreateCredentialItem, CredentialItem
-from litellm.models.end_user import LiteLLM_EndUserTable
-from litellm.models.managed_files import (
+from token_iq.gateway.models.config import LiteLLM_Config
+from token_iq.gateway.models.credentials import CreateCredentialItem, CredentialItem
+from token_iq.gateway.models.end_user import LiteLLM_EndUserTable
+from token_iq.gateway.models.managed_files import (
     LiteLLM_ManagedFileTable,
     LiteLLM_ManagedObjectTable,
     LiteLLM_ManagedVectorStoresTable,
 )
-from litellm.models.mcp_server import LiteLLM_MCPServerTable
-from litellm.models.model import LiteLLM_ProxyModelTable
-from litellm.models.object_permission import LiteLLM_ObjectPermissionTable
-from litellm.models.organization import LiteLLM_OrganizationTable
-from litellm.models.project import LiteLLM_ProjectTable
-from litellm.models.skills import LiteLLM_SkillsTable
-from litellm.models.spend_logs import LiteLLM_ErrorLogs, LiteLLM_SpendLogs
-from litellm.models.tag import LiteLLM_TagTable
-from litellm.models.team import (
+from token_iq.gateway.models.mcp_server import LiteLLM_MCPServerTable
+from token_iq.gateway.models.model import LiteLLM_ProxyModelTable
+from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
+from token_iq.gateway.models.organization import LiteLLM_OrganizationTable
+from token_iq.gateway.models.project import LiteLLM_ProjectTable
+from token_iq.gateway.models.skills import LiteLLM_SkillsTable
+from token_iq.gateway.models.spend_logs import LiteLLM_ErrorLogs, LiteLLM_SpendLogs
+from token_iq.gateway.models.tag import LiteLLM_TagTable
+from token_iq.gateway.models.team import (
     LiteLLM_DeletedTeamTable,
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
 )
-from litellm.models.team_membership import LiteLLM_TeamMembership
-from litellm.models.user import LiteLLM_UserTable
-from litellm.models.verification_token import (
+from token_iq.gateway.models.team_membership import LiteLLM_TeamMembership
+from token_iq.gateway.models.user import LiteLLM_UserTable
+from token_iq.gateway.models.verification_token import (
     LiteLLM_DeletedVerificationToken,
     LiteLLM_VerificationToken,
 )
@@ -307,7 +307,7 @@ class TestUser:
         assert user_no_models.has_model_access("any-model")
 
     def test_password_hash_excluded_from_serialization(self):
-        from litellm.proxy._types import LiteLLM_UserTableWithKeyCount
+        from token_iq.gateway.proxy._types import LiteLLM_UserTableWithKeyCount
 
         secret = "$2b$12$abcdefghijklmnopqrstuv"
         user = LiteLLM_UserTable(user_id="u1", user_email="a@b.c", password=secret)

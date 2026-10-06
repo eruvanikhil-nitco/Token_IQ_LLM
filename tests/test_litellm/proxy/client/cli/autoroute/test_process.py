@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.proxy.client.cli.commands.autoroute import process as process_module
-from litellm.proxy.client.cli.commands.autoroute.process import (
+from token_iq.gateway.proxy.client.cli.commands.autoroute import process as process_module
+from token_iq.gateway.proxy.client.cli.commands.autoroute.process import (
     PidRecord,
     ProcessLaunchError,
     UpError,

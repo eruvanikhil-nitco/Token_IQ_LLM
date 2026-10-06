@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse
 from base_llm_unit_tests import BaseLLMChatTest, BaseOSeriesModelsTest
 
 
@@ -22,7 +22,7 @@ async def test_o1_handle_system_role(model):
     - role 'system' is translated to 'user'
     """
     from openai import AsyncOpenAI
-    from litellm.utils import supports_system_messages
+    from token_iq.gateway.utils import supports_system_messages
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -75,8 +75,8 @@ async def test_o1_handle_tool_calling_optional_params(
     - role 'system' is translated to 'user'
     """
     from openai import AsyncOpenAI
-    from litellm.utils import ProviderConfigManager
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -130,7 +130,7 @@ def test_litellm_responses():
     """
     ensures that type of completion_tokens_details is correctly handled / returned
     """
-    from litellm.types.utils import CompletionTokensDetails
+    from token_iq.gateway.types.utils import CompletionTokensDetails
 
     response = ModelResponse(
         usage={
@@ -207,7 +207,7 @@ def test_o3_reasoning_effort():
 @pytest.mark.parametrize("model", ["o1", "o3-mini"])
 def test_streaming_response(model):
     """Test that streaming response is returned correctly"""
-    from litellm import completion
+    from token_iq.gateway import completion
 
     response = completion(
         model=model,

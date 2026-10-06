@@ -9,7 +9,7 @@ off-domain and non-HTTPS URLs.
 
 import pytest
 
-from litellm.llms.black_forest_labs.common_utils import (
+from token_iq.gateway.llms.black_forest_labs.common_utils import (
     BlackForestLabsError,
     assert_bfl_polling_url,
 )

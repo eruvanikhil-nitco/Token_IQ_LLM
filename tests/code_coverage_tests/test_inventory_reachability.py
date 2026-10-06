@@ -143,7 +143,7 @@ class TestAnalyse:
 class TestRegistryLiterals:
     """A module that resolves imports at runtime turns its own string literals into edges.
 
-    `litellm/_lazy_imports_registry.py` holds 269 dotted module paths that are handed to
+    `token_iq/gateway/_lazy_imports_registry.py` holds 269 dotted module paths that are handed to
     `importlib.import_module` elsewhere. Reading only the call site misses every one of them,
     and the provider transformations phase 5 decides on are mostly in that list.
 
@@ -189,7 +189,7 @@ class TestRegistryLiterals:
 class TestNamedLiteralSources:
     """Some registries hold the paths while a different module performs the import.
 
-    `litellm/_lazy_imports_registry.py` is the real case: 269 dotted paths live there, and
+    `token_iq/gateway/_lazy_imports_registry.py` is the real case: 269 dotted paths live there, and
     `_lazy_imports.py` is what calls `import_module`. Neither file alone looks like a dynamic
     importer holding literals, so the registry is named explicitly rather than guessed at.
     """

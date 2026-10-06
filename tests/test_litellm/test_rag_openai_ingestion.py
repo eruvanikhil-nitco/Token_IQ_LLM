@@ -1,8 +1,8 @@
 import asyncio
 from unittest.mock import AsyncMock, patch
 
-from litellm.rag.ingestion.base_ingestion import BaseRAGIngestion
-from litellm.rag.ingestion.openai_ingestion import OpenAIRAGIngestion
+from token_iq.gateway.rag.ingestion.base_ingestion import BaseRAGIngestion
+from token_iq.gateway.rag.ingestion.openai_ingestion import OpenAIRAGIngestion
 
 
 def test_openai_ingest_existing_file_id_attaches_without_uploading():
@@ -22,11 +22,11 @@ async def _run_openai_existing_file_id_attach_test():
 
     with (
         patch(
-            "litellm.rag.ingestion.openai_ingestion.vector_store_file_acreate",
+            "token_iq.gateway.rag.ingestion.openai_ingestion.vector_store_file_acreate",
             new_callable=AsyncMock,
         ) as mock_attach,
         patch(
-            "litellm.rag.ingestion.openai_ingestion.litellm.acreate_file",
+            "token_iq.gateway.rag.ingestion.openai_ingestion.litellm.acreate_file",
             new_callable=AsyncMock,
         ) as mock_upload,
     ):
@@ -55,11 +55,11 @@ async def _run_openai_existing_file_id_requires_vector_store_id_test():
 
     with (
         patch(
-            "litellm.rag.ingestion.openai_ingestion.vector_store_acreate",
+            "token_iq.gateway.rag.ingestion.openai_ingestion.vector_store_acreate",
             new_callable=AsyncMock,
         ) as mock_create_vector_store,
         patch(
-            "litellm.rag.ingestion.openai_ingestion.vector_store_file_acreate",
+            "token_iq.gateway.rag.ingestion.openai_ingestion.vector_store_file_acreate",
             new_callable=AsyncMock,
         ) as mock_attach,
     ):

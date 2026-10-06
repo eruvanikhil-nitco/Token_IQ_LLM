@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 
-import litellm
-from litellm import speech
-from litellm.llms.minimax.text_to_speech.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway import speech
+from token_iq.gateway.llms.minimax.text_to_speech.transformation import (
     MinimaxTextToSpeechConfig,
 )
 
@@ -134,13 +134,13 @@ class TestMinimaxTextToSpeechConfig:
         headers = {}
 
         # Mock both litellm.api_key and get_secret_str to return None
-        import litellm
+        from token_iq import gateway as litellm
 
         original_api_key = litellm.api_key
         try:
             litellm.api_key = None
             with patch(
-                "litellm.llms.minimax.text_to_speech.transformation.get_secret_str",
+                "token_iq.gateway.llms.minimax.text_to_speech.transformation.get_secret_str",
                 return_value=None,
             ):
                 with pytest.raises(ValueError, match="MiniMax API key is required"):
@@ -280,7 +280,7 @@ class TestMinimaxSpeechIntegration:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.llm_http_handler.BaseLLMHTTPHandler.text_to_speech_handler"
+            "token_iq.gateway.llms.custom_httpx.llm_http_handler.BaseLLMHTTPHandler.text_to_speech_handler"
         ) as mock_tts:
             # Create a mock httpx.Response
             mock_response = MagicMock()
@@ -290,7 +290,7 @@ class TestMinimaxSpeechIntegration:
             mock_response.content = mock_audio_bytes
 
             # Mock the response wrapper
-            from litellm.types.llms.openai import HttpxBinaryResponseContent
+            from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
             mock_binary_response = HttpxBinaryResponseContent(mock_response)
             mock_tts.return_value = mock_binary_response
@@ -313,7 +313,7 @@ class TestMinimaxProviderRegistration:
 
     def test_minimax_in_llm_providers(self):
         """Test that MINIMAX is in LlmProviders enum"""
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         assert hasattr(LlmProviders, "MINIMAX")
         assert LlmProviders.MINIMAX.value == "minimax"
@@ -324,7 +324,7 @@ class TestMinimaxProviderRegistration:
 
     def test_get_provider_text_to_speech_config(self):
         """Test that MiniMax TTS config can be retrieved"""
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_text_to_speech_config(
             model="speech-2.6-hd",
@@ -336,7 +336,7 @@ class TestMinimaxProviderRegistration:
 
     def test_get_llm_provider_minimax(self):
         """Test that get_llm_provider correctly identifies MiniMax models"""
-        from litellm import get_llm_provider
+        from token_iq.gateway import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="minimax/speech-2.6-hd"

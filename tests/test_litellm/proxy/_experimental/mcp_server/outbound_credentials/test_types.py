@@ -10,7 +10,7 @@ corresponding guarantee is mutated away.
 import pytest
 from pydantic import SecretStr, TypeAdapter, ValidationError
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import (
     Ambient,
     ApiKeyConfig,
     AuthConfig,

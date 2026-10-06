@@ -5,7 +5,7 @@ Tests that the router method gets called correctly for container operations.
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestContainerRouter:
@@ -16,7 +16,7 @@ class TestContainerRouter:
         self.container_name = "Test Container"
         self.container_id = "cntr_123456789"
 
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     def test_create_container_router_call_mock(self, mock_handler):
         """Test that create_container calls the router method with mock response"""
         # Setup mock response
@@ -47,7 +47,7 @@ class TestContainerRouter:
         assert result.status == mock_response["status"]
         assert result.created_at == mock_response["created_at"]
 
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     def test_list_containers_router_call_mock(self, mock_handler):
         """Test that list_containers calls the router method with mock response"""
         # Setup mock response
@@ -87,7 +87,7 @@ class TestContainerRouter:
         assert result.data[1].id == "cntr_456"
         assert result.has_more is False
 
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     def test_retrieve_container_router_call_mock(self, mock_handler):
         """Test that retrieve_container calls the router method with mock response"""
         # Setup mock response
@@ -117,7 +117,7 @@ class TestContainerRouter:
         assert result.name == mock_response["name"]
         assert result.status == mock_response["status"]
 
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     def test_delete_container_router_call_mock(self, mock_handler):
         """Test that delete_container calls the router method with mock response"""
         # Setup mock response
@@ -143,7 +143,7 @@ class TestContainerRouter:
         assert result.deleted is True
 
     @pytest.mark.asyncio
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     async def test_acreate_container_router_call_mock(self, mock_handler):
         """Test that acreate_container (async) calls the router method with mock response"""
         # Setup mock response
@@ -172,7 +172,7 @@ class TestContainerRouter:
         assert result.status == mock_response["status"]
 
     @pytest.mark.asyncio
-    @patch("litellm.containers.main.base_llm_http_handler")
+    @patch("token_iq.gateway.containers.main.base_llm_http_handler")
     async def test_alist_containers_router_call_mock(self, mock_handler):
         """Test that alist_containers (async) calls the router method with mock response"""
         # Setup mock response

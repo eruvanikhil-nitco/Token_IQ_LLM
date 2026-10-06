@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import httpx
 
-from litellm.llms.vertex_ai.rerank.transformation import VertexAIRerankConfig
+from token_iq.gateway.llms.vertex_ai.rerank.transformation import VertexAIRerankConfig
 
 
 class TestVertexAIRerankIntegration:
@@ -95,7 +95,7 @@ class TestVertexAIRerankIntegration:
         mock_logging = MagicMock()
 
         # Transform response
-        from litellm.types.rerank import RerankResponse
+        from token_iq.gateway.types.rerank import RerankResponse
 
         model_response = RerankResponse()
 
@@ -148,7 +148,7 @@ class TestVertexAIRerankIntegration:
         mock_logging = MagicMock()
 
         # Transform response
-        from litellm.types.rerank import RerankResponse
+        from token_iq.gateway.types.rerank import RerankResponse
 
         model_response = RerankResponse()
 

@@ -11,11 +11,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.max_iterations_limiter import _PROXY_MaxIterationsHandler
-from litellm.proxy.utils import InternalUsageCache
-from litellm.types.agents import AgentResponse
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.max_iterations_limiter import _PROXY_MaxIterationsHandler
+from token_iq.gateway.proxy.utils import InternalUsageCache
+from token_iq.gateway.types.agents import AgentResponse
 
 
 def _make_mock_agent(max_iterations: int) -> AgentResponse:
@@ -47,7 +47,7 @@ async def test_max_iterations_basic_enforcement():
     mock_agent = _make_mock_agent(max_iterations=3)
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = mock_agent
 
@@ -92,7 +92,7 @@ async def test_max_iterations_different_sessions_independent():
     mock_agent = _make_mock_agent(max_iterations=2)
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = mock_agent
 

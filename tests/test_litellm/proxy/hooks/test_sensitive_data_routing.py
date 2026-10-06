@@ -12,14 +12,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.exceptions import SensitiveDataRouteException
-from litellm.integrations.custom_guardrail import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import SensitiveDataRouteException
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     get_session_id_from_request_data,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.sensitive_data_routing import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.sensitive_data_routing import (
     _PROXY_SensitiveDataRoutingHandler,
     SENSITIVE_ROUTING_CACHE_PREFIX,
     DEFAULT_SENSITIVE_ROUTING_TTL,
@@ -253,7 +253,7 @@ class TestCustomGuardrailSensitiveDataRouting:
         assert exc_info.value.route_to_model == "on-premise-model"
 
     def test_handle_sensitive_data_detection_block(self):
-        from litellm.exceptions import GuardrailRaisedException
+        from token_iq.gateway.exceptions import GuardrailRaisedException
 
         guardrail = CustomGuardrail(guardrail_name="test")
 
@@ -265,7 +265,7 @@ class TestCustomGuardrailSensitiveDataRouting:
             )
 
     def test_handle_sensitive_data_detection_route_no_session_falls_back_to_block(self):
-        from litellm.exceptions import GuardrailRaisedException
+        from token_iq.gateway.exceptions import GuardrailRaisedException
 
         guardrail = CustomGuardrail(
             guardrail_name="test",
@@ -717,7 +717,7 @@ class TestHandleSensitiveDataDetectionWithRouting:
 class TestProxyHandleSensitiveDataRouteException:
     @pytest.fixture
     def proxy_logging(self):
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         return ProxyLogging(user_api_key_cache=DualCache())
 
@@ -851,7 +851,7 @@ class TestProxyHandleSensitiveDataRouteException:
         )
         data = {"model": "gpt-4", "metadata": {"session_id": "sess-no-hook"}}
 
-        with patch("litellm.proxy.utils.verbose_proxy_logger.warning") as mock_warning:
+        with patch("token_iq.gateway.proxy.utils.verbose_proxy_logger.warning") as mock_warning:
             result = await proxy_logging._handle_sensitive_data_route_exception(
                 exc, data, UserAPIKeyAuth(api_key="tenant-a")
             )
@@ -881,7 +881,7 @@ class _BlockingGuardrail(CustomGuardrail):
         self.ran = False
 
     async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
-        from litellm.exceptions import GuardrailRaisedException
+        from token_iq.gateway.exceptions import GuardrailRaisedException
 
         self.ran = True
         raise GuardrailRaisedException(
@@ -894,13 +894,13 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.fixture
     def proxy_logging(self):
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         return ProxyLogging(user_api_key_cache=DualCache())
 
     @pytest.fixture(autouse=True)
     def restore_callbacks(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         original = litellm.callbacks
         litellm.callbacks = []
@@ -909,7 +909,7 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.mark.asyncio
     async def test_later_guardrail_runs_and_routing_applied(self, proxy_logging):
-        import litellm
+        from token_iq import gateway as litellm
 
         router = _RoutingGuardrail(
             guardrail_name="router",
@@ -939,8 +939,8 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.mark.asyncio
     async def test_later_blocking_guardrail_overrides_routing(self, proxy_logging):
-        import litellm
-        from litellm.exceptions import GuardrailRaisedException
+        from token_iq import gateway as litellm
+        from token_iq.gateway.exceptions import GuardrailRaisedException
 
         router = _RoutingGuardrail(
             guardrail_name="router",
@@ -969,8 +969,8 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.mark.asyncio
     async def test_routing_guardrail_records_service_span(self, proxy_logging):
-        import litellm
-        from litellm.types.services import ServiceTypes
+        from token_iq import gateway as litellm
+        from token_iq.gateway.types.services import ServiceTypes
 
         class _SlowRoutingGuardrail(CustomGuardrail):
             async def async_pre_call_hook(
@@ -1008,8 +1008,8 @@ class TestPreCallHookDeferredRouting:
     async def test_routing_recorded_as_intervention_not_prometheus_error(
         self, proxy_logging
     ):
-        import litellm
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq import gateway as litellm
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         router = _RoutingGuardrail(
             guardrail_name="router",

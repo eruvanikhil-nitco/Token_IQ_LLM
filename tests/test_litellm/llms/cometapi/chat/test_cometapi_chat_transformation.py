@@ -9,11 +9,11 @@ import os
 import pytest
 
 
-from litellm.llms.cometapi.chat.transformation import (
+from token_iq.gateway.llms.cometapi.chat.transformation import (
     CometAPIChatCompletionStreamingHandler,
     CometAPIConfig,
 )
-from litellm.llms.cometapi.common_utils import CometAPIException
+from token_iq.gateway.llms.cometapi.common_utils import CometAPIException
 
 
 class TestCometAPIChatCompletionStreamingHandler:
@@ -183,7 +183,7 @@ def test_cometapi_integration():
     Integration test - requires real API key
     Run with: pytest -k test_cometapi_integration -s
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     # Try to get API key from multiple environment variables
     api_key = (
@@ -216,7 +216,7 @@ def test_cometapi_streaming_integration():
     Integration test for streaming - requires real API key
     Run with: pytest -k test_cometapi_streaming_integration -s
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     # Try to get API key from multiple environment variables
     api_key = (
@@ -279,7 +279,7 @@ def test_cometapi_with_custom_base_url():
     """
     Test CometAPI with custom base URL
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     api_key = (
         os.getenv("COMETAPI_API_KEY")

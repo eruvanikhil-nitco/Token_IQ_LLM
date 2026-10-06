@@ -1,5 +1,5 @@
 """
-Tests for litellm.litellm_core_utils.redact_messages.should_redact_message_logging
+Tests for litellm.core_utils.redact_messages.should_redact_message_logging
 
 Covers the proxy flow where headers arrive in litellm_params["metadata"]["headers"]
 but litellm_params["litellm_metadata"] is None.
@@ -10,15 +10,15 @@ from types import SimpleNamespace
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.redact_messages import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.redact_messages import (
     _redact_responses_api_output,
     perform_redaction,
     redact_streaming_responses_for_custom_logger,
     should_redact_message_logging,
 )
-from litellm.responses.main import mock_responses_api_response
+from token_iq.gateway.responses.main import mock_responses_api_response
 
 
 @pytest.fixture(autouse=True)
@@ -573,7 +573,7 @@ class TestPerformRedaction:
         assert output_items[1] == "non-dict output item"
 
     def test_preserves_none_text_in_responses_output(self):
-        from litellm.litellm_core_utils.redact_messages import _redact_responses_api_output_dict
+        from token_iq.gateway.core_utils.redact_messages import _redact_responses_api_output_dict
 
         none_item = SimpleNamespace(type="output_text", text=None, content=[SimpleNamespace(text=None)])
         real_item = SimpleNamespace(type="output_text", text="real answer", content=[SimpleNamespace(text="real part")])

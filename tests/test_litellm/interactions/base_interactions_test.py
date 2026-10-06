@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 import pytest
 
-import litellm.interactions as interactions
+import token_iq.gateway.interactions as interactions
 
 
 class BaseInteractionsTest(ABC):

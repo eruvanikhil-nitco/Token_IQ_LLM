@@ -10,19 +10,19 @@ import pytest
 from fastapi import HTTPException
 
 
-import litellm
-from litellm.caching.caching import RedisCache
-from litellm.caching.redis_cluster_cache import RedisClusterCache
-from litellm.proxy._types import LitellmTableNames, LitellmUserRoles
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
-from litellm.proxy.management_endpoints.coordination_redis_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import RedisCache
+from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
+from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints import (
     _REDACTED_VALUE,
     CoordinationRedisSettingsRequest,
     get_coordination_redis_settings,
     check_coordination_redis_connection,
     update_coordination_redis_settings,
 )
-from litellm.types.management_endpoints.coordination_redis_endpoints import (
+from token_iq.gateway.types.management_endpoints.coordination_redis_endpoints import (
     COORDINATION_REDIS_SETTINGS_FIELDS,
 )
 
@@ -73,10 +73,10 @@ async def test_get_redacts_every_credential_field():
     server in plaintext; non-credential fields come back untouched."""
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS}),
         ),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -104,10 +104,10 @@ async def test_get_source_is_coordination_redis_when_block_present(monkeypatch):
 
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS}),
         ),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -121,9 +121,9 @@ async def test_get_source_reads_block_from_yaml_config_when_db_row_absent(monkey
     monkeypatch.delenv("REDIS_HOST", raising=False)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings(None)),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings(None)),
         patch(
-            "litellm.proxy.proxy_server.proxy_config",
+            "token_iq.gateway.proxy.proxy_server.proxy_config",
             _proxy_config({"coordination_redis": {"host": "yaml-redis"}}),
         ),
     ):
@@ -142,8 +142,8 @@ async def test_get_source_is_cache_backend_when_no_block(monkeypatch, cache_back
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -158,8 +158,8 @@ async def test_get_source_is_environment_when_no_block_and_non_redis_cache(monke
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -173,8 +173,8 @@ async def test_get_source_is_none_when_nothing_configured(monkeypatch):
         monkeypatch.delenv(env_var, raising=False)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -188,9 +188,9 @@ async def test_get_source_does_not_build_a_client(monkeypatch):
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server._build_redis_usage_cache") as mock_build,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server._build_redis_usage_cache") as mock_build,
     ):
         response = await get_coordination_redis_settings(user_api_key_dict=_admin_auth())
 
@@ -212,10 +212,10 @@ async def test_get_allows_proxy_admin_viewer():
     """proxy_admin_viewer has READ parity with proxy_admin; credentials stay redacted."""
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS}),
         ),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         response = await get_coordination_redis_settings(
             user_api_key_dict=UserAPIKeyAuth(
@@ -231,7 +231,7 @@ async def test_get_allows_proxy_admin_viewer():
 def test_fields_cover_every_coordination_redis_param():
     """The declarative field list drives the Admin UI form; it must stay in sync
     with the model the backend validates against."""
-    from litellm.proxy._types import CoordinationRedisParams
+    from token_iq.gateway.proxy._types import CoordinationRedisParams
 
     assert {field.field_name for field in COORDINATION_REDIS_SETTINGS_FIELDS} == set(
         CoordinationRedisParams.model_fields.keys()
@@ -254,9 +254,9 @@ async def test_update_rejects_settings_without_a_connection_target(monkeypatch):
     mock_prisma = _prisma_with_general_settings({})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await update_coordination_redis_settings(
@@ -282,11 +282,11 @@ async def test_update_persists_into_the_general_settings_config_row(monkeypatch)
         invalidated.append(param_name)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
             new=_capture_invalidate,
         ),
     ):
@@ -323,11 +323,11 @@ async def test_update_persists_os_environ_refs_verbatim(monkeypatch):
     mock_prisma = _prisma_with_general_settings({})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
             new=AsyncMock(),
         ),
     ):
@@ -349,11 +349,11 @@ async def test_update_keeps_saved_credential_when_client_echoes_the_redaction_ma
     mock_prisma = _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
             new=AsyncMock(),
         ),
     ):
@@ -380,15 +380,15 @@ async def test_update_emits_audit_log_with_values_redacted(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
             new=AsyncMock(),
         ),
-        patch("litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update", new=capture),
+        patch("token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update", new=capture),
     ):
         await update_coordination_redis_settings(
             request=CoordinationRedisSettingsRequest(
@@ -422,15 +422,15 @@ async def test_update_audit_action_is_updated_when_a_block_already_exists(monkey
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints.invalidate_config_param",
             new=AsyncMock(),
         ),
-        patch("litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update", new=capture),
+        patch("token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update", new=capture),
     ):
         await update_coordination_redis_settings(
             request=CoordinationRedisSettingsRequest(settings={"host": "new-host"}),
@@ -477,9 +477,9 @@ async def test_connection_test_returns_healthy_on_successful_ping():
     mock_client.disconnect = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client) as mock_build,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client) as mock_build,
     ):
         response = await check_coordination_redis_connection(
             request=CoordinationRedisSettingsRequest(
@@ -506,9 +506,9 @@ async def test_connection_test_reports_unhealthy_without_leaking_the_password():
     mock_client.disconnect = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client),
     ):
         response = await check_coordination_redis_connection(
             request=CoordinationRedisSettingsRequest(
@@ -538,11 +538,11 @@ async def test_connection_test_uses_the_saved_password_for_a_redacted_field():
 
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS}),
         ),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client) as mock_build,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client) as mock_build,
     ):
         response = await check_coordination_redis_connection(
             request=CoordinationRedisSettingsRequest(
@@ -565,11 +565,11 @@ async def test_connection_test_times_out_instead_of_hanging():
     mock_client.disconnect = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
-        patch("litellm.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server._build_redis_usage_cache", return_value=mock_client),
         patch(
-            "litellm.proxy.management_endpoints.coordination_redis_endpoints._PING_TIMEOUT_SECONDS",
+            "token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints._PING_TIMEOUT_SECONDS",
             0.01,
         ),
     ):
@@ -585,8 +585,8 @@ async def test_connection_test_times_out_instead_of_hanging():
 @pytest.mark.asyncio
 async def test_connection_test_rejects_settings_without_a_connection_target():
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
-        patch("litellm.proxy.proxy_server.proxy_config", _proxy_config()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_general_settings({})),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", _proxy_config()),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await check_coordination_redis_connection(

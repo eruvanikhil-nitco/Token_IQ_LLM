@@ -28,7 +28,7 @@ NON_ROOT_UID = "12345:0"  # arbitrary uid in GID 0, as OpenShift restricted-v2 a
 
 MIGRATION_INTERPRETER = os.getenv("LITELLM_MIGRATION_INTERPRETER", "python")
 MIGRATION_SCRIPT = os.getenv(
-    "LITELLM_MIGRATION_SCRIPT", "litellm/proxy/prisma_migration.py"
+    "LITELLM_MIGRATION_SCRIPT", "token_iq/gateway/proxy/prisma_migration.py"
 )
 
 pytestmark = [

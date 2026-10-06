@@ -6,8 +6,8 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.containers.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.containers.main import (
     acreate_container,
     adelete_container,
     alist_containers,
@@ -17,12 +17,12 @@ from litellm.containers.main import (
     list_containers,
     retrieve_container,
 )
-from litellm.main import base_llm_http_handler
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.llms.openai.containers.transformation import OpenAIContainerConfig
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.router import Router
-from litellm.types.containers.main import (
+from token_iq.gateway.main import base_llm_http_handler
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.containers.main import (
     ContainerListResponse,
     ContainerObject,
     DeleteContainerResult,
@@ -433,7 +433,7 @@ class TestContainerAPI:
         )
 
         with patch(
-            "litellm.containers.main.ProviderConfigManager"
+            "token_iq.gateway.containers.main.ProviderConfigManager"
         ) as mock_config_manager:
             mock_config_manager.get_provider_container_config.return_value = (
                 OpenAIContainerConfig()

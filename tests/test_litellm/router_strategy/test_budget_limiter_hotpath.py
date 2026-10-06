@@ -1,10 +1,10 @@
 import pytest
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
-from litellm.types.router import LiteLLM_Params
-from litellm.types.utils import BudgetConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
+from token_iq.gateway.types.router import LiteLLM_Params
+from token_iq.gateway.types.utils import BudgetConfig
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def disable_budget_sync(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "litellm.router_strategy.budget_limiter.RouterBudgetLimiting.periodic_sync_in_memory_spend_with_redis",
+        "token_iq.gateway.router_strategy.budget_limiter.RouterBudgetLimiting.periodic_sync_in_memory_spend_with_redis",
         noop,
     )
 
@@ -29,7 +29,7 @@ async def test_get_llm_provider_for_deployment_dict_does_not_require_litellm_par
             )
 
     monkeypatch.setattr(
-        "litellm.router_strategy.budget_limiter.LiteLLM_Params",
+        "token_iq.gateway.router_strategy.budget_limiter.LiteLLM_Params",
         RaiseOnInit,
     )
 
@@ -66,7 +66,7 @@ async def test_get_llm_provider_for_deployment_dict_view_supports_mapping_and_at
         return model, "openai", None, None
 
     monkeypatch.setattr(
-        "litellm.router_strategy.budget_limiter.litellm.get_llm_provider",
+        "token_iq.gateway.router_strategy.budget_limiter.litellm.get_llm_provider",
         _future_style_get_llm_provider,
     )
 
@@ -273,8 +273,8 @@ def test_router_add_deployment_registers_deployment_budget(
 ):
     import asyncio
 
-    from litellm import Router
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway import Router
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     monkeypatch.setattr(asyncio, "create_task", lambda coro: None)
 

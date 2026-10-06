@@ -9,16 +9,16 @@ from unittest.mock import patch as patch_ctx
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ProxyModelTable,
     LitellmUserRoles,
     ReconcileOutcome,
     UserAPIKeyAuth,
 )
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.proxy.auth.auth_checks import _is_model_cost_zero
-from litellm.llms.gemini.cost_calculator import cost_per_web_search_request
-from litellm.proxy.management_endpoints.model_management_endpoints import (
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.proxy.auth.auth_checks import _is_model_cost_zero
+from token_iq.gateway.llms.gemini.cost_calculator import cost_per_web_search_request
+from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
     _PTU_ZEROED_PRICING_FIELDS,
     _SEARCH_CONTEXT_SIZES,
     _is_nonzero_price,
@@ -31,10 +31,10 @@ from litellm.proxy.management_endpoints.model_management_endpoints import (
     add_new_model,
     update_db_model,
 )
-from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
-from litellm.types.utils import PromptTokensDetailsWrapper
-from litellm.router import Router
-from litellm.types.router import (
+from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.router import (
     SPECIAL_MODEL_INFO_PARAMS,
     Deployment,
     LiteLLM_Params,
@@ -42,7 +42,7 @@ from litellm.types.router import (
     updateDeployment,
     updateLiteLLMParams,
 )
-from litellm.types.utils import Usage
+from token_iq.gateway.types.utils import Usage
 
 
 def test_model_info_accepts_valid_ptu_fields():
@@ -370,7 +370,7 @@ class TestTeamModelUpdateValidatesBeforeWriting:
 
     @staticmethod
     async def _run(db_model, patch_data, monkeypatch, touched=None):
-        import litellm.proxy.management_endpoints.model_management_endpoints as mme
+        import token_iq.gateway.proxy.management_endpoints.model_management_endpoints as mme
 
         touched = [] if touched is None else touched
 
@@ -658,8 +658,8 @@ class TestAddNewModelPtuGate:
         mock_router = MagicMock()
         mock_router.get_model_ids.return_value = [model_id]
 
-        proxy_server = "litellm.proxy.proxy_server"
-        endpoints = "litellm.proxy.management_endpoints.model_management_endpoints"
+        proxy_server = "token_iq.gateway.proxy.proxy_server"
+        endpoints = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         return (add_model_to_db, add_team_model_to_db), [
             patch(f"{proxy_server}.prisma_client", MagicMock()),
             patch(f"{proxy_server}.store_model_in_db", True),
@@ -898,7 +898,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
             litellm_params=updateLiteLLMParams(model="openai/gpt-4o", input_cost_per_token=5e-07),
             model_info=ModelInfo(id="dep-0", team_id="team-2"),
         )
-        endpoints = "litellm.proxy.management_endpoints.model_management_endpoints"
+        endpoints = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         setup_new = AsyncMock()
         update_existing = AsyncMock()
         with ExitStack() as stack:

@@ -3,13 +3,13 @@ import httpx
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.upstream_usage_headers import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.upstream_usage_headers import (
     UpstreamReportedUsage,
     apply_upstream_reported_usage,
     parse_upstream_reported_usage,
 )
-from litellm.types.utils import Usage
+from token_iq.gateway.types.utils import Usage
 
 
 def _headers(**values: str) -> httpx.Headers:

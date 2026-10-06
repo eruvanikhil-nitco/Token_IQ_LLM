@@ -16,7 +16,7 @@ from starlette.datastructures import FormData, Headers, QueryParams
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     DEFAULT_PASS_THROUGH_REQUEST_TIMEOUT_SECONDS,
     HttpPassThroughEndpointHelpers,
     InitPassThroughEndpointHelpers,
@@ -29,17 +29,17 @@ from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
     resolve_llm_passthrough_timeout,
     websocket_passthrough_request,
 )
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     LITELLM_PASS_THROUGH_RAW_BODY_STATE_KEY,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
 
-import litellm
+from token_iq import gateway as litellm
 
 MESSAGE_START_SSE_FRAME = b'event: message_start\ndata: {"type": "message_start"}\n\n'
 
@@ -344,10 +344,10 @@ async def test_pass_through_request_failure_handler():
 
     Critical Test: When a users pass through endpoint request fails, we must log the failure code, exception in litellm spend logs.
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
-        with patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+        with patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 # Setup mock for post_call_failure_hook and pre_call_hook
                 mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -403,7 +403,7 @@ async def test_pass_through_request_preserves_proxy_exception_status():
         openai_code="integer_above_max_value",
     )
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         mock_proxy_logging.post_call_failure_hook = AsyncMock()
         mock_proxy_logging.pre_call_hook = AsyncMock(side_effect=original)
 
@@ -505,8 +505,8 @@ async def test_custom_passthrough_predict_path_logs_via_generic_handler():
     """
     from datetime import datetime
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
 
@@ -527,7 +527,7 @@ async def test_custom_passthrough_predict_path_logs_via_generic_handler():
     )
 
     with patch(
-        "litellm.proxy.pass_through_endpoints.success_handler.VertexPassthroughLoggingHandler.vertex_passthrough_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.success_handler.VertexPassthroughLoggingHandler.vertex_passthrough_handler"
     ) as mock_vertex_handler:
         await handler.pass_through_async_success_handler(
             httpx_response=mock_response,
@@ -555,8 +555,8 @@ async def test_langfuse_passthrough_no_logging():
     """
     from datetime import datetime
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
 
@@ -604,7 +604,7 @@ def test_construct_target_url_with_subpath():
     """
     Test that construct_target_url_with_subpath correctly constructs target URLs
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         HttpPassThroughEndpointHelpers,
     )
 
@@ -649,7 +649,7 @@ def test_add_exact_path_route():
     """
     Test that add_exact_path_route correctly adds exact path routes
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
     )
 
@@ -691,7 +691,7 @@ def test_add_subpath_route():
     """
     Test that add_subpath_route correctly adds wildcard routes for sub-paths
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
     )
 
@@ -739,7 +739,7 @@ async def test_pass_through_handler_rejects_unregistered_method():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_route,
     )
 
@@ -753,16 +753,16 @@ async def test_pass_through_handler_rejects_unregistered_method():
     with (
         patch.dict(os.environ, {"SERVER_ROOT_PATH": ""}),
         patch(
-            "litellm.proxy.auth.auth_utils.get_request_route",
+            "token_iq.gateway.proxy.auth.auth_utils.get_request_route",
             return_value="/test/path",
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type",
             new_callable=AsyncMock,
             return_value=({}, {}, None, False),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             {
                 "test-endpoint-id:exact:/test/path:POST": {
                     "endpoint_id": "test-endpoint-id",
@@ -794,23 +794,23 @@ async def test_initialize_pass_through_endpoints_with_include_subpath():
     """
     Test that initialize_pass_through_endpoints adds wildcard routes when include_subpath is True
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         initialize_pass_through_endpoints,
     )
 
     # Mock the helper functions directly
     with patch(
-        "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_exact_path_route"
+        "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_exact_path_route"
     ) as mock_add_exact_route:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_subpath_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_subpath_route"
         ) as mock_add_subpath_route:
             with patch(
-                "litellm.proxy.proxy_server.premium_user",
+                "token_iq.gateway.proxy.proxy_server.premium_user",
                 True,
             ):
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header"
                 ) as mock_set_env:
                     mock_set_env.return_value = {}
 
@@ -845,23 +845,23 @@ async def test_initialize_pass_through_endpoints_without_include_subpath():
     """
     Test that initialize_pass_through_endpoints only adds exact route when include_subpath is False
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         initialize_pass_through_endpoints,
     )
 
     # Mock the helper functions directly
     with patch(
-        "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_exact_path_route"
+        "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_exact_path_route"
     ) as mock_add_exact_route:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_subpath_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.add_subpath_route"
         ) as mock_add_subpath_route:
             with patch(
-                "litellm.proxy.proxy_server.premium_user",
+                "token_iq.gateway.proxy.proxy_server.premium_user",
                 True,
             ):
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header"
                 ) as mock_set_env:
                     mock_set_env.return_value = {}
 
@@ -891,8 +891,8 @@ def test_set_cost_per_request():
     Test that _set_cost_per_request correctly sets the cost in logging object and kwargs
     """
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
 
@@ -929,8 +929,8 @@ def test_set_cost_per_request_none():
     """
     Test that _set_cost_per_request does nothing when cost_per_request is None
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
 
@@ -970,8 +970,8 @@ async def test_pass_through_success_handler_with_cost_per_request():
     """
     from datetime import datetime
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
 
@@ -1027,7 +1027,7 @@ async def test_create_pass_through_route_with_cost_per_request():
     """
     Test that create_pass_through_route correctly passes cost_per_request to the endpoint function
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_route,
     )
 
@@ -1045,12 +1045,12 @@ async def test_create_pass_through_route_with_cost_per_request():
 
     # Mock the pass_through_request function to capture its call
     with (
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
         ) as mock_is_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
         ) as mock_get_registered,
     ):
         mock_pass_through.return_value = MagicMock()
@@ -1085,13 +1085,13 @@ def test_resolve_pass_through_request_timeout_precedence():
     assert resolve_pass_through_request_timeout(endpoint_timeout=900) == 900.0
 
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"pass_through_request_timeout": 1200},
     ):
         assert resolve_pass_through_request_timeout() == 1200.0
         assert resolve_pass_through_request_timeout(endpoint_timeout=800) == 800.0
 
-    with patch("litellm.proxy.proxy_server.general_settings", {}):
+    with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
         assert resolve_pass_through_request_timeout() == DEFAULT_PASS_THROUGH_REQUEST_TIMEOUT_SECONDS
 
 
@@ -1112,7 +1112,7 @@ def test_resolve_llm_passthrough_timeout_precedence():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"pass_through_request_timeout": 6},
     ):
         assert resolve_llm_passthrough_timeout() == 6.0
@@ -1120,9 +1120,9 @@ def test_resolve_llm_passthrough_timeout_precedence():
 
 @pytest.mark.asyncio
 async def test_pass_through_request_uses_resolved_timeout():
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             mock_proxy_logging.pre_call_hook = AsyncMock(side_effect=lambda **kwargs: kwargs["data"])
 
@@ -1166,12 +1166,12 @@ async def test_create_pass_through_route_forwards_timeout():
     )
 
     with (
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
         ) as mock_is_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
         ) as mock_get_registered,
     ):
         mock_pass_through.return_value = MagicMock()
@@ -1201,7 +1201,7 @@ def test_initialize_pass_through_endpoints_with_cost_per_request():
     """
     Test that initialize_pass_through_endpoints correctly passes cost_per_request to route creation
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
     )
 
@@ -1265,18 +1265,18 @@ async def test_pass_through_request_contains_proxy_server_request_in_kwargs():
     Critical Test: Ensures that when pass_through_request is called, the kwargs passed to
     downstream methods contain the proxy server request details (url, method, body).
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.HttpPassThroughEndpointHelpers.non_streaming_http_request_handler"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.HttpPassThroughEndpointHelpers.non_streaming_http_request_handler"
         ) as mock_http_handler:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
                 ) as mock_success_handler:
                     with patch(
-                        "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_response_body"
+                        "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_response_body"
                     ) as mock_get_response_body:
                         # Setup mock for pre_call_hook and post_call_failure_hook
                         mock_proxy_logging.pre_call_hook = AsyncMock(return_value={"test": "data"})
@@ -1381,12 +1381,12 @@ async def test_pass_through_request_streaming_marks_logging_obj_as_stream():
     response is dispatched, so cost/success callbacks treat it as a stream and the
     streaming dedup guard fires instead of double-logging.
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughStreamingHandler.chunk_processor"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughStreamingHandler.chunk_processor"
             ) as mock_chunk_processor:
                 mock_proxy_logging.pre_call_hook = AsyncMock(return_value={"model": "claude-3", "stream": True})
                 mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -1443,12 +1443,12 @@ async def test_pass_through_request_sse_response_marks_logging_obj_as_stream():
     cost/success callbacks treat the assembled stream as a non-stream and the dedup
     guard never fires, double-logging the request.
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughStreamingHandler.chunk_processor"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughStreamingHandler.chunk_processor"
             ) as mock_chunk_processor:
                 mock_proxy_logging.pre_call_hook = AsyncMock(return_value={"model": "claude-3"})
                 mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -1502,9 +1502,9 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
     POST /openai_passthrough/v1/responses left the raw resp_ id in the stream and
     recorded no owner, so any other key could read, continue, and delete it.
     """
-    import litellm
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
     raw_id = "resp_0123456789abcdef"
     upstream_body = (
@@ -1544,9 +1544,9 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
 
     flag_on = {"passthrough_managed_object_ids": True}
     proxy_server_globals = (
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),  # test-quality-ok: read at call time
-        patch("litellm.proxy.proxy_server.general_settings", flag_on),  # test-quality-ok: read at call time
-        patch("litellm.proxy.proxy_server.prisma_client", prisma_client),  # test-quality-ok: read at call time
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),  # test-quality-ok: read at call time
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", flag_on),  # test-quality-ok: read at call time
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),  # test-quality-ok: read at call time
     )
 
     try:
@@ -1586,19 +1586,19 @@ async def test_create_pass_through_endpoint():
     3. Adds the endpoint to the database
     4. Returns the created endpoint with the generated ID
     """
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughEndpointResponse,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
-        with patch("litellm.proxy.proxy_server.update_config_general_settings") as mock_update_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+        with patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings") as mock_update_config:
             # Mock existing config (empty list)
             mock_get_config.return_value = ConfigFieldInfo(field_name="pass_through_endpoints", field_value=[])
 
@@ -1659,19 +1659,19 @@ async def test_update_pass_through_endpoint():
     4. Updates the database with the modified endpoint
     5. Returns the updated endpoint
     """
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughEndpointResponse,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         update_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
-        with patch("litellm.proxy.proxy_server.update_config_general_settings") as mock_update_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+        with patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings") as mock_update_config:
             # Create existing endpoint data
             existing_endpoint_id = "test-endpoint-123"
             existing_endpoints = [
@@ -1755,23 +1755,23 @@ async def test_create_pass_through_endpoint_auth_true_enforces_allowlist():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.route_checks import RouteChecks
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_endpoints,
     )
 
     registry: dict = {}
 
     with (
-        patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config,
-        patch("litellm.proxy.proxy_server.update_config_general_settings"),
+        patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config,
+        patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings"),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             registry,
         ),
     ):
@@ -1829,13 +1829,13 @@ async def test_update_pass_through_endpoint_auth_true_enforces_allowlist():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.route_checks import RouteChecks
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         update_pass_through_endpoints,
     )
 
@@ -1852,10 +1852,10 @@ async def test_update_pass_through_endpoint_auth_true_enforces_allowlist():
     ]
 
     with (
-        patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config,
-        patch("litellm.proxy.proxy_server.update_config_general_settings"),
+        patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config,
+        patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings"),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             registry,
         ),
     ):
@@ -1899,13 +1899,13 @@ async def test_update_pass_through_endpoint_preserves_auth_false():
     naive exclude_none merge would overwrite the stored auth=false and start
     rejecting every team/key that lacks allowed_passthrough_routes.
     """
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.route_checks import RouteChecks
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         update_pass_through_endpoints,
     )
 
@@ -1922,10 +1922,10 @@ async def test_update_pass_through_endpoint_preserves_auth_false():
     ]
 
     with (
-        patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config,
-        patch("litellm.proxy.proxy_server.update_config_general_settings") as mock_update_config,
+        patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config,
+        patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings") as mock_update_config,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             registry,
         ),
     ):
@@ -1960,17 +1960,17 @@ async def test_update_pass_through_endpoint_not_found():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         update_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
         # Mock existing config with different endpoint
         existing_endpoints = [
             {
@@ -2017,18 +2017,18 @@ async def test_delete_pass_through_endpoint():
     2. Removes it from the database
     3. Returns the deleted endpoint
     """
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         ConfigFieldInfo,
         PassThroughEndpointResponse,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         delete_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
-        with patch("litellm.proxy.proxy_server.update_config_general_settings") as mock_update_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+        with patch("token_iq.gateway.proxy.proxy_server.update_config_general_settings") as mock_update_config:
             # Create existing endpoint data
             endpoint_to_delete_id = "test-endpoint-123"
             other_endpoint_id = "other-endpoint-456"
@@ -2100,13 +2100,13 @@ async def test_delete_pass_through_endpoint_not_found():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import ConfigFieldInfo, UserAPIKeyAuth
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import ConfigFieldInfo, UserAPIKeyAuth
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         delete_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
         # Mock existing config with different endpoint
         existing_endpoints = [
             {
@@ -2145,12 +2145,12 @@ async def test_get_pass_through_endpoints_includes_config_and_db():
     with correct is_from_config flag. Config-only endpoints have is_from_config=True,
     DB endpoints have is_from_config=False. When same path exists in both, DB overrides.
     """
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         PassThroughEndpointResponse,
         PassThroughGenericEndpoint,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         get_pass_through_endpoints,
     )
 
@@ -2187,15 +2187,15 @@ async def test_get_pass_through_endpoints_includes_config_and_db():
     ]
 
     with patch(
-        "litellm.proxy.proxy_server.prisma_client",
+        "token_iq.gateway.proxy.proxy_server.prisma_client",
         MagicMock(),
     ):
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._get_pass_through_endpoints_from_db",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._get_pass_through_endpoints_from_db",
             new_callable=AsyncMock,
         ) as mock_get_db:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints._get_pass_through_endpoints_from_config"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._get_pass_through_endpoints_from_config"
             ) as mock_get_config:
                 db_objects = [PassThroughGenericEndpoint(**ep, is_from_config=False) for ep in db_endpoints]
                 config_objects = [PassThroughGenericEndpoint(**ep, is_from_config=True) for ep in config_endpoints]
@@ -2231,7 +2231,7 @@ def test_get_pass_through_endpoints_from_config_skips_malformed():
     Test that _get_pass_through_endpoints_from_config skips malformed endpoints
     and returns only valid ones, without raising.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _get_pass_through_endpoints_from_config,
     )
 
@@ -2245,7 +2245,7 @@ def test_get_pass_through_endpoints_from_config_skips_malformed():
     ]
 
     with patch(
-        "litellm.proxy.proxy_server.config_passthrough_endpoints",
+        "token_iq.gateway.proxy.proxy_server.config_passthrough_endpoints",
         config_passthrough_endpoints,
     ):
         result = _get_pass_through_endpoints_from_config()
@@ -2266,13 +2266,13 @@ async def test_delete_pass_through_endpoint_empty_list():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import ConfigFieldInfo, UserAPIKeyAuth
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import ConfigFieldInfo, UserAPIKeyAuth
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         delete_pass_through_endpoints,
     )
 
     # Mock the database functions
-    with patch("litellm.proxy.proxy_server.get_config_general_settings") as mock_get_config:
+    with patch("token_iq.gateway.proxy.proxy_server.get_config_general_settings") as mock_get_config:
         # Mock empty config
         mock_get_config.return_value = ConfigFieldInfo(field_name="pass_through_endpoints", field_value=None)
 
@@ -2298,18 +2298,18 @@ async def test_pass_through_request_query_params_forwarding():
     This test verifies the fix for the bug where query parameters like api-version were being lost
     when forwarding requests to Azure OpenAI and other pass-through endpoints.
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.HttpPassThroughEndpointHelpers.non_streaming_http_request_handler"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.HttpPassThroughEndpointHelpers.non_streaming_http_request_handler"
         ) as mock_http_handler:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
                 ) as mock_success_handler:
                     with patch(
-                        "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_response_body"
+                        "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_response_body"
                     ) as mock_get_response_body:
                         # Setup mock for pre_call_hook
                         test_body = {"name": "Azure Assistant", "model": "gpt-4o"}
@@ -2401,9 +2401,9 @@ async def _run_pass_through_and_capture_wire_url(
     managed_files_hook: Optional[_FakeManagedFilesHook] = None,
     user_api_key_dict: Optional[UserAPIKeyAuth] = None,
 ) -> httpx.URL:
-    import litellm
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
     recorded_requests = []
 
@@ -2437,15 +2437,15 @@ async def _run_pass_through_and_capture_wire_url(
 
     try:
         with ExitStack() as stack:
-            stack.enter_context(patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging))
+            stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging))
             if managed_files_hook is not None:
                 stack.enter_context(
                     patch(
-                        "litellm.proxy.proxy_server.general_settings",
+                        "token_iq.gateway.proxy.proxy_server.general_settings",
                         {"passthrough_managed_object_ids": True},
                     )
                 )
-                stack.enter_context(patch("litellm.proxy.proxy_server.prisma_client", None))
+                stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.prisma_client", None))
             response = await pass_through_request(
                 request=mock_request,
                 target=target,
@@ -2519,7 +2519,7 @@ async def test_pass_through_request_merge_query_params_rewrites_managed_ids_on_t
     first bakes the un-rewritten managed ID into the URL and hands the rewriter
     None, leaking the managed ID upstream.
     """
-    from litellm.proxy.pass_through_endpoints.managed_id_codec import new_managed_id
+    from token_iq.gateway.proxy.pass_through_endpoints.managed_id_codec import new_managed_id
 
     managed_id = new_managed_id("openai", "file-raw-123")
     hook = _FakeManagedFilesHook(SimpleNamespace(created_by="user-1", team_id=None))
@@ -2548,7 +2548,7 @@ async def test_pass_through_with_httpbin_redirect():
     from fastapi import Request
     from starlette.datastructures import Headers, QueryParams
 
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         pass_through_request,
     )
 
@@ -2598,8 +2598,8 @@ async def test_filter_endpoints_by_team_allowed_routes_with_filter():
     Test that _filter_endpoints_by_team_allowed_routes correctly filters endpoints
     when team has allowed_passthrough_routes in metadata
     """
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2640,8 +2640,8 @@ async def test_filter_endpoints_by_team_allowed_routes_team_not_found():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2673,8 +2673,8 @@ async def test_filter_endpoints_by_team_allowed_routes_no_metadata():
     Test that _filter_endpoints_by_team_allowed_routes returns all endpoints
     when team has no metadata
     """
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2709,8 +2709,8 @@ async def test_filter_endpoints_by_team_allowed_routes_no_allowed_routes_key():
     Test that _filter_endpoints_by_team_allowed_routes returns all endpoints
     when team metadata doesn't have allowed_passthrough_routes key
     """
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2745,8 +2745,8 @@ async def test_filter_endpoints_by_team_allowed_routes_empty_allowed_list():
     Test that _filter_endpoints_by_team_allowed_routes returns empty list
     when team has empty allowed_passthrough_routes list
     """
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2779,8 +2779,8 @@ async def test_filter_endpoints_by_team_allowed_routes_partial_match():
     Test that _filter_endpoints_by_team_allowed_routes correctly filters
     when only some endpoints match allowed routes
     """
-    from litellm.proxy._types import PassThroughGenericEndpoint
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import PassThroughGenericEndpoint
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _filter_endpoints_by_team_allowed_routes,
     )
 
@@ -2827,12 +2827,12 @@ async def test_bedrock_router_passthrough_metadata_initialization():
     The fix ensures router bedrock models use the same common processing path
     as non-router models, which properly initializes all metadata structures.
     """
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         handle_bedrock_passthrough_router_model,
     )
 
     # Mock ProxyBaseLLMRequestProcessing to verify it's used
-    with patch("litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing") as mock_processing_class:
+    with patch("token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing") as mock_processing_class:
         # Setup mock instance
         mock_processor = MagicMock()
         mock_processing_class.return_value = mock_processor
@@ -2929,8 +2929,8 @@ async def test_add_litellm_data_to_request_adds_headers_to_metadata():
     The fix ensures headers are available in data["metadata"]["headers"] so
     guardrails can validate User-Agent, API keys, and other header-based checks.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Create mock request with headers including User-Agent
     mock_request = MagicMock(spec=Request)
@@ -2996,7 +2996,7 @@ async def test_create_pass_through_route_custom_body_url_target():
     We cannot use a `custom_body: dict` route parameter: FastAPI would treat it as
     the HTTP body and reject multipart/form-data before the handler runs.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_route,
     )
 
@@ -3014,15 +3014,15 @@ async def test_create_pass_through_route_custom_body_url_target():
     )
 
     with (
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
         ) as mock_is_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
         ) as mock_get_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type"
         ) as mock_parse_request,
     ):
         mock_pass_through.return_value = MagicMock()
@@ -3118,19 +3118,19 @@ async def test_pass_through_request_non_streaming_uses_content_for_state_raw_bod
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
             return_value=mock_client_obj,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
             new=AsyncMock(side_effect=_hook_mutates_body),
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_response_headers_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_response_headers_hook",
             new=AsyncMock(return_value={}),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
             new=AsyncMock(),
         ),
     ):
@@ -3182,19 +3182,19 @@ async def test_pass_through_request_streaming_uses_content_for_state_raw_body():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
             return_value=mock_client_obj,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
             new=AsyncMock(side_effect=lambda **kw: kw["data"]),
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_response_headers_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_response_headers_hook",
             new=AsyncMock(return_value={}),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
             new=AsyncMock(),
         ),
     ):
@@ -3224,7 +3224,7 @@ async def test_create_pass_through_route_no_custom_body_falls_back():
     This ensures the default pass-through behavior is preserved — only the
     Bedrock proxy route (and similar callers) supply a pre-built body.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         create_pass_through_route,
     )
 
@@ -3236,15 +3236,15 @@ async def test_create_pass_through_route_no_custom_body_falls_back():
     )
 
     with (
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_request") as mock_pass_through,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.is_registered_pass_through_route"
         ) as mock_is_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.InitPassThroughEndpointHelpers.get_registered_pass_through_route"
         ) as mock_get_registered,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._parse_request_data_by_content_type"
         ) as mock_parse_request,
     ):
         mock_pass_through.return_value = MagicMock()
@@ -3287,7 +3287,7 @@ def test_is_registered_pass_through_route_with_custom_root():
     Registry stores bare paths; incoming routes may be bare (get_request_route)
     or prefixed (request.url.path). Both should resolve via normalization.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
         _registered_pass_through_routes,
     )
@@ -3304,11 +3304,11 @@ def test_is_registered_pass_through_route_with_custom_root():
         "headers": {},
     }
 
-    with patch("litellm.proxy.utils.get_server_root_path", return_value="/proxy"):
+    with patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/proxy"):
         assert InitPassThroughEndpointHelpers.is_registered_pass_through_route("/proxy/api/endpoint") is True
         assert InitPassThroughEndpointHelpers.is_registered_pass_through_route("/api/endpoint") is True
 
-    with patch("litellm.proxy.utils.get_server_root_path", return_value="/"):
+    with patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"):
         assert InitPassThroughEndpointHelpers.is_registered_pass_through_route("/api/endpoint") is True
         assert InitPassThroughEndpointHelpers.is_registered_pass_through_route("/proxy/api/endpoint") is False
 
@@ -3321,7 +3321,7 @@ def test_get_registered_pass_through_route_with_custom_root():
     get_registered_pass_through_route matches bare registry paths against
     bare or SERVER_ROOT_PATH-prefixed incoming routes.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
         _registered_pass_through_routes,
     )
@@ -3340,7 +3340,7 @@ def test_get_registered_pass_through_route_with_custom_root():
     route_key = f"{endpoint_id}:exact:{path}"
     _registered_pass_through_routes[route_key] = target_config
 
-    with patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"):
+    with patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"):
         # Prefixed incoming route
         result = InitPassThroughEndpointHelpers.get_registered_pass_through_route("/litellm/chat/completions")
         assert result is not None
@@ -3352,7 +3352,7 @@ def test_get_registered_pass_through_route_with_custom_root():
         assert result is not None
         assert result["target"] == "http://api.example.com/v1/chat/completions"
 
-    with patch("litellm.proxy.utils.get_server_root_path", return_value="/"):
+    with patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"):
         result = InitPassThroughEndpointHelpers.get_registered_pass_through_route("/chat/completions")
         assert result is not None
         assert result["target"] == "http://api.example.com/v1/chat/completions"
@@ -3386,7 +3386,7 @@ def test_db_registered_pass_through_route_bare_path_convention(
     Regression: #28547 / SERVER_ROOT_PATH — registry stores bare /ml paths;
     get_request_route() supplies bare paths; prefixed url.path must still match.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
         _registered_pass_through_routes,
     )
@@ -3404,7 +3404,7 @@ def test_db_registered_pass_through_route_bare_path_convention(
     }
 
     with patch(
-        "litellm.proxy.utils.get_server_root_path",
+        "token_iq.gateway.proxy.utils.get_server_root_path",
         return_value=server_root_path,
     ):
         assert InitPassThroughEndpointHelpers.is_registered_pass_through_route(incoming_route) is should_match
@@ -3419,11 +3419,11 @@ def test_mapped_pass_through_routes_with_server_root_path():
 
     Regression test for https://github.com/BerriAI/litellm/issues/22272
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
     )
 
-    with patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"):
+    with patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"):
         # prefixed route should match mapped routes like /vertex_ai
         assert (
             InitPassThroughEndpointHelpers.is_registered_pass_through_route("/litellm/vertex_ai/v1/projects/foo")
@@ -3566,12 +3566,12 @@ class TestStaleRouteCleanupOnReload:
         stack = ExitStack()
         stack.enter_context(
             patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.SafeRouteAdder.add_api_route_if_not_exists"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.SafeRouteAdder.add_api_route_if_not_exists"
             )
         )
-        stack.enter_context(patch("litellm.proxy.proxy_server.premium_user", True))
+        stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.premium_user", True))
         mock_set_env = stack.enter_context(
-            patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header")
+            patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.set_env_variables_in_header")
         )
         mock_set_env.return_value = {}
         return stack
@@ -3655,12 +3655,12 @@ class TestStaleRouteCleanupOnReload:
 # even though the client correctly receives the 4xx.
 from fastapi import HTTPException as _FastAPIHTTPException
 
-from litellm.exceptions import (
+from token_iq.gateway.exceptions import (
     BlockedPiiEntityError,
     GuardrailRaisedException,
 )
 
-_PT_MODULE = "litellm.proxy.pass_through_endpoints.pass_through_endpoints"
+_PT_MODULE = "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints"
 
 
 def _lit3538_user_api_key_dict():
@@ -3699,7 +3699,7 @@ async def _drive_pass_through_block(raised_exception):
     logger = MagicMock()
 
     patches = [
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging),
         patch(f"{_PT_MODULE}.verbose_proxy_logger", logger),
         patch(
             f"{_PT_MODULE}._read_request_body",
@@ -3790,15 +3790,15 @@ async def test_pass_through_request_non_streaming_upstream_error_returned_unchan
         request=httpx.Request("POST", "http://target-api.com/api/denied"),
     )
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
                 ) as mock_success_handler:
                     mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
                     mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -3874,15 +3874,15 @@ async def test_pass_through_request_upstream_error_failure_hook_exception_is_swa
         request=httpx.Request("POST", "http://target-api.com/api/denied"),
     )
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
                 ) as mock_success_handler:
                     mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
                     mock_proxy_logging.post_call_failure_hook = AsyncMock(
@@ -3929,12 +3929,12 @@ async def test_pass_through_request_streaming_upstream_error_returned_unchanged(
         request=httpx.Request("GET", "http://target-api.com/api/stream-denied"),
     )
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
             ) as mock_success_handler:
                 mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
                 mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -4000,15 +4000,15 @@ async def test_pass_through_request_non_streaming_success_unchanged():
         request=httpx.Request("GET", "http://target-api.com/api/success"),
     )
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         with patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client"
         ) as mock_get_client:
             with patch(
-                "litellm.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
+                "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.ProxyBaseLLMRequestProcessing"
             ) as mock_processing:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+                    "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
                 ) as mock_success_handler:
                     mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
                     mock_proxy_logging.post_call_failure_hook = AsyncMock()
@@ -4053,9 +4053,9 @@ async def test_pass_through_request_internal_failure_still_raises_proxy_exceptio
     made) must still surface as ProxyException, distinct from upstream
     passthrough errors which are now returned unchanged.
     """
-    from litellm.proxy._types import ProxyException
+    from token_iq.gateway.proxy._types import ProxyException
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         mock_proxy_logging.pre_call_hook = AsyncMock(side_effect=RuntimeError("auth backend unavailable"))
         mock_proxy_logging.post_call_failure_hook = AsyncMock()
 
@@ -4116,9 +4116,9 @@ def _inject_fake_passthrough_client(transport, timeout):
     returned, so the internal cache-key format is never duplicated here. Must
     run inside the test's event loop because cache keys are loop-scoped.
     Returns (client, cleanup)."""
-    import litellm
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
     real_handler = get_async_httpx_client(
         httpxSpecialProvider.PassThroughEndpoint,
@@ -4143,15 +4143,15 @@ def _inject_fake_passthrough_client(transport, timeout):
 
 
 def _enter_relay_logging_mocks(stack, parsed_body):
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
-    mock_proxy_logging = stack.enter_context(patch("litellm.proxy.proxy_server.proxy_logging_obj"))
+    mock_proxy_logging = stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj"))
     mock_proxy_logging.pre_call_hook = AsyncMock(return_value=parsed_body)
     mock_proxy_logging.post_call_failure_hook = AsyncMock()
     mock_proxy_logging.post_call_response_headers_hook = AsyncMock(return_value=None)
     mock_success_handler = stack.enter_context(
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler"
         )
     )
     mock_success_handler.return_value = None
@@ -4188,7 +4188,7 @@ async def test_pass_through_request_relays_non_json_body_without_buffering():
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_chunks = (
         b'{"custom_id": "a", "result": {}}\n',
@@ -4257,7 +4257,7 @@ async def test_pass_through_request_json_response_stays_buffered_for_logging():
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_chunks = (b'{"id": "file-123"', b', "status": "processed"}')
     upstream_stream = _RecordingUpstreamByteStream(upstream_chunks)
@@ -4306,7 +4306,7 @@ async def test_pass_through_request_upstream_error_body_stays_buffered():
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_stream = _RecordingUpstreamByteStream((b"upstream ", b"exploded"))
     fake_client, cleanup = _inject_fake_passthrough_client(
@@ -4354,7 +4354,7 @@ async def test_pass_through_relay_client_disconnect_logs_partial_relay_warning(c
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_chunks = (b'{"custom_id": "a"}\n', b'{"custom_id": "b"}\n')
     upstream_stream = _RecordingUpstreamByteStream(upstream_chunks)
@@ -4411,7 +4411,7 @@ async def test_pass_through_relay_full_consumption_logs_no_partial_relay_warning
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_chunks = (b'{"custom_id": "a"}\n', b'{"custom_id": "b"}\n')
     upstream_stream = _RecordingUpstreamByteStream(upstream_chunks)
@@ -4461,7 +4461,7 @@ class _StandardLoggingPayloadRecorder(CustomLogger):
 
 @contextmanager
 def _recording_success_callback():
-    import litellm
+    from token_iq import gateway as litellm
 
     recorder = _StandardLoggingPayloadRecorder()
     original = litellm._async_success_callback
@@ -4476,9 +4476,9 @@ def _enter_upstream_usage_mocks(stack, parsed_body):
     """Same seams as _enter_relay_logging_mocks, but leaves the real
     pass-through success handler in place and captures the coroutines the
     logging worker would have run so the test can await them."""
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
-    mock_proxy_logging = stack.enter_context(patch("litellm.proxy.proxy_server.proxy_logging_obj"))
+    mock_proxy_logging = stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj"))
     mock_proxy_logging.pre_call_hook = AsyncMock(return_value=parsed_body)
     mock_proxy_logging.post_call_failure_hook = AsyncMock()
     mock_proxy_logging.post_call_response_headers_hook = AsyncMock(return_value=None)
@@ -4498,7 +4498,7 @@ def _enter_upstream_usage_mocks(stack, parsed_body):
 async def _run_upstream_reporting_passthrough(upstream_headers, status_code=200, cost_per_request=None):
     """Drive a generic pass-through against an upstream that reports its own
     cost/usage. Returns (recorded standard logging payloads, proxy logging mock)."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     fake_client, cleanup = _inject_fake_passthrough_client(
         _FakeUpstreamTransport(
@@ -4574,7 +4574,7 @@ async def test_passthrough_records_upstream_reported_cost_on_error_response():
     the error response, so the spend must land on the failure row rather than
     being dropped because the status code was >= 400.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     _, mock_proxy_logging = await _run_upstream_reporting_passthrough(
         {
@@ -4608,7 +4608,7 @@ async def test_streaming_passthrough_records_cost_and_tokens_reported_by_upstrea
     """
     from fastapi.responses import StreamingResponse
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     fake_client, cleanup = _inject_fake_passthrough_client(
         _FakeUpstreamTransport(
@@ -4736,12 +4736,12 @@ async def test_websocket_passthrough_forwards_non_ascii_first_frame():
     websocket.client_state = WebSocketState.CONNECTED
 
     with (
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.connect",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.connect",
             return_value=FakeUpstreamConnect(upstream_ws),
         ),
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.GLOBAL_LOGGING_WORKER") as mock_worker,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.GLOBAL_LOGGING_WORKER") as mock_worker,
     ):
         mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
         mock_proxy_logging.post_call_success_hook = AsyncMock()
@@ -4818,12 +4818,12 @@ def _client_websocket(receive):
 @contextmanager
 def _patched_websocket_passthrough_environment(upstream_ws):
     with (
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.connect",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.connect",
             return_value=FakeUpstreamConnect(upstream_ws),
         ),
-        patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.GLOBAL_LOGGING_WORKER") as mock_worker,
+        patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.GLOBAL_LOGGING_WORKER") as mock_worker,
     ):
         mock_proxy_logging.pre_call_hook = AsyncMock(return_value={})
         mock_proxy_logging.post_call_success_hook = AsyncMock()
@@ -4892,7 +4892,7 @@ async def test_websocket_passthrough_keeps_normal_upstream_close_normal():
 
 
 async def _run_setup_rewrite_passthrough(setup_model: str, llm_router) -> str:
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         _build_vertex_live_setup_model_rewriter,
     )
 
@@ -5066,7 +5066,7 @@ def _passthrough_kwargs_for_reservation(
 async def _track_cost_for_passthrough_kwargs(kwargs: dict) -> AsyncMock:
     from datetime import datetime
 
-    from litellm.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
+    from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
 
     callback_kwargs = {
         **kwargs,
@@ -5079,12 +5079,12 @@ async def _track_cost_for_passthrough_kwargs(kwargs: dict) -> AsyncMock:
 
     increment_spend_counters = AsyncMock()
     with (
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
         patch(
-            "litellm.proxy.proxy_server.increment_spend_counters",
+            "token_iq.gateway.proxy.proxy_server.increment_spend_counters",
             increment_spend_counters,
         ),
-        patch("litellm.proxy.proxy_server.update_cache", new_callable=AsyncMock),
+        patch("token_iq.gateway.proxy.proxy_server.update_cache", new_callable=AsyncMock),
     ):
         mock_proxy_logging.db_spend_update_writer.update_database = AsyncMock()
         mock_proxy_logging.slack_alerting_instance.customer_spend_alert = AsyncMock()
@@ -5161,14 +5161,14 @@ async def _drive_streaming_pass_through(upstream_content_type, chunk_delay_secon
     dispatch branches runs: the up-front one, and the one that only discovers the
     response is a stream from its content-type.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         PassThroughStreamingHandler,
     )
 
     with ExitStack() as stack:
-        mock_proxy_logging = stack.enter_context(patch("litellm.proxy.proxy_server.proxy_logging_obj"))
+        mock_proxy_logging = stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj"))
         mock_get_client = stack.enter_context(
-            patch("litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client")
+            patch("token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client")
         )
         mock_chunk_processor = stack.enter_context(patch.object(PassThroughStreamingHandler, "chunk_processor"))
 
@@ -5270,7 +5270,7 @@ async def test_pass_through_route_pings_while_the_upstream_call_is_still_running
     from fastapi import Response
     from fastapi.responses import StreamingResponse
 
-    module = "litellm.proxy.pass_through_endpoints.pass_through_endpoints"
+    module = "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints"
 
     async def _relayed():
         yield MESSAGE_START_SSE_FRAME
@@ -5373,7 +5373,7 @@ def test_passthrough_budget_metadata_cannot_be_forged_by_the_request_body():
 
 def _marked_pass_through_endpoint():
     """An endpoint carrying the marker ``create_pass_through_route`` sets."""
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         LITELLM_PASS_THROUGH_ENDPOINT_MARKER,
     )
 
@@ -5440,8 +5440,8 @@ def test_builtin_provider_routes_do_not_carry_the_user_defined_marker(handler_na
     test pins the distinction between calling the factory and being dispatched as
     its product, which is easy to misread from a grep alone.
     """
-    from litellm.proxy.pass_through_endpoints import llm_passthrough_endpoints
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints import llm_passthrough_endpoints
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         LITELLM_PASS_THROUGH_ENDPOINT_MARKER,
     )
 
@@ -5454,8 +5454,8 @@ def test_builtin_provider_routes_do_not_carry_the_user_defined_marker(handler_na
 
 def test_the_marker_check_distinguishes_the_two_route_kinds():
     """Positive control: the factory's product IS marked, so the check can discriminate."""
-    from litellm.proxy.auth.auth_utils import request_dispatched_to_pass_through_endpoint
-    from litellm.proxy.pass_through_endpoints import llm_passthrough_endpoints
+    from token_iq.gateway.proxy.auth.auth_utils import request_dispatched_to_pass_through_endpoint
+    from token_iq.gateway.proxy.pass_through_endpoints import llm_passthrough_endpoints
 
     marked = MagicMock(spec=Request)
     marked.scope = {"endpoint": _marked_pass_through_endpoint()}
@@ -5470,9 +5470,9 @@ async def _drive_passthrough_request_and_capture_logging(
     user_api_key_dict: UserAPIKeyAuth,
     on_pre_call: Callable[[LiteLLMLoggingObj | None], None] | None = None,
 ) -> tuple[int, LiteLLMLoggingObj | None]:
-    import litellm
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
     def transport_handler(upstream_request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True})
@@ -5508,7 +5508,7 @@ async def _drive_passthrough_request_and_capture_logging(
 
     try:
         with patch(  # test-quality-ok: proxy_logging_obj is a proxy_server module global read inside pass_through_request; there is no injection seam
-            "litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging
         ):
             response = await pass_through_request(
                 request=mock_request,
@@ -5612,10 +5612,10 @@ async def test_resolve_team_callback_wiring_fails_open_on_operational_error():
     """LIT-5152 fail-open: an operational error while resolving callback metadata
     (e.g. team config lookup hitting a dead secret manager) must not raise; the
     request proceeds without dynamic callbacks and the error is logged."""
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         _resolve_team_callback_wiring,
     )
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     class RaisingTeamConfig(ProxyConfig):
         def load_team_config(self, team_id: str) -> dict:
@@ -5636,7 +5636,7 @@ async def test_resolve_team_callback_wiring_fails_open_on_operational_error():
 async def test_pass_through_request_leaves_guardrail_readable_metadata():
     """A pre-call guardrail reads the request headers off the passthrough logging
     params without raising."""
-    from litellm.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
         _logged_request_headers,
     )
 

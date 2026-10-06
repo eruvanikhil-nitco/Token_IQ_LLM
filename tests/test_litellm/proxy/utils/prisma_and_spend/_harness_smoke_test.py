@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 def test_normalize_scrubs_volatile_keys() -> None:

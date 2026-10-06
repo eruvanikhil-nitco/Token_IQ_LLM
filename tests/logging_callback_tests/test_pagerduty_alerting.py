@@ -4,13 +4,13 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 from litellm_enterprise.enterprise_callbacks.pagerduty.pagerduty import (
     PagerDutyAlerting,
     AlertingConfig,
 )
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 @pytest.mark.asyncio

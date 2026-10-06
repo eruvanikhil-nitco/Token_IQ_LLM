@@ -5,7 +5,7 @@ Unit tests for prometheus metrics
 import pytest
 import aiohttp
 import asyncio
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from openai import AsyncOpenAI
 from typing import Dict, Any
 
@@ -113,7 +113,7 @@ async def test_proxy_failure_metrics():
         # Master-key auth substitutes LITELLM_PROXY_MASTER_KEY_ALIAS for
         # hash_token(master_key) so the master key (or its hash) never
         # propagates into metrics. See PR #26484.
-        from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+        from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
         expected_hashed_api_key = LITELLM_PROXY_MASTER_KEY_ALIAS
 
@@ -196,7 +196,7 @@ async def test_proxy_success_metrics():
 
         # Master-key auth substitutes LITELLM_PROXY_MASTER_KEY_ALIAS for
         # hash_token(master_key) (PR #26484).
-        from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+        from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
         expected_hashed_api_key = LITELLM_PROXY_MASTER_KEY_ALIAS
 
@@ -247,7 +247,7 @@ def verify_latency_metrics(metrics: str):
 
     Very important to verify that the overhead latency metric is present
     """
-    from litellm.types.integrations.prometheus import LATENCY_BUCKETS
+    from token_iq.gateway.types.integrations.prometheus import LATENCY_BUCKETS
     import re
     import time
 
@@ -303,7 +303,7 @@ async def test_proxy_fallback_metrics():
 
         # Master-key auth substitutes LITELLM_PROXY_MASTER_KEY_ALIAS for
         # hash_token(master_key) (PR #26484).
-        from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+        from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
         expected_hashed_api_key = LITELLM_PROXY_MASTER_KEY_ALIAS
 

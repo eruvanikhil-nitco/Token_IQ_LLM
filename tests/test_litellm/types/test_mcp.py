@@ -8,7 +8,7 @@ resolved credential on one path and not the other.
 
 import pytest
 
-from litellm.types.mcp import (
+from token_iq.gateway.types.mcp import (
     credential_redirect_hook,
     crosses_origin,
     has_header,

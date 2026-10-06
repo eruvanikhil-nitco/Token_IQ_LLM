@@ -13,9 +13,9 @@ from typing import Any
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy.utils import ProxyLogging, _CallbackCapabilities
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy.utils import ProxyLogging, _CallbackCapabilities
 
 
 class _PlainLogger(CustomLogger):
@@ -115,7 +115,7 @@ def test_callback_capabilities_invalidates_on_change(monkeypatch):
 def test_callback_capabilities_callback_resolution_error_raises(monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["unknown-string"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("bad")),
     )
@@ -149,7 +149,7 @@ def test_has_post_call_response_headers_callbacks_truth_table(monkeypatch, mock_
 def test_has_post_call_response_headers_callbacks_error_when_bad_callback(monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("kaboom")),
     )
@@ -177,7 +177,7 @@ def test_has_streaming_callbacks_truth_table(monkeypatch, mock_callbacks_disable
 def test_has_streaming_callbacks_error_when_resolution_fails(monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(ValueError("nope")),
     )
@@ -205,7 +205,7 @@ def test_has_streaming_chunk_hook_overrides_truth_table(monkeypatch, mock_callba
 def test_has_streaming_chunk_hook_overrides_error_raises(monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(TypeError("nope")),
     )
@@ -233,7 +233,7 @@ def test_needs_iterator_wrap_truth_table(proxy_logging, monkeypatch, mock_callba
 def test_needs_iterator_wrap_error_raises(proxy_logging, monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("oops")),
     )
@@ -261,7 +261,7 @@ def test_needs_per_chunk_streaming_hook_truth_table(proxy_logging, monkeypatch, 
 def test_needs_per_chunk_streaming_hook_error_raises(proxy_logging, monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(KeyError("oops")),
     )
@@ -270,7 +270,7 @@ def test_needs_per_chunk_streaming_hook_error_raises(proxy_logging, monkeypatch)
 
 
 def test_has_during_call_guardrails_truth_table(monkeypatch, mock_callbacks_disabled):
-    from litellm.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
     class _G(CustomGuardrail):
         def __init__(self):
@@ -295,7 +295,7 @@ def test_has_during_call_guardrails_truth_table(monkeypatch, mock_callbacks_disa
 def test_has_during_call_guardrails_resolution_error_raises(monkeypatch):
     monkeypatch.setattr(litellm, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("oops")),
     )

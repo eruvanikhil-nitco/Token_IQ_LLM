@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from litellm.integrations.custom_guardrail import (
+from token_iq.gateway.integrations.custom_guardrail import (
     DEFAULT_ADVISORY_MESSAGE,
     CustomGuardrail,
     log_guardrail_information,
 )
-from litellm.proxy._types import CallTypes, UserAPIKeyAuth
-from litellm.types.utils import GenericGuardrailAPIInputs, GuardrailTracingDetail
+from token_iq.gateway.proxy._types import CallTypes, UserAPIKeyAuth
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs, GuardrailTracingDetail
 
 
 class TestCustomGuardrailDeploymentHook:
@@ -153,7 +153,7 @@ class TestCustomGuardrailDeploymentHook:
     def test_mark_pre_call_hook_ran_uses_litellm_metadata(self):
         """The marker is recorded in litellm_metadata when that is the metadata
         bucket in use, and is then visible to the skip check."""
-        from litellm.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
+        from token_iq.gateway.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
 
         guardrail = CustomGuardrail(guardrail_name="g1")
         kwargs = {"litellm_metadata": {}}
@@ -168,7 +168,7 @@ class TestCustomGuardrailDeploymentHook:
         """A direct-SDK caller controls request metadata but cannot know the
         per-process token, so a hand-crafted marker must not suppress a
         requested guardrail in async_pre_call_deployment_hook."""
-        from litellm.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
+        from token_iq.gateway.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
 
         class CountingGuardrail(CustomGuardrail):
             def __init__(self):
@@ -200,7 +200,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_with_litellm_metadata(self):
         """Test that should_run_guardrail works with litellm_metadata pattern"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -222,7 +222,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_with_metadata(self):
         """Test that should_run_guardrail works with metadata pattern"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -244,7 +244,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_with_root_level_guardrails(self):
         """Test that should_run_guardrail works with root level guardrails"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -263,7 +263,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_no_matching_guardrail(self):
         """Test that should_run_guardrail returns False when guardrail name doesn't match"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -285,7 +285,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_with_disable_global_guardrail(self):
         """Test that disable_global_guardrails only works from admin metadata"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="global_guardrail",
@@ -373,7 +373,7 @@ class TestCustomGuardrailShouldRunGuardrail:
     ):
         """Key disable_global_guardrails must take precedence over the guardrail
         appearing in the team's explicit guardrails list."""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="global_guardrail",
@@ -418,7 +418,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_with_opted_out_global_guardrails(self):
         """Test that per-guardrail opt-out only works from admin metadata"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         custom_guardrail = CustomGuardrail(
             guardrail_name="global_guardrail",
@@ -493,7 +493,7 @@ class TestCustomGuardrailShouldRunGuardrail:
 
     def test_should_run_guardrail_opt_out_does_not_affect_non_global(self):
         """Opt-out list only matters for default_on=True guardrails"""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         non_global = CustomGuardrail(
             guardrail_name="opt_in_guardrail",
@@ -588,7 +588,7 @@ class TestApplyGuardrailCheck:
 
 class TestGuardrailLoggingAggregation:
     def _make_guardrail(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         return CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -683,7 +683,7 @@ class TestGuardrailLoggingAggregation:
         """The x-litellm-applied-guardrails writer and the guardrail-info writer must
         resolve the same bucket, otherwise the response header and the spend log
         disagree about whether the guardrail ran."""
-        from litellm.proxy.common_utils.callback_utils import (
+        from token_iq.gateway.proxy.common_utils.callback_utils import (
             add_guardrail_to_applied_guardrails_header,
         )
 
@@ -712,7 +712,7 @@ class TestGuardrailOtelSpanEmission:
     reaches a post-call hook."""
 
     def _make_guardrail(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         return CustomGuardrail(
             guardrail_name="emit_guard",
@@ -732,7 +732,7 @@ class TestGuardrailOtelSpanEmission:
     def test_emits_span_for_recorded_entry(self, monkeypatch):
         captured = []
         monkeypatch.setattr(
-            "litellm.integrations.otel.logger.emit_guardrail_span",
+            "token_iq.gateway.integrations.otel.logger.emit_guardrail_span",
             captured.append,
         )
 
@@ -754,7 +754,7 @@ class TestGuardrailOtelSpanEmission:
             raise RuntimeError("otel exporter down")
 
         monkeypatch.setattr(
-            "litellm.integrations.otel.logger.emit_guardrail_span", _boom
+            "token_iq.gateway.integrations.otel.logger.emit_guardrail_span", _boom
         )
 
         request_data = {"metadata": {}}
@@ -773,7 +773,7 @@ class TestGuardrailSensitiveFieldStripping:
     """
 
     def _make_guardrail(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         return CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -893,7 +893,7 @@ class TestGuardrailResponseCredentialMasking:
     """
 
     def _make_guardrail(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         return CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -1141,7 +1141,7 @@ class TestCustomGuardrailPassthroughSupport:
         This tests Fix #3: When isinstance() is called with TypedDict types, it raises TypeError.
         The method should catch this and allow the response through.
         """
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         custom_guardrail = CustomGuardrail()
 
@@ -1316,8 +1316,8 @@ class TestEventTypeLogging:
         Test that log_guardrail_information decorator correctly infers GuardrailEventHooks.pre_call
         from async_pre_call_hook function name.
         """
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1351,8 +1351,8 @@ class TestEventTypeLogging:
         Test that log_guardrail_information decorator correctly infers GuardrailEventHooks.post_call
         from async_post_call_success_hook function name.
         """
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1386,8 +1386,8 @@ class TestEventTypeLogging:
         Test that log_guardrail_information decorator correctly infers GuardrailEventHooks.during_call
         from async_moderation_hook function name.
         """
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1421,8 +1421,8 @@ class TestEventTypeLogging:
         Test that log_guardrail_information decorator correctly infers GuardrailEventHooks.post_call
         from async_post_call_streaming_hook function name.
         """
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1456,8 +1456,8 @@ class TestEventTypeLogging:
         Test that log_guardrail_information decorator returns None for event_type
         when function name doesn't match known patterns, and falls back to self.event_hook.
         """
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1485,7 +1485,7 @@ class TestEventTypeLogging:
         Test that add_standard_logging_guardrail_information_to_request_data
         prioritizes event_type parameter over self.event_hook.
         """
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -1517,8 +1517,8 @@ class TestEventTypeLogging:
         own ``"allow"``/raw-response entry — otherwise every backend
         (OTEL spans, Datadog, Langfuse, spend logs) double-records one
         logical guardrail invocation."""
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1558,8 +1558,8 @@ class TestEventTypeLogging:
         """Same as above on the failure path: if the wrapped function
         appended an entry in its ``finally`` block before re-raising, the
         decorator must just re-raise without auto-recording on top."""
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class TestGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1598,8 +1598,8 @@ class TestEventTypeLogging:
         request_data dict. Each must still record its own entry. The previous guard counted
         entries in that shared dict, so a sibling's append made a guardrail think it had already
         recorded and skip its own auto-record — silently dropping lifecycle logs the UI shows."""
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class SleeperGuardrail(CustomGuardrail):
             def __init__(self, name, sleep):
@@ -1631,7 +1631,7 @@ class TestEventTypeLogging:
         Test that add_standard_logging_guardrail_information_to_request_data
         falls back to self.event_hook when event_type is None.
         """
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         guardrail = CustomGuardrail(
             guardrail_name="test_guardrail",
@@ -1806,7 +1806,7 @@ class TestGuardrailInterventionClassification:
     """A routing decision is a deliberate guardrail intervention, not a failure."""
 
     def test_sensitive_data_route_exception_is_intervention(self):
-        from litellm.exceptions import SensitiveDataRouteException
+        from token_iq.gateway.exceptions import SensitiveDataRouteException
 
         exc = SensitiveDataRouteException(
             route_to_model="on-prem-model",
@@ -1833,8 +1833,8 @@ class TestGuardrailInterventionClassification:
     async def test_non_400_4xx_logged_as_intervened_not_failed(self):
         from fastapi.exceptions import HTTPException
 
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class BlockingGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1858,9 +1858,9 @@ class TestGuardrailInterventionClassification:
 
     @pytest.mark.asyncio
     async def test_routing_logged_as_intervened_not_failed(self):
-        from litellm.exceptions import SensitiveDataRouteException
-        from litellm.integrations.custom_guardrail import log_guardrail_information
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.exceptions import SensitiveDataRouteException
+        from token_iq.gateway.integrations.custom_guardrail import log_guardrail_information
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class RoutingGuardrail(CustomGuardrail):
             def __init__(self):
@@ -1891,7 +1891,7 @@ class _ApplyStyleGuardrail(CustomGuardrail):
     """Overrides only apply_guardrail, like openai_moderation; async_pre_call_hook stays the CustomLogger no-op."""
 
     def __init__(self, block: bool):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         super().__init__(
             guardrail_name="apply-style-guardrail",
@@ -1982,7 +1982,7 @@ class TestApplyGuardrailStyleDeploymentDispatch:
             "metadata": {},
         }
 
-        with patch.dict(sys.modules, {"litellm.proxy.utils": None}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.utils": None}):
             with pytest.raises(ImportError, match="litellm\\[proxy\\]"):
                 await guardrail.async_pre_call_deployment_hook(kwargs, CallTypes.acompletion)
 
@@ -1998,7 +1998,7 @@ class TestOnlyScanNewMessages:
         return CustomGuardrail(**params)
 
     def _cache(self):
-        from litellm.caching import DualCache
+        from token_iq.gateway.caching import DualCache
 
         return DualCache()
 
@@ -2105,7 +2105,7 @@ class TestOnlyScanNewMessages:
     async def test_scanned_hashes_written_with_fixed_ttl(self):
         from unittest.mock import AsyncMock
 
-        from litellm.constants import GUARDRAIL_SCANNED_MESSAGES_CACHE_TTL_SECONDS
+        from token_iq.gateway.constants import GUARDRAIL_SCANNED_MESSAGES_CACHE_TTL_SECONDS
 
         guardrail = self._guardrail()
         cache = self._cache()
@@ -2243,7 +2243,7 @@ class _ApplyOnlyObserver(CustomGuardrail):
     """Overrides only apply_guardrail, like panw_prisma_airs; inherits async_logging_hook."""
 
     def __init__(self, block: bool = False):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         super().__init__(guardrail_name="apply-only-observer", event_hook=GuardrailEventHooks.logging_only)
         self.block = block
@@ -2260,7 +2260,7 @@ class _ApplyOnlyObserver(CustomGuardrail):
 
 
 def _logged_call(messages: list | str) -> tuple[dict, object]:
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     response = ModelResponse(choices=[Choices(message=Message(role="assistant", content="general kenobi"))])
     kwargs = {
@@ -2347,7 +2347,7 @@ class TestLoggingOnlyApplyGuardrail:
 
     @pytest.mark.asyncio
     async def test_aembedding_scans_logged_input(self):
-        from litellm.types.utils import EmbeddingResponse
+        from token_iq.gateway.types.utils import EmbeddingResponse
 
         guardrail = _ApplyOnlyObserver()
         kwargs, _ = _logged_call("hello there")
@@ -2377,7 +2377,7 @@ class TestLoggingOnlyApplyGuardrail:
 
     @pytest.mark.asyncio
     async def test_aresponses_scans_logged_messages_when_input_is_cleared(self):
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _ApplyOnlyObserver()
         kwargs, _ = _logged_call([{"role": "user", "content": "hello there"}])
@@ -2409,7 +2409,7 @@ class TestLoggingOnlyApplyGuardrail:
     async def test_async_success_handler_records_verdict_in_standard_logging_object(self):
         import datetime as dt
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
+        from token_iq.gateway.core_utils.litellm_logging import Logging
 
         guardrail = _ApplyOnlyObserver()
         guardrail.default_on = True

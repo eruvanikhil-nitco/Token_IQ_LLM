@@ -9,10 +9,10 @@ from typing import Any
 from unittest.mock import patch, MagicMock
 
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.utils import ModelResponseStream, StreamingChoices, Delta
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.utils import ModelResponseStream, StreamingChoices, Delta
 
 
 class StreamingResponseTransformerLogger(CustomLogger):
@@ -44,9 +44,9 @@ async def test_streaming_hook_transforms_response():
         transform_content="Modified streaming response"
     )
 
-    with patch("litellm.callbacks", [transformer]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [transformer]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -99,9 +99,9 @@ async def test_streaming_hook_returns_none_keeps_original():
 
     logger = NoOpLogger()
 
-    with patch("litellm.callbacks", [logger]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [logger]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -140,9 +140,9 @@ async def test_streaming_hook_works_with_sse_format():
         transform_content='data: {"error": "custom error"}\n\n'
     )
 
-    with patch("litellm.callbacks", [transformer]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [transformer]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -193,9 +193,9 @@ async def test_streaming_hook_chains_multiple_callbacks():
     callback1 = AppendLogger("CB1")
     callback2 = AppendLogger("CB2")
 
-    with patch("litellm.callbacks", [callback1, callback2]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [callback1, callback2]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -243,9 +243,9 @@ async def test_streaming_hook_handles_exceptions():
 
     logger = FailingLogger()
 
-    with patch("litellm.callbacks", [logger]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [logger]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 

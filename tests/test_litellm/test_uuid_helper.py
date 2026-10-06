@@ -2,7 +2,7 @@ import importlib
 
 
 def test_uses_fastuuid_and_uuid4_works():
-    mod = importlib.import_module("litellm._uuid")
+    mod = importlib.import_module("token_iq.gateway._uuid")
     fastuuid_mod = importlib.import_module("fastuuid")
     assert hasattr(mod, "uuid4")
     assert hasattr(mod, "uuid")

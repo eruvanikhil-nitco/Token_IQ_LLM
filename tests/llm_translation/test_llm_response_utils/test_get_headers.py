@@ -2,10 +2,10 @@ import json
 from datetime import datetime
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.litellm_core_utils.llm_response_utils.get_headers import (
+from token_iq.gateway.core_utils.llm_response_utils.get_headers import (
     get_response_headers,
     _get_llm_provider_headers,
 )

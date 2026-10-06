@@ -6,9 +6,9 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 
-import litellm
-from litellm.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
-from litellm.utils import get_supported_openai_params
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
+from token_iq.gateway.utils import get_supported_openai_params
 
 
 class TestGeminiTTSTransformation:
@@ -221,7 +221,7 @@ class TestGeminiTTSTransformation:
 
 def test_gemini_tts_completion_mock():
     """Test Gemini TTS completion with mocked response"""
-    with patch("litellm.completion") as mock_completion:
+    with patch("token_iq.gateway.completion") as mock_completion:
         # Mock a successful TTS response
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
@@ -261,7 +261,7 @@ class TestGeminiTTSSpeechConfigInRequestBody:
         self, model, custom_llm_provider
     ):
         """Test that speechConfig is included in generationConfig after _transform_request_body()"""
-        from litellm.llms.vertex_ai.gemini.transformation import (
+        from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
             _transform_request_body,
         )
 
@@ -309,10 +309,10 @@ class TestGeminiTTSSpeechConfigInRequestBody:
     )
     def test_speechconfig_end_to_end_mapping(self, model, custom_llm_provider):
         """Test full pipeline: audio param -> map_openai_params -> _transform_request_body"""
-        from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+        from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
             VertexGeminiConfig,
         )
-        from litellm.llms.vertex_ai.gemini.transformation import (
+        from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
             _transform_request_body,
         )
 
@@ -372,10 +372,10 @@ class TestGeminiTTSSpeechConfigInRequestBody:
         ],
     )
     def test_language_code_end_to_end_mapping(self, model, custom_llm_provider):
-        from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+        from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
             VertexGeminiConfig,
         )
-        from litellm.llms.vertex_ai.gemini.transformation import (
+        from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
             _transform_request_body,
         )
 

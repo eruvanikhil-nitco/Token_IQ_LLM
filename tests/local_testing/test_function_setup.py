@@ -8,8 +8,8 @@ load_dotenv()
 import io
 
 import pytest, uuid
-from litellm.utils import function_setup, Rules
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq.gateway.utils import function_setup, Rules
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     THOUGHT_SIGNATURE_SEPARATOR,
 )
 from datetime import datetime

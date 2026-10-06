@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 import pytest
 from unittest.mock import MagicMock, patch
-from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
 )
 

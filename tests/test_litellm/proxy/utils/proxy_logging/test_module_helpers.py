@@ -13,9 +13,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.proxy import utils as utils_mod
-from litellm.proxy.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy import utils as utils_mod
+from token_iq.gateway.proxy.utils import (
     _accepts_litellm_call_info,
     _enrich_http_exception_with_guardrail_context,
     _get_email_logger_class,
@@ -289,7 +289,7 @@ def test_jsonify_object_non_dict_input_raises():
 
 @pytest.mark.asyncio
 async def test_lookup_deprecated_key_returns_active_token_id_and_caches(monkeypatch):
-    from litellm.caching.dual_cache import LimitedSizeOrderedDict
+    from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
 
     fresh = LimitedSizeOrderedDict(max_size=1000)
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", fresh)
@@ -318,7 +318,7 @@ async def test_lookup_deprecated_key_returns_active_token_id_and_caches(monkeypa
 
 @pytest.mark.asyncio
 async def test_lookup_deprecated_key_returns_none_when_not_found(monkeypatch):
-    from litellm.caching.dual_cache import LimitedSizeOrderedDict
+    from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
 
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", LimitedSizeOrderedDict(max_size=10))
     db = MagicMock()
@@ -328,7 +328,7 @@ async def test_lookup_deprecated_key_returns_none_when_not_found(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_lookup_deprecated_key_db_error_returns_none(monkeypatch):
-    from litellm.caching.dual_cache import LimitedSizeOrderedDict
+    from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
 
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", LimitedSizeOrderedDict(max_size=10))
     db = MagicMock()
@@ -339,7 +339,7 @@ async def test_lookup_deprecated_key_db_error_returns_none(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_lookup_deprecated_key_uses_cache_within_ttl(monkeypatch):
-    from litellm.caching.dual_cache import LimitedSizeOrderedDict
+    from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
 
     cache = LimitedSizeOrderedDict(max_size=10)
     now_ts = datetime.now(timezone.utc).timestamp()

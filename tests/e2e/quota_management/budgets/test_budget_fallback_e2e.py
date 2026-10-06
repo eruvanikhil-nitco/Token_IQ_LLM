@@ -1,7 +1,7 @@
 """Live e2e: a virtual key's per-model `budget_fallbacks` reroutes `/v1/messages`
 transparently from an exhausted Anthropic model to an OpenAI model, instead of
 blocking the caller with a `budget_exceeded` error. Coverage for the
-budget_fallbacks feature in litellm/proxy/hooks/model_max_budget_limiter.py.
+budget_fallbacks feature in token_iq/gateway/proxy/hooks/model_max_budget_limiter.py.
 """
 
 import time

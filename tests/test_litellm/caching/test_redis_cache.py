@@ -5,7 +5,7 @@ import pytest
 
 from unittest.mock import AsyncMock
 
-from litellm.caching.redis_cache import RedisCache
+from token_iq.gateway.caching.redis_cache import RedisCache
 
 
 @pytest.fixture
@@ -493,7 +493,7 @@ async def test_circuit_breaker_opens_when_method_swallows_redis_failure(redis_no
     breaker could never open. An unreachable Redis then stayed in the pool and every
     request kept paying the full socket timeout on it.
     """
-    from litellm.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
+    from token_iq.gateway.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
 
     cache = RedisCache(host="127.0.0.1", port=_closed_port(), socket_timeout=0.5)
 
@@ -512,7 +512,7 @@ async def test_circuit_breaker_success_still_resets_the_failure_streak(redis_no_
     pins the other half of that contract: a call that genuinely reaches Redis has to clear
     the streak, or a healthy Redis would eventually be evicted from the pool.
     """
-    from litellm.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
+    from token_iq.gateway.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
 
     cache = RedisCache(host="127.0.0.1", port=_closed_port(), socket_timeout=0.5)
 
@@ -542,7 +542,7 @@ async def test_circuit_breaker_covers_lua_script_execution(redis_no_ping):
     """
     from redis.exceptions import ConnectionError as RedisConnectionError
 
-    from litellm.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
+    from token_iq.gateway.constants import REDIS_CIRCUIT_BREAKER_FAILURE_THRESHOLD
 
     cache = RedisCache(host="127.0.0.1", port=_closed_port(), socket_timeout=0.5)
     run_script = cache.async_register_script("return 1")
@@ -566,7 +566,7 @@ async def test_concurrent_success_is_not_cancelled_by_another_calls_failure():
     """
     from redis.exceptions import ConnectionError as RedisConnectionError
 
-    from litellm.caching.redis_cache import (
+    from token_iq.gateway.caching.redis_cache import (
         RedisCircuitBreaker,
         _record_swallowed_redis_failure,
         _run_under_circuit_breaker,
@@ -617,7 +617,7 @@ async def test_only_connectivity_failures_open_the_breaker(error, opens_breaker)
     """
     import redis.exceptions
 
-    from litellm.caching.redis_cache import RedisCircuitBreaker, _run_under_circuit_breaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker, _run_under_circuit_breaker
 
     breaker = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60)
     raised = getattr(redis.exceptions, error)("boom")

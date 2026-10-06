@@ -14,9 +14,9 @@ from typing import Final, TypeAlias
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ProviderConnection,
     ProviderConnectionAccount,
     ProviderConnectionsResponse,
@@ -154,7 +154,7 @@ async def provider_connections(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ProviderConnectionsResponse:
     """Every provider this build can read a bill from, and the state of each connection."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -180,7 +180,7 @@ async def provider_sync_history(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ProviderSyncHistoryResponse:
     """Recent fetch attempts for one provider, newest first."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:

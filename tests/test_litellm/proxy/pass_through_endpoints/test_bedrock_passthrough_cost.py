@@ -5,7 +5,7 @@ import json
 import httpx
 import pytest
 
-from litellm.proxy.pass_through_endpoints.success_handler import PassThroughEndpointLogging
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import PassThroughEndpointLogging
 
 CONVERSE_BODY = {
     "output": {"message": {"role": "assistant", "content": [{"text": "hello"}]}},
@@ -25,7 +25,7 @@ INVOKE_BODY = {
 
 
 def _logging_obj(call_id: str, *, stream: bool = False):
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     return Logging(
         model="anthropic.claude-3-5-sonnet-20241022-v2:0",
@@ -57,7 +57,7 @@ def test_bedrock_is_recognised_by_the_success_handler():
 def test_usage_is_read_from_both_bedrock_response_shapes(endpoint, body, expected_prompt, expected_completion):
     """Bedrock answers in two different shapes depending on the API used, and the
     courier route must price both."""
-    from litellm.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
+    from token_iq.gateway.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
 
     result = BedrockPassthroughConfig().logging_non_streaming_response(
         model="anthropic.claude-3-5-sonnet-20241022-v2:0",
@@ -77,8 +77,8 @@ def test_bedrock_urls_resolve_to_their_own_endpoint_type():
     """The streaming chain dispatches on EndpointType. Bedrock's regional host fell
     through to GENERIC, which has no pricing branch, so streamed Bedrock traffic
     billed nothing even once the non-streaming path was fixed."""
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 
     resolved = HttpPassThroughEndpointHelpers.get_endpoint_type(
         "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-5-sonnet-20241022-v2:0/converse-stream"
@@ -87,15 +87,15 @@ def test_bedrock_urls_resolve_to_their_own_endpoint_type():
 
 
 def test_unrelated_hosts_still_resolve_to_generic():
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 
     assert HttpPassThroughEndpointHelpers.get_endpoint_type("https://example.com/v1/chat") == EndpointType.GENERIC
 
 
 def test_streamed_bedrock_usage_is_read_from_the_collected_chunks():
     """A streamed reply never reaches logging_non_streaming_response."""
-    from litellm.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
+    from token_iq.gateway.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
 
     chunks = [
         json.dumps({"role": "assistant"}),

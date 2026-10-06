@@ -1,8 +1,8 @@
 import pytest
 
-from litellm import Router
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.fallback_model_access import (
+from token_iq.gateway import Router
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.fallback_model_access import (
     RouterFallbackAccessCheck,
     is_model_authorized_for_token,
     router_fallback_access_check,
@@ -97,7 +97,7 @@ async def test_check_allows_every_fallback_while_not_enforced():
 async def test_proxy_check_reads_enforce_fallback_model_access_from_general_settings(
     monkeypatch: pytest.MonkeyPatch, general_settings: dict, expected: bool
 ):
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", general_settings)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", general_settings)
 
     assert (
         await router_fallback_access_check(

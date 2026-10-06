@@ -4,12 +4,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.constants import OPENAI_CHAT_COMPLETION_PARAMS
-from litellm.endpoints.speech.speech_to_completion_bridge.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import OPENAI_CHAT_COMPLETION_PARAMS
+from token_iq.gateway.endpoints.speech.speech_to_completion_bridge.transformation import (
     SpeechToCompletionBridgeTransformationHandler,
 )
-from litellm.types.utils import ChatCompletionAudioResponse, Choices, Message, ModelResponse
+from token_iq.gateway.types.utils import ChatCompletionAudioResponse, Choices, Message, ModelResponse
 
 GEMINI_TTS_MODEL: Final = "gemini-3.1-flash-tts-preview"
 PCM_BYTES: Final = b"\x01\x02\x03\x04" * 6

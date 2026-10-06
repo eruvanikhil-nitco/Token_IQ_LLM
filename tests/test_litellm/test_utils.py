@@ -10,18 +10,18 @@ import respx
 from jsonschema import validate
 
 
-import litellm
-from litellm._internal_context import is_internal_call
-from litellm._logging import (
+from token_iq import gateway as litellm
+from token_iq.gateway._internal_context import is_internal_call
+from token_iq.gateway._logging import (
     CorrelationContextFilter,
     JsonFormatter,
     session_id_var,
     trace_id_var,
     verbose_logger,
 )
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy.utils import is_valid_api_key
-from litellm.types.utils import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy.utils import is_valid_api_key
+from token_iq.gateway.types.utils import (
     CallTypes,
     Delta,
     LlmProviders,
@@ -30,9 +30,9 @@ from litellm.types.utils import (
     StreamingChoices,
     Usage,
 )
-from litellm.types.utils import all_litellm_params, bedrock_batch_litellm_params
-from litellm.types.router import CredentialLiteLLMParams, GenericLiteLLMParams
-from litellm.utils import (
+from token_iq.gateway.types.utils import all_litellm_params, bedrock_batch_litellm_params
+from token_iq.gateway.types.router import CredentialLiteLLMParams, GenericLiteLLMParams
+from token_iq.gateway.utils import (
     ProviderConfigManager,
     TextCompletionStreamWrapper,
     _check_provider_match,
@@ -314,7 +314,7 @@ def test_supports_function_calling_unknown_github_alias_returns_false():
 
 
 def test_get_optional_params_image_gen():
-    from litellm.llms.azure.image_generation import AzureGPTImageGenerationConfig
+    from token_iq.gateway.llms.azure.image_generation import AzureGPTImageGenerationConfig
 
     provider_config = AzureGPTImageGenerationConfig()
     optional_params = get_optional_params_image_gen(
@@ -445,10 +445,10 @@ def test_azure_gpt_image_2_model_info(local_model_cost_map):
 
 
 def test_all_model_configs():
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.ai21.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.ai21.transformation import (
         VertexAIAi21Config,
     )
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.llama3.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.llama3.transformation import (
         VertexAILlama3Config,
     )
 
@@ -467,7 +467,7 @@ def test_all_model_configs():
         {"max_completion_tokens": 10}, {}, "jamba-1.5-mini@001", drop_params=False
     ) == {"max_tokens": 10}
 
-    from litellm.llms.fireworks_ai.chat.transformation import FireworksAIConfig
+    from token_iq.gateway.llms.fireworks_ai.chat.transformation import FireworksAIConfig
 
     assert "max_completion_tokens" in FireworksAIConfig().get_supported_openai_params(
         model="llama3"
@@ -479,7 +479,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.nvidia_nim.chat.transformation import NvidiaNimConfig
+    from token_iq.gateway.llms.nvidia_nim.chat.transformation import NvidiaNimConfig
 
     assert "max_completion_tokens" in NvidiaNimConfig().get_supported_openai_params(
         model="llama3"
@@ -491,7 +491,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.ollama.chat.transformation import OllamaChatConfig
+    from token_iq.gateway.llms.ollama.chat.transformation import OllamaChatConfig
 
     assert "max_completion_tokens" in OllamaChatConfig().get_supported_openai_params(
         model="llama3"
@@ -503,7 +503,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"num_predict": 10}
 
-    from litellm.llms.predibase.chat.transformation import PredibaseConfig
+    from token_iq.gateway.llms.predibase.chat.transformation import PredibaseConfig
 
     assert "max_completion_tokens" in PredibaseConfig().get_supported_openai_params(
         model="llama3"
@@ -515,7 +515,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_new_tokens": 10}
 
-    from litellm.llms.codestral.completion.transformation import (
+    from token_iq.gateway.llms.codestral.completion.transformation import (
         CodestralTextCompletionConfig,
     )
 
@@ -530,7 +530,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.volcengine.chat.transformation import (
+    from token_iq.gateway.llms.volcengine.chat.transformation import (
         VolcEngineChatConfig as VolcEngineConfig,
     )
 
@@ -544,7 +544,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.ai21.chat.transformation import AI21ChatConfig
+    from token_iq.gateway.llms.ai21.chat.transformation import AI21ChatConfig
 
     assert "max_completion_tokens" in AI21ChatConfig().get_supported_openai_params(
         "jamba-1.5-mini@001"
@@ -556,7 +556,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
+    from token_iq.gateway.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
 
     assert "max_completion_tokens" in AzureOpenAIConfig().get_supported_openai_params(
         model="gpt-3.5-turbo"
@@ -569,7 +569,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_completion_tokens": 10}
 
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     assert (
         "max_completion_tokens"
@@ -584,7 +584,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"maxTokens": 10}
 
-    from litellm.llms.codestral.completion.transformation import (
+    from token_iq.gateway.llms.codestral.completion.transformation import (
         CodestralTextCompletionConfig,
     )
 
@@ -599,7 +599,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm import AmazonAnthropicClaudeConfig, AmazonAnthropicConfig
+    from token_iq.gateway import AmazonAnthropicClaudeConfig, AmazonAnthropicConfig
 
     assert (
         "max_completion_tokens"
@@ -627,7 +627,7 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens_to_sample": 10}
 
-    from litellm.llms.databricks.chat.transformation import DatabricksConfig
+    from token_iq.gateway.llms.databricks.chat.transformation import DatabricksConfig
 
     assert "max_completion_tokens" in DatabricksConfig().get_supported_openai_params()
 
@@ -638,7 +638,7 @@ def test_all_model_configs():
         optional_params={},
     ) == {"max_tokens": 10}
 
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
         VertexAIAnthropicConfig,
     )
 
@@ -656,8 +656,8 @@ def test_all_model_configs():
         drop_params=False,
     ) == {"max_tokens": 10}
 
-    from litellm.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -707,7 +707,7 @@ def test_anthropic_web_search_in_model_info(monkeypatch):
         "anthropic/claude-sonnet-4-5-20250929",
     ]
     for model in supported_models:
-        from litellm.utils import get_model_info
+        from token_iq.gateway.utils import get_model_info
 
         model_info = get_model_info(model)
         assert model_info is not None
@@ -720,7 +720,7 @@ def test_anthropic_web_search_in_model_info(monkeypatch):
 
 
 def test_cohere_embedding_optional_params():
-    from litellm import get_optional_params_embeddings
+    from token_iq.gateway import get_optional_params_embeddings
 
     optional_params = get_optional_params_embeddings(
         model="embed-v4.0",
@@ -1406,8 +1406,8 @@ def test_get_provider_rerank_config():
     """
     Test the get_provider_rerank_config function for various providers
     """
-    from litellm import HostedVLLMRerankConfig
-    from litellm.utils import LlmProviders
+    from token_iq.gateway import HostedVLLMRerankConfig
+    from token_iq.gateway.utils import LlmProviders
 
     # Test for hosted_vllm provider
     config = ProviderConfigManager.get_provider_rerank_config(
@@ -1419,8 +1419,8 @@ def test_get_provider_rerank_config():
 def test_get_provider_text_to_speech_config_vertex_gemini_skips_cloud_tts():
     """Regression for LIT-6501: mapping vertex Gemini TTS params through Google Cloud TTS
     dropped response_format before the speech_to_completion bridge could honor it."""
-    from litellm.llms.vertex_ai.text_to_speech.transformation import VertexAITextToSpeechConfig
-    from litellm.utils import LlmProviders
+    from token_iq.gateway.llms.vertex_ai.text_to_speech.transformation import VertexAITextToSpeechConfig
+    from token_iq.gateway.utils import LlmProviders
 
     assert (
         ProviderConfigManager.get_provider_text_to_speech_config(
@@ -1476,7 +1476,7 @@ def test_supports_computer_use_utility(monkeypatch):
     """
     Tests the litellm.utils.supports_computer_use utility function.
     """
-    from litellm.utils import supports_computer_use
+    from token_iq.gateway.utils import supports_computer_use
 
     # Ensure LITELLM_LOCAL_MODEL_COST_MAP is set for consistent test behavior,
     # as supports_computer_use relies on get_model_info.
@@ -1550,7 +1550,7 @@ def test_get_model_info_shows_supports_computer_use(monkeypatch):
 def test_pre_process_non_default_params(model, custom_llm_provider):
     from pydantic import BaseModel
 
-    from litellm.utils import pre_process_non_default_params
+    from token_iq.gateway.utils import pre_process_non_default_params
 
     provider_config = ProviderConfigManager.get_provider_chat_config(
         model=model, provider=LlmProviders(custom_llm_provider)
@@ -1612,7 +1612,7 @@ def test_pre_process_non_default_params(model, custom_llm_provider):
     ],
 )
 def test_provider_supports_vertex_params(custom_llm_provider, expected):
-    from litellm.utils import _provider_supports_vertex_params
+    from token_iq.gateway.utils import _provider_supports_vertex_params
 
     assert _provider_supports_vertex_params(custom_llm_provider) is expected
 
@@ -1642,7 +1642,7 @@ def test_vertex_params_not_stripped_for_vertex_family(
         assert optional_params["vertex_location"] == "us-central1"
 
 
-from litellm.utils import supports_function_calling
+from token_iq.gateway.utils import supports_function_calling
 
 
 class TestProxyFunctionCalling:
@@ -1651,7 +1651,7 @@ class TestProxyFunctionCalling:
     @pytest.fixture(autouse=True)
     def reset_mock_cache(self):
         """Reset model cache before each test."""
-        from litellm.utils import _model_cache
+        from token_iq.gateway.utils import _model_cache
 
         _model_cache.flush_cache()
 
@@ -1910,7 +1910,7 @@ class TestProxyFunctionCalling:
     def test_litellm_utils_supports_function_calling_import(self):
         """Test that supports_function_calling can be imported from litellm.utils."""
         try:
-            from litellm.utils import supports_function_calling
+            from token_iq.gateway.utils import supports_function_calling
 
             assert callable(supports_function_calling)
         except ImportError as e:
@@ -1919,7 +1919,7 @@ class TestProxyFunctionCalling:
     def test_litellm_supports_function_calling_import(self):
         """Test that supports_function_calling can be imported from litellm directly."""
         try:
-            import litellm
+            from token_iq import gateway as litellm
 
             assert hasattr(litellm, "supports_function_calling")
             assert callable(litellm.supports_function_calling)
@@ -2288,7 +2288,7 @@ def test_register_model_with_scientific_notation():
     test_model_name = f"test-scientific-notation-model-{uuid.uuid4().hex[:12]}"
 
     # Clear LRU caches that might have stale data
-    from litellm.utils import (
+    from token_iq.gateway.utils import (
         _invalidate_model_cost_lowercase_map,
     )
 
@@ -2414,7 +2414,7 @@ def test_reasoning_content_preserved_in_text_completion_wrapper():
 
 def test_anthropic_claude_4_invoke_chat_provider_config():
     """Test that the Anthropic Claude 4 Invoke chat provider config is correct."""
-    from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeConfig,
     )
 
@@ -2430,8 +2430,8 @@ def test_bedrock_application_inference_profile():
     model = "arn:aws:bedrock:us-east-2:<AWS-ACCOUNT-ID>:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0"
     from pydantic import BaseModel
 
-    from litellm import completion
-    from litellm.utils import supports_tool_choice
+    from token_iq.gateway import completion
+    from token_iq.gateway.utils import supports_tool_choice
 
     result = supports_tool_choice(model, custom_llm_provider="bedrock")
     result_2 = supports_tool_choice(model, custom_llm_provider="bedrock_converse")
@@ -2442,7 +2442,7 @@ def test_bedrock_application_inference_profile():
 
 def test_image_response_utils():
     """Test that the image response utils are correct."""
-    from litellm.utils import ImageResponse
+    from token_iq.gateway.utils import ImageResponse
 
     result = {
         "created": None,
@@ -2499,7 +2499,7 @@ def test_block_key_hashing_logic():
     """
     import hashlib
 
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy.utils import hash_token
 
     # Test cases: (input_key, should_be_hashed, expected_output)
     test_cases = [
@@ -2563,7 +2563,7 @@ def test_generate_gcp_iam_access_token():
     with patch.dict(
         "sys.modules", {"google.cloud.iam_credentials_v1": mock_iam_credentials_v1}
     ):
-        from litellm._redis import _generate_gcp_iam_access_token
+        from token_iq.gateway._redis import _generate_gcp_iam_access_token
 
         result = _generate_gcp_iam_access_token(service_account)
 
@@ -2583,7 +2583,7 @@ def test_generate_gcp_iam_access_token_import_error():
     Test that _generate_gcp_iam_access_token raises ImportError when google-cloud-iam is not available.
     """
     # Import the function first, before mocking
-    from litellm._redis import _generate_gcp_iam_access_token
+    from token_iq.gateway._redis import _generate_gcp_iam_access_token
 
     # Mock the import to fail when the function tries to import google.cloud.iam_credentials_v1
     original_import = __builtins__["__import__"]
@@ -2621,7 +2621,7 @@ def test_generate_azure_ad_redis_token():
     with patch.dict(
         "sys.modules", {"azure.identity": mock_azure_identity, "azure": Mock()}
     ):
-        from litellm._redis import _generate_azure_ad_redis_token
+        from token_iq.gateway._redis import _generate_azure_ad_redis_token
 
         result = _generate_azure_ad_redis_token()
 
@@ -2653,7 +2653,7 @@ def test_generate_azure_ad_redis_token_service_principal():
     with patch.dict(
         "sys.modules", {"azure.identity": mock_azure_identity, "azure": Mock()}
     ):
-        from litellm._redis import _generate_azure_ad_redis_token
+        from token_iq.gateway._redis import _generate_azure_ad_redis_token
 
         result = _generate_azure_ad_redis_token(
             azure_client_id="test-client-id",
@@ -2672,7 +2672,7 @@ def test_generate_azure_ad_redis_token_service_principal():
 def test_generate_azure_ad_redis_token_import_error():
     """Test that _generate_azure_ad_redis_token raises ImportError when azure-identity is missing."""
     from unittest.mock import patch
-    from litellm._redis import _generate_azure_ad_redis_token
+    from token_iq.gateway._redis import _generate_azure_ad_redis_token
 
     with patch.dict("sys.modules", {"azure.identity": None}):
         with pytest.raises(ImportError) as exc_info:
@@ -2698,7 +2698,7 @@ def test_redis_client_logic_azure_ad_auth():
     with patch.dict(
         "sys.modules", {"azure.identity": mock_azure_identity, "azure": Mock()}
     ):
-        from litellm._redis import _get_redis_client_logic
+        from token_iq.gateway._redis import _get_redis_client_logic
 
         redis_kwargs = _get_redis_client_logic(
             host="myredis.redis.cache.windows.net",
@@ -3067,8 +3067,8 @@ class TestProxyLoggingBudgetAlerts:
 
     async def test_budget_alerts_when_alerting_is_none(self):
         """Test that budget_alerts returns early when alerting is None."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = None
@@ -3086,8 +3086,8 @@ class TestProxyLoggingBudgetAlerts:
 
     async def test_budget_alerts_with_slack_only(self):
         """Test that budget_alerts calls slack_alerting_instance when slack is in alerting."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = ["slack"]
@@ -3103,8 +3103,8 @@ class TestProxyLoggingBudgetAlerts:
 
     async def test_budget_alerts_with_email_only(self):
         """Test that budget_alerts calls email_logging_instance when email is in alerting."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = ["email"]
@@ -3120,8 +3120,8 @@ class TestProxyLoggingBudgetAlerts:
 
     async def test_budget_alerts_with_email_when_instance_is_none(self):
         """Test that budget_alerts does not call email_logging_instance when it is None."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = ["email"]
@@ -3136,8 +3136,8 @@ class TestProxyLoggingBudgetAlerts:
 
     async def test_budget_alerts_with_both_slack_and_email(self):
         """Test that budget_alerts calls both slack and email instances when both are in alerting."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = ["slack", "email"]
@@ -3169,8 +3169,8 @@ class TestProxyLoggingBudgetAlerts:
     )
     async def test_budget_alerts_with_all_alert_types(self, alert_type):
         """Test that budget_alerts works with all supported alert types."""
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = ["slack", "email"]
@@ -3198,9 +3198,9 @@ class TestProxyLoggingBudgetAlerts:
         This tests the new logic that allows team-specific soft budget email alerts
         via metadata.soft_budget_alerting_emails to work even when global alerting is disabled.
         """
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import CallInfo, Litellm_EntityType
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = None  # Global alerting is disabled
@@ -3237,9 +3237,9 @@ class TestProxyLoggingBudgetAlerts:
         Test that soft_budget alerts WITHOUT alert_emails still respect alerting=None
         and do not send emails when alerting is None.
         """
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import CallInfo, Litellm_EntityType
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = None
@@ -3271,9 +3271,9 @@ class TestProxyLoggingBudgetAlerts:
         """
         Test that soft_budget alerts with empty alert_emails list still respect alerting=None.
         """
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import CallInfo, Litellm_EntityType
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging.alerting = None
@@ -3302,7 +3302,7 @@ class TestProxyLoggingBudgetAlerts:
 
 def test_azure_ai_claude_provider_config():
     """Test that Azure AI Claude models return AzureAnthropicConfig for proper tool transformation."""
-    from litellm import AzureAIStudioConfig, AzureAnthropicConfig
+    from token_iq.gateway import AzureAIStudioConfig, AzureAnthropicConfig
 
     # Claude models should return AzureAnthropicConfig
     config = ProviderConfigManager.get_provider_chat_config(
@@ -3332,7 +3332,7 @@ def test_azure_ai_claude_provider_config():
 
 def test_any_assistant_message_has_thinking_blocks_with_thinking():
     """Test that function returns True when any assistant message has thinking_blocks."""
-    from litellm.utils import any_assistant_message_has_thinking_blocks
+    from token_iq.gateway.utils import any_assistant_message_has_thinking_blocks
 
     messages = [
         {"role": "user", "content": "Hello"},
@@ -3354,7 +3354,7 @@ def test_any_assistant_message_has_thinking_blocks_with_thinking():
 
 def test_any_assistant_message_has_thinking_blocks_without_thinking():
     """Test that function returns False when no assistant message has thinking_blocks."""
-    from litellm.utils import any_assistant_message_has_thinking_blocks
+    from token_iq.gateway.utils import any_assistant_message_has_thinking_blocks
 
     messages = [
         {"role": "user", "content": "Hello"},
@@ -3370,7 +3370,7 @@ def test_any_assistant_message_has_thinking_blocks_without_thinking():
 
 def test_any_assistant_message_has_thinking_blocks_empty_list():
     """Test that function returns False when thinking_blocks is an empty list."""
-    from litellm.utils import any_assistant_message_has_thinking_blocks
+    from token_iq.gateway.utils import any_assistant_message_has_thinking_blocks
 
     messages = [
         {"role": "user", "content": "Hello"},
@@ -3394,7 +3394,7 @@ def test_last_assistant_with_tool_calls_has_no_thinking_blocks_issue_18926():
     has no thinking_blocks, but this breaks because the first message
     still has thinking blocks in the conversation.
     """
-    from litellm.utils import (
+    from token_iq.gateway.utils import (
         any_assistant_message_has_thinking_blocks,
         last_assistant_with_tool_calls_has_no_thinking_blocks,
     )
@@ -3465,7 +3465,7 @@ class TestAdditionalDropParamsForNonOpenAIProviders:
         'BedrockException - {"message":"The model returned the following errors:
         prompt_cache_key: Extra inputs are not permitted"}'
         """
-        from litellm.utils import add_provider_specific_params_to_optional_params
+        from token_iq.gateway.utils import add_provider_specific_params_to_optional_params
 
         optional_params = {}
         passed_params = {
@@ -3491,7 +3491,7 @@ class TestAdditionalDropParamsForNonOpenAIProviders:
 
     def test_additional_drop_params_filters_multiple_params_for_non_openai(self):
         """Test filtering multiple params for non-OpenAI providers."""
-        from litellm.utils import add_provider_specific_params_to_optional_params
+        from token_iq.gateway.utils import add_provider_specific_params_to_optional_params
 
         optional_params = {}
         passed_params = {
@@ -3519,7 +3519,7 @@ class TestAdditionalDropParamsForNonOpenAIProviders:
 
     def test_additional_drop_params_none_keeps_all_params(self):
         """Test that when additional_drop_params is None, all params are kept."""
-        from litellm.utils import add_provider_specific_params_to_optional_params
+        from token_iq.gateway.utils import add_provider_specific_params_to_optional_params
 
         optional_params = {}
         passed_params = {
@@ -3542,7 +3542,7 @@ class TestAdditionalDropParamsForNonOpenAIProviders:
 
     def test_additional_drop_params_empty_list_keeps_all_params(self):
         """Test that when additional_drop_params is empty list, all params are kept."""
-        from litellm.utils import add_provider_specific_params_to_optional_params
+        from token_iq.gateway.utils import add_provider_specific_params_to_optional_params
 
         optional_params = {}
         passed_params = {
@@ -3576,7 +3576,7 @@ class TestDropParamsWithPromptCacheKey:
 
     def test_prompt_cache_key_in_default_params(self):
         """Verify prompt_cache_key is now in DEFAULT_CHAT_COMPLETION_PARAM_VALUES."""
-        from litellm.constants import DEFAULT_CHAT_COMPLETION_PARAM_VALUES
+        from token_iq.gateway.constants import DEFAULT_CHAT_COMPLETION_PARAM_VALUES
 
         assert "prompt_cache_key" in DEFAULT_CHAT_COMPLETION_PARAM_VALUES
         assert "prompt_cache_retention" in DEFAULT_CHAT_COMPLETION_PARAM_VALUES
@@ -3586,7 +3586,7 @@ class TestDropParamsWithPromptCacheKey:
         Test that get_optional_params with drop_params=True removes prompt_cache_key
         for Bedrock provider since it's not in Bedrock's supported params.
         """
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         # Call get_optional_params for Bedrock with prompt_cache_key
         # drop_params=True should remove it since Bedrock doesn't support it
@@ -3612,7 +3612,7 @@ class TestGetOptionalParamsDeepSeek:
         Verify that get_optional_params for deepseek accepts the 'thinking' param,
         which is only supported by DeepSeekChatConfig, not OpenAIConfig.
         """
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         result = get_optional_params(
             model="deepseek-reasoner",
@@ -3626,7 +3626,7 @@ class TestGetOptionalParamsDeepSeek:
         Verify that get_optional_params for deepseek accepts 'reasoning_effort',
         which is only supported by DeepSeekChatConfig, not OpenAIConfig.
         """
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         result = get_optional_params(
             model="deepseek-reasoner",
@@ -3640,7 +3640,7 @@ class TestGetOptionalParamsDeepSeek:
         DeepSeekChatConfig strips budget_tokens from thinking param.
         This would not happen with OpenAIConfig.
         """
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         result = get_optional_params(
             model="deepseek-reasoner",
@@ -3854,19 +3854,19 @@ class TestValidateAndFixThinkingParam:
     """Tests for validate_and_fix_thinking_param."""
 
     def test_none_returns_none(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         assert validate_and_fix_thinking_param(thinking=None) is None
 
     def test_already_snake_case(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         thinking = {"type": "enabled", "budget_tokens": 32000}
         result = validate_and_fix_thinking_param(thinking=thinking)
         assert result == {"type": "enabled", "budget_tokens": 32000}
 
     def test_camel_case_normalized(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         thinking = {"type": "enabled", "budgetTokens": 32000}
         result = validate_and_fix_thinking_param(thinking=thinking)
@@ -3874,7 +3874,7 @@ class TestValidateAndFixThinkingParam:
         assert "budgetTokens" not in result
 
     def test_both_keys_snake_case_wins(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         thinking = {"type": "enabled", "budget_tokens": 10000, "budgetTokens": 50000}
         result = validate_and_fix_thinking_param(thinking=thinking)
@@ -3882,7 +3882,7 @@ class TestValidateAndFixThinkingParam:
         assert "budgetTokens" not in result
 
     def test_original_dict_not_mutated(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         thinking = {"type": "enabled", "budgetTokens": 32000}
         validate_and_fix_thinking_param(thinking=thinking)
@@ -3890,8 +3890,8 @@ class TestValidateAndFixThinkingParam:
         assert "budget_tokens" not in thinking
 
     def test_bool_true_maps_to_enabled_with_default_budget(self):
-        from litellm.constants import DEFAULT_REASONING_EFFORT_MEDIUM_THINKING_BUDGET
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.constants import DEFAULT_REASONING_EFFORT_MEDIUM_THINKING_BUDGET
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         assert validate_and_fix_thinking_param(thinking=True) == {
             "type": "enabled",
@@ -3899,7 +3899,7 @@ class TestValidateAndFixThinkingParam:
         }
 
     def test_bool_false_returns_none(self):
-        from litellm.utils import validate_and_fix_thinking_param
+        from token_iq.gateway.utils import validate_and_fix_thinking_param
 
         assert validate_and_fix_thinking_param(thinking=False) is None
 
@@ -4260,7 +4260,7 @@ class TestBedrockBaseModelLabelKeepsTools:
     ]
 
     def test_base_model_label_keeps_tools_with_drop_params(self):
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         result = get_optional_params(
             model="eu.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -4277,7 +4277,7 @@ class TestBedrockBaseModelLabelKeepsTools:
     def test_base_model_label_alone_drops_tools(self):
         """Without the real model id the label resolves to no tool support, so passing
         the label as ``model`` is exactly what dropped tools before the fix."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         result = get_optional_params(
             model="claude-haiku-4-5",
@@ -4294,7 +4294,7 @@ def test_aws_bedrock_project_id_excluded_from_bedrock_optional_params():
     """`aws_bedrock_project_id` is sent as a bedrock-mantle request header, so it
     must never reach optional_params (and from there the request body), while
     other aws_* params keep flowing for boto3 auth."""
-    from litellm.utils import get_optional_params
+    from token_iq.gateway.utils import get_optional_params
 
     result = get_optional_params(
         model="mantle/anthropic.claude-mythos-preview",
@@ -4319,10 +4319,10 @@ class TestGetOptionalParamsTencent:
         """
         from unittest.mock import patch
 
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         with patch(
-            "litellm.llms.tencent.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.tencent.chat.transformation.supports_reasoning",
             return_value=True,
         ):
             result = get_optional_params(
@@ -4337,10 +4337,10 @@ class TestGetOptionalParamsTencent:
         """Verify get_optional_params for tencent converts reasoning_effort to thinking."""
         from unittest.mock import patch
 
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         with patch(
-            "litellm.llms.tencent.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.tencent.chat.transformation.supports_reasoning",
             return_value=True,
         ):
             result = get_optional_params(
@@ -4355,12 +4355,12 @@ class TestGetOptionalParamsTencent:
         """Verify get_supported_openai_params for tencent includes custom params."""
         from unittest.mock import patch
 
-        from litellm.litellm_core_utils.get_supported_openai_params import (
+        from token_iq.gateway.core_utils.get_supported_openai_params import (
             get_supported_openai_params,
         )
 
         with patch(
-            "litellm.llms.tencent.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.tencent.chat.transformation.supports_reasoning",
             return_value=True,
         ):
             params = get_supported_openai_params(
@@ -4372,8 +4372,8 @@ class TestGetOptionalParamsTencent:
 
     def test_tencent_messages_config_routing(self):
         """Verify ProviderConfigManager routes tencent to TencentAnthropicMessagesConfig."""
-        import litellm
-        from litellm.llms.tencent.messages.transformation import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.llms.tencent.messages.transformation import (
             TencentAnthropicMessagesConfig,
         )
 
@@ -4733,8 +4733,8 @@ def test_custom_logger_guards_ignore_subclass_instances(monkeypatch: pytest.Monk
     report the built-in itself as registered and the configured logger was silently skipped.
     The exact-class assertions must hold alongside the subclass assertions: the guards still
     have to dedup a second instance of the same class, only a subclass must stop matching."""
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.utils import (
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.utils import (
         _custom_logger_class_exists_in_failure_callbacks,
         _custom_logger_class_exists_in_success_callbacks,
     )
@@ -4767,8 +4767,8 @@ async def test_s3_v2_success_callback_registers_alongside_user_subclass(
     """Regression LIT-4392: with a user S3Logger subclass registered via litellm_settings.callbacks
     and success_callback ["s3_v2"], the built-in s3_v2 logger was never added and S3 logs were
     silently dropped while requests kept returning 200."""
-    from litellm.integrations.s3_v2 import S3Logger
-    from litellm.utils import _add_custom_logger_callback_to_specific_event
+    from token_iq.gateway.integrations.s3_v2 import S3Logger
+    from token_iq.gateway.utils import _add_custom_logger_callback_to_specific_event
 
     class UserS3Logger(S3Logger):
         async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
@@ -4795,7 +4795,7 @@ async def test_builtin_string_callback_registers_when_subclass_already_active(
     """Regression LIT-4392, litellm.callbacks path: the inline dedup in function_setup also
     matched subclass instances, so a built-in name in litellm.callbacks was dropped whenever a
     user subclass was already promoted into _async_success_callback."""
-    from litellm.integrations.s3_v2 import S3Logger
+    from token_iq.gateway.integrations.s3_v2 import S3Logger
 
     class UserS3Logger(S3Logger):
         async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
@@ -4825,8 +4825,8 @@ def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypa
     so without replaying those registrations the override is silently lost and
     the model reverts to upstream pricing.
     """
-    from litellm import utils as litellm_utils
-    from litellm.utils import (
+    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway.utils import (
         _invalidate_model_cost_lowercase_map,
         reapply_runtime_model_cost_registrations,
     )
@@ -4879,8 +4879,8 @@ def test_reapply_runtime_registrations_drops_request_scoped_registrations(monkey
     the catalog generation it was applied to and silently beat fresh upstream
     pricing forever, while a durable override registered alongside it survives.
     """
-    from litellm import utils as litellm_utils
-    from litellm.utils import (
+    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway.utils import (
         _invalidate_model_cost_lowercase_map,
         reapply_runtime_model_cost_registrations,
     )
@@ -4941,7 +4941,7 @@ async def test_wrapper_async_restores_originating_task_context_after_success(mon
     asyncio.create_task + the global logging worker - a different Task than the
     one running acompletion() itself (this test's own task). That handler's own
     restore only fixes up the detached child task it runs in; wrapper_async's own
-    finally block (in litellm/utils.py) must separately restore the *originating*
+    finally block (in token_iq/gateway/utils.py) must separately restore the *originating*
     task's trace_id/session_id, since nothing else does.
     """
     monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
@@ -4969,7 +4969,7 @@ def test_function_setup_failure_after_logging_construction_restores_context(monk
     function_setup()'s own except block must restore the correlation context
     itself in that case, or it leaks into every subsequent log line in this
     thread/task until something unrelated happens to reset it."""
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
 
@@ -5002,7 +5002,7 @@ def test_function_setup_failure_log_line_shows_outer_not_doomed_ids(monkeypatch)
     restoring context must happen *before* logging the exception, not after,
     since the failed call never produces a usable logging object for anything
     else to be attributed to."""
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
 
@@ -5736,14 +5736,14 @@ class TestDefaultReasoningEffortHydration:
         [("gpt-5.1", "openai"), ("gpt-5.4", "openai"), ("azure/gpt-5.1", "azure")],
     )
     def test_the_declared_default_survives_model_info_hydration(self, local_model_cost_map, model, provider):
-        from litellm.utils import _get_model_info_helper
+        from token_iq.gateway.utils import _get_model_info_helper
 
         model_info = dict(_get_model_info_helper(model=model, custom_llm_provider=provider))
         assert model_info["default_reasoning_effort"] == "none"
 
     def test_a_model_that_declares_nothing_hydrates_to_none(self, local_model_cost_map):
         """Absent means "the map does not say", which the gate reads as reasoning being active."""
-        from litellm.utils import _get_model_info_helper
+        from token_iq.gateway.utils import _get_model_info_helper
 
         model_info = dict(_get_model_info_helper(model="gpt-5.6-terra", custom_llm_provider="openai"))
         assert model_info.get("default_reasoning_effort") is None
@@ -5761,16 +5761,16 @@ class TestHuggingFaceConfigFetch:
             )
 
     def test_get_max_tokens_reads_hf_config_with_a_bounded_timeout(self, hf_config_route):
-        from litellm.constants import HF_CONFIG_FETCH_TIMEOUT_SECONDS
-        from litellm.utils import get_max_tokens
+        from token_iq.gateway.constants import HF_CONFIG_FETCH_TIMEOUT_SECONDS
+        from token_iq.gateway.utils import get_max_tokens
 
         assert get_max_tokens("huggingface/some-org/some-model") == 512
         request_timeout = hf_config_route.calls.last.request.extensions["timeout"]
         assert request_timeout["read"] == HF_CONFIG_FETCH_TIMEOUT_SECONDS
 
     def test_get_max_position_embeddings_reads_hf_config_with_a_bounded_timeout(self, hf_config_route):
-        from litellm.constants import HF_CONFIG_FETCH_TIMEOUT_SECONDS
-        from litellm.utils import _get_max_position_embeddings
+        from token_iq.gateway.constants import HF_CONFIG_FETCH_TIMEOUT_SECONDS
+        from token_iq.gateway.utils import _get_max_position_embeddings
 
         assert _get_max_position_embeddings("some-org/some-model") == 512
         request_timeout = hf_config_route.calls.last.request.extensions["timeout"]
@@ -5785,7 +5785,7 @@ class TestIsVisionExplicitlyDisabled:
 
     @pytest.mark.parametrize("model", ["github_copilot/gpt-4o", "chatgpt/gpt-5"])
     def test_never_resolves_an_authenticating_prefix(self, model, monkeypatch):
-        from litellm.utils import is_vision_explicitly_disabled
+        from token_iq.gateway.utils import is_vision_explicitly_disabled
 
         lookups: list = []
 
@@ -5799,7 +5799,7 @@ class TestIsVisionExplicitlyDisabled:
         assert lookups == []
 
     def test_explicit_false_detected_and_absent_reads_enabled(self):
-        from litellm.utils import is_vision_explicitly_disabled
+        from token_iq.gateway.utils import is_vision_explicitly_disabled
 
         assert (
             is_vision_explicitly_disabled("fireworks_ai/accounts/fireworks/models/deepseek-v4-flash-0731") is True

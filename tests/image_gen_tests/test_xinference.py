@@ -5,8 +5,8 @@ import json
 from unittest.mock import Mock, patch, AsyncMock
 
 
-import litellm
-from litellm.types.utils import ImageObject
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ImageObject
 
 
 @pytest.mark.asyncio

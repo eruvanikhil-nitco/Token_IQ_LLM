@@ -33,7 +33,7 @@ import pytest
 import psutil
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from litellm.router import Router
+from token_iq.gateway.router import Router
 
 # Test Configuration Constants
 TEST_API_KEY = "sk-1234"

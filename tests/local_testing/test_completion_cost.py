@@ -1,7 +1,8 @@
 import os
 import traceback
 
-import litellm.cost_calculator
+import token_iq.gateway.cost_calculator
+from token_iq import gateway as litellm
 
 import asyncio
 import time
@@ -10,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import base64
 import pytest
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     TranscriptionResponse,
     completion_cost,
     cost_per_token,
@@ -19,11 +20,11 @@ from litellm import (
     model_cost,
     open_ai_chat_completion_models,
 )
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 import json
 import httpx
-from litellm.types.utils import PromptTokensDetails
-from litellm.litellm_core_utils.litellm_logging import CustomLogger
+from token_iq.gateway.types.utils import PromptTokensDetails
+from token_iq.gateway.core_utils.litellm_logging import CustomLogger
 
 
 class CustomLoggingHandler(CustomLogger):
@@ -118,8 +119,8 @@ async def test_failure_completion_cost(sync_mode):
 
 
 def test_custom_pricing_as_completion_cost_param():
-    from litellm import Choices, Message, ModelResponse
-    from litellm.utils import Usage
+    from token_iq.gateway import Choices, Message, ModelResponse
+    from token_iq.gateway.utils import Usage
 
     resp = ModelResponse(
         id="chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac",
@@ -186,8 +187,8 @@ def test_cost_ft_gpt_35():
     try:
         # this tests if litellm.completion_cost can calculate cost for ft:gpt-3.5-turbo:my-org:custom_suffix:id
         # it needs to lookup  ft:gpt-3.5-turbo in the litellm model_cost map to get the correct cost
-        from litellm import Choices, Message, ModelResponse
-        from litellm.utils import Usage
+        from token_iq.gateway import Choices, Message, ModelResponse
+        from token_iq.gateway.utils import Usage
 
         litellm.set_verbose = True
 
@@ -236,8 +237,8 @@ def test_cost_azure_gpt_35():
     try:
         # this tests if litellm.completion_cost can calculate cost for azure/chatgpt-deployment-2 which maps to azure/gpt-3.5-turbo
         # for this test we check if passing `model` to completion_cost overrides the completion cost
-        from litellm import Choices, Message, ModelResponse
-        from litellm.utils import Usage
+        from token_iq.gateway import Choices, Message, ModelResponse
+        from token_iq.gateway.utils import Usage
 
         resp = ModelResponse(
             id="chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac",
@@ -464,7 +465,7 @@ def test_replicate_llama3_cost_tracking():
 
 @pytest.mark.parametrize("is_streaming", [True, False])  #
 def test_groq_response_cost_tracking(is_streaming):
-    from litellm.utils import (
+    from token_iq.gateway.utils import (
         CallTypes,
         Choices,
         Delta,
@@ -509,7 +510,7 @@ def test_groq_response_cost_tracking(is_streaming):
     print(f"response_cost: {response_cost}")
 
 
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 def test_together_ai_qwen_completion_cost():
@@ -640,8 +641,8 @@ def test_vertex_ai_medlm_completion_cost():
 
 
 def test_vertex_ai_claude_completion_cost():
-    from litellm import Choices, Message, ModelResponse
-    from litellm.utils import Usage
+    from token_iq.gateway import Choices, Message, ModelResponse
+    from token_iq.gateway.utils import Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -723,7 +724,7 @@ def test_vertex_ai_embedding_completion_cost(caplog):
     for item in captured_logs:
         print("\nitem:{}\n".format(item))
         if (
-            "litellm.litellm_core_utils.llm_cost_calc.google.cost_per_character(): Exception occured "
+            "litellm.core_utils.llm_cost_calc.google.cost_per_character(): Exception occured "
             in item
         ):
             raise Exception("Error log raised for calculating embedding cost")
@@ -804,7 +805,7 @@ def test_vertex_ai_llama_predict_cost():
 
 @pytest.mark.parametrize("usage", ["litellm_usage", "openai_usage"])
 def test_vertex_ai_mistral_predict_cost(usage):
-    from litellm.types.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
     if usage == "litellm_usage":
         response_usage = Usage(prompt_tokens=32, completion_tokens=55, total_tokens=87)
@@ -905,7 +906,7 @@ def test_completion_cost_anthropic():
 
 
 def test_completion_cost_azure_common_deployment_name():
-    from litellm.utils import (
+    from token_iq.gateway.utils import (
         CallTypes,
         Choices,
         Delta,
@@ -980,7 +981,7 @@ def test_completion_cost_prompt_caching(model, custom_llm_provider):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
 
-    from litellm.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
     ## WRITE TO CACHE ## (MORE EXPENSIVE)
     response_1 = ModelResponse(
@@ -1152,7 +1153,7 @@ def test_completion_cost_databricks_embedding(model, monkeypatch):
         cost = completion_cost(completion_response=resp)
 
 
-from litellm.llms.fireworks_ai.cost_calculator import get_base_model_for_pricing
+from token_iq.gateway.llms.fireworks_ai.cost_calculator import get_base_model_for_pricing
 
 
 @pytest.mark.parametrize(
@@ -1213,12 +1214,12 @@ def test_completion_cost_fireworks_ai(model):
 
 
 def test_cost_azure_openai_prompt_caching():
-    from litellm.utils import Choices, Message, ModelResponse, Usage
-    from litellm.types.utils import (
+    from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.types.utils import (
         PromptTokensDetailsWrapper,
         CompletionTokensDetailsWrapper,
     )
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -1315,7 +1316,7 @@ def test_completion_cost_vertex_llama3():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
 
-    from litellm.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
     response = ModelResponse(
         id="2024-09-19|14:52:01.823070-07|3.10.13.64|-333502972",
@@ -1350,8 +1351,8 @@ def test_completion_cost_vertex_llama3():
 
 
 def test_cost_openai_prompt_caching():
-    from litellm.utils import Choices, Message, ModelResponse, Usage
-    from litellm import get_model_info
+    from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -1442,7 +1443,7 @@ def test_cost_openai_prompt_caching():
     ],
 )
 def test_completion_cost_azure_ai_rerank(model):
-    from litellm import RerankResponse, rerank
+    from token_iq.gateway import RerankResponse, rerank
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -1473,7 +1474,7 @@ def test_completion_cost_azure_ai_rerank(model):
 
 
 def test_together_ai_embedding_completion_cost():
-    from litellm.utils import Choices, EmbeddingResponse, Message, ModelResponse, Usage
+    from token_iq.gateway.utils import Choices, EmbeddingResponse, Message, ModelResponse, Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2327,9 +2328,9 @@ def test_completion_cost_params_2():
 
 
 def test_completion_cost_params_gemini_3():
-    from litellm.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
-    from litellm.llms.vertex_ai.cost_calculator import cost_per_character
+    from token_iq.gateway.llms.vertex_ai.cost_calculator import cost_per_character
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2406,7 +2407,7 @@ def test_completion_cost_params_gemini_3():
 async def test_test_completion_cost_gpt4o_audio_output_from_model(stream):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         Choices,
         Message,
         ModelResponse,
@@ -2500,7 +2501,7 @@ def test_completion_cost_model_response_cost(response_model, custom_llm_provider
     """
     Relevant issue: https://github.com/BerriAI/litellm/issues/6310
     """
-    from litellm import ModelResponse
+    from token_iq.gateway import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2560,8 +2561,8 @@ def test_completion_cost_azure_tts():
 
 
 def test_select_model_name_for_cost_calc():
-    from litellm.cost_calculator import _select_model_name_for_cost_calc
-    from litellm.types.utils import ModelResponse, Choices, Usage, Message
+    from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
+    from token_iq.gateway.types.utils import ModelResponse, Choices, Usage, Message
 
     args = {
         "model": "Mistral-large-nmefg",
@@ -2601,7 +2602,7 @@ def test_select_model_name_for_cost_calc():
 
 
 def test_moderations():
-    from litellm import moderation
+    from token_iq.gateway import moderation
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2619,8 +2620,8 @@ def test_moderations():
 
 
 def test_cost_calculator_azure_embedding():
-    from litellm.cost_calculator import response_cost_calculator
-    from litellm.types.utils import EmbeddingResponse, Usage
+    from token_iq.gateway.cost_calculator import response_cost_calculator
+    from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
     kwargs = {
         "response_object": EmbeddingResponse(
@@ -2654,9 +2655,9 @@ def test_add_known_models():
 
 @pytest.mark.skip(reason="flaky test")
 def test_bedrock_cost_calc_with_region():
-    from litellm import completion
+    from token_iq.gateway import completion
 
-    from litellm import ModelResponse
+    from token_iq.gateway import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2750,7 +2751,7 @@ def model_item():
 
 @pytest.mark.parametrize("base_model_arg", ["litellm_param", "model_info"])
 def test_cost_calculator_with_base_model_with_router(base_model_arg):
-    from litellm import Router
+    from token_iq.gateway import Router
 
     model_item = {
         "model_name": "random-model",
@@ -2780,7 +2781,7 @@ def test_cost_calculator_with_base_model_with_router(base_model_arg):
 
 @pytest.mark.parametrize("base_model_arg", ["litellm_param", "model_info"])
 def test_cost_calculator_with_base_model_with_router_embedding(base_model_arg):
-    from litellm import Router
+    from token_iq.gateway import Router
 
     litellm._turn_on_debug()
 
@@ -2829,7 +2830,7 @@ def test_cost_calculator_with_custom_pricing():
 )
 @pytest.mark.asyncio
 async def test_cost_calculator_with_custom_pricing_router(model_item, custom_pricing):
-    from litellm import Router
+    from token_iq.gateway import Router
 
     if custom_pricing == "litellm_params":
         model_item["litellm_params"]["input_cost_per_token"] = 0.0000008

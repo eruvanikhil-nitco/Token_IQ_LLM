@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.llms.llamafile.chat.transformation import LlamafileChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.llamafile.chat.transformation import LlamafileChatConfig
 
 
 @pytest.mark.parametrize(
@@ -148,7 +148,7 @@ def test_get_openai_compatible_provider_info(
 
 def test_completion_with_custom_llamafile_model():
     with patch(
-        "litellm.main.openai_chat_completions.completion"
+        "token_iq.gateway.main.openai_chat_completions.completion"
     ) as mock_llamafile_completion_func:
         mock_llamafile_completion_func.return_value = (
             {}

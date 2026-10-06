@@ -85,11 +85,11 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    import litellm
+    from token_iq import gateway as litellm
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from token_iq.types.provider_billing import BillingCredential
-    from litellm.types.utils import CredentialItem
+    from token_iq.gateway.types.utils import CredentialItem
 
     stored = (
         ("openai-models", {"custom_llm_provider": "openai", "provider": "openai"}, "sk-proj-test-not-real"),
@@ -121,11 +121,11 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    import litellm
+    from token_iq import gateway as litellm
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from token_iq.types.provider_billing import BillingCredential
-    from litellm.types.utils import CredentialItem
+    from token_iq.gateway.types.utils import CredentialItem
 
     stored = (
         ("openai-prod", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-prod-not-real"),

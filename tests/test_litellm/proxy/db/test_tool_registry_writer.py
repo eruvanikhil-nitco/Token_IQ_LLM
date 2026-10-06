@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.proxy.db.tool_registry_writer import (
+from token_iq.gateway.proxy.db.tool_registry_writer import (
     ToolPolicyRegistry,
     batch_upsert_tools,
     get_tool,

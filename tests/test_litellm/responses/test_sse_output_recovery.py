@@ -1,6 +1,6 @@
 """Tests for litellm.responses.sse_output_recovery helpers."""
 
-from litellm.responses.sse_output_recovery import (
+from token_iq.gateway.responses.sse_output_recovery import (
     _MAX_CONTENT_INDEX,
     record_output_text_chunk,
 )

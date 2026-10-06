@@ -17,8 +17,8 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 
-from litellm.proxy._types import ProxyException
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.proxy_server import (
     _close_dangling_otel_server_span,
     openai_exception_handler,
     otel_request_validation_exception_handler,
@@ -103,7 +103,7 @@ async def test_openai_exception_handler_invalid_empty_code_defaults_to_500():
 def test_close_dangling_otel_server_span_records_status_and_ends(monkeypatch):
     """Happy path: with a logger and an active span, the handler sets the
     response status, marks ERROR (>=400), ends the span, and clears state."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     span = MagicMock()
     fake_logger = MagicMock()
@@ -131,8 +131,8 @@ def test_close_dangling_otel_server_span_v2_stamps_error_without_ending(monkeypa
     the handler must only stamp error.* on it (via record_error_attributes_on_span)
     and must NOT set status, end the span, or clear request state — otherwise the
     instrumentor's http.* attributes and span close are lost."""
-    import litellm.integrations.otel.model.config as otel_config
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.integrations.otel.model.config as otel_config
+    import token_iq.gateway.proxy.proxy_server as ps
 
     span = MagicMock()
     fake_logger = MagicMock()
@@ -152,8 +152,8 @@ def test_close_dangling_otel_server_span_v2_stamps_error_without_ending(monkeypa
 
 def test_close_dangling_otel_server_span_v2_success_does_not_stamp(monkeypatch):
     """Under v2 a sub-400 status must not stamp an error onto the SERVER span."""
-    import litellm.integrations.otel.model.config as otel_config
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.integrations.otel.model.config as otel_config
+    import token_iq.gateway.proxy.proxy_server as ps
 
     span = MagicMock()
     fake_logger = MagicMock()
@@ -178,7 +178,7 @@ def test_close_dangling_otel_server_span_missing_span_is_noop_error():
 
 def test_close_dangling_otel_server_span_logger_raises_state_cleared_error(monkeypatch):
     """Logger raising is caught; state.parent_otel_span is cleared regardless."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     span = MagicMock()
     fake_logger = MagicMock()

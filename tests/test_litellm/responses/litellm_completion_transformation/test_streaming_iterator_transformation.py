@@ -1,6 +1,6 @@
 """
 Tests for the Responses API streaming bridge in
-litellm/responses/litellm_completion_transformation/streaming_iterator.py.
+token_iq/gateway/responses/litellm_completion_transformation/streaming_iterator.py.
 
 Ensures that when the underlying chat-completions stream includes tool_calls deltas,
 LiteLLM emits Responses API streaming events (output_item.added + function_call_arguments.*).
@@ -15,12 +15,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
     LiteLLMCompletionStreamingIterator,
 )
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.llms.openai import ResponsesAPIStreamEvents
-from litellm.types.utils import (
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
+from token_iq.gateway.types.utils import (
     Delta,
     ModelResponse,
     ModelResponseStream,

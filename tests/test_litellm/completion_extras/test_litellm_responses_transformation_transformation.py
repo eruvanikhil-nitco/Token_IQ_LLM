@@ -3,7 +3,7 @@ Test for response_format to text.format conversion in completion -> responses br
 """
 
 import pytest
-from litellm.completion_extras.litellm_responses_transformation.transformation import (
+from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
     LiteLLMResponsesTransformationHandler,
 )
 
@@ -203,7 +203,7 @@ def test_transform_request_preserves_user_metadata():
 
 
 def test_transform_request_drops_user_metadata_with_additional_drop_params():
-    from litellm.utils import get_optional_params
+    from token_iq.gateway.utils import get_optional_params
 
     handler = LiteLLMResponsesTransformationHandler()
     messages = [{"role": "user", "content": "Hello"}]
@@ -233,7 +233,7 @@ def test_transform_request_drops_user_metadata_with_additional_drop_params():
 
 
 def test_translate_responses_chunk_passthrough_chat_completion_chunk():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 

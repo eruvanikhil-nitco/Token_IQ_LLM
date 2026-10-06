@@ -6,9 +6,9 @@ from openai.types.beta.assistant_deleted import AssistantDeleted
 
 load_dotenv()
 
-import litellm
-from litellm import create_thread, get_thread
-from litellm.llms.openai.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway import create_thread, get_thread
+from token_iq.gateway.llms.openai.openai import (
     AssistantEventHandler,
     AsyncAssistantEventHandler,
     AsyncCursorPage,

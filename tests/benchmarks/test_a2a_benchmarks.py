@@ -10,10 +10,10 @@ per-request transforms.
 
 import pytest
 
-from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
     A2ACompletionBridgeTransformation,
 )
-from litellm.llms.a2a.common_utils import (
+from token_iq.gateway.llms.a2a.common_utils import (
     convert_messages_to_prompt,
     extract_text_from_a2a_response,
 )

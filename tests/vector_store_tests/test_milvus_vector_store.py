@@ -9,12 +9,12 @@ import httpx
 import pytest
 import respx
 
-import litellm
-from litellm import Router
-from litellm.llms.milvus.vector_stores.transformation import MilvusVectorStoreConfig
-from litellm.types.utils import EmbeddingResponse
-from litellm.vector_stores import asearch as vector_store_asearch
-from litellm.vector_stores import search as vector_store_search
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.llms.milvus.vector_stores.transformation import MilvusVectorStoreConfig
+from token_iq.gateway.types.utils import EmbeddingResponse
+from token_iq.gateway.vector_stores import asearch as vector_store_asearch
+from token_iq.gateway.vector_stores import search as vector_store_search
 
 # Mock response from actual Milvus API
 MOCK_MILVUS_SEARCH_RESPONSE = {
@@ -101,11 +101,11 @@ class TestMilvusVectorStore:
         mock_response.json.return_value = MOCK_MILVUS_SEARCH_RESPONSE
         mock_response.text = json.dumps(MOCK_MILVUS_SEARCH_RESPONSE)
 
-        with patch("litellm.aembedding", new_callable=AsyncMock) as mock_embedding:
+        with patch("token_iq.gateway.aembedding", new_callable=AsyncMock) as mock_embedding:
             mock_embedding.return_value = MOCK_EMBEDDING_RESPONSE
 
             with patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 new_callable=AsyncMock,
             ) as mock_post:
                 mock_post.return_value = mock_response
@@ -207,10 +207,10 @@ class TestMilvusVectorStore:
         mock_response.json.return_value = MOCK_MILVUS_SEARCH_RESPONSE
         mock_response.text = json.dumps(MOCK_MILVUS_SEARCH_RESPONSE)
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MOCK_EMBEDDING_RESPONSE
 
-            with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+            with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
                 mock_post.return_value = mock_response
 
                 # Make the search request
@@ -316,10 +316,10 @@ class TestMilvusVectorStore:
         mock_response.json.return_value = MOCK_MILVUS_SEARCH_RESPONSE
         mock_response.text = json.dumps(MOCK_MILVUS_SEARCH_RESPONSE)
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MOCK_EMBEDDING_RESPONSE
 
-            with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+            with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
                 mock_post.return_value = mock_response
 
                 vector_store_search(
@@ -355,10 +355,10 @@ class TestMilvusVectorStore:
         mock_response.json.return_value = MOCK_MILVUS_SEARCH_RESPONSE
         mock_response.text = json.dumps(MOCK_MILVUS_SEARCH_RESPONSE)
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MOCK_EMBEDDING_RESPONSE
 
-            with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+            with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
                 mock_post.return_value = mock_response
 
                 vector_store_search(
@@ -391,10 +391,10 @@ class TestMilvusVectorStore:
         mock_response.json.return_value = MOCK_MILVUS_SEARCH_RESPONSE
         mock_response.text = json.dumps(MOCK_MILVUS_SEARCH_RESPONSE)
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MOCK_EMBEDDING_RESPONSE
 
-            with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+            with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
                 mock_post.return_value = mock_response
 
                 vector_store_search(

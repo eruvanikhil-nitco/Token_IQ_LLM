@@ -19,9 +19,9 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.sagemaker.chat.transformation import SagemakerChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.sagemaker.chat.transformation import SagemakerChatConfig
 
 
 def _encode_header(name: str, value: str) -> bytes:
@@ -221,7 +221,7 @@ def test_decoder_reassembles_frames_across_arbitrary_byte_boundaries(split_size)
     ignore frame edges and asserts every delta still decodes, in order, exactly
     once - the guarantee botocore's EventStreamBuffer provides.
     """
-    from litellm.llms.sagemaker.chat.transformation import AWSEventStreamDecoder
+    from token_iq.gateway.llms.sagemaker.chat.transformation import AWSEventStreamDecoder
 
     frames = _make_frames(24)
     blob = b"".join(frames)

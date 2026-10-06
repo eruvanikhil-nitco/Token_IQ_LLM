@@ -21,7 +21,7 @@ import zlib
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 ENDPOINT = os.environ.get("SAGEMAKER_NOVA_ENDPOINT", "")
 MODEL = f"sagemaker_nova/{ENDPOINT}"

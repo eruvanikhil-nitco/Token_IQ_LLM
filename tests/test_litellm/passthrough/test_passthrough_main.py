@@ -5,17 +5,17 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 
 
-import litellm
-from litellm.passthrough.main import allm_passthrough_route, llm_passthrough_route
+from token_iq import gateway as litellm
+from token_iq.gateway.passthrough.main import allm_passthrough_route, llm_passthrough_route
 
 
 def test_llm_passthrough_route():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -63,15 +63,15 @@ def test_bedrock_application_inference_profile_url_encoding():
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_litellm_params.get_litellm_params",
+            "token_iq.gateway.core_utils.get_litellm_params.get_litellm_params",
             return_value={},
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=("test-model", "bedrock", "test-key", "test-base"),
         ),
         patch.object(
@@ -121,15 +121,15 @@ def test_bedrock_non_application_inference_profile_no_encoding():
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_litellm_params.get_litellm_params",
+            "token_iq.gateway.core_utils.get_litellm_params.get_litellm_params",
             return_value={},
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=("test-model", "bedrock", "test-key", "test-base"),
         ),
         patch.object(
@@ -166,7 +166,7 @@ def test_update_stream_param_based_on_request_body():
     """
     Test _update_stream_param_based_on_request_body handles stream parameter correctly.
     """
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         HttpPassThroughEndpointHelpers,
     )
 
@@ -234,7 +234,7 @@ def mock_request():
 @pytest.fixture
 def mock_user_api_key_dict():
     """Create a mock user API key dictionary"""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     return UserAPIKeyAuth(
         api_key="test-key",
@@ -255,7 +255,7 @@ async def test_pass_through_request_stream_param_override(
     """
     from unittest.mock import AsyncMock, Mock, patch
 
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         pass_through_request,
     )
 
@@ -299,15 +299,15 @@ async def test_pass_through_request_stream_param_override(
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
             return_value=mock_client_obj,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
             return_value=request_body,  # Return the request body unchanged
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
             new=AsyncMock(),  # Mock the success handler
         ),
     ):
@@ -356,7 +356,7 @@ async def test_pass_through_request_stream_param_no_override(
     """
     from unittest.mock import AsyncMock, Mock, patch
 
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         pass_through_request,
     )
 
@@ -395,15 +395,15 @@ async def test_pass_through_request_stream_param_no_override(
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.get_async_httpx_client",
             return_value=mock_client_obj,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.pre_call_hook",
             return_value=request_body,  # Return the request body unchanged
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.pass_through_endpoint_logging.pass_through_async_success_handler",
             new=AsyncMock(),  # Mock the success handler
         ),
     ):
@@ -465,15 +465,15 @@ def test_azure_with_custom_api_base_and_key():
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_litellm_params.get_litellm_params",
+            "token_iq.gateway.core_utils.get_litellm_params.get_litellm_params",
             return_value={},
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=(
                 "gpt-4.1",
                 "azure",
@@ -556,15 +556,15 @@ def test_content_param_forwarded_to_build_request():
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_litellm_params.get_litellm_params",
+            "token_iq.gateway.core_utils.get_litellm_params.get_litellm_params",
             return_value={},
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=(
                 "gpt-4",
                 "azure",
@@ -684,15 +684,15 @@ async def test_allm_passthrough_route_429_streaming_raises():
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_litellm_params.get_litellm_params",
+            "token_iq.gateway.core_utils.get_litellm_params.get_litellm_params",
             return_value={},
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=(
                 "gpt-4",
                 "azure",
@@ -730,7 +730,7 @@ def test_llm_passthrough_route_sync_streaming_error_maps_upstream_status():
     ResponseNotRead on a streamed-but-unread body, masking the real upstream
     error entirely.
     """
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     error_body = json.dumps(
         {
@@ -811,7 +811,7 @@ def test_llm_passthrough_route_propagates_allm_passthrough_route_to_logging_obj(
     """
     import asyncio
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
 
     client = HTTPHandler()
 
@@ -836,11 +836,11 @@ def test_llm_passthrough_route_propagates_allm_passthrough_route_to_logging_obj(
 
     with (
         patch(
-            "litellm.utils.ProviderConfigManager.get_provider_passthrough_config",
+            "token_iq.gateway.utils.ProviderConfigManager.get_provider_passthrough_config",
             return_value=mock_provider_config,
         ),
         patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
             return_value=(
                 "bedrock/foo",
                 "bedrock",

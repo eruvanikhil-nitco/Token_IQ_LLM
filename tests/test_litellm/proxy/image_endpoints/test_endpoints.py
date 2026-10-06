@@ -8,8 +8,8 @@ import pytest
 from starlette.requests import Request
 from starlette.responses import Response
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.image_endpoints import endpoints
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.image_endpoints import endpoints
 
 
 @pytest.mark.asyncio
@@ -83,23 +83,23 @@ async def test_image_generation_prompt_rerouting(monkeypatch):
     user_api_key = UserAPIKeyAuth()
 
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.add_litellm_data_to_request",
+        "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
         fake_add_litellm_data_to_request,
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {})
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", fake_proxy_logger
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", fake_proxy_logger
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.user_model", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.version", "test-version")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_model", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.version", "test-version")
     monkeypatch.setattr(
-        "litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing.get_custom_headers",
+        "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing.get_custom_headers",
         classmethod(lambda *args, **kwargs: {}),
     )
     monkeypatch.setattr(
-        "litellm.proxy.image_endpoints.endpoints.route_request", fake_route_request
+        "token_iq.gateway.proxy.image_endpoints.endpoints.route_request", fake_route_request
     )
 
     result = await endpoints.image_generation(

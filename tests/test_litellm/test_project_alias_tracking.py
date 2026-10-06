@@ -9,10 +9,10 @@ to StandardLoggingMetadata, mirroring how team_alias already works.
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
-from litellm.proxy._types import LiteLLM_VerificationTokenView, UserAPIKeyAuth
-from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
-from litellm.types.utils import StandardLoggingUserAPIKeyMetadata
+from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
+from token_iq.gateway.proxy._types import LiteLLM_VerificationTokenView, UserAPIKeyAuth
+from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.types.utils import StandardLoggingUserAPIKeyMetadata
 
 
 class TestProjectAliasOnTypes:

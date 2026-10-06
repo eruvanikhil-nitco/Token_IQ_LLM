@@ -19,8 +19,8 @@ from fastapi.testclient import TestClient
 from prisma.actions import LiteLLM_TeamTableActions
 
 
-from litellm.proxy.management_endpoints.tool_management_endpoints import router
-from litellm.types.tool_management import LiteLLM_ToolTableRow
+from token_iq.gateway.proxy.management_endpoints.tool_management_endpoints import router
+from token_iq.gateway.types.tool_management import LiteLLM_ToolTableRow
 
 # --- helpers ---
 
@@ -51,7 +51,7 @@ def _make_app() -> FastAPI:
 
 # Stub the auth dependency so we don't need a real proxy running.
 def _override_auth():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(api_key="sk-test", user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
 
@@ -130,17 +130,17 @@ def _rollup_prisma(group_rows: list, daily_rows: list | None = None) -> MagicMoc
 
 class TestToolManagementEndpoints:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.list_tools",
+        "token_iq.gateway.proxy.db.tool_registry_writer.list_tools",
         new_callable=AsyncMock,
     )
-    @patch("litellm.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
     def test_list_tools_returns_200(self, mock_db_list):
         mock_db_list.return_value = [_make_tool_row()]
 
@@ -151,10 +151,10 @@ class TestToolManagementEndpoints:
         assert body["tools"][0]["tool_name"] == "my_tool"
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.list_tools",
+        "token_iq.gateway.proxy.db.tool_registry_writer.list_tools",
         new_callable=AsyncMock,
     )
-    @patch("litellm.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
     def test_list_tools_with_policy_filter(self, mock_db_list):
         mock_db_list.return_value = [_make_tool_row(input_policy="blocked")]
 
@@ -163,10 +163,10 @@ class TestToolManagementEndpoints:
         assert resp.json()["tools"][0]["input_policy"] == "blocked"
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.get_tool",
+        "token_iq.gateway.proxy.db.tool_registry_writer.get_tool",
         new_callable=AsyncMock,
     )
-    @patch("litellm.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
     def test_get_tool_found(self, mock_db_get):
         mock_db_get.return_value = _make_tool_row(tool_name="tool_a")
 
@@ -175,10 +175,10 @@ class TestToolManagementEndpoints:
         assert resp.json()["tool_name"] == "tool_a"
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.get_tool",
+        "token_iq.gateway.proxy.db.tool_registry_writer.get_tool",
         new_callable=AsyncMock,
     )
-    @patch("litellm.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
     def test_get_tool_not_found_returns_404(self, mock_db_get):
         mock_db_get.return_value = None
 
@@ -186,10 +186,10 @@ class TestToolManagementEndpoints:
         assert resp.status_code == 404
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.update_tool_policy",
+        "token_iq.gateway.proxy.db.tool_registry_writer.update_tool_policy",
         new_callable=AsyncMock,
     )
-    @patch("litellm.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", _MOCK_PRISMA)
     def test_update_tool_policy_blocked(self, mock_db_update):
         mock_db_update.return_value = _make_tool_row(input_policy="blocked")
 
@@ -203,7 +203,7 @@ class TestToolManagementEndpoints:
         assert body["updated"] is True
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.add_tool_to_object_permission_blocked",
+        "token_iq.gateway.proxy.db.tool_registry_writer.add_tool_to_object_permission_blocked",
         new_callable=AsyncMock,
     )
     def test_update_tool_policy_for_team_does_not_500_on_unsupported_prisma_kwarg(self, mock_block):
@@ -217,8 +217,8 @@ class TestToolManagementEndpoints:
         mock_block.return_value = True
         team_table = FakeTeamTable([_team_row("existing-op-id")])
 
-        with patch("litellm.proxy.proxy_server.prisma_client", _team_policy_prisma(team_table)), patch(
-            "litellm.proxy.db.tool_registry_writer.get_tool_policy_registry"
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _team_policy_prisma(team_table)), patch(
+            "token_iq.gateway.proxy.db.tool_registry_writer.get_tool_policy_registry"
         ) as mock_registry:
             mock_registry.return_value.is_initialized.return_value = False
             resp = self.client.post(
@@ -236,7 +236,7 @@ class TestToolManagementEndpoints:
         )
 
     @patch(
-        "litellm.proxy.db.tool_registry_writer.add_tool_to_object_permission_blocked",
+        "token_iq.gateway.proxy.db.tool_registry_writer.add_tool_to_object_permission_blocked",
         new_callable=AsyncMock,
     )
     def test_update_tool_policy_for_team_reresolves_when_permission_race_is_lost(self, mock_block):
@@ -252,8 +252,8 @@ class TestToolManagementEndpoints:
             updated_count=0,
         )
 
-        with patch("litellm.proxy.proxy_server.prisma_client", _team_policy_prisma(team_table)), patch(
-            "litellm.proxy.db.tool_registry_writer.get_tool_policy_registry"
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _team_policy_prisma(team_table)), patch(
+            "token_iq.gateway.proxy.db.tool_registry_writer.get_tool_policy_registry"
         ) as mock_registry:
             mock_registry.return_value.is_initialized.return_value = False
             resp = self.client.post(
@@ -268,7 +268,7 @@ class TestToolManagementEndpoints:
         ]
         assert mock_block.await_args.kwargs["object_permission_id"] == "winner-op-id"
 
-    @patch("litellm.proxy.proxy_server.prisma_client", None)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     def test_list_tools_no_db_returns_500(self):
         resp = self.client.get("/v1/tool/list")
         assert resp.status_code == 500
@@ -282,7 +282,7 @@ class TestToolManagementEndpoints:
 
     def test_tool_spend_route_not_shadowed_by_get_tool(self):
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend")
         assert resp.status_code == 200
         assert resp.json()["by_tool"] == []
@@ -298,7 +298,7 @@ class TestToolManagementEndpoints:
             _rollup_row("2026-07-02", "search", spend=4.0, request_count=1, total_tokens=50),
         ]
         prisma = _rollup_prisma(group_rows, daily_rows)
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         body = resp.json()
@@ -317,18 +317,18 @@ class TestToolManagementEndpoints:
         # must coerce them to ints rather than 500 on validation.
         group_rows = [{"tool_name": "search", "_sum": {"spend": 0.5, "total_tokens": "808", "request_count": "3"}}]
         prisma = _rollup_prisma(group_rows)
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         assert resp.json()["by_tool"][0]["total_tokens"] == 808
         assert resp.json()["by_tool"][0]["call_count"] == 3
 
     def test_tool_spend_daily_restricted_to_top_tools_and_capped(self):
-        from litellm.constants import TOOL_SPEND_TOP_TOOLS
+        from token_iq.gateway.constants import TOOL_SPEND_TOP_TOOLS
 
         group_rows = [_group_row("search", spend=5.0, request_count=1, total_tokens=10)]
         prisma = _rollup_prisma(group_rows)
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         group_kwargs = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs
@@ -339,12 +339,12 @@ class TestToolManagementEndpoints:
 
     def test_tool_spend_skips_daily_query_when_no_tools(self):
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         prisma.db.litellm_dailytoolspend.find_many.assert_not_awaited()
 
-    @patch("litellm.proxy.proxy_server.prisma_client", None)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     def test_tool_spend_no_db_returns_500(self):
         resp = self.client.get("/v1/tool/spend")
         assert resp.status_code == 500
@@ -354,7 +354,7 @@ class TestToolManagementEndpoints:
         # entirely from LiteLLM_DailyToolSpend; any query_raw or SpendLogs table
         # access on this path reintroduces the per-request scan.
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         prisma.db.query_raw.assert_not_awaited()
@@ -364,7 +364,7 @@ class TestToolManagementEndpoints:
 
     def test_tool_spend_windows_rollup_by_inclusive_date_strings(self):
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         where = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs["where"]
@@ -375,7 +375,7 @@ class TestToolManagementEndpoints:
         # Regression: the 30-day clamp is gone; a 182-day request is served as
         # requested because the rollup read is O(tools x dates).
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-01-01&end_date=2026-07-01")
         assert resp.status_code == 200
         where = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs["where"]
@@ -385,7 +385,7 @@ class TestToolManagementEndpoints:
 
     def test_tool_spend_defaults_to_trailing_30_days(self):
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend")
         assert resp.status_code == 200
         today = datetime.now(timezone.utc)
@@ -404,15 +404,15 @@ class TestToolManagementEndpoints:
     )
     def test_tool_spend_malformed_date_returns_400(self, query: str):
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get(f"/v1/tool/spend?{query}")
         assert resp.status_code == 400
         assert "Invalid date format" in resp.json()["detail"]
         prisma.db.litellm_dailytoolspend.group_by.assert_not_awaited()
 
     def test_tool_spend_non_admin_returns_403(self):
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -420,7 +420,7 @@ class TestToolManagementEndpoints:
         )
         client = TestClient(app, raise_server_exceptions=True)
         prisma = _rollup_prisma([])
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = client.get("/v1/tool/spend")
         assert resp.status_code == 403
         prisma.db.litellm_dailytoolspend.group_by.assert_not_awaited()

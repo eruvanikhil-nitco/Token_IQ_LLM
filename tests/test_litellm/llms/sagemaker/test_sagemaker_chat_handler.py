@@ -4,7 +4,7 @@ from unittest.mock import patch
 import boto3
 from botocore.exceptions import ClientError
 
-from litellm.llms.sagemaker.chat.handler import SagemakerChatHandler
+from token_iq.gateway.llms.sagemaker.chat.handler import SagemakerChatHandler
 
 
 def test_load_credentials_assumes_role_with_external_id(monkeypatch):

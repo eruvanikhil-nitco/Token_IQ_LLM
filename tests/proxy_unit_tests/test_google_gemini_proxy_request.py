@@ -17,11 +17,11 @@ import pytest
 
 # Add the parent directory to the system path
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.google_endpoints.endpoints import google_generate_content
-from litellm.proxy.proxy_server import ProxyConfig
-from litellm.proxy.utils import ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.google_endpoints.endpoints import google_generate_content
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.utils import ProxyLogging
 from fastapi import Request, Response
 from fastapi.datastructures import Headers
 
@@ -135,9 +135,9 @@ async def test_google_gemini_httpx_request_direct():
 
     This test directly calls the HTTP handler to verify the httpx integration.
     """
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from litellm.llms.gemini.google_genai.transformation import GoogleGenAIConfig
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
     # Sample request payload
     sample_payload = {
@@ -177,7 +177,7 @@ async def test_google_gemini_httpx_request_direct():
     }
 
     # Mock the HTTP handler to capture the request
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         # Create mock response
         mock_http_response = MagicMock()
         mock_http_response.status_code = 200
@@ -198,7 +198,7 @@ async def test_google_gemini_httpx_request_direct():
         mock_post.return_value = mock_http_response
 
         # Create the HTTP handler and provider config
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         http_handler = BaseLLMHTTPHandler()
         provider_config = GoogleGenAIConfig()
@@ -321,13 +321,13 @@ async def test_generationconfig_to_config_mapping(sample_request_payload):
     Test that generationConfig is correctly mapped to config parameter
     for Google GenAI compatibility in the main functions.
     """
-    from litellm.google_genai.main import agenerate_content
+    from token_iq.gateway.google_genai.main import agenerate_content
 
     # Create a copy of the payload to avoid modifying the fixture
     test_data = sample_request_payload.copy()
 
     with patch(
-        "litellm.google_genai.main.base_llm_http_handler.generate_content_handler"
+        "token_iq.gateway.google_genai.main.base_llm_http_handler.generate_content_handler"
     ) as mock_generate_content_handler:
         mock_generate_content_handler.return_value = {"text": "mock response"}
 
@@ -356,7 +356,7 @@ async def test_gemini_custom_api_base_proxy_integration():
     This test verifies that when a custom api_base is provided for Gemini models,
     the URL is correctly constructed using the _check_custom_proxy method.
     """
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     # Test the _check_custom_proxy method directly
     vertex_base = VertexBase()
@@ -439,7 +439,7 @@ async def test_gemini_proxy_config_with_custom_api_base():
     This test simulates the proxy configuration scenario where a model is configured
     with a custom api_base in the config.yaml file.
     """
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     # Simulate proxy configuration
     model_config = {

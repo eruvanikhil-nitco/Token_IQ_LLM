@@ -12,7 +12,7 @@ from typing import Final
 
 import pytest
 
-from litellm.proxy.db.autorouter_session_rollup import (
+from token_iq.gateway.proxy.db.autorouter_session_rollup import (
     AUTOROUTER_BENCHMARKS_SQL,
     UPSERT_AUTOROUTER_SESSION_SQL,
 )

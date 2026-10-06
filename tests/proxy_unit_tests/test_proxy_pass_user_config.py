@@ -5,12 +5,12 @@ from dotenv import load_dotenv
 load_dotenv()
 import io
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import pytest, logging, asyncio
-import litellm
-from litellm import embedding, completion, completion_cost, Timeout
-from litellm import RateLimitError
+from token_iq import gateway as litellm
+from token_iq.gateway import embedding, completion, completion_cost, Timeout
+from token_iq.gateway import RateLimitError
 
 # Configure logging
 logging.basicConfig(
@@ -21,7 +21,7 @@ logging.basicConfig(
 # test /chat/completion request to the proxy
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     router,
     save_worker_config,
     initialize,
@@ -36,7 +36,7 @@ headers = {"Authorization": f"Bearer {token}"}
 @pytest.fixture(scope="function")
 def client_no_auth():
     # Assuming litellm.proxy.proxy_server is an object
-    from litellm.proxy.proxy_server import cleanup_router_config_variables
+    from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
     cleanup_router_config_variables()
     filepath = os.path.dirname(os.path.abspath(__file__))
@@ -57,8 +57,8 @@ def client_no_auth():
 def test_chat_completion(client_no_auth):
     global headers
 
-    from litellm.types.router import RouterConfig, ModelConfig
-    from litellm.types.completion import CompletionRequest
+    from token_iq.gateway.types.router import RouterConfig, ModelConfig
+    from token_iq.gateway.types.completion import CompletionRequest
 
     user_config = RouterConfig(
         model_list=[

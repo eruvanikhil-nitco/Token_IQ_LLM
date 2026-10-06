@@ -13,14 +13,14 @@ class TestDynamoAIGuardrailRegistration:
 
     def test_supported_guardrail_enum_entry(self):
         """Test that DYNAMOAI is in SupportedGuardrailIntegrations enum."""
-        from litellm.types.guardrails import SupportedGuardrailIntegrations
+        from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
         assert hasattr(SupportedGuardrailIntegrations, "DYNAMOAI")
         assert SupportedGuardrailIntegrations.DYNAMOAI.value == "dynamoai"
 
     def test_initialize_guardrail_function_exists(self):
         """Test that initialize_guardrail function is properly exported."""
-        from litellm.proxy.guardrails.guardrail_hooks.dynamoai import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai import (
             guardrail_initializer_registry,
             initialize_guardrail,
         )
@@ -30,10 +30,10 @@ class TestDynamoAIGuardrailRegistration:
 
     def test_guardrail_class_registry_exists(self):
         """Test that guardrail_class_registry is properly exported."""
-        from litellm.proxy.guardrails.guardrail_hooks.dynamoai import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai import (
             guardrail_class_registry,
         )
-        from litellm.proxy.guardrails.guardrail_hooks.dynamoai.dynamoai import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai.dynamoai import (
             DynamoAIGuardrails,
         )
 
@@ -42,13 +42,13 @@ class TestDynamoAIGuardrailRegistration:
 
     def test_initialize_guardrail_creates_instance(self):
         """Test that initialize_guardrail creates a DynamoAIGuardrails instance."""
-        from litellm.proxy.guardrails.guardrail_hooks.dynamoai import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai import (
             initialize_guardrail,
         )
-        from litellm.proxy.guardrails.guardrail_hooks.dynamoai.dynamoai import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai.dynamoai import (
             DynamoAIGuardrails,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="dynamoai",
@@ -61,7 +61,7 @@ class TestDynamoAIGuardrailRegistration:
             "guardrail_name": "test-dynamoai-guard",
         }
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback") as mock_add:
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback") as mock_add:
             result = initialize_guardrail(litellm_params, guardrail)
 
             assert isinstance(result, DynamoAIGuardrails)
@@ -72,7 +72,7 @@ class TestDynamoAIGuardrailRegistration:
 
     def test_dynamoai_in_global_registry(self):
         """Test that dynamoai is discoverable in the global guardrail registry."""
-        from litellm.proxy.guardrails.guardrail_registry import (
+        from token_iq.gateway.proxy.guardrails.guardrail_registry import (
             guardrail_initializer_registry,
         )
 

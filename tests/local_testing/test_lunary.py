@@ -1,8 +1,8 @@
 import io
 
 
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 litellm.failure_callback = ["lunary"]
 litellm.success_callback = ["lunary"]
@@ -53,7 +53,7 @@ def test_lunary_logging_with_metadata():
 
 
 def test_lunary_with_tools():
-    import litellm
+    from token_iq import gateway as litellm
 
     messages = [
         {

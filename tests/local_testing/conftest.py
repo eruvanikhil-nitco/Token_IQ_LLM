@@ -17,8 +17,8 @@ import os
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
 # ``litellm.model_cost`` is loaded at import time from the URL pinned to ``main``
 # (``LITELLM_MODEL_COST_MAP_URL``).  The in-tree backup ships with this branch
@@ -27,7 +27,7 @@ from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 # was added on this branch).  Backfill any entries that are missing from the
 # remote-fetched map so cost-calculator lookups in tests succeed against the
 # cassette state the branch is being tested with.
-from litellm.litellm_core_utils.get_model_cost_map import (
+from token_iq.gateway.core_utils.get_model_cost_map import (
     RESERVED_TOP_LEVEL_KEYS,
     GetModelCostMap,
 )
@@ -239,7 +239,7 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    import litellm
+    from token_iq import gateway as litellm
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
@@ -247,7 +247,8 @@ def setup_and_teardown():
 
         try:
             if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-                import litellm.proxy.proxy_server
+                import token_iq.gateway.proxy.proxy_server
+                from token_iq import gateway as litellm
 
                 importlib.reload(litellm.proxy.proxy_server)
         except Exception as e:

@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
     anthropic_messages_handler,
 )
-from litellm.llms.anthropic.experimental_pass_through.messages.mcp_handler import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.mcp_handler import (
     _build_tool_result_message,
     _extract_tool_use_blocks,
 )
@@ -35,7 +35,7 @@ def test_anthropic_messages_handler_routes_litellm_proxy_mcp_to_the_gateway():
     dispatch makes the whole feature unreachable while every unit test still passes.
     """
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
         new=AsyncMock(return_value={"routed": True}),
     ) as routed:
         result = anthropic_messages_handler(
@@ -55,7 +55,7 @@ def test_anthropic_messages_handler_routes_litellm_proxy_mcp_to_the_gateway():
 def test_anthropic_messages_handler_skips_the_gateway_on_recursion():
     """The gateway's own follow-up call must not re-enter the gateway."""
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
         new=AsyncMock(return_value={"routed": True}),
     ) as routed:
         with pytest.raises(ValueError, match='anthropic_messages_handler is not implemented for sync calls'):
@@ -74,7 +74,7 @@ def test_anthropic_messages_handler_skips_the_gateway_on_recursion():
 def test_anthropic_messages_handler_leaves_native_tools_alone():
     """A plain Anthropic tool is not an MCP reference and must not reach the gateway."""
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.mcp_handler.anthropic_messages_with_mcp",
         new=AsyncMock(return_value={"routed": True}),
     ) as routed:
         with pytest.raises(ValueError, match='anthropic_messages_handler is not implemented for sync calls'):
@@ -134,8 +134,8 @@ async def test_anthropic_messages_with_mcp_forwards_the_callers_mcp_credentials(
     token, per-user env) silently returns nothing while the model claims it has
     no access. Only a no-auth server would look healthy.
     """
-    from litellm.llms.anthropic.experimental_pass_through.messages import mcp_handler
-    from litellm.responses.mcp.request_context import MCPRequestContext
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import mcp_handler
+    from token_iq.gateway.responses.mcp.request_context import MCPRequestContext
 
     context = MCPRequestContext(
         user_api_key_auth="auth-object",
@@ -159,15 +159,15 @@ async def test_anthropic_messages_with_mcp_forwards_the_callers_mcp_credentials(
         mcp_handler.LiteLLM_Proxy_MCP_Handler
         if hasattr(mcp_handler, "LiteLLM_Proxy_MCP_Handler")
         else __import__(
-            "litellm.responses.mcp.litellm_proxy_mcp_handler", fromlist=["LiteLLM_Proxy_MCP_Handler"]
+            "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler", fromlist=["LiteLLM_Proxy_MCP_Handler"]
         ).LiteLLM_Proxy_MCP_Handler,
         "_process_mcp_tools_without_openai_transform",
         new=process,
     ), patch(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._execute_tool_calls",
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._execute_tool_calls",
         new=execute,
     ), patch(
-        "litellm.anthropic_messages", new=AsyncMock(side_effect=responses)
+        "token_iq.gateway.anthropic_messages", new=AsyncMock(side_effect=responses)
     ):
         await mcp_handler.anthropic_messages_with_mcp(
             max_tokens=100,
@@ -207,8 +207,8 @@ async def test_anthropic_messages_with_mcp_stops_when_every_tool_call_is_skipped
     Anthropic rejects that, so the caller would get an unhandled 400 from the middle
     of the loop rather than the model's own answer.
     """
-    from litellm.llms.anthropic.experimental_pass_through.messages import mcp_handler
-    from litellm.responses.mcp.request_context import MCPRequestContext
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import mcp_handler
+    from token_iq.gateway.responses.mcp.request_context import MCPRequestContext
 
     tool_use_response = {
         "stop_reason": "tool_use",
@@ -219,13 +219,13 @@ async def test_anthropic_messages_with_mcp_stops_when_every_tool_call_is_skipped
     with patch.object(
         MCPRequestContext, "resolve", return_value=MCPRequestContext(user_api_key_auth="auth")
     ), patch(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._process_mcp_tools_without_openai_transform",
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._process_mcp_tools_without_openai_transform",
         new=AsyncMock(return_value=([], {})),
     ), patch(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._execute_tool_calls",
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler.LiteLLM_Proxy_MCP_Handler._execute_tool_calls",
         new=AsyncMock(return_value=[]),
     ), patch(
-        "litellm.anthropic_messages", new=anthropic_messages_mock
+        "token_iq.gateway.anthropic_messages", new=anthropic_messages_mock
     ):
         result = await mcp_handler.anthropic_messages_with_mcp(
             max_tokens=100,

@@ -7,12 +7,12 @@ from unittest.mock import patch, AsyncMock, MagicMock
 # Add the project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-import litellm
-from litellm.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
-from litellm.integrations.opentelemetry import OpenTelemetry
-from litellm.types.services import ServiceTypes
-from litellm._service_logger import ServiceLogging
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
+from token_iq.gateway.types.services import ServiceTypes
+from token_iq.gateway._service_logger import ServiceLogging
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
@@ -22,9 +22,9 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
         os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-123"
         os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-123"
 
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_tracing")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_metrics")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_logs")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_tracing")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_metrics")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_logs")
     async def test_langfuse_otel_ignores_service_logs(
         self, mock_logs, mock_metrics, mock_tracing
     ):
@@ -43,9 +43,9 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
             "LangfuseOtelLogger.async_service_failure_hook",
         )
 
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_tracing")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_metrics")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_logs")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_tracing")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_metrics")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_logs")
     async def test_langfuse_otel_does_not_create_proxy_request_span(
         self, mock_logs, mock_metrics, mock_tracing
     ):
@@ -70,9 +70,9 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIsNone(result)
 
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_tracing")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_metrics")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_logs")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_tracing")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_metrics")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_logs")
     async def test_service_logging_shadowing_fix(
         self, mock_logs, mock_metrics, mock_tracing
     ):
@@ -109,9 +109,9 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
                 "Generic OTEL logger should have received the log exactly once.",
             )
 
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_tracing")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_metrics")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_logs")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_tracing")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_metrics")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_logs")
     async def test_langfuse_otel_env_config_includes_v4_ingestion_header(
         self, mock_logs, mock_metrics, mock_tracing
     ):
@@ -125,9 +125,9 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
         )
         self.assertTrue(headers["Authorization"].startswith("Basic "))
 
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_tracing")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_metrics")
-    @patch("litellm.integrations.opentelemetry.OpenTelemetry._init_logs")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_tracing")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_metrics")
+    @patch("token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_logs")
     async def test_langfuse_otel_dynamic_headers_include_v4_ingestion_header(
         self, mock_logs, mock_metrics, mock_tracing
     ):

@@ -11,8 +11,8 @@ import asyncio
 import pytest
 
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 def test_logging_object_not_popped():
@@ -25,7 +25,7 @@ def test_logging_object_not_popped():
     """
     import inspect
 
-    from litellm.responses import main as responses_module
+    from token_iq.gateway.responses import main as responses_module
 
     # Get the source code of the responses function
     source = inspect.getsource(responses_module.responses)
@@ -105,7 +105,7 @@ async def test_async_no_duplicate_spend_logs():
         # Wait for async logging to complete. Use a timeout so that if the
         # worker is on a stale event loop (common in CI), flush() doesn't hang
         # indefinitely — the queue.join() inside flush() would never resolve.
-        from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+        from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
         try:
             await asyncio.wait_for(GLOBAL_LOGGING_WORKER.flush(), timeout=10.0)

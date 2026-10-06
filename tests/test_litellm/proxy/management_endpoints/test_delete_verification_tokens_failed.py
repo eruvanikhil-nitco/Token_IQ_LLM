@@ -14,12 +14,12 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_VerificationToken,
     LitellmUserRoles,
 )
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_verification_tokens,
 )
 
@@ -94,14 +94,14 @@ async def test_delete_all_tokens_admin_returns_empty_failed_tokens(monkeypatch):
     mock_cache.delete_cache = MagicMock()
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.hash_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.hash_token",
         lambda token: token,
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     result, _keys_deleted = await delete_verification_tokens(
         tokens=["hashed-token-1", "hashed-token-2"],
@@ -132,18 +132,18 @@ async def test_delete_tokens_non_admin_all_succeed_returns_empty_failed_tokens(
     mock_cache.delete_cache = MagicMock()
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.hash_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.hash_token",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.can_modify_verification_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.can_modify_verification_token",
         AsyncMock(return_value=True),
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     result, _ = await delete_verification_tokens(
         tokens=["hashed-token-1"],
@@ -183,18 +183,18 @@ async def test_delete_tokens_non_admin_token_not_in_db_returns_failed_tokens(
     mock_cache.delete_cache = MagicMock()
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.hash_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.hash_token",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.can_modify_verification_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.can_modify_verification_token",
         AsyncMock(return_value=True),
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     result, _ = await delete_verification_tokens(
         tokens=["hashed-token-1", "hashed-token-2"],
@@ -234,14 +234,14 @@ async def test_delete_tokens_admin_partial_db_failure_returns_failed_tokens(
     mock_cache.delete_cache = MagicMock()
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints._hash_token_if_needed",
         lambda token: token,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.hash_token",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.hash_token",
         lambda token: token,
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     result, _ = await delete_verification_tokens(
         tokens=["hashed-token-1", "hashed-token-2"],

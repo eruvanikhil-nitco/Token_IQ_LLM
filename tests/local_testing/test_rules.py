@@ -7,8 +7,8 @@ import traceback
 
 import pytest
 
-import litellm
-from litellm import acompletion, completion
+from token_iq import gateway as litellm
+from token_iq.gateway import acompletion, completion
 
 
 def my_pre_call_rule(input: str):

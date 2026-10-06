@@ -13,7 +13,7 @@ from typing import Any, Dict, List
 
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 
 # Sample tools for tool search testing

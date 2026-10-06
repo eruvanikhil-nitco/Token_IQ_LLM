@@ -12,11 +12,11 @@ import pytest
 from mcp import McpError
 from mcp.types import ErrorData
 
-from litellm.proxy._experimental.mcp_server.exceptions import (
+from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
     MCPServerListError,
     MCPUpstreamAuthError,
 )
-from litellm.proxy._experimental.mcp_server.faults.list_outcomes import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import (
     ServerListFault,
     ServerListOk,
     classify_list_exception,
@@ -126,7 +126,7 @@ async def test_cancelled_fetch_is_a_classified_fault_not_a_healthy_empty_server(
     import asyncio
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
 
     manager = MCPServerManager()
     client = MagicMock()
@@ -142,7 +142,7 @@ def test_auth_challenge_and_status_come_from_the_causal_response():
     """An incidental 403 raised while handling the causal 401 (context chain) must not shadow it:
     the carrier channel and the challenge both derive from the response on the explicit causal
     chain, so the caller is challenged to authenticate rather than told it is forbidden."""
-    from litellm.proxy._experimental.mcp_server.faults.list_outcomes import upstream_auth_challenge
+    from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import upstream_auth_challenge
 
     causal = httpx.HTTPStatusError(
         "auth",
@@ -172,7 +172,7 @@ def test_auth_challenge_and_status_come_from_the_causal_response():
 def test_raise_classified_list_failure_routes_auth_to_upstream_auth_error():
     """The single choice-point sends 401/403 through MCPUpstreamAuthError with the upstream's own
     challenge and everything else through MCPServerListError, so fetch sites cannot drift."""
-    from litellm.proxy._experimental.mcp_server.faults.list_outcomes import raise_classified_list_failure
+    from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import raise_classified_list_failure
 
     auth_exc = httpx.HTTPStatusError(
         "auth",
@@ -197,7 +197,7 @@ def test_causal_auth_behind_unrelated_response_is_still_found():
     """The auth scan must not end at the first response of any status: a causal 401 sitting deeper
     in the tree than an unrelated 5xx (retry attempts, multi-stream task groups) must still surface
     with its challenge, or the client is told upstream_error and never re-authenticates."""
-    from litellm.proxy._experimental.mcp_server.faults.list_outcomes import upstream_auth_challenge
+    from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import upstream_auth_challenge
 
     deep_auth = httpx.HTTPStatusError(
         "auth",

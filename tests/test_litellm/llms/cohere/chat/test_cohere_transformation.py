@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock
 
 
-import litellm
-from litellm.llms.cohere.chat.transformation import CohereChatConfig
-from litellm.llms.cohere.chat.v2_transformation import CohereV2ChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.cohere.chat.transformation import CohereChatConfig
+from token_iq.gateway.llms.cohere.chat.v2_transformation import CohereV2ChatConfig
 
 
 class TestCohereTransform:

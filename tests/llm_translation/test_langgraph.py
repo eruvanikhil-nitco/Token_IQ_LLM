@@ -23,7 +23,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -91,7 +91,7 @@ def test_langgraph_config_get_complete_url():
     """
     Test that LangGraphConfig correctly generates URLs for streaming and non-streaming.
     """
-    from litellm.llms.langgraph.chat.transformation import LangGraphConfig
+    from token_iq.gateway.llms.langgraph.chat.transformation import LangGraphConfig
 
     config = LangGraphConfig()
 
@@ -120,7 +120,7 @@ def test_langgraph_config_transform_request():
     """
     Test that LangGraphConfig correctly transforms requests.
     """
-    from litellm.llms.langgraph.chat.transformation import LangGraphConfig
+    from token_iq.gateway.llms.langgraph.chat.transformation import LangGraphConfig
 
     config = LangGraphConfig()
 
@@ -159,7 +159,7 @@ def test_langgraph_provider_detection():
     """
     Test that the langgraph provider is correctly detected from model name.
     """
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, api_key, api_base = get_llm_provider(
         model="langgraph/agent",

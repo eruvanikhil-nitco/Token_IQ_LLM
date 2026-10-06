@@ -3,7 +3,7 @@ import asyncio
 import aiohttp, openai
 from openai import OpenAI, AsyncOpenAI
 from typing import Optional, List, Union
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 
 async def make_rerank_curl_request(

@@ -13,8 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 load_dotenv()
 

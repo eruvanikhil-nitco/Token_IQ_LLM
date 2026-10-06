@@ -11,17 +11,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import LiteLLM_AuditLogs, LitellmTableNames
-from litellm.proxy.management_helpers.audit_logs import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, LitellmTableNames
+from token_iq.gateway.proxy.management_helpers.audit_logs import (
     _audit_log_task_done_callback,
     _build_audit_log_payload,
     _dispatch_audit_log_to_callbacks,
     create_audit_log_for_update,
     is_audit_logging_enabled,
 )
-from litellm.types.utils import StandardAuditLogPayload
+from token_iq.gateway.types.utils import StandardAuditLogPayload
 
 
 @pytest.fixture(autouse=True)
@@ -66,7 +66,7 @@ def test_is_audit_logging_enabled_precedence(
     expected: bool,
 ):
     monkeypatch.setattr(litellm, "store_audit_logs", configured_value)
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", premium_user)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", premium_user)
     if environment_value is None:
         monkeypatch.delenv("LITELLM_STORE_AUDIT_LOGS", raising=False)
     else:
@@ -143,7 +143,7 @@ class TestDispatchAuditLogToCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", ["s3_v2"])
 
         with patch(
-            "litellm.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
+            "token_iq.gateway.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
             return_value=mock_logger,
         ):
             audit_log = _make_audit_log()
@@ -171,7 +171,7 @@ class TestDispatchAuditLogToCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", ["nonexistent_callback"])
 
         with patch(
-            "litellm.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
+            "token_iq.gateway.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
             return_value=None,
         ):
             audit_log = _make_audit_log()
@@ -187,9 +187,9 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
 
         with (
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.store_audit_logs", True),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.store_audit_logs", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
             mock_prisma.db.litellm_auditlog.create = AsyncMock()
 
@@ -209,9 +209,9 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
 
         with (
-            patch("litellm.proxy.proxy_server.premium_user", False),
-            patch("litellm.store_audit_logs", True),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.store_audit_logs", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
             audit_log = _make_audit_log()
             await create_audit_log_for_update(audit_log)
@@ -226,7 +226,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         mock_logger.async_log_audit_log_event = AsyncMock()
         monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
 
-        with patch("litellm.store_audit_logs", False):
+        with patch("token_iq.gateway.store_audit_logs", False):
             audit_log = _make_audit_log()
             await create_audit_log_for_update(audit_log)
             await asyncio.sleep(0.1)
@@ -241,9 +241,9 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
 
         with (
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.store_audit_logs", True),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.store_audit_logs", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         ):
             audit_log = _make_audit_log()
             await create_audit_log_for_update(audit_log)
@@ -260,9 +260,9 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
 
         with (
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.store_audit_logs", True),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.store_audit_logs", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
             mock_prisma.db.litellm_auditlog.create = AsyncMock(
                 side_effect=RuntimeError("DB connection lost")
@@ -283,7 +283,7 @@ class TestAuditLogTaskDoneCallback:
         mock_task.exception.return_value = RuntimeError("callback failed")
 
         with patch(
-            "litellm.proxy.management_helpers.audit_logs.verbose_proxy_logger"
+            "token_iq.gateway.proxy.management_helpers.audit_logs.verbose_proxy_logger"
         ) as mock_logger:
             _audit_log_task_done_callback(mock_task)
             mock_logger.error.assert_called_once()
@@ -295,7 +295,7 @@ class TestAuditLogTaskDoneCallback:
         mock_task.exception.return_value = None
 
         with patch(
-            "litellm.proxy.management_helpers.audit_logs.verbose_proxy_logger"
+            "token_iq.gateway.proxy.management_helpers.audit_logs.verbose_proxy_logger"
         ) as mock_logger:
             _audit_log_task_done_callback(mock_task)
             mock_logger.error.assert_not_called()
@@ -306,7 +306,7 @@ class TestAuditLogTaskDoneCallback:
         mock_task.exception.side_effect = asyncio.CancelledError()
 
         with patch(
-            "litellm.proxy.management_helpers.audit_logs.verbose_proxy_logger"
+            "token_iq.gateway.proxy.management_helpers.audit_logs.verbose_proxy_logger"
         ) as mock_logger:
             _audit_log_task_done_callback(mock_task)
             mock_logger.error.assert_not_called()
@@ -315,8 +315,8 @@ class TestAuditLogTaskDoneCallback:
 class TestS3LoggerAuditLogEvent:
     @pytest.mark.asyncio
     async def test_queues_audit_log_with_correct_s3_key(self):
-        with patch("litellm.integrations.s3_v2.S3Logger.__init__", return_value=None):
-            from litellm.integrations.s3_v2 import S3Logger
+        with patch("token_iq.gateway.integrations.s3_v2.S3Logger.__init__", return_value=None):
+            from token_iq.gateway.integrations.s3_v2 import S3Logger
 
             logger = S3Logger()
             logger.s3_path = "my-prefix"
@@ -348,8 +348,8 @@ class TestS3LoggerAuditLogEvent:
 
     @pytest.mark.asyncio
     async def test_s3_key_format_no_path(self):
-        with patch("litellm.integrations.s3_v2.S3Logger.__init__", return_value=None):
-            from litellm.integrations.s3_v2 import S3Logger
+        with patch("token_iq.gateway.integrations.s3_v2.S3Logger.__init__", return_value=None):
+            from token_iq.gateway.integrations.s3_v2 import S3Logger
 
             logger = S3Logger()
             logger.s3_path = None
@@ -382,8 +382,8 @@ class TestS3AuditCallbackParamsDecoupling:
 
     @pytest.fixture(autouse=True)
     def _isolate_caches_and_globals(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.litellm_core_utils import litellm_logging as ll_logging
-        from litellm.proxy.management_helpers import audit_logs as ll_audit_logs
+        from token_iq.gateway.core_utils import litellm_logging as ll_logging
+        from token_iq.gateway.proxy.management_helpers import audit_logs as ll_audit_logs
 
         monkeypatch.setattr(litellm, "s3_callback_params", litellm.s3_callback_params)
         monkeypatch.setattr(
@@ -398,11 +398,11 @@ class TestS3AuditCallbackParamsDecoupling:
     def test_opt_in_constructs_separate_instance_with_audit_config(self, monkeypatch: pytest.MonkeyPatch):
         """Audit config set → audit resolver returns a fresh S3Logger pointing
         at the audit bucket, distinct from the normal-log singleton."""
-        from litellm.integrations.s3_v2 import S3Logger
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.integrations.s3_v2 import S3Logger
+        from token_iq.gateway.core_utils.litellm_logging import (
             _init_custom_logger_compatible_class,
         )
-        from litellm.proxy.management_helpers.audit_logs import (
+        from token_iq.gateway.proxy.management_helpers.audit_logs import (
             _resolve_audit_log_callback,
         )
 
@@ -426,11 +426,11 @@ class TestS3AuditCallbackParamsDecoupling:
     def test_opt_out_preserves_singleton_behavior(self, monkeypatch: pytest.MonkeyPatch):
         """No `s3_audit_callback_params` → audit and normal share the singleton
         (existing behavior, regression guard)."""
-        from litellm.integrations.s3_v2 import S3Logger
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.integrations.s3_v2 import S3Logger
+        from token_iq.gateway.core_utils.litellm_logging import (
             _init_custom_logger_compatible_class,
         )
-        from litellm.proxy.management_helpers.audit_logs import (
+        from token_iq.gateway.proxy.management_helpers.audit_logs import (
             _resolve_audit_log_callback,
         )
 
@@ -452,11 +452,11 @@ class TestS3AuditCallbackParamsDecoupling:
     def test_empty_dict_opts_in(self, monkeypatch: pytest.MonkeyPatch):
         """`s3_audit_callback_params = {}` is opt-in (truthy-by-presence) and
         produces a separate instance with no bucket configured (env/IAM-only)."""
-        from litellm.integrations.s3_v2 import S3Logger
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.integrations.s3_v2 import S3Logger
+        from token_iq.gateway.core_utils.litellm_logging import (
             _init_custom_logger_compatible_class,
         )
-        from litellm.proxy.management_helpers.audit_logs import (
+        from token_iq.gateway.proxy.management_helpers.audit_logs import (
             _resolve_audit_log_callback,
         )
 
@@ -478,7 +478,7 @@ class TestS3AuditCallbackParamsDecoupling:
     def test_reset_audit_log_callback_cache_clears_audit_instance(self, monkeypatch: pytest.MonkeyPatch):
         """`reset_audit_log_callback_cache()` must drop the cached audit
         instance so a config reload picks up the new params."""
-        from litellm.proxy.management_helpers.audit_logs import (
+        from token_iq.gateway.proxy.management_helpers.audit_logs import (
             _audit_log_callback_cache,
             _resolve_audit_log_callback,
             reset_audit_log_callback_cache,

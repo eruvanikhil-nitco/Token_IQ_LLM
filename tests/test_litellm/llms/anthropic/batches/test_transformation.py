@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/llms/anthropic/batches/transformation.py
+Unit tests for token_iq/gateway/llms/anthropic/batches/transformation.py
 
 AnthropicBatchesConfig is the pure request/response mapping layer for Anthropic
 Message Batches. It builds auth headers, constructs the batch create/retrieve
@@ -21,8 +21,8 @@ import httpx
 import pytest
 
 
-from litellm.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-from litellm.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
+from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
 
 
 @pytest.fixture
@@ -458,7 +458,7 @@ def test_get_error_class_with_dict_headers(config):
     err = config.get_error_class(
         error_message="rate limited", status_code=429, headers={"x-ratelimit": "0"}
     )
-    from litellm.llms.anthropic.common_utils import AnthropicError
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
 
     assert isinstance(err, AnthropicError)
     assert err.status_code == 429
@@ -480,7 +480,7 @@ def test_get_error_class_with_httpx_headers(config):
 
 
 def test_transform_response_sums_usage_across_lines(config):
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     # Two result lines; transform_parsed_response is stubbed to attach a fixed
     # Usage per line so we can assert the SUM is what lands on model_response.
@@ -529,7 +529,7 @@ def test_transform_response_sums_usage_across_lines(config):
 
 
 def test_transform_response_skips_malformed_lines(config):
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     valid = '{"result": {"message": {"content": [{"type": "text", "text": "a"}]}}}'
     # Interior blank line (survives the outer strip) exercises the empty-line
@@ -572,7 +572,7 @@ def test_transform_response_skips_malformed_lines(config):
 
 
 def test_transform_response_reraises_unexpected_error(config):
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     valid = '{"result": {"message": {"content": [{"type": "text", "text": "a"}]}}}'
     raw = httpx.Response(
@@ -593,7 +593,7 @@ def test_transform_response_reraises_unexpected_error(config):
         "transform_parsed_response",
         side_effect=fake_transform_parsed,
     ), patch(
-        "litellm.cost_calculator.BaseTokenUsageProcessor.combine_usage_objects",
+        "token_iq.gateway.cost_calculator.BaseTokenUsageProcessor.combine_usage_objects",
         side_effect=RuntimeError("boom"),
     ):
         with pytest.raises(RuntimeError, match="boom"):
@@ -623,7 +623,7 @@ from tests.test_litellm.llms.base_llm.batches.base_batches_config_test import ( 
 
 class TestAnthropicBatchesContract(BatchesConfigContractTests):
     def make_config(self):
-        from litellm.llms.anthropic.batches.transformation import (
+        from token_iq.gateway.llms.anthropic.batches.transformation import (
             AnthropicBatchesConfig,
         )
 

@@ -20,7 +20,7 @@ import orjson
 import pytest
 from starlette.datastructures import FormData
 
-from litellm.ocr.main import convert_file_document_to_url_document, get_mime_type
+from token_iq.gateway.ocr.main import convert_file_document_to_url_document, get_mime_type
 
 
 class TestGetMimeType:
@@ -264,7 +264,7 @@ class TestBuildDocumentFromUpload:
     def _import_helper(self):
         """Import the proxy helper, skip if proxy deps aren't installed."""
         try:
-            from litellm.proxy.ocr_endpoints.endpoints import (
+            from token_iq.gateway.proxy.ocr_endpoints.endpoints import (
                 _build_document_from_upload,
             )
 
@@ -394,7 +394,7 @@ class TestProxySecurityGuard:
     def _import_helpers(self):
         """Import the proxy helpers, skip if proxy deps aren't installed."""
         try:
-            from litellm.proxy.ocr_endpoints.endpoints import (
+            from token_iq.gateway.proxy.ocr_endpoints.endpoints import (
                 _parse_multipart_form,
                 _parse_ocr_request,
             )

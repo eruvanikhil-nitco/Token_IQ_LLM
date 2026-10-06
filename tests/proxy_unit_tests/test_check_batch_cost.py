@@ -16,9 +16,9 @@ import pytest
 from fastapi import HTTPException
 
 if TYPE_CHECKING:
-    from litellm.batches.batch_utils import BatchCostUsageResult
+    from token_iq.gateway.batches.batch_utils import BatchCostUsageResult
 
-_IS_B64 = "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id"
+_IS_B64 = "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id"
 _CLAIM_UNIFIED_BATCH_ID = "dW5pZmllZF9iYXRjaF9pZA=="
 _CLAIM_OUTPUT_FILE_ID = "file-output-123"
 
@@ -32,7 +32,7 @@ def _batch_cost_result(
 ) -> "BatchCostUsageResult":
     """Build the BatchCostUsageResult calculate_batch_cost_and_usage now returns,
     for mocking it in tests that only care about cost/usage/models."""
-    from litellm.batches.batch_utils import BatchCostUsageResult
+    from token_iq.gateway.batches.batch_utils import BatchCostUsageResult
 
     return BatchCostUsageResult(
         cost=cost,
@@ -49,7 +49,7 @@ def _unmanaged_vertex_file_object(
 ):
     """A LiteLLMBatch JSON blob shaped like what the managed-files hook stores for an
     unmanaged Vertex batch (raw gs:// input_file_id)."""
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
 
     return LiteLLMBatch(
         id="8823717160934178816",
@@ -71,7 +71,7 @@ def _unmanaged_bedrock_file_object(
 ):
     """A LiteLLMBatch JSON blob shaped like what gets stored for an unmanaged Bedrock
     batch (raw s3:// input_file_id, ARN unified_object_id)."""
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
 
     return LiteLLMBatch(
         id="arn:aws:bedrock:us-east-1:298249409318:model-invocation-job/1ofb47x17jua",
@@ -188,7 +188,7 @@ class TestCheckBatchCost:
         self, check_batch_cost_instance, mock_prisma_client
     ):
         """find_many is called with take, order, and all terminal statuses excluded."""
-        from litellm.constants import MAX_OBJECTS_PER_POLL_CYCLE
+        from token_iq.gateway.constants import MAX_OBJECTS_PER_POLL_CYCLE
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(
             return_value=1
@@ -219,7 +219,7 @@ class TestCheckBatchCost:
         self, check_batch_cost_instance, mock_prisma_client
     ):
         """Falls back to query without batch_processed when primary query raises."""
-        from litellm.constants import MAX_OBJECTS_PER_POLL_CYCLE
+        from token_iq.gateway.constants import MAX_OBJECTS_PER_POLL_CYCLE
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(
             return_value=1
@@ -248,7 +248,7 @@ class TestCheckBatchCost:
         self, check_batch_cost_instance, mock_prisma_client
     ):
         """After column absence is discovered, subsequent cycles skip the primary query entirely."""
-        from litellm.constants import MAX_OBJECTS_PER_POLL_CYCLE
+        from token_iq.gateway.constants import MAX_OBJECTS_PER_POLL_CYCLE
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(
             return_value=1
@@ -328,28 +328,28 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -358,11 +358,11 @@ class TestCheckBatchCost:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -433,36 +433,36 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ) as mock_afile_content,
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"recordId": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(0.01, {"prompt_tokens": 10, "completion_tokens": 5}, ["claude-haiku-4-5"]),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("anthropic.claude-haiku-4-5-20251001-v1:0", "bedrock", None, None),
             ),
-            patch("litellm.litellm_core_utils.litellm_logging.Logging") as mock_logging_cls,
+            patch("token_iq.gateway.core_utils.litellm_logging.Logging") as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
             mock_logging_obj.async_success_handler = AsyncMock()
@@ -491,7 +491,7 @@ class TestCheckBatchCost:
         """
         from unittest.mock import patch
 
-        import litellm
+        from token_iq import gateway as litellm
 
         deployment_id = "deploy-poller-registered-rates-1"
         litellm.model_cost[deployment_id] = {
@@ -536,38 +536,38 @@ class TestCheckBatchCost:
         try:
             with (
                 patch(
-                    "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                    "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                     side_effect=[decoded_id, None],
                 ),
                 patch(
-                    "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                    "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                     return_value=deployment_id,
                 ),
                 patch(
-                    "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                    "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                     return_value="batch-456",
                 ),
                 patch(
-                    "litellm.files.main.afile_content",
+                    "token_iq.gateway.files.main.afile_content",
                     new_callable=AsyncMock,
                     return_value=mock_file_content,
                 ),
                 patch(
-                    "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                    "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                     return_value=[{"recordId": "req-1"}],
                 ),
                 patch(
-                    "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                    "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                     new_callable=AsyncMock,
                     return_value=_batch_cost_result(
                         0.0052, {"prompt_tokens": 1400, "completion_tokens": 600}, ["claude-haiku-4-5"]
                     ),
                 ) as mock_calculate,
                 patch(
-                    "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                    "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                     return_value=("us.anthropic.claude-haiku-4-5-20251001-v1:0", "bedrock", None, None),
                 ),
-                patch("litellm.litellm_core_utils.litellm_logging.Logging") as mock_logging_cls,
+                patch("token_iq.gateway.core_utils.litellm_logging.Logging") as mock_logging_cls,
             ):
                 mock_logging_obj = MagicMock()
                 mock_logging_obj.async_success_handler = AsyncMock()
@@ -637,28 +637,28 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -667,11 +667,11 @@ class TestCheckBatchCost:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -708,8 +708,8 @@ class TestCheckBatchCost:
         logging pipeline through to _ProxyDBLogger, which is the exact gap that
         let the original bug ship undetected.
         """
-        import litellm
-        from litellm.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(return_value=1)
         mock_prisma_client.db.litellm_managedobjecttable.update = AsyncMock()
@@ -726,7 +726,7 @@ class TestCheckBatchCost:
         # A real LiteLLMBatch (not a bare MagicMock): this test runs the real
         # litellm_logging.Logging pipeline, which type-checks the result via
         # isinstance(..., LiteLLMBatch) before it will compute/attach a cost.
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         mock_response = LiteLLMBatch(
             id="batch-1",
@@ -767,28 +767,28 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=_fake_is_base64_encoded,
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -797,19 +797,19 @@ class TestCheckBatchCost:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
             patch.object(litellm, "_async_success_callback", [db_logger]),
             patch(
-                "litellm.proxy.proxy_server.proxy_logging_obj",
+                "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
                 MagicMock(
                     db_spend_update_writer=MagicMock(update_database=mock_update_database),
                     slack_alerting_instance=MagicMock(customer_spend_alert=AsyncMock()),
                 ),
             ),
-            patch("litellm.proxy.proxy_server.increment_spend_counters", AsyncMock()),
-            patch("litellm.proxy.proxy_server.update_cache", AsyncMock()),
+            patch("token_iq.gateway.proxy.proxy_server.increment_spend_counters", AsyncMock()),
+            patch("token_iq.gateway.proxy.proxy_server.update_cache", AsyncMock()),
         ):
             await check_batch_cost_instance.check_batch_cost()
 
@@ -862,19 +862,19 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="msgbatch_01WA5hdsa2Xx8w4zyPjV1frs",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 side_effect=Exception("File id must have `file_` prefix."),
             ),
@@ -961,7 +961,7 @@ class TestCheckBatchCost:
         import base64
         import json
 
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         unified_batch_uid = base64.urlsafe_b64encode(
             b"litellm_proxy;model_id:model-123;llm_batch_id:batch-456"
@@ -1114,7 +1114,7 @@ class TestCheckBatchCost:
         )
 
         with patch(
-            "litellm.files.main.afile_content",
+            "token_iq.gateway.files.main.afile_content",
             new_callable=AsyncMock,
         ) as mock_afile_content:
             await check_batch_cost_instance.check_batch_cost()
@@ -1194,7 +1194,7 @@ class TestCheckBatchCost:
         )
 
         with patch(
-            "litellm.files.main.afile_content",
+            "token_iq.gateway.files.main.afile_content",
             new_callable=AsyncMock,
         ) as mock_afile_content:
             await check_batch_cost_instance.check_batch_cost()
@@ -1239,15 +1239,15 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
         ):
@@ -1315,28 +1315,28 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 side_effect=[decoded_id, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ) as mock_afile_content,
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -1345,11 +1345,11 @@ class TestCheckBatchCost:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -1388,7 +1388,7 @@ class TestCheckBatchCost:
         import httpx
         import respx
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
+        from token_iq.gateway.core_utils.litellm_logging import Logging
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(return_value=1)
         mock_prisma_client.db.litellm_managedobjecttable.update = AsyncMock()
@@ -1494,7 +1494,7 @@ class TestCheckBatchCost:
         import base64
         from unittest.mock import patch
 
-        from litellm.exceptions import NotFoundError
+        from token_iq.gateway.exceptions import NotFoundError
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(
             return_value=1
@@ -1532,7 +1532,7 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 side_effect=NotFoundError(
                     message=f"404: output file {missing_output_file_id} does not exist",
@@ -1541,7 +1541,7 @@ class TestCheckBatchCost:
                 ),
             ) as mock_afile_content,
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
             ) as mock_calculate,
         ):
@@ -1627,30 +1627,30 @@ class TestCheckBatchCost:
 
         with (
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils._is_base64_encoded_unified_file_id",
                 # call 1: job unified_object_id decode, call 2: existing raw check for output_file_id,
                 # call 3: fix guard for output_file_id, call 4: fix guard for error_file_id
                 side_effect=[decoded_id, None, None, None],
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -1659,11 +1659,11 @@ class TestCheckBatchCost:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-5-mini", "azure", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -1899,16 +1899,16 @@ class TestUnmanagedVertexRouting:
         with (
             patch(_IS_B64, side_effect=[False, None]),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.01,
@@ -1917,11 +1917,11 @@ class TestUnmanagedVertexRouting:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gemini-2.5-flash", "vertex_ai", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -2129,16 +2129,16 @@ class TestUnmanagedBedrockRouting:
         with (
             patch(_IS_B64, side_effect=[False, None]),
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=mock_file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(
                     0.02,
@@ -2147,11 +2147,11 @@ class TestUnmanagedBedrockRouting:
                 ),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("claude-sonnet-4", "bedrock", None, None),
             ),
             patch(
-                "litellm.litellm_core_utils.litellm_logging.Logging"
+                "token_iq.gateway.core_utils.litellm_logging.Logging"
             ) as mock_logging_cls,
         ):
             mock_logging_obj = MagicMock()
@@ -2248,7 +2248,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
         return base64.urlsafe_b64encode(unified_id.encode()).decode().rstrip("=")
 
     def _job(self, input_file_id: str) -> MagicMock:
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         job = MagicMock()
         job.id = "job-lit-4964"
@@ -2270,7 +2270,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
         from litellm_enterprise.proxy.common_utils.check_batch_cost import (
             CheckBatchCost,
         )
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
         from enterprise.litellm_enterprise.proxy.hooks.managed_files import (
             _PROXY_LiteLLMManagedFiles,
         )
@@ -2321,20 +2321,20 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
 
         with (
             patch(
-                "litellm.files.main.afile_content",
+                "token_iq.gateway.files.main.afile_content",
                 new_callable=AsyncMock,
                 return_value=file_content,
             ),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(0.01, {"prompt_tokens": 10}, ["gpt-5.5"]),
             ),
-            patch("litellm.litellm_core_utils.litellm_logging.Logging") as logging_cls,
+            patch("token_iq.gateway.core_utils.litellm_logging.Logging") as logging_cls,
         ):
             logging_obj = MagicMock()
             logging_obj.async_success_handler = AsyncMock()
@@ -2352,7 +2352,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
 
     @pytest.mark.asyncio
     async def test_target_model_names_comes_from_input_file_not_provider_model(self):
-        from litellm.proxy.openai_files_endpoints.common_utils import (
+        from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
             _is_base64_encoded_unified_file_id,
             get_models_from_unified_file_id,
         )
@@ -2367,9 +2367,9 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
 
     @pytest.mark.asyncio
     async def test_key_scoped_to_model_group_can_read_the_output_file(self):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.auth_checks import can_key_call_model
-        from litellm.proxy.auth.auth_utils import (
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.auth_checks import can_key_call_model
+        from token_iq.gateway.proxy.auth.auth_utils import (
             _extract_models_from_managed_resource_id,
         )
 
@@ -2393,7 +2393,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
 
     @pytest.mark.asyncio
     async def test_falls_back_to_deployment_model_group_without_managed_input_file(self):
-        from litellm.proxy.openai_files_endpoints.common_utils import (
+        from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
             _is_base64_encoded_unified_file_id,
             get_models_from_unified_file_id,
         )
@@ -2613,7 +2613,7 @@ class TestPollPageStarvation:
     async def test_provider_404_retires_job(self):
         """The provider dropping its record of the batch is permanent: no later retrieve
         can succeed, so the row must stop occupying a slot."""
-        import litellm
+        from token_iq import gateway as litellm
 
         prisma = self._prisma(
             [
@@ -2644,7 +2644,7 @@ class TestPollPageStarvation:
         """With the batch's own deployment removed from the router, default fallbacks can
         send the retrieve to a provider that never saw the batch. That 404 proves nothing,
         so the row must stay unprocessed instead of losing its spend forever."""
-        import litellm
+        from token_iq import gateway as litellm
 
         prisma = self._prisma(
             [
@@ -2736,7 +2736,7 @@ class TestPollPageStarvation:
         )
         prisma = self._prisma(dead_rows + [live_row])
 
-        import litellm
+        from token_iq import gateway as litellm
 
         in_progress = MagicMock()
         in_progress.status = "in_progress"
@@ -2768,7 +2768,7 @@ class TestPollPageStarvation:
     async def test_404_that_does_not_name_the_batch_keeps_job_for_retry(self):
         """A 404 about something other than the batch, e.g. a renamed Azure deployment, is
         fixable in config, so the row must survive to be costed after the fix."""
-        import litellm
+        from token_iq import gateway as litellm
 
         prisma = self._prisma(
             [
@@ -2945,28 +2945,28 @@ class TestMultiPodBatchCostClaim:
         with (
             patch(_IS_B64, side_effect=_is_b64),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_model_id_from_unified_batch_id",
                 return_value="model-123",
             ),
             patch(
-                "litellm.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
+                "token_iq.gateway.proxy.openai_files_endpoints.common_utils.get_batch_id_from_unified_batch_id",
                 return_value="batch-456",
             ),
-            patch("litellm.files.main.afile_content", new=AsyncMock(side_effect=_afile_content)),
+            patch("token_iq.gateway.files.main.afile_content", new=AsyncMock(side_effect=_afile_content)),
             patch(
-                "litellm.batches.batch_utils._get_file_content_as_dictionary",
+                "token_iq.gateway.batches.batch_utils._get_file_content_as_dictionary",
                 return_value=[{"id": "req-1"}],
             ),
             patch(
-                "litellm.batches.batch_utils.calculate_batch_cost_and_usage",
+                "token_iq.gateway.batches.batch_utils.calculate_batch_cost_and_usage",
                 new_callable=AsyncMock,
                 return_value=_batch_cost_result(0.01, {"prompt_tokens": 10, "completion_tokens": 5}, ["gpt-4"]),
             ),
             patch(
-                "litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider",
+                "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
-            patch("litellm.litellm_core_utils.litellm_logging.Logging", return_value=logging_obj),
+            patch("token_iq.gateway.core_utils.litellm_logging.Logging", return_value=logging_obj),
         ):
             yield logging_obj
 
@@ -2990,7 +2990,7 @@ class TestMultiPodBatchCostClaim:
 
         scheduler = MagicMock()
         scheduler.get_job.return_value = MagicMock()
-        with patch("litellm.proxy.proxy_server.scheduler", scheduler):
+        with patch("token_iq.gateway.proxy.proxy_server.scheduler", scheduler):
             await guard._check_file_deletion_allowed(file_id)
 
     @pytest.mark.asyncio

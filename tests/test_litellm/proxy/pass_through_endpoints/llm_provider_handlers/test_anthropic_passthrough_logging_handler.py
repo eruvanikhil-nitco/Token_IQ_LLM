@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler import (
     AnthropicPassthroughLoggingHandler,
 )
 
@@ -214,12 +214,12 @@ class TestAzureAnthropicCostCalculation:
         mock_logging_obj.litellm_call_id = "test-call-id"
         return mock_logging_obj
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_with_azure_ai_custom_llm_provider(
         self, mock_completion_cost
     ):
         """Test that custom_llm_provider is passed to completion_cost for Azure AI Anthropic"""
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
         from datetime import datetime
 
         mock_completion_cost.return_value = 0.001
@@ -251,10 +251,10 @@ class TestAzureAnthropicCostCalculation:
         assert call_kwargs["model"] == "azure_ai/claude-sonnet-4-5_gb_20250929"
         assert call_kwargs["custom_llm_provider"] == "azure_ai"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_without_custom_llm_provider(self, mock_completion_cost):
         """Test that cost calculation works without custom_llm_provider (standard Anthropic)"""
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
         from datetime import datetime
 
         mock_completion_cost.return_value = 0.001
@@ -285,12 +285,12 @@ class TestAzureAnthropicCostCalculation:
         assert call_kwargs["model"] == "claude-3-sonnet-20240229"
         assert call_kwargs["custom_llm_provider"] is None
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_does_not_duplicate_provider_prefix(
         self, mock_completion_cost
     ):
         """Test that provider prefix is not duplicated if already present in model name"""
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
         from datetime import datetime
 
         mock_completion_cost.return_value = 0.001
@@ -324,7 +324,7 @@ class TestAzureAnthropicCostCalculation:
         assert call_kwargs["model"] == "azure_ai/claude-sonnet-4-5_gb_20250929"
         assert call_kwargs["custom_llm_provider"] == "azure_ai"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_resolves_unknown_model_from_litellm_params(
         self, mock_completion_cost
     ):
@@ -333,7 +333,7 @@ class TestAzureAnthropicCostCalculation:
         completion_cost raise and the cost silently fall back to $0)."""
         from datetime import datetime
 
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         mock_completion_cost.return_value = 0.001
 
@@ -367,7 +367,7 @@ class TestAzureAnthropicCostCalculation:
         assert kwargs["response_cost"] == 0.001
         assert kwargs["model"] == "anthropic/claude-3-5-haiku-20241022"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_resolves_unknown_model_from_model_group(
         self, mock_completion_cost
     ):
@@ -376,7 +376,7 @@ class TestAzureAnthropicCostCalculation:
         resolve the model."""
         from datetime import datetime
 
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         mock_completion_cost.return_value = 0.002
 
@@ -408,7 +408,7 @@ class TestAzureAnthropicCostCalculation:
         )
         assert kwargs["response_cost"] == 0.002
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_cost_calculation_skips_unknown_litellm_params_model_for_model_group(
         self, mock_completion_cost
     ):
@@ -417,7 +417,7 @@ class TestAzureAnthropicCostCalculation:
         to model_group so costing still prices the real model instead of "unknown"."""
         from datetime import datetime
 
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         mock_completion_cost.return_value = 0.003
 
@@ -451,7 +451,7 @@ class TestAzureAnthropicCostCalculation:
         assert kwargs["response_cost"] == 0.003
         assert kwargs["model"] == "anthropic/claude-3-5-haiku-20241022"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_streaming_cost_calculation_resolves_model_from_message_start_chunk(
         self, mock_completion_cost
     ):
@@ -461,10 +461,10 @@ class TestAzureAnthropicCostCalculation:
         prices the real model instead of failing on "unknown" and logging $0."""
         from datetime import datetime
 
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as RealLoggingObj,
         )
-        from litellm.proxy.pass_through_endpoints.streaming_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
             PassThroughStreamingHandler,
         )
 
@@ -588,7 +588,7 @@ class TestAzureAnthropicCostCalculation:
         )
 
     def test_passthrough_logging_sets_response_cost_with_server_tool_use_dict(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         logging_obj = self._create_mock_logging_obj(model="claude-3-7-sonnet-20250219")
         logging_obj.get_router_model_id.return_value = None
@@ -680,12 +680,12 @@ class TestAnthropicBatchPassthroughCostTracking:
         }
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler._store_batch_managed_object"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler._store_batch_managed_object"
     )
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
     )
-    @patch("litellm.llms.anthropic.batches.transformation.AnthropicBatchesConfig")
+    @patch("token_iq.gateway.llms.anthropic.batches.transformation.AnthropicBatchesConfig")
     def test_batch_creation_handler_success(
         self,
         mock_batches_config,
@@ -696,7 +696,7 @@ class TestAnthropicBatchPassthroughCostTracking:
         mock_request_body,
     ):
         """Test successful batch creation and managed object storage"""
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         # Setup mocks
         mock_get_model_id.return_value = "claude-sonnet-4-5-20250929"
@@ -763,17 +763,17 @@ class TestAnthropicBatchPassthroughCostTracking:
         assert result["result"].object == "batch"
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler._store_batch_managed_object"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler._store_batch_managed_object"
     )
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
     )
     def test_batch_creation_handler_model_extraction_from_nested_request(
         self, mock_get_model_id, mock_store_batch, mock_httpx_response, mock_logging_obj
     ):
         """Test that model is correctly extracted from nested request structure"""
-        from litellm.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         # Setup mocks
         mock_get_model_id.return_value = "claude-sonnet-4-5-20250929"
@@ -822,7 +822,7 @@ class TestAnthropicBatchPassthroughCostTracking:
             assert result["kwargs"]["model"] == "claude-sonnet-4-5-20250929"
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler.get_actual_model_id_from_router"
     )
     def test_batch_creation_handler_model_prefix_when_not_in_router(
         self,
@@ -832,8 +832,8 @@ class TestAnthropicBatchPassthroughCostTracking:
         mock_request_body,
     ):
         """Test that model gets 'anthropic/' prefix when not found in router"""
-        from litellm.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
+        from token_iq.gateway.types.utils import LiteLLMBatch
         import base64
 
         # Model not in router - returns same model name
@@ -908,9 +908,9 @@ class TestAnthropicBatchPassthroughCostTracking:
         absent."""
         mock_managed_files_hook = MagicMock()
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_pl,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_pl,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler.verbose_proxy_logger"
             ),
         ):
             mock_pl.get_proxy_hook.return_value = mock_managed_files_hook
@@ -932,9 +932,9 @@ class TestAnthropicBatchPassthroughCostTracking:
         mock_managed_files_hook = MagicMock()
         mock_managed_files_hook.store_unified_object_id = AsyncMock()
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_pl,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_pl,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
             ),
         ):
             mock_pl.get_proxy_hook.return_value = mock_managed_files_hook
@@ -990,9 +990,9 @@ class TestAnthropicBatchPassthroughCostTracking:
             side_effect=RuntimeError("db down")
         )
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_pl,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_pl,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
             ) as mock_logger,
         ):
             mock_pl.get_proxy_hook.return_value = mock_managed_files_hook
@@ -1070,12 +1070,12 @@ class TestAnthropicBatchPassthroughCostTracking:
         assert result["kwargs"]["batch_job_state"] == "failed"
         assert result["kwargs"]["response_cost"] == 0.0
 
-    @patch("litellm.proxy.proxy_server.proxy_logging_obj")
+    @patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj")
     def test_store_batch_managed_object_success(
         self, mock_proxy_logging_obj, mock_logging_obj
     ):
         """Test storing batch managed object"""
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         # Setup mocks
         mock_managed_files_hook = MagicMock()
@@ -1191,7 +1191,7 @@ class TestPureTextFastPathParity:
     @staticmethod
     def _to_all_chunks(raw_frames):
         # Mirror production: raw bytes -> _convert_raw_bytes_to_str_lines.
-        from litellm.proxy.pass_through_endpoints.streaming_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
             PassThroughStreamingHandler,
         )
 
@@ -1560,7 +1560,7 @@ class TestInterruptedStreamOutputTokenRecovery:
     )
 
     def _interrupted_chunks(self, *, placeholder_output_tokens: int = 2):
-        from litellm.proxy.pass_through_endpoints.streaming_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
             PassThroughStreamingHandler,
         )
 
@@ -1644,7 +1644,7 @@ class TestInterruptedStreamOutputTokenRecovery:
         )
 
     def test_interrupted_stream_retokenizes_buffered_output(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         placeholder = 2
         result = self._run(
@@ -1760,7 +1760,7 @@ class TestStreamFalseDeduplication:
             ),
             TestStreamFalseDeduplication._sse("message_stop", {"type": "message_stop"}),
         ]
-        from litellm.proxy.pass_through_endpoints.streaming_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
             PassThroughStreamingHandler,
         )
 
@@ -1776,7 +1776,7 @@ class TestStreamFalseDeduplication:
         Before the fix: model_call_details had no complete_streaming_response key.
         The log showed: "kwargs stream: True + complete streaming response: None"
         """
-        from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+        from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
             EndpointType,
         )
 
@@ -1819,10 +1819,10 @@ class TestStreamFalseDeduplication:
         This is the _is_assembled_stream_success gate: with stream=False it
         always returned False and the guard was permanently disabled.
         """
-        from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+        from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
             EndpointType,
         )
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         # Simulate what pass_through_endpoints.py now does after stream detection
         logging_obj = self._make_logging_obj(stream=False)
@@ -1864,7 +1864,7 @@ class TestStreamFalseDeduplication:
         _is_assembled_stream_success always returned False and duplicate
         callback dispatches were never blocked.
         """
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         # logging_obj starts with stream=False, as created before the request
         logging_obj = self._make_logging_obj(stream=False)
@@ -1899,7 +1899,7 @@ class TestStreamFalseDeduplication:
 
         This test documents the old broken behavior so the fix is clearly justified.
         """
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         logging_obj = self._make_logging_obj(stream=False)
         mock_response = ModelResponse(model="claude-3-5-sonnet-20241022")
@@ -1936,7 +1936,7 @@ class TestNonStreamingResponseRedaction:
         return logging_obj
 
     def test_non_streaming_does_not_set_complete_streaming_response(self):
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         logging_obj = self._make_logging_obj(stream=False)
         response = ModelResponse(model="claude-3-5-sonnet-20241022")
@@ -1955,7 +1955,7 @@ class TestNonStreamingResponseRedaction:
         ), "non-streaming responses must not populate complete_streaming_response"
 
     def test_streaming_sets_complete_streaming_response(self):
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         logging_obj = self._make_logging_obj(stream=True)
         response = ModelResponse(model="claude-3-5-sonnet-20241022")
@@ -1975,10 +1975,10 @@ class TestNonStreamingResponseRedaction:
         )
 
     def test_non_streaming_response_is_redacted_when_message_logging_off(self):
-        from litellm.litellm_core_utils.redact_messages import (
+        from token_iq.gateway.core_utils.redact_messages import (
             redact_message_input_output_from_logging,
         )
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         logging_obj = self._make_logging_obj(stream=False)
         response = ModelResponse(
@@ -2145,7 +2145,7 @@ class TestAnthropicUsageOnlyFallback:
         )
 
     def _real_logging_obj(self):
-        from litellm.litellm_core_utils.litellm_logging import Logging as RealLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as RealLoggingObj
 
         logging_obj = RealLoggingObj(
             model="claude-3-5-haiku-20241022",
@@ -2160,7 +2160,7 @@ class TestAnthropicUsageOnlyFallback:
         logging_obj.litellm_params = {}
         return logging_obj
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     @patch.object(
         AnthropicPassthroughLoggingHandler, "_build_complete_streaming_response"
     )
@@ -2186,12 +2186,12 @@ class TestAnthropicUsageOnlyFallback:
         assert result["result"].usage.completion_tokens == 55
         assert result["kwargs"]["response_cost"] == 0.0021
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     @patch.object(
         AnthropicPassthroughLoggingHandler, "_build_complete_streaming_response"
     )
     def test_handler_falls_back_when_assembly_raises(self, mock_assemble, mock_cost):
-        import litellm
+        from token_iq import gateway as litellm
 
         mock_assemble.side_effect = litellm.APIError(
             status_code=500,
@@ -2279,7 +2279,7 @@ class TestAnthropicResponseCostRecordedOnModelCallDetails:
     builder must record it there or streaming pass-through logs $0."""
 
     def test_create_payload_records_response_cost_on_model_call_details(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         logging_obj = MagicMock()
         logging_obj.model_call_details = {}
@@ -2353,7 +2353,7 @@ class TestAnthropicPassthroughFastMode:
         )
 
     def _cost(self, response) -> float:
-        import litellm
+        from token_iq import gateway as litellm
 
         return litellm.completion_cost(completion_response=response, model=f"anthropic/{self.MODEL}")
 

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 MUSE_SPARK_MODEL = "meta/muse-spark-1.1"
 

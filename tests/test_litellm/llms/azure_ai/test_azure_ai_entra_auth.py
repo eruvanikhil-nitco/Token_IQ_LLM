@@ -9,9 +9,9 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.llms.azure_ai.common_utils import get_azure_ai_auth_headers
-from litellm.llms.azure_ai.ocr.transformation import AzureAIOCRConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure_ai.common_utils import get_azure_ai_auth_headers
+from token_iq.gateway.llms.azure_ai.ocr.transformation import AzureAIOCRConfig
 
 ENTRA_PARAMS = {"azure_ad_token": "entra-token"}
 
@@ -47,7 +47,7 @@ def test_entra_token_used_when_no_api_key():
 
 
 def test_service_principal_token_is_requested_with_the_configured_scope():
-    with patch("litellm.llms.azure.common_utils.get_azure_ad_token_from_entra_id") as mock_entra_id:  # test-quality-ok: stubs the Entra token fetch to assert the SP credential+scope plumbing and the returned Bearer header; live SP path proven by the PR's Azure Foundry e2e QA
+    with patch("token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_from_entra_id") as mock_entra_id:  # test-quality-ok: stubs the Entra token fetch to assert the SP credential+scope plumbing and the returned Bearer header; live SP path proven by the PR's Azure Foundry e2e QA
         mock_entra_id.return_value = lambda: "sp-token"
 
         headers = get_azure_ai_auth_headers(

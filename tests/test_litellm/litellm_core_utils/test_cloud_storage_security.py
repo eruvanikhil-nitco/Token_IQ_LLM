@@ -1,4 +1,4 @@
-from litellm.litellm_core_utils.cloud_storage_security import (
+from token_iq.gateway.core_utils.cloud_storage_security import (
     is_managed_cloud_storage_uri,
 )
 

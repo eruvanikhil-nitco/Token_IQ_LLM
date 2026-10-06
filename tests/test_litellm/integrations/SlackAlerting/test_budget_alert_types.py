@@ -1,5 +1,5 @@
-from litellm.integrations.SlackAlerting.budget_alert_types import SoftBudgetAlert
-from litellm.proxy._types import CallInfo, Litellm_EntityType
+from token_iq.gateway.integrations.SlackAlerting.budget_alert_types import SoftBudgetAlert
+from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
 
 
 class TestSoftBudgetAlert:

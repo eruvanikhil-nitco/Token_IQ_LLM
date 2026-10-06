@@ -17,12 +17,12 @@ import pytest
 @pytest.mark.asyncio
 async def test_add_shared_session_attaches_open_session():
     """When the shared session is open, it should be attached to data."""
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
     mock_session = MagicMock()
     mock_session.closed = False
 
-    with patch("litellm.proxy.proxy_server.shared_aiohttp_session", mock_session):
+    with patch("token_iq.gateway.proxy.proxy_server.shared_aiohttp_session", mock_session):
         data = {}
         await add_shared_session_to_data(data)
         assert data["shared_session"] is mock_session
@@ -31,9 +31,9 @@ async def test_add_shared_session_attaches_open_session():
 @pytest.mark.asyncio
 async def test_add_shared_session_recreates_closed_session():
     """When the shared session is closed, it should be recreated."""
-    import litellm.proxy.route_llm_request as route_module
-    from litellm.proxy import proxy_server as proxy_server_module
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    import token_iq.gateway.proxy.route_llm_request as route_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
     # Reset the module-level lock so each test uses the current event loop
     route_module._shared_session_lock = None
@@ -66,9 +66,9 @@ async def test_add_shared_session_recreates_closed_session():
 @pytest.mark.asyncio
 async def test_add_shared_session_handles_recreation_failure():
     """When recreation fails, data should not contain shared_session."""
-    import litellm.proxy.route_llm_request as route_module
-    from litellm.proxy import proxy_server as proxy_server_module
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    import token_iq.gateway.proxy.route_llm_request as route_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
     # Reset the module-level lock so each test uses the current event loop
     route_module._shared_session_lock = None
@@ -95,9 +95,9 @@ async def test_add_shared_session_handles_recreation_failure():
 @pytest.mark.asyncio
 async def test_add_shared_session_handles_recreation_exception():
     """When _initialize_shared_aiohttp_session raises, data should not contain shared_session."""
-    import litellm.proxy.route_llm_request as route_module
-    from litellm.proxy import proxy_server as proxy_server_module
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    import token_iq.gateway.proxy.route_llm_request as route_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
     # Reset the module-level lock so each test uses the current event loop
     route_module._shared_session_lock = None
@@ -125,9 +125,9 @@ async def test_add_shared_session_handles_recreation_exception():
 @pytest.mark.asyncio
 async def test_add_shared_session_no_session_available():
     """When no session was ever created, data should not contain shared_session."""
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
-    with patch("litellm.proxy.proxy_server.shared_aiohttp_session", None):
+    with patch("token_iq.gateway.proxy.proxy_server.shared_aiohttp_session", None):
         data = {}
         await add_shared_session_to_data(data)
         assert "shared_session" not in data
@@ -137,9 +137,9 @@ async def test_add_shared_session_no_session_available():
 async def test_add_shared_session_concurrent_recreation_uses_lock():
     """When multiple coroutines detect a closed session concurrently,
     only one should recreate it (double-checked locking via asyncio.Lock)."""
-    import litellm.proxy.route_llm_request as route_module
-    from litellm.proxy import proxy_server as proxy_server_module
-    from litellm.proxy.route_llm_request import add_shared_session_to_data
+    import token_iq.gateway.proxy.route_llm_request as route_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.route_llm_request import add_shared_session_to_data
 
     # Reset the module-level lock so each test is isolated
     route_module._shared_session_lock = None

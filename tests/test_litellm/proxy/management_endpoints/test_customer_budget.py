@@ -14,14 +14,14 @@ from datetime import datetime, timedelta
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     NewCustomerRequest,
     UpdateCustomerRequest,
 )
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
-from litellm.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
     new_budget_request,
     update_end_user,
 )
@@ -48,8 +48,8 @@ def mock_budget_table():
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.prisma_client")
-@patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+@patch("token_iq.gateway.proxy.proxy_server.prisma_client")
+@patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 async def test_update_customer_with_budget_id(
     mock_prisma_client, mock_user_api_key_dict, mock_existing_customer
 ):
@@ -104,8 +104,8 @@ async def test_update_customer_with_budget_id(
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.prisma_client")
-@patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+@patch("token_iq.gateway.proxy.proxy_server.prisma_client")
+@patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 async def test_update_customer_creates_budget_with_proper_relations(
     mock_prisma_client, mock_user_api_key_dict, mock_existing_customer
 ):
@@ -162,8 +162,8 @@ async def test_update_customer_creates_budget_with_proper_relations(
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.prisma_client")
-@patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+@patch("token_iq.gateway.proxy.proxy_server.prisma_client")
+@patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 async def test_update_customer_creates_budget_with_required_fields(
     mock_prisma_client, mock_user_api_key_dict, mock_existing_customer
 ):
@@ -224,8 +224,8 @@ async def test_update_customer_creates_budget_with_required_fields(
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.prisma_client")
-@patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+@patch("token_iq.gateway.proxy.proxy_server.prisma_client")
+@patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 async def test_update_customer_budget_creation_with_fallback_admin(
     mock_prisma_client, mock_existing_customer
 ):
@@ -284,8 +284,8 @@ async def test_update_customer_budget_creation_with_fallback_admin(
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.prisma_client")
-@patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+@patch("token_iq.gateway.proxy.proxy_server.prisma_client")
+@patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 async def test_update_customer_with_budget_id_and_creation_fields(
     mock_prisma_client, mock_user_api_key_dict, mock_existing_customer
 ):

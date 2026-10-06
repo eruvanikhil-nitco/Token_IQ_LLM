@@ -6,7 +6,7 @@ Verifies fix for https://github.com/BerriAI/litellm/issues/25081
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.utils import is_tool_name_prefixed
+from token_iq.gateway.proxy._experimental.mcp_server.utils import is_tool_name_prefixed
 
 
 # ---------------------------------------------------------------------------

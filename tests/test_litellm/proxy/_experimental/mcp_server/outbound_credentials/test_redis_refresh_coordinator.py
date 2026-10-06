@@ -4,10 +4,10 @@ import asyncio
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     OAuthToken,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.redis_refresh_coordinator import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.redis_refresh_coordinator import (
     LockAcquisition,
     RedisRefreshCoordinator,
 )

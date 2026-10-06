@@ -1,9 +1,9 @@
 import urllib.parse
 from unittest.mock import patch
 
-import litellm
-from litellm.llms.azure.image_edit.transformation import AzureImageEditConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.image_edit.transformation import AzureImageEditConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 def test_validate_environment_uses_api_key_header_for_subscription_key():
@@ -73,15 +73,15 @@ def test_validate_environment_falls_back_to_aad_bearer_when_no_api_key():
     config = AzureImageEditConfig()
     with (
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token",
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token",
             return_value="fake-aad-token",
         ),
         patch(
-            "litellm.llms.azure.common_utils.get_secret_str",
+            "token_iq.gateway.llms.azure.common_utils.get_secret_str",
             return_value=None,
         ),
-        patch("litellm.api_key", None),
-        patch("litellm.azure_key", None),
+        patch("token_iq.gateway.api_key", None),
+        patch("token_iq.gateway.azure_key", None),
     ):
         headers = config.validate_environment(
             headers={},
@@ -154,7 +154,7 @@ def test_azure_finalize_image_edit_strips_model_after_openai_transform():
 # Before this fallback chain existed, image edit only read ``litellm_params``
 # and produced an unversioned URL when callers set api_version via the global
 # or the env var (Azure then 404s with "Resource not found"). The chat path
-# in ``litellm/llms/azure/common_utils.py`` already had this fallback.
+# in ``token_iq/gateway/llms/azure/common_utils.py`` already had this fallback.
 # ---------------------------------------------------------------------------
 
 

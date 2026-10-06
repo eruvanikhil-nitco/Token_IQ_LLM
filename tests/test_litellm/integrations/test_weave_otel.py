@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.weave.weave_otel import (
+from token_iq.gateway.integrations.weave.weave_otel import (
     _set_weave_specific_attributes,
     get_weave_otel_config,
 )
-from litellm.types.integrations.weave_otel import WeaveOtelConfig, WeaveSpanAttributes
+from token_iq.gateway.types.integrations.weave_otel import WeaveOtelConfig, WeaveSpanAttributes
 
 
 def test_get_weave_otel_config():
@@ -106,7 +106,7 @@ def test_set_weave_specific_attributes_display_name_from_metadata():
     }
 
     with patch(
-        "litellm.integrations.weave.weave_otel.safe_set_attribute"
+        "token_iq.gateway.integrations.weave.weave_otel.safe_set_attribute"
     ) as mock_safe_set:
         _set_weave_specific_attributes(mock_span, kwargs, None)
 
@@ -125,7 +125,7 @@ def test_set_weave_specific_attributes_display_name_from_model():
     }
 
     with patch(
-        "litellm.integrations.weave.weave_otel.safe_set_attribute"
+        "token_iq.gateway.integrations.weave.weave_otel.safe_set_attribute"
     ) as mock_safe_set:
         _set_weave_specific_attributes(mock_span, kwargs, None)
 
@@ -143,7 +143,7 @@ def test_set_weave_specific_attributes_thread_id_and_is_turn():
     }
 
     with patch(
-        "litellm.integrations.weave.weave_otel.safe_set_attribute"
+        "token_iq.gateway.integrations.weave.weave_otel.safe_set_attribute"
     ) as mock_safe_set:
         _set_weave_specific_attributes(mock_span, kwargs, None)
 

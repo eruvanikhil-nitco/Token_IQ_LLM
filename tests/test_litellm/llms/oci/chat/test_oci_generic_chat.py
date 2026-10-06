@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/llms/oci/chat/generic.py — error paths and stream handling.
+Unit tests for token_iq/gateway/llms/oci/chat/generic.py — error paths and stream handling.
 """
 
 import pytest
@@ -7,21 +7,21 @@ from unittest.mock import MagicMock
 
 import httpx
 
-from litellm import ModelResponse
-from litellm.llms.oci.chat.generic import (
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.llms.oci.chat.generic import (
     adapt_messages_to_generic_oci_standard,
     adapt_messages_to_generic_oci_standard_content_message,
     adapt_messages_to_generic_oci_standard_tool_call,
     handle_generic_response,
     handle_generic_stream_chunk,
 )
-from litellm.llms.oci.chat.transformation import (
+from token_iq.gateway.llms.oci.chat.transformation import (
     OCIChatConfig,
     OCIStreamWrapper,
     OCIVendors,
     _model_uses_max_completion_tokens,
 )
-from litellm.llms.oci.common_utils import OCIError
+from token_iq.gateway.llms.oci.common_utils import OCIError
 
 # ---------------------------------------------------------------------------
 # adapt_messages_to_generic_oci_standard_content_message — error paths
@@ -348,7 +348,7 @@ def _register_oci_gpt5_in_catalog():
     ``model_prices_and_context_window.json`` (which ships them) or from a
     remote map that may lag behind.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     needed = {
         "oci/openai.gpt-5",
@@ -387,7 +387,7 @@ class TestGpt5MaxCompletionTokens:
         must route them to maxCompletionTokens even with no catalog entry,
         since OpenAI accepts max_completion_tokens on every chat model while
         the reasoning families hard-reject max_tokens."""
-        import litellm
+        from token_iq import gateway as litellm
 
         for name in (
             "openai.gpt-5.2",
@@ -405,7 +405,7 @@ class TestGpt5MaxCompletionTokens:
         from the catalog got "maxTokens" on every request and OCI returned 400
         ("Use 'max_completion_tokens' instead") even when the caller never set
         max_tokens."""
-        from litellm.constants import DEFAULT_OCI_CHAT_MAX_TOKENS
+        from token_iq.gateway.constants import DEFAULT_OCI_CHAT_MAX_TOKENS
 
         cfg = OCIChatConfig()
         out = cfg._get_optional_params(OCIVendors.GENERIC, {}, model="openai.gpt-5.2")
@@ -452,7 +452,7 @@ class TestGpt5MaxCompletionTokens:
         assert "maxCompletionTokens" not in out
 
     def test_payload_serializes_max_completion_tokens(self):
-        from litellm.types.llms.oci import OCIChatRequestPayload
+        from token_iq.gateway.types.llms.oci import OCIChatRequestPayload
 
         payload = OCIChatRequestPayload(
             apiFormat="GENERIC",

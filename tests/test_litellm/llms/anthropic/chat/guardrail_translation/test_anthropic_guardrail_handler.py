@@ -12,12 +12,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
-from litellm.llms.anthropic.chat.guardrail_translation.handler import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
+from token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler import (
     AnthropicMessagesHandler,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 
 class MockPassThroughGuardrail(CustomGuardrail):
@@ -161,8 +161,8 @@ class TestAnthropicMessagesHandlerStreamingRequestData:
 
     @pytest.mark.asyncio
     async def test_terminal_chunk_passes_assembled_response_and_metadata(self):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         handler = AnthropicMessagesHandler()
         guardrail = MockRecordingGuardrail(guardrail_name="test")
@@ -183,7 +183,7 @@ class TestAnthropicMessagesHandlerStreamingRequestData:
         with (
             patch.object(handler, "_check_streaming_has_ended", return_value=True),
             patch(
-                "litellm.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
+                "token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
                 return_value=mock_response,
             ),
         ):
@@ -203,7 +203,7 @@ class TestAnthropicMessagesHandlerStreamingRequestData:
 
     @pytest.mark.asyncio
     async def test_mid_stream_chunk_passes_responses_so_far_and_metadata(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         handler = AnthropicMessagesHandler()
         guardrail = MockRecordingGuardrail(guardrail_name="test")
@@ -248,7 +248,7 @@ class TestAnthropicMessagesHandlerStreamingOutputProcessing:
         with (
             patch.object(handler, "_check_streaming_has_ended", return_value=True),
             patch(
-                "litellm.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
+                "token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
                 return_value=None,
             ),
         ):
@@ -283,7 +283,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
             },
         }
 
-        with patch("litellm.proxy.proxy_server.premium_user", True):
+        with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
             await handler.process_input_messages(
                 data=data, guardrail_to_apply=guardrail
             )
@@ -420,7 +420,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
     async def test_bedrock_masking_slice_is_unavailable_when_top_level_system_is_included(
         self,
     ):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
             BedrockGuardrail,
         )
 
@@ -469,7 +469,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
         self,
         skip_system_message_in_guardrail: Optional[bool],
     ):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
             BedrockGuardrail,
         )
 
@@ -502,7 +502,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
 
     @pytest.mark.asyncio
     async def test_bedrock_masking_slice_stays_aligned_with_midturn_system(self):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
             BedrockGuardrail,
         )
 
@@ -969,7 +969,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
     async def test_midturn_system_keeps_tool_result_turns_aligned_for_masking(self):
         """Tool-result texts are scanned (LIT-5251), so counts align and the latest-user
         masking slice is locatable; a mid-turn system entry only shifts it by its own text."""
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
             BedrockGuardrail,
         )
 
@@ -1024,7 +1024,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
 
     @pytest.mark.asyncio
     async def test_compaction_rewrite_to_only_system_messages_is_rejected(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         handler = AnthropicMessagesHandler()
         guardrail = MockCompactingGuardrail(
@@ -1047,7 +1047,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
     async def test_compaction_rewrite_to_only_system_messages_repaired_with_modify_params(
         self,
     ):
-        import litellm
+        from token_iq import gateway as litellm
 
         handler = AnthropicMessagesHandler()
         guardrail = MockCompactingGuardrail(
@@ -1092,7 +1092,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
         This test verifies the fix for the bug where accessing model_response.choices[0]
         would raise IndexError when the response has an empty choices list.
         """
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         handler = AnthropicMessagesHandler()
         guardrail = MockPassThroughGuardrail(guardrail_name="test")
@@ -1111,7 +1111,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
         with (
             patch.object(handler, "_check_streaming_has_ended", return_value=True),
             patch(
-                "litellm.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
+                "token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
                 return_value=mock_response,
             ),
         ):
@@ -1130,7 +1130,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
     @pytest.mark.asyncio
     async def test_process_output_streaming_response_with_valid_choices(self):
         """Test that streaming response with valid choices still works correctly"""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         handler = AnthropicMessagesHandler()
         guardrail = MockPassThroughGuardrail(guardrail_name="test")
@@ -1158,7 +1158,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
         with (
             patch.object(handler, "_check_streaming_has_ended", return_value=True),
             patch(
-                "litellm.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
+                "token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler.AnthropicPassthroughLoggingHandler._build_complete_streaming_response",
                 return_value=mock_response,
             ),
         ):
@@ -1349,7 +1349,7 @@ class TestAnthropicMessagesIncrementalScan:
     """
 
     def _bedrock_guardrail(self):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
 
         return BedrockGuardrail(
             guardrail_name="bedrock-incremental-anthropic",

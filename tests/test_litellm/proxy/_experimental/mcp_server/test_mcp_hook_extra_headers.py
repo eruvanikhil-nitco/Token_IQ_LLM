@@ -18,11 +18,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.mcp import MCPAuth, MCPTransport
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 class TestConvertMcpHookResponseToKwargs:
@@ -411,7 +411,7 @@ class TestCallToolFlowsHookHeaders:
                         new_callable=AsyncMock,
                         return_value=MagicMock(),
                     ):
-                        import litellm.proxy._experimental.mcp_server.mcp_server_manager as mgr_mod
+                        import token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager as mgr_mod
 
                         proxy_logging = MagicMock(spec=ProxyLogging)
 
@@ -1054,7 +1054,7 @@ class TestOpenApiByokCallTool:
     @pytest.mark.asyncio
     async def test_call_tool_openapi_byok_injects_request_auth_contextvar(self):
         """Playground/responses call call_tool directly; BYOK must reach OpenAPI handlers."""
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             _request_auth_header,
         )
 
@@ -1078,7 +1078,7 @@ class TestOpenApiByokCallTool:
 
         with patch.object(manager, "_resolve_mcp_server_for_tool_call", return_value=server):
             with patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager._resolve_byok_mcp_auth_header",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager._resolve_byok_mcp_auth_header",
                 new=AsyncMock(return_value="fc-test-key"),
             ):
                 with patch.object(
@@ -1108,21 +1108,21 @@ class TestFormatByokOpenapiAuthHeader:
         )
 
     def test_api_key_auth_type(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _format_byok_openapi_auth_header,
         )
 
         assert _format_byok_openapi_auth_header(self._server(MCPAuth.api_key), "secret") == "ApiKey secret"
 
     def test_basic_auth_type(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _format_byok_openapi_auth_header,
         )
 
         assert _format_byok_openapi_auth_header(self._server(MCPAuth.basic), "secret") == "Basic secret"
 
     def test_defaults_to_bearer(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _format_byok_openapi_auth_header,
         )
 
@@ -1141,7 +1141,7 @@ class TestOpenapiForwardedExtraHeaders:
         )
 
     def test_returns_none_without_extra_headers_config(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1149,7 +1149,7 @@ class TestOpenapiForwardedExtraHeaders:
         assert _openapi_forwarded_extra_headers(server, {"X-Custom": "v"}, None) is None
 
     def test_returns_none_without_raw_headers(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1157,7 +1157,7 @@ class TestOpenapiForwardedExtraHeaders:
         assert _openapi_forwarded_extra_headers(server, None, None) is None
 
     def test_forwards_configured_header_case_insensitively(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1166,7 +1166,7 @@ class TestOpenapiForwardedExtraHeaders:
         assert result == {"X-Custom": "v"}
 
     def test_returns_none_when_no_configured_header_is_present(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1174,7 +1174,7 @@ class TestOpenapiForwardedExtraHeaders:
         assert _openapi_forwarded_extra_headers(server, {"x-custom": "v"}, None) is None
 
     def test_skips_authorization_when_caller_header_must_be_stripped(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1184,7 +1184,7 @@ class TestOpenapiForwardedExtraHeaders:
         assert result is None
 
     def test_skips_non_string_header_entries(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _openapi_forwarded_extra_headers,
         )
 
@@ -1207,7 +1207,7 @@ class TestResolveByokMcpAuthHeader:
 
     @pytest.mark.asyncio
     async def test_non_byok_server_passes_header_through_unchanged(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _resolve_byok_mcp_auth_header,
         )
 
@@ -1217,7 +1217,7 @@ class TestResolveByokMcpAuthHeader:
 
     @pytest.mark.asyncio
     async def test_byok_server_uses_stored_credential_when_no_header_supplied(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _resolve_byok_mcp_auth_header,
         )
 
@@ -1225,7 +1225,7 @@ class TestResolveByokMcpAuthHeader:
         user_auth = UserAPIKeyAuth(user_id="user-1", api_key="sk-dashboard")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_byok_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_byok_credential",
             new=AsyncMock(return_value="stored-cred"),
         ):
             result = await _resolve_byok_mcp_auth_header(server, user_auth, None)
@@ -1236,7 +1236,7 @@ class TestResolveByokMcpAuthHeader:
     async def test_byok_server_raises_401_when_no_credential_stored(self):
         from fastapi import HTTPException
 
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _resolve_byok_mcp_auth_header,
         )
 
@@ -1244,7 +1244,7 @@ class TestResolveByokMcpAuthHeader:
         user_auth = UserAPIKeyAuth(user_id="user-1", api_key="sk-dashboard")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_byok_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_byok_credential",
             new=AsyncMock(return_value=None),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1255,7 +1255,7 @@ class TestResolveByokMcpAuthHeader:
 
     @pytest.mark.asyncio
     async def test_byok_server_checks_credential_and_keeps_caller_header_when_supplied(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _resolve_byok_mcp_auth_header,
         )
 
@@ -1264,7 +1264,7 @@ class TestResolveByokMcpAuthHeader:
         check_mock = AsyncMock(return_value=None)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._check_byok_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._check_byok_credential",
             new=check_mock,
         ):
             result = await _resolve_byok_mcp_auth_header(server, user_auth, "caller-header")
@@ -1295,13 +1295,13 @@ class TestOpenApiResolvedUpstreamAuth:
     async def test_call_tool_openapi_injects_v2_resolved_token_contextvar(self):
         """The managed spec_path arm resolves the v2 credential and sets the ContextVar; kills
         the mutant that drops the resolve_openapi_upstream_auth call in call_tool."""
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             _request_resolved_auth_headers,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         manager = MCPServerManager()
         server = self._oauth_server()

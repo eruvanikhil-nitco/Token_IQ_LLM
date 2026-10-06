@@ -8,8 +8,8 @@ from openai import AsyncOpenAI
 import sys, os
 from typing import Optional
 
-import litellm
-from litellm.proxy._types import LitellmUserRoles
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LitellmUserRoles
 
 
 async def generate_team(
@@ -647,7 +647,7 @@ async def test_key_with_budgets():
     - wait 10min (budget reset runs every 10mins.)
     - Check if value updated
     """
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy.utils import hash_token
 
     async def retry_request(func, *args, _max_attempts=5, **kwargs):
         for attempt in range(_max_attempts):
@@ -694,7 +694,7 @@ async def test_key_crossing_budget():
 
     - Check if value updated
     """
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy.utils import hash_token
 
     async with aiohttp.ClientSession() as session:
         key_gen = await generate_key(session=session, i=0, budget=0.0000001)

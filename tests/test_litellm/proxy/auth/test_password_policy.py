@@ -6,8 +6,8 @@ new or changed password for a locally-managed user.
 
 import pytest
 
-from litellm.proxy._types import ProxyErrorTypes, ProxyException
-from litellm.proxy.auth.password_policy import (
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
+from token_iq.gateway.proxy.auth.password_policy import (
     DEFAULT_MIN_LENGTH,
     MIN_ALLOWED_LENGTH,
     PasswordPolicy,

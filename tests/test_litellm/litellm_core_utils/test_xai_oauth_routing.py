@@ -1,15 +1,15 @@
 
 
-import litellm
-from litellm import LlmProviders
-from litellm.litellm_core_utils.get_litellm_params import get_litellm_params
-from litellm.litellm_core_utils.get_llm_provider_logic import (
+from token_iq import gateway as litellm
+from token_iq.gateway import LlmProviders
+from token_iq.gateway.core_utils.get_litellm_params import get_litellm_params
+from token_iq.gateway.core_utils.get_llm_provider_logic import (
     _get_openai_compatible_provider_info,
 )
-from litellm.llms.xai.chat.transformation import XAIChatConfig
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from litellm.types.router import GenericLiteLLMParams
-from litellm.utils import (
+from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.utils import (
     ProviderConfigManager,
     get_optional_params,
     validate_environment,

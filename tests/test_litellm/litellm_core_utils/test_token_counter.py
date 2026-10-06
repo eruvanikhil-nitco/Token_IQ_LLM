@@ -10,12 +10,13 @@ import tiktoken
 
 from unittest.mock import AsyncMock, patch
 
-import litellm
-from litellm import create_pretrained_tokenizer, decode, encode, get_modified_max_tokens
-from litellm import token_counter as token_counter_old
-import litellm.constants
-from litellm.litellm_core_utils.token_counter import _get_tiktoken_count_function
-from litellm.litellm_core_utils.token_counter import token_counter as token_counter_new
+from token_iq import gateway as litellm
+from token_iq.gateway import create_pretrained_tokenizer, decode, encode, get_modified_max_tokens
+from token_iq.gateway import token_counter as token_counter_old
+import token_iq.gateway.constants
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.token_counter import _get_tiktoken_count_function
+from token_iq.gateway.core_utils.token_counter import token_counter as token_counter_new
 from tests.large_text import text
 from tests.test_litellm.litellm_core_utils.messages_with_counts import (
     MESSAGES_TEXT,
@@ -495,7 +496,7 @@ def test_get_modified_max_tokens(
     - Test when max_tokens > max_output => expect max_output
     """
     args = locals()
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.token_counter = MagicMock()
 
@@ -564,7 +565,7 @@ def test_img_url_token_counter(img_url, monkeypatch):
     third-party image URL goes away.
     """
     import base64
-    from litellm.litellm_core_utils.token_counter import get_image_dimensions
+    from token_iq.gateway.core_utils.token_counter import get_image_dimensions
 
     # Minimal valid 1x1 PNG, served by the mocked safe_get for the URL case.
     _tiny_png = base64.b64decode(
@@ -580,7 +581,7 @@ def test_img_url_token_counter(img_url, monkeypatch):
                 return _tiny_png
 
         monkeypatch.setattr(
-            "litellm.litellm_core_utils.token_counter.safe_get",
+            "token_iq.gateway.core_utils.token_counter.safe_get",
             lambda client, url, **kw: _FakeResponse(),
         )
 
@@ -630,7 +631,7 @@ def test_token_counter():
 
 import unittest
 
-from litellm.utils import _select_tokenizer_helper, claude_json_str, encoding
+from token_iq.gateway.utils import _select_tokenizer_helper, claude_json_str, encoding
 
 # Clear the cache at module load to ensure clean state
 _select_tokenizer_helper.cache_clear()
@@ -646,7 +647,7 @@ class TestTokenizerSelection(unittest.TestCase):
         """
         _select_tokenizer_helper.cache_clear()
 
-    @patch("litellm.utils.Tokenizer.from_pretrained")
+    @patch("token_iq.gateway.utils.Tokenizer.from_pretrained")
     def test_llama3_tokenizer_api_failure(self, mock_from_pretrained):
         # Setup mock to raise an error
         mock_from_pretrained.side_effect = Exception("Failed to load tokenizer")
@@ -661,7 +662,7 @@ class TestTokenizerSelection(unittest.TestCase):
         self.assertEqual(result["type"], "openai_tokenizer")
         self.assertEqual(result["tokenizer"], encoding)
 
-    @patch("litellm.utils.Tokenizer.from_pretrained")
+    @patch("token_iq.gateway.utils.Tokenizer.from_pretrained")
     def test_cohere_tokenizer_api_failure(self, mock_from_pretrained):
         # Setup mock to raise an error
         mock_from_pretrained.side_effect = Exception("Failed to load tokenizer")
@@ -681,7 +682,7 @@ class TestTokenizerSelection(unittest.TestCase):
         self.assertEqual(result["type"], "openai_tokenizer")
         self.assertEqual(result["tokenizer"], encoding)
 
-    @patch("litellm.utils.Tokenizer.from_str")
+    @patch("token_iq.gateway.utils.Tokenizer.from_str")
     def test_claude_tokenizer_api_failure(self, mock_from_str):
         # Setup mock to raise an error
         mock_from_str.side_effect = Exception("Failed to load tokenizer")
@@ -699,7 +700,7 @@ class TestTokenizerSelection(unittest.TestCase):
         self.assertEqual(result["type"], "openai_tokenizer")
         self.assertEqual(result["tokenizer"], encoding)
 
-    @patch("litellm.utils.Tokenizer.from_pretrained")
+    @patch("token_iq.gateway.utils.Tokenizer.from_pretrained")
     def test_llama2_tokenizer_api_failure(self, mock_from_pretrained):
         # Setup mock to raise an error
         mock_from_pretrained.side_effect = Exception("Failed to load tokenizer")
@@ -716,7 +717,7 @@ class TestTokenizerSelection(unittest.TestCase):
         self.assertEqual(result["type"], "openai_tokenizer")
         self.assertEqual(result["tokenizer"], encoding)
 
-    @patch("litellm.utils._return_huggingface_tokenizer")
+    @patch("token_iq.gateway.utils._return_huggingface_tokenizer")
     def test_disable_hf_tokenizer_download(self, mock_return_huggingface_tokenizer):
         monkeypatch = pytest.MonkeyPatch()
         monkeypatch.setattr(litellm, "disable_hf_tokenizer_download", True)
@@ -1147,7 +1148,7 @@ def test_count_content_list_rejects_unknown_type():
     enumerate the supported types (including `tool_reference`). This pins the
     catch-all contract so a future block type isn't silently dropped.
     """
-    from litellm.litellm_core_utils.token_counter import _count_content_list
+    from token_iq.gateway.core_utils.token_counter import _count_content_list
 
     with pytest.raises(ValueError, match='Error getting number of tokens from content list: Invalid') as exc_info:
         _count_content_list(
@@ -1173,7 +1174,7 @@ def test_count_content_list_rejects_unknown_type():
 )
 def test_token_counter_with_anthropic_image_block(source: dict[str, str]):
     """Anthropic `image` blocks must count for every source variant, not raise `Invalid content item type` (which the router's context-window pre-call check swallows into an unfiltered dispatch)."""
-    from litellm.constants import DEFAULT_IMAGE_TOKEN_COUNT
+    from token_iq.gateway.constants import DEFAULT_IMAGE_TOKEN_COUNT
 
     messages = [
         {
@@ -1276,14 +1277,14 @@ def test_anthropic_image_block_nested_in_tool_result():
 )
 def test_anthropic_image_source_resolves_to_what_the_image_pricer_reads(source: dict[str, str], expected: str):
     """base64 sources become a data URI, url sources pass through, file sources resolve to an empty string."""
-    from litellm.litellm_core_utils.token_counter import _anthropic_image_source_data
+    from token_iq.gateway.core_utils.token_counter import _anthropic_image_source_data
 
     assert _anthropic_image_source_data(source) == expected
 
 
 def test_anthropic_image_block_with_empty_base64_data():
     """A base64 source with empty `data` prices as an image rather than raising."""
-    from litellm.litellm_core_utils.token_counter import _count_content_list
+    from token_iq.gateway.core_utils.token_counter import _count_content_list
 
     tokens = _count_content_list(
         count_function=len,
@@ -1298,7 +1299,7 @@ def test_anthropic_image_block_with_empty_base64_data():
 
 def test_anthropic_image_block_without_source_raises():
     """An `image` block with no `source` raises, matching the OpenAI `image_url`-without-`url` behavior."""
-    from litellm.litellm_core_utils.token_counter import _count_content_list
+    from token_iq.gateway.core_utils.token_counter import _count_content_list
 
     with pytest.raises(ValueError, match="Error getting number of tokens from content list"):
         _count_content_list(
@@ -1321,7 +1322,7 @@ def test_anthropic_image_block_without_source_raises():
 
 
 def _count_user_content(content: list[dict]) -> int:
-    from litellm.litellm_core_utils.token_counter import token_counter
+    from token_iq.gateway.core_utils.token_counter import token_counter
 
     return token_counter(
         model="anthropic/claude-fable-5",

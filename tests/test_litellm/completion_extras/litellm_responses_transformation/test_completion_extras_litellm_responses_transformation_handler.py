@@ -4,14 +4,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.completion_extras.litellm_responses_transformation.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.completion_extras.litellm_responses_transformation.handler import (
     ResponsesToCompletionBridgeHandler,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_is_preformatted_cached_chat_stream_true():
@@ -74,7 +74,7 @@ def test_completion_returns_cached_model_response_directly():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.responses", return_value=cached),
+        patch("token_iq.gateway.responses", return_value=cached),
     ):
         result = bridge.completion(**_bridge_kwargs(stream=False))
 
@@ -92,7 +92,7 @@ async def test_acompletion_returns_cached_model_response_directly():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.aresponses", new=AsyncMock(return_value=cached)),
+        patch("token_iq.gateway.aresponses", new=AsyncMock(return_value=cached)),
     ):
         result = await bridge.acompletion(**_bridge_kwargs(stream=False))
 
@@ -111,7 +111,7 @@ def test_completion_skips_rewrapping_preformatted_cached_chat_stream():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.responses", return_value=stream),
+        patch("token_iq.gateway.responses", return_value=stream),
         patch.object(
             bridge,
             "_apply_post_stream_processing",
@@ -138,7 +138,7 @@ def test_completion_preserves_top_level_stream_flag_in_responses_request():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ) as transform_request,
-        patch("litellm.responses", return_value=stream),
+        patch("token_iq.gateway.responses", return_value=stream),
         patch.object(
             bridge,
             "_apply_post_stream_processing",
@@ -163,7 +163,7 @@ async def test_acompletion_skips_rewrapping_preformatted_cached_chat_stream():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.aresponses", new=AsyncMock(return_value=stream)),
+        patch("token_iq.gateway.aresponses", new=AsyncMock(return_value=stream)),
         patch.object(
             bridge,
             "_apply_post_stream_processing",
@@ -191,7 +191,7 @@ async def test_acompletion_preserves_top_level_stream_flag_in_responses_request(
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ) as transform_request,
-        patch("litellm.aresponses", new=AsyncMock(return_value=stream)),
+        patch("token_iq.gateway.aresponses", new=AsyncMock(return_value=stream)),
         patch.object(
             bridge,
             "_apply_post_stream_processing",
@@ -233,7 +233,7 @@ async def test_acompletion_streams_completed_model_response():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.aresponses", new=AsyncMock(return_value=completed)),
+        patch("token_iq.gateway.aresponses", new=AsyncMock(return_value=completed)),
     ):
         result = await bridge.acompletion(**_bridge_kwargs(stream=True))
 
@@ -255,7 +255,7 @@ def test_completion_streams_completed_model_response():
             "transform_request",
             return_value={"model": "gpt-5.4", "input": "hi"},
         ),
-        patch("litellm.responses", return_value=completed),
+        patch("token_iq.gateway.responses", return_value=completed),
     ):
         result = bridge.completion(**_bridge_kwargs(stream=True))
 
@@ -301,7 +301,7 @@ def test_completion_keeps_provider_native_model_id_through_responses(
             "transform_request",
             return_value={"model": bridge_model, "input": "hi"},
         ),
-        patch("litellm.responses", return_value=cached) as responses_call,
+        patch("token_iq.gateway.responses", return_value=cached) as responses_call,
     ):
         bridge.completion(**kwargs)
 
@@ -329,7 +329,7 @@ async def test_acompletion_keeps_provider_native_model_id_through_responses(
             "transform_request",
             return_value={"model": bridge_model, "input": "hi"},
         ),
-        patch("litellm.aresponses", new=AsyncMock(return_value=cached)) as responses_call,
+        patch("token_iq.gateway.aresponses", new=AsyncMock(return_value=cached)) as responses_call,
     ):
         await bridge.acompletion(**kwargs)
 

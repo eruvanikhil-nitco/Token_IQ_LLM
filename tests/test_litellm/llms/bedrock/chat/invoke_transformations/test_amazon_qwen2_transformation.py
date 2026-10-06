@@ -7,10 +7,10 @@ import pytest
 # Ensure the project root is on the import path so `litellm` can be imported when
 # tests are executed from any working directory.
 
-from litellm.llms.bedrock.chat.invoke_transformations.amazon_qwen2_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_qwen2_transformation import (
     AmazonQwen2Config,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_qwen2_get_supported_params():
@@ -255,8 +255,8 @@ def test_qwen2_transform_response_without_usage():
 
 def test_qwen2_provider_detection():
     """Test that Qwen2 provider is correctly detected from model names"""
-    from litellm.utils import ProviderConfigManager
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Test with qwen2/ prefix
     config = ProviderConfigManager.get_provider_chat_config(
@@ -270,7 +270,7 @@ def test_qwen2_provider_detection():
 
 def test_qwen2_model_id_extraction_with_arn():
     """Test that model ID is correctly extracted from bedrock/qwen2/arn... paths"""
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     # Test case: bedrock/qwen2/arn:aws:bedrock:us-east-1:123456789012:imported-model/test-qwen2
     # The qwen2/ prefix should be stripped, leaving only the ARN for encoding
@@ -289,7 +289,7 @@ def test_qwen2_model_id_extraction_with_arn():
 
 def test_qwen2_model_id_extraction_without_qwen2_prefix():
     """Test that model ID extraction doesn't strip qwen2/ when provider is not qwen2"""
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     # Test case: just a model name without qwen2/ prefix
     model = "arn:aws:bedrock:us-east-1:123456789012:imported-model/test-qwen2"
@@ -305,7 +305,7 @@ def test_qwen2_model_id_extraction_without_qwen2_prefix():
 
 def test_qwen2_get_bedrock_model_id_with_various_formats():
     """Test get_bedrock_model_id with various Qwen2 model path formats"""
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     test_cases = [
         {

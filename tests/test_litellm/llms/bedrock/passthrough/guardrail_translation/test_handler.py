@@ -13,7 +13,7 @@ import copy
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from litellm.llms.bedrock.passthrough.guardrail_translation.handler import (
+from token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler import (
     BedrockPassthroughGuardrailHandler,
     _extract_converse_texts,
     _is_converse_endpoint,
@@ -292,7 +292,7 @@ class TestWriteBackTexts:
 
         warnings = []
         monkeypatch.setattr(
-            "litellm.llms.bedrock.passthrough.guardrail_translation.handler.verbose_proxy_logger.warning",
+            "token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler.verbose_proxy_logger.warning",
             lambda *args, **kwargs: warnings.append(args),
         )
 
@@ -607,7 +607,7 @@ class TestBedrockPassthroughGuardrailHandlerOutput:
 
         warnings = []
         monkeypatch.setattr(
-            "litellm.llms.bedrock.passthrough.guardrail_translation.handler.verbose_proxy_logger.warning",
+            "token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler.verbose_proxy_logger.warning",
             lambda *args, **kwargs: warnings.append(args),
         )
 

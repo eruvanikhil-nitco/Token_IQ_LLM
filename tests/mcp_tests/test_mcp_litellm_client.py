@@ -6,8 +6,8 @@ import asyncio
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from litellm import experimental_mcp_client
-import litellm
+from token_iq.gateway import experimental_mcp_client
+from token_iq import gateway as litellm
 import json
 
 

@@ -1,6 +1,6 @@
 """Tests for the database token auth strategies.
 
-``litellm/proxy/db/token_auth.py`` decides where the proxy's Postgres password
+``token_iq/gateway/proxy/db/token_auth.py`` decides where the proxy's Postgres password
 comes from: an AWS RDS IAM token, a Microsoft Entra ID access token for Azure
 Database for PostgreSQL, or neither. Minting and expiry parsing dispatch over
 that union, so both variants are exercised here, together with the URL encoding
@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.proxy.db.token_auth import (
+from token_iq.gateway.proxy.db.token_auth import (
     AZURE_POSTGRESQL_AUTH_ENV_VAR,
     AZURE_POSTGRESQL_SCOPE,
     IAM_TOKEN_DB_AUTH_ENV_VAR,
@@ -58,7 +58,7 @@ def test_rds_mint_delegates_to_the_sigv4_token_generator():
     endpoint = _endpoint(host="writer.aurora.local", user="litellm_rds")
 
     with patch(
-        "litellm.proxy.auth.rds_iam_token.generate_iam_auth_token",
+        "token_iq.gateway.proxy.auth.rds_iam_token.generate_iam_auth_token",
         return_value="SIGV4_TOKEN",
     ) as generate:
         token = mint_database_token(RdsIamTokenAuth(), endpoint)
@@ -233,7 +233,7 @@ def test_resolve_returns_the_entra_strategy(monkeypatch):
     monkeypatch.setenv(AZURE_POSTGRESQL_AUTH_ENV_VAR, "true")
 
     with patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: "ENTRA_TOKEN",
     ):
         auth = resolve_database_token_auth()
@@ -253,7 +253,7 @@ def test_resolve_raises_when_both_toggles_are_set(monkeypatch):
 def test_entra_provider_uses_the_ossrdbms_scope():
     """The wrong scope mints a token Azure Postgres rejects, so the scope is pinned."""
     with patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: "ENTRA_TOKEN",
     ) as get_provider:
         build_azure_entra_token_provider()
@@ -276,7 +276,7 @@ def test_every_truthy_spelling_enables_token_auth(monkeypatch, value):
     monkeypatch.delenv(IAM_TOKEN_DB_AUTH_ENV_VAR, raising=False)
 
     with patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: "ENTRA_TOKEN",
     ):
         assert isinstance(resolve_database_token_auth(), AzureEntraTokenAuth)
@@ -313,7 +313,7 @@ def test_the_entra_provider_is_built_once_per_process():
     """Each build is another Azure credential with its own transport and token cache
     that nothing closes, and the writer, the reader, and the refresh loop each ask."""
     with patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: "ENTRA_TOKEN",
     ) as get_provider:
         assert build_azure_entra_token_provider() is build_azure_entra_token_provider()

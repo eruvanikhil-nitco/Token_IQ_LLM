@@ -8,11 +8,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
     VertexAIPartnerModels,
 )
-from litellm.llms.vertex_ai.vertex_gemma_models.main import VertexAIGemmaModels
-from litellm.llms.vertex_ai.vertex_model_garden.main import VertexAIModelGardenModels
+from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main import VertexAIGemmaModels
+from token_iq.gateway.llms.vertex_ai.vertex_model_garden.main import VertexAIModelGardenModels
 
 
 def _mock_vertexai():
@@ -54,7 +54,7 @@ class TestPartnerModelsCredentialReuse:
                 return_value=("cached-token", "test-project"),
             ) as mock_ensure,
             patch(
-                "litellm.llms.vertex_ai.vertex_ai_partner_models.main.base_llm_http_handler"
+                "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.base_llm_http_handler"
             ) as mock_handler,
         ):
             mock_handler.completion.return_value = "response"
@@ -99,7 +99,7 @@ class TestPartnerModelsCredentialReuse:
                 partner, "load_auth", return_value=(mock_creds, "proj")
             ) as mock_load,
             patch(
-                "litellm.llms.vertex_ai.vertex_ai_partner_models.main.base_llm_http_handler"
+                "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.base_llm_http_handler"
             ) as mock_handler,
         ):
             mock_handler.completion.return_value = "resp"
@@ -145,7 +145,7 @@ class TestGemmaModelsCredentialReuse:
                 return_value=("cached-token", "test-project"),
             ) as mock_ensure,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.transformation.VertexGemmaConfig",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation.VertexGemmaConfig",
                 mock_gemma_config,
             ),
         ):
@@ -191,7 +191,7 @@ class TestModelGardenCredentialReuse:
                 return_value=("cached-token", "test-project"),
             ) as mock_ensure,
             patch(
-                "litellm.llms.openai_like.chat.handler.OpenAILikeChatHandler",
+                "token_iq.gateway.llms.openai_like.chat.handler.OpenAILikeChatHandler",
                 mock_handler,
             ),
         ):

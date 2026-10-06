@@ -14,9 +14,9 @@ import os
 
 import pytest
 
-import litellm
-from litellm.constants import BEDROCK_CONVERSE_MODELS
-from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import BEDROCK_CONVERSE_MODELS
+from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 
@@ -205,7 +205,7 @@ def test_fable_5_all_variants_carry_thinking_always_on_flag(cost_map):
 def test_adaptive_thinking_detected_for_fable_5(local_model_cost_map, model):
     """Provider-routed ids must resolve to a flagged entry so ``reasoning_effort``
     maps to ``thinking.type='adaptive'`` + ``output_config.effort``."""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     assert AnthropicModelInfo._is_adaptive_thinking_model(model, "anthropic") is True
 
@@ -355,7 +355,7 @@ def test_fable_5_1_provider_resolves_via_model_info(local_model_cost_map):
     ],
 )
 def test_adaptive_thinking_detected_for_fable_5_1(local_model_cost_map, model):
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     assert AnthropicModelInfo._is_adaptive_thinking_model(model, "anthropic") is True
 

@@ -13,9 +13,9 @@ from fastapi import Request
 from pydantic import ValidationError as PydanticValidationError
 from starlette.datastructures import Headers
 
-import litellm
-from litellm.proxy._types import AddTeamCallback, ProxyException, TeamCallbackMetadata, UserAPIKeyAuth
-from litellm.proxy.litellm_pre_call_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import AddTeamCallback, ProxyException, TeamCallbackMetadata, UserAPIKeyAuth
+from token_iq.gateway.proxy.litellm_pre_call_utils import (
     KeyAndTeamLoggingSettings,
     LiteLLMProxyRequestSetup,
     _apply_credential_overrides_from_model_config,
@@ -33,18 +33,18 @@ from litellm.proxy.litellm_pre_call_utils import (
     check_if_token_is_service_account,
     clean_headers,
 )
-from litellm.litellm_core_utils.core_helpers import get_litellm_metadata_from_kwargs
-from litellm.litellm_core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
-from litellm.litellm_core_utils.get_provider_specific_headers import (
+from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
+from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
+from token_iq.gateway.core_utils.get_provider_specific_headers import (
     ProviderSpecificHeaderUtils,
 )
-from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
     TRUSTED_CALLBACK_VARS_FIELD,
 )
-from litellm.constants import SESSION_ID_GENERATED_METADATA_KEY
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.fireworks_ai.common_utils import get_fireworks_session_id
-from litellm.types.utils import CredentialItem
+from token_iq.gateway.constants import SESSION_ID_GENERATED_METADATA_KEY
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.fireworks_ai.common_utils import get_fireworks_session_id
+from token_iq.gateway.types.utils import CredentialItem
 
 
 
@@ -186,7 +186,7 @@ def test_get_enforced_params_for_service_account_settings():
 def test_get_enforced_params(
     general_settings, user_api_key_dict, expected_enforced_params
 ):
-    from litellm.proxy.litellm_pre_call_utils import _get_enforced_params
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_enforced_params
 
     enforced_params = _get_enforced_params(general_settings, user_api_key_dict)
     assert enforced_params == expected_enforced_params
@@ -194,7 +194,7 @@ def test_get_enforced_params(
 
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_parses_string_metadata():
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup
     request_mock = MagicMock(spec=Request)
@@ -240,7 +240,7 @@ async def test_add_litellm_data_to_request_parses_string_metadata():
 
 @pytest.mark.asyncio
 async def test_key_otel_service_name_outranks_team_metadata_merge():
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -279,7 +279,7 @@ async def test_stamped_auth_object_reflects_header_derived_identity():
     so it only carries header-derived identity if the stamp still runs after those fields are
     resolved. Moving the stamp earlier would silently misattribute spend.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -315,7 +315,7 @@ async def test_arrival_time_prefers_litellm_received_at_over_time_time():
     time.time() here would silently exclude the whole auth phase from the
     queue-time window. request.state.litellm_received_at (stamped at the top of
     user_api_key_auth, before auth work) must win when present."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -347,7 +347,7 @@ async def test_arrival_time_prefers_litellm_received_at_over_time_time():
 async def test_arrival_time_falls_back_to_time_time_without_litellm_received_at():
     """Callers that never went through user_api_key_auth (no stamp on request.state)
     must still get a usable arrival_time instead of erroring."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -386,7 +386,7 @@ async def test_add_litellm_data_to_request_strips_admin_injection_slots():
     caller can shadow admin config via the non-`_metadata_variable_name`
     metadata key (e.g. litellm_metadata while the proxy writes to metadata).
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -458,7 +458,7 @@ async def test_add_litellm_data_to_request_strips_all_user_api_key_prefix_keys()
     spend, team_id, request_route, …) and an attacker populating any of them
     in the non-authoritative metadata key would otherwise forge identity /
     spend in audit logs and guardrails."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -521,7 +521,7 @@ async def test_add_litellm_data_to_request_string_metadata_does_not_crash():
     arriving as a string."""
     import json as _json
 
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -656,7 +656,7 @@ async def test_add_litellm_data_to_request_proxy_server_request_body_is_post_str
     """Regression: proxy_server_request['body'] used to be snapshotted before
     the admin-slot strip, so standard_logging_object and spend-tracking
     readers saw attacker-injected payload. Snapshot must now be post-strip."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -712,7 +712,7 @@ async def test_add_litellm_data_to_request_body_snapshot_excludes_secret_fields(
     secret_fields must still be available on the live ``data`` dict for
     downstream consumers (MCP, Responses API) that legitimately need raw headers.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -775,7 +775,7 @@ async def test_add_litellm_data_to_request_body_snapshot_excludes_proxy_server_r
     loggers and audit consumers must not see the self-referencing structure
     (independent of redaction — fires on every successful call).
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -828,7 +828,7 @@ def test_refresh_proxy_server_request_body_snapshot_picks_up_guardrail_masking()
     silently bypasses whatever masking the guardrail applied, so raw PII/PCI
     lands in SpendLogs when store_prompts_in_spend_logs is enabled.
     """
-    from litellm.proxy.litellm_pre_call_utils import (
+    from token_iq.gateway.proxy.litellm_pre_call_utils import (
         refresh_proxy_server_request_body_snapshot,
     )
 
@@ -874,7 +874,7 @@ async def test_add_litellm_data_to_request_strips_string_encoded_admin_injection
     extra_body) must not bypass the admin-injection strip. The parse happens
     AFTER receipt, so the strip has to run after the parse, not before.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1209,7 +1209,7 @@ async def test_client_side_timeout_marker_never_reaches_the_provider():
     into the provider payload: unregistered kwargs are swept into extra_body /
     additionalModelRequestFields, so Bedrock rejects the whole call with
     `client_side_timeout: Extra inputs are not permitted`."""
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1395,10 +1395,10 @@ async def test_add_litellm_data_to_request_strips_client_redaction_bypass_contro
 async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_logging_overrides_global(
     admin_metadata_kwargs,
 ):
-    from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+    from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
         initialize_standard_callback_dynamic_params,
     )
-    from litellm.litellm_core_utils.redact_messages import should_redact_message_logging
+    from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1471,10 +1471,10 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
 async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_logging_enables_redaction_when_global_off(
     admin_metadata_kwargs,
 ):
-    from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+    from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
         initialize_standard_callback_dynamic_params,
     )
-    from litellm.litellm_core_utils.redact_messages import should_redact_message_logging
+    from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1587,7 +1587,7 @@ async def test_add_litellm_data_to_request_allows_redaction_opt_out_with_admin_o
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_honors_header_tags():
     """Header-supplied tags flow through to request metadata."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1630,7 +1630,7 @@ async def test_add_litellm_data_to_request_honors_header_tags():
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_preserves_caller_metadata_tags():
     """Caller-supplied metadata.tags are preserved and reach the router."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1674,7 +1674,7 @@ async def test_add_litellm_data_to_request_preserves_caller_metadata_tags():
 async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static_key_tags():
     """Caller-supplied `x-litellm-tags` must union with static key-level
     tags, not overwrite them."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1720,7 +1720,7 @@ async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static_team_tags():
     """Same union behavior must hold for team-level static tags."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1767,7 +1767,7 @@ async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static
 async def test_add_litellm_data_to_request_unions_dedups_overlapping_caller_and_static_tags():
     """A tag that appears in both the static set and the caller header
     must show up exactly once in the merged list."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1812,7 +1812,7 @@ async def test_add_litellm_data_to_request_unions_dedups_overlapping_caller_and_
 
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_user_spend_and_budget():
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/completions"
@@ -1853,7 +1853,7 @@ async def test_add_litellm_data_to_request_user_spend_and_budget():
 
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_audio_transcription_multipart():
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup request mock for /v1/audio/transcriptions
     request_mock = MagicMock(spec=Request)
@@ -1918,7 +1918,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks():
     """
     Test that litellm_disabled_callbacks from key metadata is properly added to the request data.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request
     request_mock = MagicMock(spec=Request)
@@ -1971,7 +1971,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_empty():
     """
     Test that litellm_disabled_callbacks is not added when it's empty.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request
     request_mock = MagicMock(spec=Request)
@@ -2023,7 +2023,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_not_present():
     """
     Test that litellm_disabled_callbacks is not added when it's not present in metadata.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request
     request_mock = MagicMock(spec=Request)
@@ -2075,7 +2075,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_invalid_type():
     """
     Test that litellm_disabled_callbacks is not added when it's not a list.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request
     request_mock = MagicMock(spec=Request)
@@ -2127,7 +2127,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_with_logging_setti
     """
     Test that litellm_disabled_callbacks works correctly alongside logging settings.
     """
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request
     request_mock = MagicMock(spec=Request)
@@ -2262,7 +2262,7 @@ def test_team_dynamic_logging_settings():
 
 def test_key_dynamic_logging_settings_decrypts_callback_vars(monkeypatch):
     """Encrypted callback_vars on the key are decrypted before downstream use."""
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     encrypted_metadata = encrypt_callback_vars(
@@ -2291,7 +2291,7 @@ def test_key_dynamic_logging_settings_decrypts_callback_vars(monkeypatch):
 
 def test_team_dynamic_logging_settings_decrypts_callback_vars(monkeypatch):
     """Encrypted callback_vars on the team are decrypted before downstream use."""
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     encrypted_team = encrypt_callback_vars(
@@ -2742,7 +2742,7 @@ def test_add_headers_to_llm_call_by_model_group(
     5. When data has no model
     6. When model is None
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Setup test headers and user API key
     headers = {
@@ -2810,7 +2810,7 @@ def test_add_headers_to_llm_call_by_model_group_empty_headers_returned():
     """
     Test that when add_headers_to_llm_call returns empty dict, no headers are added to data
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Setup test data
     data = {"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}
@@ -2852,7 +2852,7 @@ def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
     """
     Test that existing headers in data are overwritten when new headers are added
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Setup test data with existing headers
     data = {
@@ -2902,10 +2902,10 @@ from typing import Optional
 
 from fastapi.responses import Response
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 class TestCustomLogger(CustomLogger):
@@ -3305,7 +3305,7 @@ def test_add_litellm_metadata_from_request_headers_explicit_header_beats_generic
 
 def test_get_chain_id_from_headers_generic_vendor_session_id():
     """get_chain_id_from_headers picks up any x-<vendor>-session-id with a valid value."""
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert (
         get_chain_id_from_headers(
@@ -3346,7 +3346,7 @@ CODEX_SESSION_UUID = "0199f0c2-8b41-7c3e-9a52-6d1f4b8e2a77"
 def test_is_codex_user_agent_accepts_every_first_party_originator(user_agent: str):
     """Codex ships several originators sharing only the `codex` stem, and the TUI
     sends a bare `codex-tui` with no version, so matching one spelling misses real clients."""
-    from litellm.proxy.litellm_pre_call_utils import is_codex_user_agent
+    from token_iq.gateway.proxy.litellm_pre_call_utils import is_codex_user_agent
 
     assert is_codex_user_agent(user_agent) is True
 
@@ -3356,14 +3356,14 @@ def test_is_codex_user_agent_accepts_every_first_party_originator(user_agent: st
     ["codexify/1.0", "mycodex-tui/1.0", "curl/8.7.1", "claude-cli/2.1.0 (external, cli)", ""],
 )
 def test_is_codex_user_agent_rejects_non_codex_clients(user_agent: str):
-    from litellm.proxy.litellm_pre_call_utils import is_codex_user_agent
+    from token_iq.gateway.proxy.litellm_pre_call_utils import is_codex_user_agent
 
     assert is_codex_user_agent(user_agent) is False
 
 
 def test_get_chain_id_from_headers_codex_tui_user_agent():
     """The real Codex TUI user agent must group turns, not just the codex_cli_rs spelling."""
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     ua = "codex-tui/0.149.0 (Mac OS 26.5.1; arm64) ghostty/1.3.1 (codex-tui; 0.149.0)"
     assert get_chain_id_from_headers({"user-agent": ua, "session-id": CODEX_SESSION_UUID}) == CODEX_SESSION_UUID
@@ -3378,7 +3378,7 @@ def test_get_chain_id_from_headers_codex_tui_user_agent():
 )
 def test_get_chain_id_from_headers_codex_unprefixed_session_id(header: str):
     """Codex sends its conversation uuid unprefixed, so the x-<vendor>-session-id regex misses it."""
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert get_chain_id_from_headers({"user-agent": CODEX_USER_AGENT, header: CODEX_SESSION_UUID}) == CODEX_SESSION_UUID
 
@@ -3393,14 +3393,14 @@ def test_get_chain_id_from_headers_unprefixed_session_id_requires_codex(user_age
     The name is generic enough that two unrelated callers could collide on a value
     and have their sessions merged, so the bare-header path is Codex-only.
     """
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert get_chain_id_from_headers({"user-agent": user_agent, "session-id": CODEX_SESSION_UUID}) is None
     assert get_chain_id_from_headers({"session-id": CODEX_SESSION_UUID}) is None
 
 
 def test_get_chain_id_from_headers_codex_prefers_session_over_thread():
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert (
         get_chain_id_from_headers(
@@ -3415,14 +3415,14 @@ def test_get_chain_id_from_headers_codex_prefers_session_over_thread():
 
 
 def test_get_chain_id_from_headers_codex_ignores_implausible_value():
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert get_chain_id_from_headers({"user-agent": CODEX_USER_AGENT, "session-id": "short"}) is None
     assert get_chain_id_from_headers({"user-agent": CODEX_USER_AGENT, "session-id": "has spaces!!"}) is None
 
 
 def test_get_chain_id_from_headers_explicit_beats_codex_header():
-    from litellm.proxy.litellm_pre_call_utils import get_chain_id_from_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
 
     assert (
         get_chain_id_from_headers(
@@ -3452,7 +3452,7 @@ def test_add_litellm_metadata_groups_codex_turns_into_one_session():
 
 
 def test_trace_id_from_traceparent_valid():
-    from litellm.proxy.litellm_pre_call_utils import _trace_id_from_traceparent
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _trace_id_from_traceparent
 
     assert (
         _trace_id_from_traceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01")
@@ -3477,13 +3477,13 @@ def test_trace_id_from_traceparent_valid():
     ],
 )
 def test_trace_id_from_traceparent_rejects_malformed(traceparent: str):
-    from litellm.proxy.litellm_pre_call_utils import _trace_id_from_traceparent
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _trace_id_from_traceparent
 
     assert _trace_id_from_traceparent(traceparent) is None
 
 
 def test_session_id_from_baggage_valid():
-    from litellm.proxy.litellm_pre_call_utils import _session_id_from_baggage
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _session_id_from_baggage
 
     assert _session_id_from_baggage("session.id=abc-123,user.id=42") == "abc-123"
     assert _session_id_from_baggage("user.id=42, session.id=xyz-789") == "xyz-789"
@@ -3498,7 +3498,7 @@ def test_session_id_from_baggage_valid():
     ],
 )
 def test_session_id_from_baggage_absent_or_empty(baggage: str):
-    from litellm.proxy.litellm_pre_call_utils import _session_id_from_baggage
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _session_id_from_baggage
 
     assert _session_id_from_baggage(baggage) is None
 
@@ -3690,7 +3690,7 @@ def test_user_and_team_spend_and_budget_flow_to_standard_logging_metadata():
     must reach the StandardLoggingPayload metadata that custom loggers receive,
     alongside the key-level values
     """
-    from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
+    from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test-key-hash",
@@ -3730,7 +3730,7 @@ def test_user_and_team_spend_and_budget_default_to_none_in_standard_logging_meta
     Keys with no user or team level budgets report None for the new fields in the
     StandardLoggingPayload metadata instead of raising
     """
-    from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
+    from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     user_api_key_dict = UserAPIKeyAuth(api_key="test-key-hash")
 
@@ -3774,7 +3774,7 @@ async def test_team_guardrails_append_to_key_guardrails():
         team_metadata={"guardrails": ["team-guardrail-1", "key-guardrail-1"]},
     )
 
-    with patch("litellm.proxy.utils._premium_user_check"):
+    with patch("token_iq.gateway.proxy.utils._premium_user_check"):
         updated_data = await add_litellm_data_to_request(
             data=data,
             request=request_mock,
@@ -3823,7 +3823,7 @@ async def test_request_guardrails_do_not_override_key_guardrails():
         "guardrails": [],
     }
 
-    with patch("litellm.proxy.utils._premium_user_check"):
+    with patch("token_iq.gateway.proxy.utils._premium_user_check"):
         updated_data_empty = await add_litellm_data_to_request(
             data=data_with_empty,
             request=request_mock,
@@ -3869,7 +3869,7 @@ async def test_project_guardrails_merge_with_key_and_team():
         project_metadata={"guardrails": ["project-guardrail-1", "team-guardrail-1"]},
     )
 
-    with patch("litellm.proxy.utils._premium_user_check"):
+    with patch("token_iq.gateway.proxy.utils._premium_user_check"):
         updated_data = await add_litellm_data_to_request(
             data=data,
             request=request_mock,
@@ -3918,7 +3918,7 @@ async def test_project_guardrails_only():
         project_metadata={"guardrails": ["project-guardrail-1", "project-guardrail-2"]},
     )
 
-    with patch("litellm.proxy.utils._premium_user_check"):
+    with patch("token_iq.gateway.proxy.utils._premium_user_check"):
         updated_data = await add_litellm_data_to_request(
             data=data,
             request=request_mock,
@@ -4012,7 +4012,7 @@ async def test_embedding_header_forwarding_with_model_group():
     """
     import importlib
 
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils_module
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils_module
 
     # Reload the module to ensure it has a fresh reference to litellm
     # This is necessary because conftest.py reloads litellm at module scope,
@@ -4020,7 +4020,7 @@ async def test_embedding_header_forwarding_with_model_group():
     importlib.reload(pre_call_utils_module)
 
     # Re-import the function after reload to get the fresh version
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup mock request for embeddings
     request_mock = MagicMock(spec=Request)
@@ -4055,7 +4055,7 @@ async def test_embedding_header_forwarding_with_model_group():
     # Use string-based patch to ensure we patch the current sys.modules['litellm']
     # This avoids issues with module reloading during parallel test execution
     mock_settings = MagicMock(forward_client_headers_to_llm_api=["local-openai/*"])
-    with patch("litellm.model_group_settings", mock_settings):
+    with patch("token_iq.gateway.model_group_settings", mock_settings):
         # Call add_litellm_data_to_request which includes header forwarding logic
         updated_data = await add_litellm_data_to_request(
             data=data,
@@ -4099,7 +4099,7 @@ async def test_embedding_header_forwarding_without_model_group_config():
     Test that headers are NOT forwarded for embedding requests when
     the model is not in the forward_client_headers_to_llm_api list.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Setup mock request for embeddings
     request_mock = MagicMock(spec=Request)
@@ -4161,9 +4161,9 @@ async def test_add_guardrails_from_policy_engine():
     Test that add_guardrails_from_policy_engine adds guardrails from matching policies
     and tracks applied policies in metadata.
     """
-    from litellm.proxy.policy_engine.attachment_registry import get_attachment_registry
-    from litellm.proxy.policy_engine.policy_registry import get_policy_registry
-    from litellm.types.proxy.policy_engine import (
+    from token_iq.gateway.proxy.policy_engine.attachment_registry import get_attachment_registry
+    from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
+    from token_iq.gateway.types.proxy.policy_engine import (
         Policy,
         PolicyAttachment,
         PolicyGuardrails,
@@ -4237,7 +4237,7 @@ async def test_add_guardrails_from_policy_engine_accepts_dynamic_policies_and_po
     This is critical because 'policies' is a LiteLLM proxy-specific parameter that should
     not be sent to the actual LLM API (e.g., OpenAI, Anthropic, etc.).
     """
-    from litellm.proxy.policy_engine.policy_registry import get_policy_registry
+    from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
 
     # Setup test data with 'policies' in the request body
     data = {
@@ -4288,9 +4288,9 @@ async def test_api_created_global_policy_applies_to_new_key_without_restart():
     immediately when attached globally, even if the server started with no
     initialized policy config.
     """
-    from litellm.proxy.policy_engine.attachment_registry import get_attachment_registry
-    from litellm.proxy.policy_engine.policy_registry import get_policy_registry
-    from litellm.types.proxy.policy_engine import (
+    from token_iq.gateway.proxy.policy_engine.attachment_registry import get_attachment_registry
+    from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
+    from token_iq.gateway.types.proxy.policy_engine import (
         Policy,
         PolicyAttachment,
         PolicyGuardrails,
@@ -4342,9 +4342,9 @@ async def test_add_guardrails_from_policy_engine_policy_version_by_id():
     Test that add_guardrails_from_policy_engine executes a specific policy version
     when policy_<uuid> is passed in the request body.
     """
-    from litellm.proxy.policy_engine.attachment_registry import get_attachment_registry
-    from litellm.proxy.policy_engine.policy_registry import get_policy_registry
-    from litellm.types.proxy.policy_engine import Policy, PolicyGuardrails
+    from token_iq.gateway.proxy.policy_engine.attachment_registry import get_attachment_registry
+    from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
+    from token_iq.gateway.types.proxy.policy_engine import Policy, PolicyGuardrails
 
     policy_version_uuid = "12345678-1234-5678-1234-567812345678"
     policy_version_ref = f"policy_{policy_version_uuid}"
@@ -4412,8 +4412,8 @@ async def test_bearer_token_not_in_debug_logs():
     import logging
     from io import StringIO
 
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     secret_token = (
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.fakesignature"
@@ -4447,8 +4447,8 @@ async def test_bearer_token_not_in_debug_logs():
 
     try:
         with (
-            patch("litellm.proxy.proxy_server.llm_router", None),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         ):
             await add_litellm_data_to_request(
                 data=data,
@@ -5082,10 +5082,10 @@ async def test_team_guardrail_merges_with_global_policy():
     shadowed and non-default guardrails silently received an empty
     requested_guardrails list.
     """
-    from litellm.proxy.policy_engine.attachment_registry import get_attachment_registry
-    from litellm.proxy.policy_engine.policy_registry import get_policy_registry
-    from litellm.proxy.litellm_pre_call_utils import move_guardrails_to_metadata
-    from litellm.types.proxy.policy_engine import (
+    from token_iq.gateway.proxy.policy_engine.attachment_registry import get_attachment_registry
+    from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
+    from token_iq.gateway.proxy.litellm_pre_call_utils import move_guardrails_to_metadata
+    from token_iq.gateway.types.proxy.policy_engine import (
         Policy,
         PolicyAttachment,
         PolicyGuardrails,
@@ -5122,7 +5122,7 @@ async def test_team_guardrail_merges_with_global_policy():
     attachment_registry._initialized = True
 
     try:
-        with patch("litellm.proxy.utils._premium_user_check"):
+        with patch("token_iq.gateway.proxy.utils._premium_user_check"):
             await move_guardrails_to_metadata(
                 data=data,
                 _metadata_variable_name="metadata",
@@ -5146,7 +5146,7 @@ async def test_team_guardrail_merges_with_global_policy():
 
         # Verify get_guardrail_from_metadata returns the merged list even
         # when litellm_metadata is present (the bug: it returned [] before fix)
-        from litellm.integrations.custom_guardrail import CustomGuardrail
+        from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
         class _DummyGuardrail(CustomGuardrail):
             pass
@@ -5171,7 +5171,7 @@ async def test_get_guardrail_from_metadata_prefers_metadata_over_litellm_metadat
     A non-empty data["litellm_metadata"] without a 'guardrails' key must not
     shadow data["metadata"]["guardrails"].
     """
-    from litellm.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
     class _DummyGuardrail(CustomGuardrail):
         pass
@@ -5195,7 +5195,7 @@ def test_get_guardrail_from_metadata_reads_litellm_metadata_when_no_metadata():
     get_guardrail_from_metadata must still read from litellm_metadata when
     data["metadata"] has no 'guardrails' key (thread/assistant endpoint path).
     """
-    from litellm.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
     class _DummyGuardrail(CustomGuardrail):
         pass
@@ -5382,9 +5382,9 @@ class TestApplyClientTagPolicyPreAuth:
     async def test_string_metadata_does_not_bypass_tag_max_budget_check(self):
         """Regression: string metadata containing an over-budget tag must not
         be silently overwritten when an x-litellm-tags header is present."""
-        from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
-        from litellm.proxy.auth.auth_checks import _tag_max_budget_check
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
+        from token_iq.gateway.proxy.auth.auth_checks import _tag_max_budget_check
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         request_mock = _build_request_mock_with_headers({"x-litellm-tags": "free"})
         data = {
@@ -5418,11 +5418,11 @@ class TestApplyClientTagPolicyPreAuth:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.get_current_spend",
+                "token_iq.gateway.proxy.proxy_server.get_current_spend",
                 mock_get_current_spend,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_tag_objects_batch",
+                "token_iq.gateway.proxy.auth.auth_checks.get_tag_objects_batch",
                 new_callable=AsyncMock,
                 return_value={"paid": paid_tag},
             ),
@@ -5442,9 +5442,9 @@ class TestApplyClientTagPolicyPreAuth:
     async def test_header_tags_visible_to_tag_max_budget_check(self):
         """End-to-end: helper + ``_tag_max_budget_check`` enforces budget on
         header-supplied tags. Without the helper, this would silently pass."""
-        from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
-        from litellm.proxy.auth.auth_checks import _tag_max_budget_check
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
+        from token_iq.gateway.proxy.auth.auth_checks import _tag_max_budget_check
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         request_mock = _build_request_mock_with_headers(
             {"x-litellm-tags": "tenant:acme"}
@@ -5477,11 +5477,11 @@ class TestApplyClientTagPolicyPreAuth:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.get_current_spend",
+                "token_iq.gateway.proxy.proxy_server.get_current_spend",
                 mock_get_current_spend,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_tag_objects_batch",
+                "token_iq.gateway.proxy.auth.auth_checks.get_tag_objects_batch",
                 new_callable=AsyncMock,
                 return_value={"tenant:acme": tag_object},
             ),
@@ -5517,9 +5517,9 @@ class TestApplyClientTagPolicyPreAuth:
         the actual auth-time call order and verifies that an over-budget
         header-supplied tag still trips ``_tag_max_budget_check``.
         """
-        from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
-        from litellm.proxy.auth.auth_checks import common_checks
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
+        from token_iq.gateway.proxy.auth.auth_checks import common_checks
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         request_mock = _build_request_mock_with_headers(
             {"x-litellm-tags": "tenant:acme"}
@@ -5557,15 +5557,15 @@ class TestApplyClientTagPolicyPreAuth:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.proxy_server.get_current_spend",
+                "token_iq.gateway.proxy.proxy_server.get_current_spend",
                 mock_get_current_spend,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_tag_objects_batch",
+                "token_iq.gateway.proxy.auth.auth_checks.get_tag_objects_batch",
                 new_callable=AsyncMock,
                 return_value={"tenant:acme": tag_object},
             ),
@@ -5696,9 +5696,9 @@ class TestApplyKeyTagsPreAuth:
 
     @pytest.mark.asyncio
     async def test_key_tags_visible_to_tag_max_budget_check(self):
-        from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
-        from litellm.proxy.auth.auth_checks import _tag_max_budget_check
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
+        from token_iq.gateway.proxy.auth.auth_checks import _tag_max_budget_check
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         data = {"model": "gpt-3.5-turbo"}
         user_api_key_dict = UserAPIKeyAuth(
@@ -5727,11 +5727,11 @@ class TestApplyKeyTagsPreAuth:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.get_current_spend",
+                "token_iq.gateway.proxy.proxy_server.get_current_spend",
                 mock_get_current_spend,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_tag_objects_batch",
+                "token_iq.gateway.proxy.auth.auth_checks.get_tag_objects_batch",
                 new_callable=AsyncMock,
                 return_value={"engineering": tag_object},
             ),
@@ -5749,9 +5749,9 @@ class TestApplyKeyTagsPreAuth:
 
     @pytest.mark.asyncio
     async def test_key_tags_within_budget_passes_check(self):
-        from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
-        from litellm.proxy.auth.auth_checks import _tag_max_budget_check
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TagTable
+        from token_iq.gateway.proxy.auth.auth_checks import _tag_max_budget_check
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         data = {"model": "gpt-3.5-turbo"}
         user_api_key_dict = UserAPIKeyAuth(
@@ -5780,11 +5780,11 @@ class TestApplyKeyTagsPreAuth:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.get_current_spend",
+                "token_iq.gateway.proxy.proxy_server.get_current_spend",
                 mock_get_current_spend,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_tag_objects_batch",
+                "token_iq.gateway.proxy.auth.auth_checks.get_tag_objects_batch",
                 new_callable=AsyncMock,
                 return_value={"engineering": tag_object},
             ),
@@ -6037,7 +6037,7 @@ async def test_add_litellm_data_to_request_agentic_cli_drop_params(
 async def test_add_litellm_data_to_request_merges_metadata_tags_on_responses_route():
     """Regression for #31584: user-supplied metadata.tags must be merged into
     litellm_metadata.tags on /v1/responses so they reach SpendLogs.request_tags."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -6079,7 +6079,7 @@ async def test_add_litellm_data_to_request_merges_metadata_tags_on_responses_rou
 async def test_add_litellm_data_to_request_unions_metadata_tags_with_header_tags_on_responses_route():
     """On /v1/responses, tags from metadata.tags AND x-litellm-tags header
     must both appear in litellm_metadata.tags."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
     request_mock.url = MagicMock()
@@ -6129,7 +6129,7 @@ def _make_chat_request_mock() -> MagicMock:
 async def test_overwrite_user_with_key_hash_clobbers_caller_supplied_user(monkeypatch):
     """The flag exists so providers can ban by a tamper-proof id; a caller-chosen
     `user` must never survive, and the raw sk- key must never be forwarded."""
-    from litellm.proxy._types import hash_token
+    from token_iq.gateway.proxy._types import hash_token
 
     monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
 
@@ -6154,7 +6154,7 @@ async def test_overwrite_user_with_key_hash_clobbers_caller_supplied_user(monkey
 
 @pytest.mark.asyncio
 async def test_overwrite_user_with_key_hash_sets_user_when_absent(monkeypatch):
-    from litellm.proxy._types import hash_token
+    from token_iq.gateway.proxy._types import hash_token
 
     monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
 
@@ -6221,7 +6221,7 @@ async def test_overwrite_user_with_key_hash_skips_custom_auth_credential(monkeyp
 async def test_overwrite_user_with_key_hash_skips_jwt_auth(monkeypatch):
     """A hashed JWT rotates on every token re-issue, so it is useless as a stable
     ban id; JWT-authenticated requests are not stamped."""
-    from litellm.proxy._types import hash_token
+    from token_iq.gateway.proxy._types import hash_token
 
     monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
 
@@ -6276,7 +6276,7 @@ def test_via_virtual_key_cannot_be_forged_from_validated_input():
 async def test_overwrite_user_with_key_hash_stamps_master_key_alias(monkeypatch):
     """Master-key requests carry the stable alias instead of a hash (so the master
     key never propagates anywhere); the alias is the stampable id for them."""
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
 
@@ -6297,7 +6297,7 @@ async def test_overwrite_user_with_key_hash_stamps_master_key_alias(monkeypatch)
 
 @pytest.mark.asyncio
 async def test_overwrite_user_with_key_hash_rejects_alias_without_marker(monkeypatch):
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
 
@@ -6362,8 +6362,8 @@ def test_team_alias_targeting_deleted_team_deployment_keeps_requested_model(monk
     public name resolves at the gateway level. The rewrite must be skipped
     when the alias target has no live deployment.
     """
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils
-    from litellm.proxy.litellm_pre_call_utils import _update_model_if_team_alias_exists
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _update_model_if_team_alias_exists
 
     monkeypatch.delenv("LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS", raising=False)
     pre_call_utils._ENABLE_TEAM_STALE_ALIAS_BYPASS = None
@@ -6379,7 +6379,7 @@ def test_team_alias_targeting_deleted_team_deployment_keeps_requested_model(monk
         team_model_aliases={"gpt-4": "model_name_team-1_dead-uuid"},
     )
 
-    with patch("litellm.proxy.proxy_server.llm_router", _MockRouter()):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", _MockRouter()):
         _update_model_if_team_alias_exists(
             data=test_data, user_api_key_dict=user_api_key_dict
         )
@@ -6388,8 +6388,8 @@ def test_team_alias_targeting_deleted_team_deployment_keeps_requested_model(monk
 
 
 def test_team_alias_targeting_live_team_deployment_still_rewrites(monkeypatch):
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils
-    from litellm.proxy.litellm_pre_call_utils import _update_model_if_team_alias_exists
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _update_model_if_team_alias_exists
 
     monkeypatch.delenv("LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS", raising=False)
     pre_call_utils._ENABLE_TEAM_STALE_ALIAS_BYPASS = None
@@ -6405,7 +6405,7 @@ def test_team_alias_targeting_live_team_deployment_still_rewrites(monkeypatch):
         team_model_aliases={"gpt-4": "model_name_team-1_live-uuid"},
     )
 
-    with patch("litellm.proxy.proxy_server.llm_router", _MockRouter()):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", _MockRouter()):
         _update_model_if_team_alias_exists(
             data=test_data, user_api_key_dict=user_api_key_dict
         )
@@ -6416,7 +6416,7 @@ def test_team_alias_targeting_live_team_deployment_still_rewrites(monkeypatch):
 def test_warn_stale_team_alias_once_logs_once_per_key(monkeypatch):
     from collections import OrderedDict
 
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
 
     monkeypatch.setattr(pre_call_utils, "_STALE_TEAM_ALIAS_WARNING_KEYS", OrderedDict())
 
@@ -6430,7 +6430,7 @@ def test_warn_stale_team_alias_once_logs_once_per_key(monkeypatch):
 def test_warn_stale_team_alias_once_evicts_oldest_key_beyond_cap(monkeypatch):
     from collections import OrderedDict
 
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
 
     monkeypatch.setattr(pre_call_utils, "_STALE_TEAM_ALIAS_WARNING_KEYS", OrderedDict())
     monkeypatch.setattr(pre_call_utils, "_MAX_STALE_ALIAS_WARNING_KEYS", 2)
@@ -6495,7 +6495,7 @@ async def test_add_litellm_data_to_request_redacts_oauth_header_from_logging_cop
 
     assert updated["proxy_server_request"]["headers"] is updated[metadata_variable_name]["headers"]
 
-    from litellm.litellm_core_utils.get_provider_specific_headers import (
+    from token_iq.gateway.core_utils.get_provider_specific_headers import (
         ProviderSpecificHeaderUtils,
     )
 
@@ -6561,7 +6561,7 @@ async def test_add_litellm_data_to_request_keeps_every_forwarded_credential_out_
     ],
 )
 def test_redact_credential_headers_classifies_each_header(header, expected_redacted):
-    from litellm.proxy.litellm_pre_call_utils import redact_credential_headers
+    from token_iq.gateway.proxy.litellm_pre_call_utils import redact_credential_headers
 
     headers = {header: "secret-value"}
 
@@ -6575,7 +6575,7 @@ def test_redact_credential_headers_classifies_each_header(header, expected_redac
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_debug_log_does_not_print_credentials():
     """The request-header debug line carries values the stdout secret filter does not match."""
-    import litellm.proxy.litellm_pre_call_utils as pre_call_utils
+    import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
 
     request_mock = _make_request_mock(
         "/v1/chat/completions",
@@ -6715,7 +6715,7 @@ def test_trusted_callback_vars_never_reach_the_provider():
     The stamped field rides the request body, so it has to be a recognised litellm param;
     otherwise the OpenAI param builder sweeps it into extra_body and the provider 400s.
     """
-    from litellm.utils import get_non_default_completion_params
+    from token_iq.gateway.utils import get_non_default_completion_params
 
     non_default = get_non_default_completion_params(
         {
@@ -7407,7 +7407,7 @@ async def test_newrelic_team_callback_vars_reach_trusted_field():
     }
     assert updated["success_callback"] == ["newrelic"]
 
-    from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+    from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
         initialize_standard_callback_dynamic_params,
     )
 
@@ -7415,12 +7415,12 @@ async def test_newrelic_team_callback_vars_reach_trusted_field():
     assert params.get("newrelic_api_key") == "team-nr-key"
     assert params.get("newrelic_region") == "eu"
 
-    from litellm.integrations.otel.presets import dynamic_otlp_endpoint, dynamic_otlp_headers
+    from token_iq.gateway.integrations.otel.presets import dynamic_otlp_endpoint, dynamic_otlp_headers
 
     assert dynamic_otlp_headers("newrelic", params) == {"api-key": "team-nr-key"}
     assert dynamic_otlp_endpoint("newrelic", params) == "https://otlp.eu01.nr-data.net"
 
-    from litellm.utils import get_non_default_completion_params
+    from token_iq.gateway.utils import get_non_default_completion_params
 
     forwarded = get_non_default_completion_params(updated)
     assert not any(param.startswith("newrelic_") for param in forwarded)
@@ -7432,8 +7432,8 @@ def test_newrelic_vars_scoped_to_newrelic_callback_entry():
     callback-name check, so a team that puts newrelic_* under a different
     callback's vars must not have them enter the shared bag (and so never
     exports to New Relic). Vars under a real newrelic entry are kept."""
-    from litellm.proxy._types import AddTeamCallback
-    from litellm.proxy.litellm_pre_call_utils import convert_key_logging_metadata_to_callback
+    from token_iq.gateway.proxy._types import AddTeamCallback
+    from token_iq.gateway.proxy.litellm_pre_call_utils import convert_key_logging_metadata_to_callback
 
     smuggled = convert_key_logging_metadata_to_callback(
         AddTeamCallback(
@@ -7494,7 +7494,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_bo
     """attempted_fallbacks and original_model_group are router-written facts the spend row
     reads back; a client planting them in either bucket is dropped at the boundary so the
     router never sees a reserved key it did not write."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -7520,7 +7520,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_bo
 
 @pytest.mark.asyncio
 async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_json_string_litellm_metadata():
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -7547,7 +7547,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_js
 async def test_add_litellm_data_to_request_strips_router_reserved_stamps_despite_pricing_override_opt_in():
     """The pricing strip is gated on allow_client_pricing_override; the reserved-stamp strip
     is not, because no key or team setting makes a client-written fallback count valid."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -7574,7 +7574,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_despite
 async def test_add_litellm_data_to_request_strips_router_reserved_stamps_on_responses_route():
     """On the Responses family the proxy-owned bucket is litellm_metadata and the client's
     OpenAI metadata param is the sibling; both lose the reserved keys."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -7606,7 +7606,7 @@ async def test_router_keeps_proxy_metadata_bucket_identity_after_reserved_stamp_
     spend row never read. After the boundary strip plus the in-place scrub, the object the
     router forwards is the proxy's own request_data bucket; on chat routes that bucket is
     ``metadata``, since the boundary folds client ``litellm_metadata`` into it."""
-    from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+    from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -7739,9 +7739,9 @@ def _request_for(path: str) -> MagicMock:
 
 def _spend_log_session_id(data: dict[str, object]) -> str:
     """Resolve session_id the way LiteLLM_SpendLogs does: standard_logging_payload.trace_id."""
-    from litellm.litellm_core_utils.get_litellm_params import get_litellm_params
-    from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
-    from litellm.proxy.spend_tracking.spend_tracking_utils import _get_session_id_for_spend_log
+    from token_iq.gateway.core_utils.get_litellm_params import get_litellm_params
+    from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
+    from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import _get_session_id_for_spend_log
 
     metadata = data["metadata"]
     assert isinstance(metadata, dict)

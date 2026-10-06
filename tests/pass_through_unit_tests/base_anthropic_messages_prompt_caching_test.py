@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 from tests._live_test_helpers import _skip_live_prompt_caching_test
 

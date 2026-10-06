@@ -2,11 +2,11 @@ import asyncio
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     InvalidatableOAuthTokenStore,
     OAuthToken,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.per_user_oauth_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.per_user_oauth_store import (
     LazyPerUserOAuthTokenStore,
     ServerLookup,
 )

@@ -7,11 +7,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm._uuid import uuid
-from litellm.models.credentials import CredentialItem
+from token_iq import gateway as litellm
+from token_iq.gateway._uuid import uuid
+from token_iq.gateway.models.credentials import CredentialItem
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ModelTable,
     LiteLLM_ProxyModelTable,
     LiteLLM_TeamTable,
@@ -21,8 +21,8 @@ from litellm.proxy._types import (
     ReconcileOutcome,
     UserAPIKeyAuth,
 )
-from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
-from litellm.proxy.management_endpoints.model_management_endpoints import (
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
+from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
     ModelManagementAuthChecks,
     _credential_info_for_attach,
     _get_team_deployments,
@@ -30,8 +30,8 @@ from litellm.proxy.management_endpoints.model_management_endpoints import (
     clear_cache,
     delete_team_models,
 )
-from litellm.proxy.utils import PrismaClient
-from litellm.types.router import (
+from token_iq.gateway.proxy.utils import PrismaClient
+from token_iq.gateway.types.router import (
     Deployment,
     GenericLiteLLMParams,
     LiteLLM_Params,
@@ -316,18 +316,18 @@ class TestModelManagementAuthChecks:
 
     @pytest.mark.asyncio
     async def test_add_new_model_rejects_credential_attach_for_non_admin(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             add_new_model,
         )
 
         mock_prisma = MagicMock()
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
-            patch("litellm.proxy.proxy_server.premium_user", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
             patch(  # test-quality-ok: prior auth check needs a live DB; only the credential check is under test
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
         ):
@@ -347,11 +347,11 @@ class TestModelManagementAuthChecks:
 
     @pytest.mark.asyncio
     async def test_patch_model_rejects_credential_attach_for_non_admin(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         model_id = "credential-patch-test"
         db_model = Deployment(
@@ -360,20 +360,20 @@ class TestModelManagementAuthChecks:
             model_info={"id": model_id},
         )
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock()),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
-            patch("litellm.proxy.proxy_server.premium_user", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),  # test-quality-ok: endpoint reads proxy server globals with no injection seam
             patch(  # test-quality-ok: stubs the DB row fetch; only the credential check is under test
-                "litellm.proxy.management_endpoints.model_management_endpoints.get_db_model",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.get_db_model",
                 new=AsyncMock(return_value=db_model),
             ),
             patch(  # test-quality-ok: prior auth check needs a live DB; only the credential check is under test
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
             patch(  # test-quality-ok: asserts the DB write is never reached on rejection
-                "litellm.proxy.management_endpoints.model_management_endpoints._update_team_model_in_db",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints._update_team_model_in_db",
                 new=AsyncMock(),
             ) as mock_update,
         ):
@@ -646,7 +646,7 @@ class TestDeleteTeamModelAlias:
     @pytest.mark.asyncio
     async def test_delete_team_model_alias_success(self):
         """Test successful deletion of a team model alias"""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_team_model_alias,
         )
 
@@ -704,7 +704,7 @@ class TestDeleteTeamModelAlias:
     @pytest.mark.asyncio
     async def test_delete_team_model_alias_no_matches(self):
         """Test deletion when no matching model alias exists"""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_team_model_alias,
         )
 
@@ -766,11 +766,11 @@ class TestClearCache:
         mock_logging = MagicMock()
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_logging),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_logging),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -785,7 +785,7 @@ class TestClearCache:
         change to the reload, leaving config models untouched. It must not wipe
         deployments itself -- see the delete_deployment assertion below.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             clear_cache,
         )
 
@@ -824,11 +824,11 @@ class TestClearCache:
         mock_logging = MagicMock()
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_logging),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_logging),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -871,7 +871,7 @@ class TestClearCache:
 
         So the wipe is scoped to exactly the auto-router deployments.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             clear_cache,
         )
 
@@ -900,11 +900,11 @@ class TestClearCache:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -931,7 +931,7 @@ class TestClearCachePreservesConfigRouters:
 
     @pytest.mark.asyncio
     async def test_config_backed_routers_survive_unrelated_db_model_update(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             clear_cache,
         )
 
@@ -956,11 +956,11 @@ class TestClearCachePreservesConfigRouters:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -977,7 +977,7 @@ class TestClearCachePreservesConfigRouters:
         model happens to share its model_name; only DB deployments that are themselves
         auto_router/* deployments should have their router entry cleared.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import clear_cache
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import clear_cache
 
         mock_router = MagicMock()
         mock_router.model_list = [
@@ -998,11 +998,11 @@ class TestClearCachePreservesConfigRouters:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -1015,7 +1015,7 @@ class TestClearCachePreservesConfigRouters:
         registry entries must be popped too, or reload's init raises 'already exists'
         (quality) or leaves a stale entry (adaptive).
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import clear_cache
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import clear_cache
 
         mock_router = MagicMock()
         mock_router.model_list = [
@@ -1042,11 +1042,11 @@ class TestClearCachePreservesConfigRouters:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.proxy_config", mock_config),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.verbose_proxy_logger"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger"),
         ):
             await clear_cache()
 
@@ -1078,9 +1078,9 @@ class TestDeleteModelClearsRouterRegistry:
         sharing the model_name registered. A blanket pop(model_name) here would take
         both down, and nothing reloads on the delete path to restore the survivor.
         """
-        import litellm
-        from litellm.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_model as delete_model_endpoint,
         )
 
@@ -1113,7 +1113,7 @@ class TestDeleteModelClearsRouterRegistry:
         )
         assert len(real_router.complexity_routers["smart-router"]) == 2
 
-        _PS = "litellm.proxy.proxy_server"
+        _PS = "token_iq.gateway.proxy.proxy_server"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -1141,10 +1141,10 @@ class TestDeleteModelClearsRouterRegistry:
         add_deployment never restores, so an unguarded pop would make it permanently
         unroutable (the same cross-tenant DoS clear_cache was hardened against).
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_model as delete_model_endpoint,
         )
-        from litellm.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
 
         model_id = "regular-del-1"
         admin_user = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -1175,7 +1175,7 @@ class TestDeleteModelClearsRouterRegistry:
         mock_router.auto_routers = {}
         mock_router.complexity_routers = {"shared-name": config_router}
 
-        _PS = "litellm.proxy.proxy_server"
+        _PS = "token_iq.gateway.proxy.proxy_server"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -1207,10 +1207,10 @@ class TestUpdateModel:
         model-level guardrails (and any other litellm_params change) silently no-op
         until the APScheduler reload tick fires ~30 s later.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_model,
         )
-        from litellm.types.router import (
+        from token_iq.gateway.types.router import (
             ModelInfo,
             updateDeployment,
             updateLiteLLMParams,
@@ -1248,20 +1248,20 @@ class TestUpdateModel:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.encrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.encrypt_value_helper",
                 side_effect=lambda value: value,
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.clear_cache",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.clear_cache",
                 new=AsyncMock(
                     return_value=ReconcileOutcome(still_desired=None, live_after=None)
                 ),
@@ -1290,8 +1290,8 @@ class TestUpdatePublicModelGroups:
         sets litellm.public_model_groups to the old DB value. The endpoint must set
         the in-memory value AFTER get_config() so the new value is not overwritten.
         """
-        import litellm
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             UpdatePublicModelGroupsRequest,
             update_public_model_groups,
         )
@@ -1319,11 +1319,11 @@ class TestUpdatePublicModelGroups:
         try:
             with (
                 patch(
-                    "litellm.proxy.proxy_server.proxy_config",
+                    "token_iq.gateway.proxy.proxy_server.proxy_config",
                     mock_proxy_config,
                 ),
                 patch(
-                    "litellm.proxy.proxy_server.store_model_in_db",
+                    "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                     True,
                 ),
             ):
@@ -1345,11 +1345,11 @@ class TestUpdatePublicModelGroups:
         Regression test: same stale-overwrite bug as public_model_groups applies
         to update_useful_links / public_model_groups_links.
         """
-        import litellm
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_useful_links,
         )
-        from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
             UpdateUsefulLinksRequest,
         )
 
@@ -1376,7 +1376,7 @@ class TestUpdatePublicModelGroups:
         original_value = getattr(litellm, "public_model_groups_links", None)
         try:
             with patch(
-                "litellm.proxy.proxy_server.proxy_config",
+                "token_iq.gateway.proxy.proxy_server.proxy_config",
                 mock_proxy_config,
             ):
                 result = await update_useful_links(
@@ -1404,10 +1404,10 @@ class TestTeamModelSiblingRouting:
         the second sibling to overwrite the first). It should only call
         team_model_add to register the public name on the team's models list.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _add_team_model_to_db,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         team_id = "team_no_alias"
         public_name = "gpt-4.1-mini"
@@ -1432,11 +1432,11 @@ class TestTeamModelSiblingRouting:
             )
             with (
                 patch(
-                    "litellm.proxy.management_endpoints.model_management_endpoints._add_model_to_db",
+                    "token_iq.gateway.proxy.management_endpoints.model_management_endpoints._add_model_to_db",
                     side_effect=mock_add_model_to_db,
                 ),
                 patch(
-                    "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add",
+                    "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add",
                     mock_team_model_add,
                 ),
             ):
@@ -1455,7 +1455,7 @@ class TestTeamModelSiblingRouting:
         the router's _common_checks_available_deployment must return BOTH as
         healthy_deployments (not collapse to one).
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         team_id = "teamA"
         public_name = "gpt-4.1-mini"
@@ -1517,7 +1517,7 @@ class TestTeamModelSiblingRouting:
 
     def test_global_deployments_accessible_to_teams(self):
         """Test that global deployments (no team_id) are accessible to all teams"""
-        import litellm
+        from token_iq import gateway as litellm
 
         router = litellm.Router(
             model_list=[
@@ -1554,10 +1554,10 @@ class TestTeamModelUpdate:
     @pytest.mark.asyncio
     async def test_patch_model_with_team_id_creates_proper_setup(self):
         """Test PATCH with team_id creates unique model name, alias, and team membership like POST does"""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_team_model_in_db,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         patch_data = updateDeployment(
             model_name="tenant-azure-gpt4",
@@ -1579,14 +1579,14 @@ class TestTeamModelUpdate:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.premium_user",
+                "token_iq.gateway.proxy.proxy_server.premium_user",
                 True,
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add"
             ) as mock_team_model_add,
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.update_team"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.update_team"
             ) as mock_update_team,
         ):
             result = await _update_team_model_in_db(
@@ -1608,10 +1608,10 @@ class TestTeamModelUpdate:
         """Test that renaming a deployment preserves old public name when sibling deployments still use it"""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_existing_team_model_assignment,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         # Create a deployment being renamed
         db_model = Deployment(
@@ -1646,10 +1646,10 @@ class TestTeamModelUpdate:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_delete"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_delete"
             ) as mock_delete,
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add"
             ) as mock_add,
         ):
             await _update_existing_team_model_assignment(
@@ -1669,10 +1669,10 @@ class TestTeamModelUpdate:
     @pytest.mark.asyncio
     async def test_first_time_public_name_assignment_adds_team_model(self):
         """If existing team deployment had no public name, first assignment must call team_model_add."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_existing_team_model_assignment,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_team_123_uuid1",
@@ -1692,10 +1692,10 @@ class TestTeamModelUpdate:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_delete"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_delete"
             ) as mock_delete,
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add"
             ) as mock_add,
         ):
             await _update_existing_team_model_assignment(
@@ -1713,10 +1713,10 @@ class TestTeamModelUpdate:
     @pytest.mark.asyncio
     async def test_rename_with_prisma_none_clears_patch_model_name(self):
         """Rename path must clear patch_data.model_name even when prisma is unavailable (P1)."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_existing_team_model_assignment,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_team_123_uuid1",
@@ -1750,10 +1750,10 @@ class TestTeamModelUpdate:
         """Test rename path handles legacy string-encoded model_info rows without crashing."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_existing_team_model_assignment,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_team_123_uuid1",
@@ -1785,10 +1785,10 @@ class TestTeamModelUpdate:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_delete"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_delete"
             ) as mock_delete,
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add"
             ) as mock_add,
         ):
             await _update_existing_team_model_assignment(
@@ -1806,10 +1806,10 @@ class TestTeamModelUpdate:
     @pytest.mark.asyncio
     async def test_patch_model_with_team_id_validates_permissions(self):
         """Test PATCH with team_id runs same validation as POST for team permissions"""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_team_model_in_db,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         patch_data = updateDeployment(
             model_name="tenant-azure-gpt4",
@@ -1827,7 +1827,7 @@ class TestTeamModelUpdate:
         prisma_client = MockPrismaClient(team_exists=True, user_admin=False)
 
         with patch(
-            "litellm.proxy.proxy_server.premium_user",
+            "token_iq.gateway.proxy.proxy_server.premium_user",
             True,
         ):
             with pytest.raises(Exception, match="does not match the API key's team ID=None, OR you are") as exc_info:
@@ -1845,10 +1845,10 @@ class TestTeamModelUpdate:
         level. That internal-shape value must be ignored (not treated as a
         rename), so _get_public_model_name falls through to the existing public
         name instead of overwriting it with the internal one."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_abc123",
@@ -1878,10 +1878,10 @@ class TestTeamModelUpdate:
         patch_data.model_name equals db_model.model_name (dashboard re-sending
         the internal name without touching the public-name field), the
         existing db_model.model_info.team_public_model_name must be preserved."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_abc123",
@@ -1906,10 +1906,10 @@ class TestTeamModelUpdate:
         patch_data.model_info.team_public_model_name supplied, and the new
         name differs from the existing internal db model_name) must still
         return the new name."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_abc123",
@@ -1936,10 +1936,10 @@ class TestTeamModelUpdate:
         top-level rename must win; otherwise _update_existing_team_model_assignment
         sees no change, never updates the team ACL, and the rename is silently
         dropped while the UI optimistically shows the new name."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_team-a_abc123",
@@ -1965,10 +1965,10 @@ class TestTeamModelUpdate:
         """When patch_data carries no name hints at all (neither model_name
         nor model_info.team_public_model_name), fall back to the existing
         db_model.model_info.team_public_model_name."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_abc123",
@@ -1991,10 +1991,10 @@ class TestTeamModelUpdate:
         """Legacy rows may have no team_public_model_name anywhere; the
         function must still return a string (the existing db_model.model_name)
         rather than raising."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="legacy-model",
@@ -2014,10 +2014,10 @@ class TestTeamModelUpdate:
         """A stale client may PATCH an internal-shaped model_name that does not
         equal the current DB column (e.g. a different uuid). It must NOT be
         treated as a rename -- fall through to the existing public name."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_realuuid",
@@ -2041,10 +2041,10 @@ class TestTeamModelUpdate:
         """If a corrupted row round-trips an internal-shaped value in
         model_info.team_public_model_name, it must not be accepted as the
         public name -- fall through to the existing db public name."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _get_public_model_name,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_realuuid",
@@ -2073,10 +2073,10 @@ class TestTeamModelUpdate:
         name, model_info.team_public_model_name = public name) must NOT trigger
         a public-name rename, must NOT touch the team ACL, and must serialize
         the public name back into model_info."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _update_team_model_in_db,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         db_model = Deployment(
             model_name="model_name_test-team_abc123",
@@ -2107,14 +2107,14 @@ class TestTeamModelUpdate:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.premium_user",
+                "token_iq.gateway.proxy.proxy_server.premium_user",
                 True,
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_add"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_add"
             ) as mock_team_model_add,
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.team_model_delete"
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.team_model_delete"
             ) as mock_team_model_delete,
         ):
             result = await _update_team_model_in_db(
@@ -2147,8 +2147,8 @@ class TestModelInfoEndpoint:
     @pytest.mark.asyncio
     async def test_model_info_accessible_model_success(self):
         """Test model_info returns model data for accessible models"""
-        from litellm.proxy.proxy_server import model_info
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.proxy.proxy_server import model_info
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
@@ -2158,13 +2158,13 @@ class TestModelInfoEndpoint:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router") as mock_router,
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router,
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
             patch(
-                "litellm.proxy.utils.get_available_models_for_user",
+                "token_iq.gateway.proxy.utils.get_available_models_for_user",
                 new=AsyncMock(return_value=["gpt-4", "claude-3", "gpt-3.5-turbo"]),
             ),
-            patch("litellm.get_llm_provider", return_value=(None, "openai", None, None)),
+            patch("token_iq.gateway.get_llm_provider", return_value=(None, "openai", None, None)),
         ):
             mock_router.get_fully_blocked_model_names.return_value = set()
             mock_router.get_model_list.return_value = []
@@ -2189,7 +2189,7 @@ class TestModelInfoEndpoint:
         """Test model_info returns 404 for inaccessible models"""
         from fastapi import HTTPException
 
-        from litellm.proxy.proxy_server import model_info
+        from token_iq.gateway.proxy.proxy_server import model_info
 
         # Mock user with limited access
         user_api_key_dict = UserAPIKeyAuth(
@@ -2200,10 +2200,10 @@ class TestModelInfoEndpoint:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router") as mock_router,
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router,
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
             patch(
-                "litellm.proxy.utils.get_available_models_for_user",
+                "token_iq.gateway.proxy.utils.get_available_models_for_user",
                 new=AsyncMock(return_value=["gpt-4"]),
             ),
         ):
@@ -2223,8 +2223,8 @@ class TestModelInfoEndpoint:
     @pytest.mark.asyncio
     async def test_model_info_team_model_access(self):
         """Test model_info works with team model access"""
-        from litellm.proxy.proxy_server import model_info
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.proxy.proxy_server import model_info
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
@@ -2235,13 +2235,13 @@ class TestModelInfoEndpoint:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router") as mock_router,
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router,
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
             patch(
-                "litellm.proxy.utils.get_available_models_for_user",
+                "token_iq.gateway.proxy.utils.get_available_models_for_user",
                 new=AsyncMock(return_value=["team-model-1"]),
             ),
-            patch("litellm.get_llm_provider", return_value=(None, "custom", None, None)),
+            patch("token_iq.gateway.get_llm_provider", return_value=(None, "custom", None, None)),
         ):
             mock_router.get_fully_blocked_model_names.return_value = set()
             mock_router.get_model_list.return_value = []
@@ -2277,11 +2277,11 @@ class TestAddAndDeleteModelLifecycle:
         - Delete model via delete_model → returns success
         - Delete same model again → raises (model not found)
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             add_new_model,
             delete_model as delete_model_endpoint,
         )
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
         )
 
@@ -2318,8 +2318,8 @@ class TestAddAndDeleteModelLifecycle:
         mock_router.delete_deployment = MagicMock()
         mock_router.get_model_ids.return_value = [model_id]
 
-        _PS = "litellm.proxy.proxy_server"
-        _ENCRYPT = "litellm.proxy.management_endpoints.model_management_endpoints.encrypt_value_helper"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _ENCRYPT = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.encrypt_value_helper"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2355,7 +2355,7 @@ class TestAddAndDeleteModelLifecycle:
             mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
                 return_value=None
             )
-            from litellm.proxy.proxy_server import ProxyException
+            from token_iq.gateway.proxy.proxy_server import ProxyException
 
             with pytest.raises(ProxyException) as exc_info:
                 await delete_model_endpoint(
@@ -2378,7 +2378,7 @@ class TestDeleteTeamBYOKModelGhost:
 
     @pytest.mark.asyncio
     async def test_delete_strips_public_name_and_refreshes_cache(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2434,8 +2434,8 @@ class TestDeleteTeamBYOKModelGhost:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2466,7 +2466,7 @@ class TestDeleteTeamBYOKModelGhost:
     async def test_delete_non_internal_team_model_still_scans_aliases(self):
         """A team model whose name is not the BYOK internal shape must still run the
         alias cleanup (delete_team_model_alias), preserving legacy behavior."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2513,8 +2513,8 @@ class TestDeleteTeamBYOKModelGhost:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2537,7 +2537,7 @@ class TestDeleteTeamBYOKModelGhost:
     async def test_delete_keeps_public_name_when_sibling_backs_it(self):
         """A public name load-balanced across two team deployments must stay in
         team.models when one replica is deleted but a sibling still backs it."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2593,8 +2593,8 @@ class TestDeleteTeamBYOKModelGhost:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2625,7 +2625,7 @@ class TestDeleteTeamBYOKModelGhost:
         for model_name_{team_id}_..."). Deleting the deployment must scrub the
         alias, and the public name must stay in team.models while a gateway-level
         deployment still serves it."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2679,8 +2679,8 @@ class TestDeleteTeamBYOKModelGhost:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2712,7 +2712,7 @@ class TestDeleteTeamBYOKModelGhost:
         deployment rows sharing one internal model_name) must not scrub the team
         alias: the surviving replicas still serve the aliased name, so removing
         the alias would break routing that works."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2758,8 +2758,8 @@ class TestDeleteTeamBYOKModelGhost:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2823,7 +2823,7 @@ class TestDeleteModelTeamAuth:
 
     @pytest.mark.asyncio
     async def test_proxy_admin_can_delete_model_when_team_deleted(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
@@ -2836,8 +2836,8 @@ class TestDeleteModelTeamAuth:
             user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2860,11 +2860,11 @@ class TestDeleteModelTeamAuth:
     @pytest.mark.asyncio
     async def test_non_admin_cannot_delete_model_when_team_deleted(self):
         """A missing team must never let a non-admin delete the orphan (no fail-open)."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
-        from litellm.proxy.proxy_server import ProxyException
+        from token_iq.gateway.proxy.proxy_server import ProxyException
 
         team_id = "deleted-team-abc"
         model_id = "orphaned-byok-2"
@@ -2874,8 +2874,8 @@ class TestDeleteModelTeamAuth:
             user_id="someone", user_role=LitellmUserRoles.INTERNAL_USER
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -2897,11 +2897,11 @@ class TestDeleteModelTeamAuth:
     @pytest.mark.asyncio
     async def test_live_team_delete_looks_up_team_once(self):
         """The auth check must not add a redundant team query on the live-team path."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model as delete_model_endpoint,
         )
-        from litellm.proxy.proxy_server import ProxyException
+        from token_iq.gateway.proxy.proxy_server import ProxyException
 
         team_id = "live-team-1"
         model_id = "live-byok-1"
@@ -2942,8 +2942,8 @@ class TestDeleteModelTeamAuth:
             user_id="someone", user_role=LitellmUserRoles.INTERNAL_USER
         )
 
-        _PS = "litellm.proxy.proxy_server"
-        _MOD = "litellm.proxy.management_endpoints.model_management_endpoints"
+        _PS = "token_iq.gateway.proxy.proxy_server"
+        _MOD = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
         with (
             patch(f"{_PS}.prisma_client", mock_prisma),
             patch(f"{_PS}.store_model_in_db", True),
@@ -3192,7 +3192,7 @@ class TestDeleteTeamModels:
 
 
 def _build_db_model_for_blocked_test():
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     return Deployment(
         model_name="gpt-4o",
@@ -3207,7 +3207,7 @@ class TestUpdateDBModelBlocked:
     "leave the stored value untouched"."""
 
     def test_update_db_model_passes_blocked_true_to_db(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
 
@@ -3218,7 +3218,7 @@ class TestUpdateDBModelBlocked:
         assert result["blocked"] is True
 
     def test_update_db_model_passes_blocked_false_to_db(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
 
@@ -3229,7 +3229,7 @@ class TestUpdateDBModelBlocked:
         assert result["blocked"] is False
 
     def test_update_db_model_omits_blocked_when_patch_is_none(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
 
@@ -3243,7 +3243,7 @@ class TestUpdateDBModelBlocked:
 def _build_db_model_with_pricing():
     """Wildcard deployment with custom pricing in litellm_params; Deployment.__init__
     mirrors SPECIAL_MODEL_INFO_PARAMS into model_info, so both blobs hold the rate."""
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     return Deployment(
         model_name="openai/*",
@@ -3266,10 +3266,10 @@ class TestUpdateDBModelClearPricing:
     """
 
     def test_clear_input_cost_removes_from_both_blobs(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3287,10 +3287,10 @@ class TestUpdateDBModelClearPricing:
         assert info.get("output_cost_per_token") == 0.000002
 
     def test_clear_output_cost_removes_from_both_blobs(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3305,10 +3305,10 @@ class TestUpdateDBModelClearPricing:
         assert "output_cost_per_token" not in info
 
     def test_non_null_pricing_update_still_works(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3322,10 +3322,10 @@ class TestUpdateDBModelClearPricing:
 
     def test_omitted_pricing_field_is_preserved(self):
         """PATCH semantics: fields not in the patch keep their existing value."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3343,10 +3343,10 @@ class TestUpdateDBModelClearPricing:
         Privileged or unrelated model_info fields (e.g. team_id) must be unaffected
         by the null-clearing path so a team admin can't ungate a team-scoped model.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import (
+        from token_iq.gateway.types.router import (
             Deployment,
             LiteLLM_Params,
             ModelInfo,
@@ -3383,10 +3383,10 @@ class TestUpdateDBModelClearPricing:
         re-serializes the source blob. The litellm_params null must beat the
         model_info merge — i.e. the clear runs after both merges, not between.
         """
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3410,10 +3410,10 @@ class TestUpdateDBModelClearPricing:
     def test_clear_via_model_info_clears_both_blobs(self):
         """The mirror works in the reverse direction too: nulling a pricing field
         via the model_info patch should clear it from litellm_params as well."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import ModelInfo
+        from token_iq.gateway.types.router import ModelInfo
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
@@ -3430,10 +3430,10 @@ class TestUpdateDBModelClearPricing:
     def test_clear_cache_read_cost_removes_from_both_blobs(self):
         """cache_read_input_token_cost was added to SPECIAL_MODEL_INFO_PARAMS so
         the same null-clear path works for cache-read overrides."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import (
+        from token_iq.gateway.types.router import (
             Deployment,
             LiteLLM_Params,
             ModelInfo,
@@ -3464,10 +3464,10 @@ class TestUpdateDBModelClearPricing:
     def test_clear_cache_write_cost_removes_from_both_blobs(self):
         """cache_creation_input_token_cost was added to SPECIAL_MODEL_INFO_PARAMS so
         the same null-clear path works for cache-write overrides."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import (
+        from token_iq.gateway.types.router import (
             Deployment,
             LiteLLM_Params,
             ModelInfo,
@@ -3497,10 +3497,10 @@ class TestUpdateDBModelClearPricing:
 
     def test_clear_cache_read_preserves_other_pricing(self):
         """Clearing cache_read must not touch input/output cost overrides."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import (
+        from token_iq.gateway.types.router import (
             Deployment,
             LiteLLM_Params,
             ModelInfo,
@@ -3542,10 +3542,10 @@ class TestUpdateDBModelClearPricing:
         """Moving a model onto a stored credential has to remove the key typed into the model,
         or the secret stays in the model row for ever."""
         monkeypatch.setenv("LITELLM_SALT_KEY", "sk-1234")
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
 
         db_model: Final = Deployment(
             model_name="gpt-4o",
@@ -3565,10 +3565,10 @@ class TestUpdateDBModelClearPricing:
     def test_every_cleared_param_is_a_field_a_credential_can_hold(self):
         """A move clears the field off the model row and stores the value in a credential, so a
         field the credential model cannot hold would destroy the secret instead of moving it."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             CREDENTIAL_CARRYING_PARAMS,
         )
-        from litellm.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialLiteLLMParams
 
         unstorable: Final = tuple(
             field for field in CREDENTIAL_CARRYING_PARAMS if field not in CredentialLiteLLMParams.model_fields
@@ -3578,10 +3578,10 @@ class TestUpdateDBModelClearPricing:
 
     def test_a_null_key_without_a_credential_does_not_clear_anything(self):
         """Only the move action may clear a key, so a stray null cannot strip a working model."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from litellm.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
 
         db_model: Final = Deployment(
             model_name="gpt-4o",
@@ -3601,7 +3601,7 @@ class TestGetModelInfoWithIdBlocked:
     column into the in-memory `model_info` dict so the router filter can read it."""
 
     def test_get_model_info_with_id_propagates_blocked_true(self):
-        from litellm.proxy.proxy_server import ProxyConfig
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
         model = MagicMock(spec=["model_id", "model_info", "blocked"])
         model.model_id = "dep-1"
@@ -3612,7 +3612,7 @@ class TestGetModelInfoWithIdBlocked:
         assert getattr(info, "blocked") is True
 
     def test_get_model_info_with_id_defaults_blocked_to_false_when_missing(self):
-        from litellm.proxy.proxy_server import ProxyConfig
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
         model = MagicMock(spec=["model_id", "model_info"])
         model.model_id = "dep-2"
@@ -3628,7 +3628,7 @@ class TestPatchModelBlockedAuthGate:
 
     @pytest.mark.asyncio
     async def test_team_admin_cannot_toggle_blocked(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
 
@@ -3651,12 +3651,12 @@ class TestPatchModelBlockedAuthGate:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
         ):
@@ -3672,7 +3672,7 @@ class TestPatchModelBlockedAuthGate:
 
     @pytest.mark.asyncio
     async def test_proxy_admin_can_toggle_blocked(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
 
@@ -3697,16 +3697,16 @@ class TestPatchModelBlockedAuthGate:
         )
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.clear_cache",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.clear_cache",
                 new=AsyncMock(
                     return_value=ReconcileOutcome(still_desired=None, live_after=None)
                 ),
@@ -3728,10 +3728,10 @@ class TestPatchModelRowDeletedBeforeWrite:
 
     @pytest.mark.asyncio
     async def test_patch_model_404s_when_update_returns_none(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
-        from litellm.proxy.proxy_server import ProxyException
+        from token_iq.gateway.proxy.proxy_server import ProxyException
 
         admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
         existing_row = MagicMock()
@@ -3750,16 +3750,16 @@ class TestPatchModelRowDeletedBeforeWrite:
         mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(return_value=None)
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            patch("litellm.proxy.proxy_server.premium_user", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock(**{"get_model_ids.return_value": ["m1"]})),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
             patch(  # test-quality-ok: stubs the auth gate so the test exercises the not-found branch under test
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
             patch(  # test-quality-ok: stubs the cache write so the test observes only the DB result handling
-                "litellm.proxy.management_endpoints.model_management_endpoints.clear_cache",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.clear_cache",
                 new=AsyncMock(
                     return_value=ReconcileOutcome(still_desired=None, live_after=None)
                 ),
@@ -3781,8 +3781,8 @@ class TestWriteSurfacesReloadDrop:
     reload it triggered, live in this pod's router or deliberately environment-inactive."""
 
     def test_reload_serving_verdict_matrix(self, monkeypatch):
-        import litellm
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             reload_serving_verdict,
         )
 
@@ -3795,7 +3795,7 @@ class TestWriteSurfacesReloadDrop:
                 }
             ]
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", live_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", live_router)
         monkeypatch.setenv("LITELLM_ENVIRONMENT", "development")
 
         written = [
@@ -3821,9 +3821,9 @@ class TestWriteSurfacesReloadDrop:
         assert collateral == ()
 
     def test_raise_if_reload_degraded_serving_contract(self, monkeypatch):
-        import litellm
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
         )
 
@@ -3836,7 +3836,7 @@ class TestWriteSurfacesReloadDrop:
                 }
             ]
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", live_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", live_router)
 
         assert (
             raise_if_reload_degraded_serving(
@@ -3869,9 +3869,9 @@ class TestWriteSurfacesReloadDrop:
         and still raises, so a genuinely broken reload is caught; and with no reconcile at
         all the desired set is unknown, so every drop is reported.
         """
-        import litellm
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
             reload_serving_verdict,
         )
@@ -3885,7 +3885,7 @@ class TestWriteSurfacesReloadDrop:
                 }
             ]
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", live_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", live_router)
 
         _, collateral = reload_serving_verdict(
             before=frozenset({"m-live", "m-deleted-elsewhere"}),
@@ -3945,8 +3945,8 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         """
         import asyncio
 
-        from litellm.proxy._types import ReconcileOutcome
-        from litellm.proxy.proxy_server import ProxyConfig
+        from token_iq.gateway.proxy._types import ReconcileOutcome
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
         depth = 0
         observed_max = 0
@@ -3982,10 +3982,10 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         """
         import asyncio
 
-        import litellm
-        from litellm.proxy._types import ReconcileOutcome
-        from litellm.proxy.management_endpoints.model_management_endpoints import clear_cache
-        from litellm.proxy.proxy_server import ProxyConfig
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy._types import ReconcileOutcome
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import clear_cache
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
         live_router = litellm.Router(
             model_list=[
@@ -3996,8 +3996,8 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
                 }
             ]
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", live_router)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", live_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
 
         async def fake_locked(self, **kwargs):
             return ReconcileOutcome(still_desired=frozenset({"m-db"}), live_after=frozenset({"m-db"}))
@@ -4018,16 +4018,16 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         yet re-added. That hole is another request's in-flight state; blaming this
         request's reload for it is the 500 that made concurrent model creates fail.
         """
-        import litellm
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
             reload_serving_verdict,
         )
 
         # The router as another writer's clear_cache leaves it mid-wipe: db models gone.
         mid_wipe_router = litellm.Router(model_list=[])
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", mid_wipe_router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", mid_wipe_router)
 
         healthy_after_reload = frozenset({"m-live", "m-neighbour"})
 
@@ -4092,7 +4092,7 @@ class TestDeleteEvictionsHoldTheReconcileLock:
         own, exactly as here.
         """
         lock = asyncio.Lock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.MODEL_RECONCILE_LOCK", lock)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.MODEL_RECONCILE_LOCK", lock)
 
         async with lock:
             task = asyncio.create_task(call_endpoint())
@@ -4107,7 +4107,7 @@ class TestDeleteEvictionsHoldTheReconcileLock:
 
     @pytest.mark.asyncio
     async def test_delete_model_waits_for_an_in_flight_reconcile(self, monkeypatch):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             ModelInfoDelete,
             delete_model,
         )
@@ -4129,12 +4129,12 @@ class TestDeleteEvictionsHoldTheReconcileLock:
         router = MagicMock()
         router.delete_deployment = MagicMock(return_value=True)
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma)
-        monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
-        monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
         monkeypatch.setattr(
-            "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
             AsyncMock(return_value=True),
         )
 
@@ -4153,7 +4153,7 @@ class TestDeleteEvictionsHoldTheReconcileLock:
 
     @pytest.mark.asyncio
     async def test_delete_team_models_waits_for_an_in_flight_reconcile(self, monkeypatch):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_team_models,
         )
 
@@ -4180,11 +4180,11 @@ class TestDeleteEvictionsHoldTheReconcileLock:
         prisma.db.tx = MagicMock(return_value=tx_ctx)
 
         monkeypatch.setattr(
-            "litellm.proxy.management_endpoints.model_management_endpoints.publish_config_change",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.publish_config_change",
             AsyncMock(return_value=None),
         )
         monkeypatch.setattr(
-            "litellm.proxy.management_endpoints.model_management_endpoints.coordination_redis_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.coordination_redis_cache",
             MagicMock(return_value=None),
         )
 
@@ -4202,7 +4202,7 @@ class TestModelInfoAsMapping:
     the single owner of that parse, and None means no usable mapping."""
 
     def test_contract(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             model_info_as_mapping,
         )
 
@@ -4235,10 +4235,10 @@ class TestStrategyRouterWriteValidation:
         )
 
     def test_double_prefix_rejected_against_stored_params(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         violation = _strategy_router_write_violation(
             incoming_params=updateLiteLLMParams(model="auto_router/auto_router/complexity_router"),
@@ -4248,10 +4248,10 @@ class TestStrategyRouterWriteValidation:
         assert "repeats" in violation
 
     def test_prefix_strip_rejected_against_stored_params(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         violation = _strategy_router_write_violation(
             incoming_params=updateLiteLLMParams(model="complexity_router"),
@@ -4261,10 +4261,10 @@ class TestStrategyRouterWriteValidation:
         assert "does not start with" in violation
 
     def test_patch_without_model_is_not_judged(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         assert (
             _strategy_router_write_violation(
@@ -4276,10 +4276,10 @@ class TestStrategyRouterWriteValidation:
         assert _strategy_router_write_violation(incoming_params=None, existing_params=None) is None
 
     def test_restore_of_corrupted_row_is_allowed(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         corrupted = LiteLLM_Params(
             model="auto_router/auto_router/complexity_router",
@@ -4297,7 +4297,7 @@ class TestStrategyRouterWriteValidation:
         """LIT-5133: the router refuses to build a rule with no keyword, but only at load time.
         Without this the row is written, dropped on reload, and the caller gets a 500 plus a
         deployment that can never come back."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
 
@@ -4320,10 +4320,10 @@ class TestStrategyRouterWriteValidation:
         """Only a config the write actually carries is judged. A row stored before this validation
         existed is already unloadable, and holding its rename hostage would break the restore path
         this function documents; the repair is a write that supplies a good config."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         stored_bad = LiteLLM_Params(
             model="auto_router/complexity_router",
@@ -4342,10 +4342,10 @@ class TestStrategyRouterWriteValidation:
 
     def test_incoming_config_replaces_stored_rather_than_merging(self):
         """The field is written wholesale, so a good incoming config must clear a bad stored one."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         stored_bad = LiteLLM_Params(
             model="auto_router/complexity_router",
@@ -4373,10 +4373,10 @@ class TestStrategyRouterWriteValidation:
         routing rules sends. That path skipped the naming contract, so it has to be judged on the
         config alone against the stored model, or it overwrites a working router with one that
         cannot load and takes it out of service."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         violation = _strategy_router_write_violation(
             incoming_params=updateLiteLLMParams(
@@ -4391,10 +4391,10 @@ class TestStrategyRouterWriteValidation:
         assert "complexity_router_config is invalid" in violation
 
     def test_config_only_patch_with_a_loadable_config_is_allowed(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         assert (
             _strategy_router_write_violation(
@@ -4413,10 +4413,10 @@ class TestStrategyRouterWriteValidation:
         """The stored model is encrypted at rest, so a patch that names no model cannot be
         classified from the row. An unloadable config is rejected on its own merits instead,
         which is also the only reading that closes the path regardless of what is stored."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         violation = _strategy_router_write_violation(
             incoming_params=updateLiteLLMParams(
@@ -4428,7 +4428,7 @@ class TestStrategyRouterWriteValidation:
         assert "complexity_router_config is invalid" in violation
 
     def test_create_semantic_router_missing_embedding_rejected(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
 
@@ -4445,30 +4445,30 @@ class TestStrategyRouterWriteValidation:
 
     @pytest.mark.asyncio
     async def test_patch_model_rejects_double_prefix(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         model_id = "strategy-router-patch-test"
         admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.get_db_model",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.get_db_model",
                 new=AsyncMock(return_value=self._db_complexity_router(model_id)),
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints._update_team_model_in_db",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints._update_team_model_in_db",
                 new=AsyncMock(),
             ) as mock_update,
         ):
@@ -4485,8 +4485,8 @@ class TestStrategyRouterWriteValidation:
 
     @pytest.mark.asyncio
     async def test_add_new_model_rejects_prefixed_model_without_config(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             add_new_model,
         )
 
@@ -4494,11 +4494,11 @@ class TestStrategyRouterWriteValidation:
         mock_prisma = MagicMock()
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
         ):
@@ -4518,7 +4518,7 @@ class TestStrategyRouterWriteValidation:
         """A setting one level above complexity_router_config configures nothing, and the alias
         marker forwards it onto every outbound call, so the provider rejects the request with an
         error naming an internal config key. The write is the last boundary that can refuse it."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
 
@@ -4543,10 +4543,10 @@ class TestStrategyRouterWriteValidation:
         """The patch carries only the stray key, so scope has to come from the stored deployment:
         the stored model is encrypted at rest and cannot be classified here. Either field names a
         complexity router on its own, which is what the load requires, so either has to be scope."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from litellm.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateLiteLLMParams
 
         stored = {
             "complexity_router_config": {"tiers": {"SIMPLE": "gpt-4o-mini"}},
@@ -4561,7 +4561,7 @@ class TestStrategyRouterWriteValidation:
         assert "tier_boundaries" in violation
 
     def test_documented_nesting_still_accepted(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
 
@@ -4582,11 +4582,11 @@ class TestStrategyRouterWriteValidation:
 
     @pytest.mark.asyncio
     async def test_update_model_rejects_prefix_strip(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_model,
         )
-        from litellm.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
 
         model_id = "strategy-router-update-test"
         admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -4606,12 +4606,12 @@ class TestStrategyRouterWriteValidation:
         mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-            patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-            patch("litellm.proxy.proxy_server.store_model_in_db", True),
-            patch("litellm.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
             patch(
-                "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+                "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
                 new=AsyncMock(return_value=None),
             ),
         ):
@@ -4633,10 +4633,10 @@ class TestAutoRouterClassifierDefaultPrompt:
 
     @pytest.mark.asyncio
     async def test_returns_the_prompt_the_router_would_send(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
-        from litellm.router_strategy.complexity_router import classification_system_prompt
+        from token_iq.gateway.router_strategy.complexity_router import classification_system_prompt
 
         response = await get_auto_router_classifier_default_prompt(context_window_size=5)
         assert response.system_prompt == classification_system_prompt(5)
@@ -4646,10 +4646,10 @@ class TestAutoRouterClassifierDefaultPrompt:
     async def test_rubric_preset_selects_the_calibration_examples(self):
         """A router on the chat preset must not prefill the editor with the agentic rubric, or the
         operator edits a prompt their classifier never sends."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
-        from litellm.router_strategy.complexity_router import ClassificationRubric, classification_system_prompt
+        from token_iq.gateway.router_strategy.complexity_router import ClassificationRubric, classification_system_prompt
 
         for preset in ClassificationRubric:
             response = await get_auto_router_classifier_default_prompt(context_window_size=5, classification_rubric=preset)
@@ -4669,7 +4669,7 @@ class TestAutoRouterClassifierDefaultPrompt:
     @pytest.mark.asyncio
     async def test_context_window_size_changes_the_closing_line(self):
         """The editor must prefill the prompt matching the configured window, not a fixed one."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
 
@@ -4681,8 +4681,8 @@ class TestAutoRouterClassifierDefaultPrompt:
 
     @pytest.mark.asyncio
     async def test_negative_context_window_size_is_rejected(self):
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
 
@@ -4695,7 +4695,7 @@ class TestAutoRouterClassifierDefaultPrompt:
         """A router with tier_labels sends a rubric naming those labels, and the classifier must
         return them, so prefilling the canonical names would hand the operator a prompt whose tier
         names their router rejects."""
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
 
@@ -4713,7 +4713,7 @@ class TestAutoRouterClassifierDefaultPrompt:
 
     @staticmethod
     async def _preview(**payload):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             AutoRouterClassifierPromptPreviewRequest,
             preview_auto_router_classifier_prompt,
         )
@@ -4738,8 +4738,8 @@ class TestAutoRouterClassifierDefaultPrompt:
     async def test_a_built_in_name_without_a_description_resolves_the_shipped_criteria(self):
         """A built-in name may leave its description blank to track the shipped criteria, so the
         preview must resolve it exactly as the classifier does rather than render an empty bullet."""
-        from litellm.router_strategy.complexity_router import ComplexityTier
-        from litellm.router_strategy.complexity_router.complexity_router import _CLASSIFICATION_TIER_CRITERIA
+        from token_iq.gateway.router_strategy.complexity_router import ComplexityTier
+        from token_iq.gateway.router_strategy.complexity_router.complexity_router import _CLASSIFICATION_TIER_CRITERIA
 
         prompt = await self._preview(
             context_window_size=5,
@@ -4765,7 +4765,7 @@ class TestAutoRouterClassifierDefaultPrompt:
     @pytest.mark.asyncio
     async def test_the_preview_normalizes_the_prompt_the_same_way_the_write_gate_stores_it(self):
         """An untrimmed preamble previewed raw would show whitespace the router strips."""
-        from litellm.router_strategy.complexity_router.config import ComplexityRouterConfig
+        from token_iq.gateway.router_strategy.complexity_router.config import ComplexityRouterConfig
 
         raw = "   Route for a payments team.   "
         prompt = await self._preview(tier_definitions=self.TIERS, classification_prompt=raw)
@@ -4784,7 +4784,7 @@ class TestAutoRouterClassifierDefaultPrompt:
     def test_the_prompt_preview_is_readable_by_an_admin_viewer_like_the_get_beside_it(self):
         """Both methods on this path are pure reads, so a role that may call the GET must not be
         refused the POST purely because default-allow only covers safe methods."""
-        from litellm.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import LiteLLMRoutes
 
         assert "/auto_router/classifier/default_prompt" in LiteLLMRoutes.admin_viewer_routes.value
 
@@ -4804,7 +4804,7 @@ class TestAutoRouterClassifierDefaultPrompt:
         and then fails on save, which is the drift this endpoint exists to prevent."""
         from pydantic import ValidationError as PydanticValidationError
 
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             AutoRouterClassifierPromptPreviewRequest,
         )
 
@@ -4815,8 +4815,8 @@ class TestAutoRouterClassifierDefaultPrompt:
     async def test_malformed_tier_labels_are_rejected_rather_than_silently_ignored(self):
         """An unparseable or invalid rename must not fall back to the canonical classification_rubric: that would
         prefill tier names the router does not accept while looking like it worked."""
-        from litellm.proxy._types import ProxyException
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy._types import ProxyException
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
 
@@ -4827,10 +4827,10 @@ class TestAutoRouterClassifierDefaultPrompt:
 
     @pytest.mark.asyncio
     async def test_omitted_tier_labels_are_byte_identical_to_the_default_rubric(self):
-        from litellm.proxy.management_endpoints.model_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             get_auto_router_classifier_default_prompt,
         )
-        from litellm.router_strategy.complexity_router import classification_system_prompt
+        from token_iq.gateway.router_strategy.complexity_router import classification_system_prompt
 
         for empty in (None, "", "{}"):
             response = await get_auto_router_classifier_default_prompt(context_window_size=5, tier_labels=empty)
@@ -4867,7 +4867,7 @@ class TestEnforceRpmTpmOnModelAdd:
         ],
     )
     def test_raises_when_enabled_and_missing(self, params, expected_missing):
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         with pytest.raises(ProxyException) as exc_info:
             _raise_if_rate_limits_required_but_missing(litellm_params=params, enforced=True)
@@ -4884,8 +4884,8 @@ class TestBlockModelResponseSerialization:
 
         from prisma import models as prisma_models
 
-        import litellm.proxy.proxy_server as ps
-        from litellm.proxy.proxy_server import app
+        import token_iq.gateway.proxy.proxy_server as ps
+        from token_iq.gateway.proxy.proxy_server import app
 
         written_at = datetime(2026, 8, 29, tzinfo=timezone.utc)
         row_fields = {
@@ -4909,19 +4909,19 @@ class TestBlockModelResponseSerialization:
         app.dependency_overrides[ps.user_api_key_auth] = lambda: admin
         try:
             with (
-                patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-                patch("litellm.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+                patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+                patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
                 patch(  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-                    "litellm.proxy.proxy_server.llm_router",
+                    "token_iq.gateway.proxy.proxy_server.llm_router",
                     MagicMock(**{"get_model_ids.return_value": ["m-block-1"]}),
                 ),
-                patch("litellm.proxy.proxy_server.redis_usage_cache", None),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+                patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
                 patch(  # test-quality-ok: stubs the cache write so the test observes only response serialization
-                    "litellm.proxy.management_endpoints.model_management_endpoints.clear_cache",
+                    "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.clear_cache",
                     new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
                 ),
                 patch(  # test-quality-ok: audit logging is a background side effect outside this test's contract
-                    "litellm.proxy.management_endpoints.model_management_endpoints.create_object_audit_log",
+                    "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.create_object_audit_log",
                     new=AsyncMock(return_value=None),
                 ),
             ):

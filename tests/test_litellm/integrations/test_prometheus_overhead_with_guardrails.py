@@ -12,9 +12,9 @@ from unittest.mock import MagicMock
 import pytest
 from prometheus_client import REGISTRY
 
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 @pytest.fixture(autouse=True)
@@ -162,7 +162,7 @@ def test_get_guardrail_overhead_seconds_counts_single_pre_call_dict():
 
 def _patch_label_factory(monkeypatch):
     monkeypatch.setattr(
-        "litellm.integrations.prometheus.prometheus_label_factory",
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory",
         lambda **kwargs: {},
     )
 

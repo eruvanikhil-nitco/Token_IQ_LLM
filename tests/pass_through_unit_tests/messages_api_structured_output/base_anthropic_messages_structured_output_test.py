@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 
 class BaseAnthropicMessagesStructuredOutputTest(ABC):

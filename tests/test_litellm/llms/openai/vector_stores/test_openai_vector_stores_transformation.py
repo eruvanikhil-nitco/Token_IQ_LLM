@@ -1,7 +1,7 @@
 import pytest
 
-from litellm.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
-from litellm.types.vector_stores import (
+from token_iq.gateway.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
+from token_iq.gateway.types.vector_stores import (
     VectorStoreCreateOptionalRequestParams,
 )
 

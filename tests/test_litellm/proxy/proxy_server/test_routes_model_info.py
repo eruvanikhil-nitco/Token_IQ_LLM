@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.proxy import proxy_server
+from token_iq.gateway.proxy import proxy_server
 
 from .conftest import normalize  # type: ignore[import-not-found]
 
@@ -62,7 +62,7 @@ def test_v2_model_info_invalid_page_returns_422(client, auth_as, empty_router):
 
 def test_v2_model_info_in_openapi_schema():
     """``GET /v2/model/info`` is published in the proxy OpenAPI/Swagger spec."""
-    from litellm.proxy.proxy_server import get_openapi_schema
+    from token_iq.gateway.proxy.proxy_server import get_openapi_schema
 
     schema = get_openapi_schema()
     assert "/v2/model/info" in schema["paths"]
@@ -143,8 +143,8 @@ def test_get_proxy_model_info_surfaces_supports_parallel_function_calling(local_
 
 
 def test_v1_model_info_star_wildcard_filter_keeps_provider_expansion(monkeypatch):
-    from litellm.proxy._types import SpecialModelNames, UserAPIKeyAuth
-    from litellm.proxy.auth import model_checks
+    from token_iq.gateway.proxy._types import SpecialModelNames, UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth import model_checks
 
     def fake_get_provider_models(provider, litellm_params=None):
         if provider == "openai":
@@ -230,7 +230,7 @@ def test_model_info_team_key_sees_own_byok_model(client, auth_as, byok_team_rout
     user's team memberships, returned an empty set for a team key, and the
     BYOK row was dropped -> `{"data": []}`.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
     mock_prisma.db.litellm_usertable.find_unique.return_value = None
@@ -258,7 +258,7 @@ def test_model_info_team_key_cannot_see_other_teams_byok_model(
 
     Guards the fix from over-broadening into a cross-team metadata leak.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
     mock_prisma.db.litellm_usertable.find_unique.return_value = None
@@ -359,7 +359,7 @@ def mixed_auto_router_router(monkeypatch):
     )
     monkeypatch.setattr(proxy_server, "_enrich_model_info_with_litellm_data", lambda model, **kw: model)
 
-    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+    import token_iq.gateway.proxy.agent_endpoints.model_list_helpers as mlh
 
     monkeypatch.setattr(mlh, "append_agents_to_model_info", AsyncMock(side_effect=lambda models, **kw: models))
     yield router
@@ -419,7 +419,7 @@ async def test_model_info_v2_query_sentinel_does_not_filter(monkeypatch, mixed_a
     Guarding on `is True` is what stops every direct-call test from silently filtering."""
     from unittest.mock import AsyncMock
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     monkeypatch.setattr(proxy_server, "prisma_client", MagicMock())
     monkeypatch.setattr(proxy_server.proxy_config, "get_config", AsyncMock(return_value={}))
@@ -430,7 +430,7 @@ async def test_model_info_v2_query_sentinel_does_not_filter(monkeypatch, mixed_a
     )
     monkeypatch.setattr(proxy_server, "_enrich_model_info_with_litellm_data", lambda model, **kw: model)
 
-    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+    import token_iq.gateway.proxy.agent_endpoints.model_list_helpers as mlh
 
     monkeypatch.setattr(mlh, "append_agents_to_model_info", AsyncMock(side_effect=lambda models, **kw: models))
 
@@ -512,7 +512,7 @@ def mixed_credential_router(monkeypatch):
     )
     monkeypatch.setattr(proxy_server, "_enrich_model_info_with_litellm_data", lambda model, **kw: model)
 
-    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+    import token_iq.gateway.proxy.agent_endpoints.model_list_helpers as mlh
 
     monkeypatch.setattr(mlh, "append_agents_to_model_info", AsyncMock(side_effect=lambda models, **kw: models))
     yield router

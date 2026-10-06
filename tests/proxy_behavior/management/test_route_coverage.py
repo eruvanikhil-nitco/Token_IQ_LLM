@@ -12,8 +12,8 @@ import re
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 SOURCE_FILES = [
-    REPO_ROOT / "litellm/proxy/management_endpoints/key_management_endpoints.py",
-    REPO_ROOT / "litellm/proxy/management_endpoints/team_endpoints.py",
+    REPO_ROOT / "token_iq/gateway/proxy/management_endpoints/key_management_endpoints.py",
+    REPO_ROOT / "token_iq/gateway/proxy/management_endpoints/team_endpoints.py",
 ]
 TEST_DIR = pathlib.Path(__file__).resolve().parent
 SELF = pathlib.Path(__file__).resolve()

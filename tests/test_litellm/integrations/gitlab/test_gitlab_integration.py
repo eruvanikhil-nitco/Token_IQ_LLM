@@ -4,13 +4,13 @@ import pytest
 
 
 from unittest.mock import MagicMock, patch
-from litellm.integrations.gitlab.gitlab_prompt_manager import GitLabPromptManager
+from token_iq.gateway.integrations.gitlab.gitlab_prompt_manager import GitLabPromptManager
 
 
 # -----------------------------
 # Basic init & template loading
 # -----------------------------
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_initialization_with_root_folder(mock_client_class):
     """Loads a prompt from the repo root when no prompts_path is specified."""
     mock_client = MagicMock()
@@ -49,7 +49,7 @@ User: {{user_message}}"""
     assert "What is AI?" in rendered
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_with_prompts_path(mock_client_class):
     """Loads a prompt from a configured prompts folder; ID maps to folder + .prompt."""
     mock_client = MagicMock()
@@ -75,7 +75,7 @@ def test_gitlab_prompt_manager_with_prompts_path(mock_client_class):
 # -----------------------------
 # Error handling / validation
 # -----------------------------
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_error_handling_load(mock_client_class):
     """Errors from GitLabClient surface with helpful context."""
     mock_client = MagicMock()
@@ -96,7 +96,7 @@ def test_gitlab_prompt_manager_config_validation_via_client_ctor():
     Ensures manager surfaces the ValueError while building prompt_manager.
     """
     with patch(
-        "litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient",
+        "token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient",
         side_effect=ValueError("project and access_token are required"),
     ):
         with pytest.raises(ValueError, match="project and access_token are required"):
@@ -106,7 +106,7 @@ def test_gitlab_prompt_manager_config_validation_via_client_ctor():
 # -----------------------------
 # Message parsing
 # -----------------------------
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_message_parsing(mock_client_class):
     mock_client = MagicMock()
     mock_client.get_file_content.return_value = """---
@@ -138,7 +138,7 @@ Assistant: I'll help you with that."""
 # -----------------------------
 # pre_call_hook behavior & ref precedence
 # -----------------------------
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_pre_call_hook_updates_params(mock_client_class):
     mock_client = MagicMock()
     mock_client.get_file_content.return_value = """---
@@ -179,7 +179,7 @@ User: {{user_message}}"""
     assert result_params["api_key"] == "keep-me"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_pre_call_hook_ref_precedence(mock_client_class):
     """
     Precedence for selecting git ref:
@@ -237,7 +237,7 @@ User: {{q}}"""
 # -----------------------------
 # Listing & availability
 # -----------------------------
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_list_templates_with_prompts_path(mock_client_class):
     mock_client = MagicMock()
     mock_client.list_files.return_value = [
@@ -264,7 +264,7 @@ def test_gitlab_prompt_manager_list_templates_with_prompts_path(mock_client_clas
     assert all("/prompts/chat/" not in x for x in ids)
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_template_manager_load_all_prompts(mock_client_class):
     """load_all_prompts should fetch all .prompt files and populate the internal cache."""
     mock_client = MagicMock()
@@ -299,7 +299,7 @@ def test_gitlab_prompt_manager_integration_name():
     assert manager.integration_name == "gitlab"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_post_call_hook_passthrough(mock_client_class):
     mock_client = MagicMock()
     mock_client.get_file_content.return_value = "User: {{m}}"
@@ -320,7 +320,7 @@ def test_gitlab_prompt_manager_post_call_hook_passthrough(mock_client_class):
     assert out is dummy_response
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_version_precedence_prompt_version_wins(mock_client_class):
     """
     prompt_version > git_ref kwarg > manager _ref_override.
@@ -355,7 +355,7 @@ User: {{q}}"""
     assert params.get("model") == "gpt-4"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_version_ref_kwarg_used_when_no_prompt_version(mock_client_class):
     """
     If prompt_version is omitted, git_ref kwarg should be used.
@@ -379,7 +379,7 @@ def test_gitlab_prompt_version_ref_kwarg_used_when_no_prompt_version(mock_client
     mock_client.get_file_content.assert_any_call("promptB.prompt", ref="hotfix/ref-2")
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_version_manager_override_used_when_no_prompt_version_or_kwarg(
     mock_client_class,
 ):
@@ -406,7 +406,7 @@ def test_gitlab_prompt_version_manager_override_used_when_no_prompt_version_or_k
     )
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_get_prompt_template_explicit_ref_param(mock_client_class):
     """
     Directly calling get_prompt_template(ref=...) should pass that ref to GitLabClient.
@@ -431,7 +431,7 @@ User: {{x}}"""
     assert metadata.get("model") == "gpt-4o"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_version_with_prompts_path(mock_client_class):
     """
     Ensure prompts_path + prompt_version work together (path resolution + ref).

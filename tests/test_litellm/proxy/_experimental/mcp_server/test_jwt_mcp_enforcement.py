@@ -11,17 +11,17 @@ Scenario:
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_JWTAuth,
     LiteLLM_TeamTable,
     LiteLLM_ObjectPermissionTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
     MCPRequestHandler,
 )
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
 
 
 @pytest.mark.asyncio
@@ -37,9 +37,9 @@ async def test_reproduce_jwt_mcp_enforcement_issue(monkeypatch):
     Expected: team_id should be set to "ABC" so MCP permissions are enforced
     Actual (BUG): team_id is None because route check fails for MCP routes
     """
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     # Setup mock router
     router = Router(
@@ -50,7 +50,7 @@ async def test_reproduce_jwt_mcp_enforcement_issue(monkeypatch):
 
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     # Team "ABC" has models configured AND MCPs assigned
     team_with_mcp = LiteLLM_TeamTable(
@@ -69,7 +69,7 @@ async def test_reproduce_jwt_mcp_enforcement_issue(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
 
     # Setup JWT handler with team_ids_jwt_field (groups)
@@ -142,8 +142,8 @@ async def test_mcp_route_check_passes_for_team():
     Verify that allowed_routes_check returns True for MCP routes with default settings.
     This is required for teams to access MCP endpoints with JWT auth.
     """
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.auth_checks import allowed_routes_check
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.auth_checks import allowed_routes_check
 
     jwt_auth = LiteLLM_JWTAuth()  # Use defaults
 
@@ -168,8 +168,8 @@ async def test_mcp_route_check_passes_for_team_server_subpaths():
     Verify that allowed_routes_check returns True for /v1/mcp/server sub-paths with default settings.
     Regression test for JWT users accessing /v1/mcp/server/register and similar endpoints.
     """
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.auth_checks import allowed_routes_check
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.auth_checks import allowed_routes_check
 
     jwt_auth = LiteLLM_JWTAuth()
 
@@ -200,9 +200,9 @@ async def test_e2e_jwt_team_mcp_permissions_enforced(monkeypatch):
     3. JWT auth properly sets team_id on UserAPIKeyAuth
     4. MCPRequestHandler.get_allowed_mcp_servers() returns team's MCP servers
     """
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     # Setup mock router
     router = Router(
@@ -217,7 +217,7 @@ async def test_e2e_jwt_team_mcp_permissions_enforced(monkeypatch):
     proxy_server_module.user_api_key_cache = DualCache()
     proxy_server_module.proxy_logging_obj = MagicMock()
     proxy_server_module.general_settings = {}
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     # Team "ABC" has MCP servers assigned via object_permission
     team_mcp_servers = ["mcp-server-1", "mcp-server-2"]
@@ -242,10 +242,10 @@ async def test_e2e_jwt_team_mcp_permissions_enforced(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.auth_checks.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.auth_checks.get_team_object", mock_get_team_object
     )
 
     # Setup JWT handler with team_ids_jwt_field (groups)
@@ -333,9 +333,9 @@ async def test_e2e_jwt_without_team_no_mcp_servers(monkeypatch):
     1. JWT token with no groups returns no team_id
     2. MCPRequestHandler.get_allowed_mcp_servers() returns empty list
     """
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     # Setup mock router
     router = Router(model_list=[])
@@ -344,13 +344,13 @@ async def test_e2e_jwt_without_team_no_mcp_servers(monkeypatch):
 
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     async def mock_get_team_object(*args, **kwargs):
         return None
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
 
     # Setup JWT handler
@@ -414,9 +414,9 @@ async def test_e2e_jwt_team_mcp_key_intersection(monkeypatch):
     - Key has MCP servers: ["server-2", "server-4"]
     - Result should be intersection: ["server-2"]
     """
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     # Setup mock router
     router = Router(
@@ -431,7 +431,7 @@ async def test_e2e_jwt_team_mcp_key_intersection(monkeypatch):
     proxy_server_module.user_api_key_cache = DualCache()
     proxy_server_module.proxy_logging_obj = MagicMock()
     proxy_server_module.general_settings = {}
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     # Team MCP servers
     team_mcp_servers = ["server-1", "server-2", "server-3"]
@@ -460,10 +460,10 @@ async def test_e2e_jwt_team_mcp_key_intersection(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.auth_checks.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.auth_checks.get_team_object", mock_get_team_object
     )
 
     jwt_handler = JWTHandler()

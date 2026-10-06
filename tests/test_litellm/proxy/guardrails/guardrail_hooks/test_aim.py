@@ -1,6 +1,6 @@
 """Tests for the AIM guardrail's inspection-payload construction."""
 
-from litellm.proxy.guardrails.guardrail_hooks.aim.aim import AimGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim import AimGuardrail
 
 
 def test_aim_inspection_messages_coerces_chat_completions_tool_role_to_user():

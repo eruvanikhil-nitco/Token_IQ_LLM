@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.vertex_ai.rerank.transformation import VertexAIRerankConfig
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.llms.vertex_ai.rerank.transformation import VertexAIRerankConfig
+from token_iq.gateway.types.rerank import RerankResponse
 
 
 class TestVertexAIRerankTransform:
@@ -61,7 +61,7 @@ class TestVertexAIRerankTransform:
 
         # Test with litellm.vertex_project
         with patch.dict(os.environ, {}, clear=True):
-            import litellm
+            from token_iq import gateway as litellm
 
             # Set vertex_project attribute if it doesn't exist
             if not hasattr(litellm, "vertex_project"):
@@ -83,7 +83,7 @@ class TestVertexAIRerankTransform:
 
         # Test error when no project ID is available
         with patch.dict(os.environ, {}, clear=True):
-            import litellm
+            from token_iq import gateway as litellm
 
             # Set vertex_project to None to ensure no project ID is available
             if not hasattr(litellm, "vertex_project"):
@@ -534,7 +534,7 @@ class TestVertexAIRerankTransform:
 
         # get_complete_url should still be able to access the vertex params
         with patch(
-            "litellm.llms.vertex_ai.rerank.transformation.get_secret_str",
+            "token_iq.gateway.llms.vertex_ai.rerank.transformation.get_secret_str",
             return_value=None,
         ):
             url = self.config.get_complete_url(

@@ -1,4 +1,4 @@
-from litellm import Router
+from token_iq.gateway import Router
 
 
 class NoItemsAliasDict(dict):

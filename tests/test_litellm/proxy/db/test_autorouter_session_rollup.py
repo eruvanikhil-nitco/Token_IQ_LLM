@@ -13,7 +13,7 @@ from datetime import datetime
 import httpx
 import pytest
 
-from litellm.proxy.db.autorouter_session_rollup import (
+from token_iq.gateway.proxy.db.autorouter_session_rollup import (
     AutoRouterTurnTransaction,
     UPSERT_AUTOROUTER_SESSION_SQL,
     build_autorouter_turn_transaction,
@@ -280,8 +280,8 @@ class TestFlush:
 class TestEnqueueSeam:
     @pytest.mark.asyncio
     async def test_update_database_seam_enqueues_only_auto_routed_success(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
-        from litellm.proxy.utils import PrismaClient
+        from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+        from token_iq.gateway.proxy.utils import PrismaClient
 
         monkeypatch.setattr(PrismaClient, "autorouter_turn_transactions", [])
         writer = DBSpendUpdateWriter()
@@ -304,7 +304,7 @@ class TestEnqueueSeam:
 def test_every_drain_trigger_reads_the_one_queue_census_owner():
     import inspect
 
-    from litellm.proxy import utils as proxy_utils
+    from token_iq.gateway.proxy import utils as proxy_utils
 
     owner_source = inspect.getsource(proxy_utils._total_queued_spend_transactions)
     for queue in (

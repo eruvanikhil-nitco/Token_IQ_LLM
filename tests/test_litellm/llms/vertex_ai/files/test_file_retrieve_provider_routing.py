@@ -6,7 +6,7 @@ causing a type mismatch when afile_retrieve delegated to the sync function.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from litellm.files.main import file_retrieve
+from token_iq.gateway.files.main import file_retrieve
 
 
 class TestFileRetrieveProviderRouting:
@@ -37,7 +37,7 @@ class TestFileRetrieveProviderRouting:
         mock_file = self._make_mock_file_object()
 
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file",
             return_value=mock_file,
         ) as mock_retrieve:
             result = file_retrieve(
@@ -55,7 +55,7 @@ class TestFileRetrieveProviderRouting:
         mock_file = self._make_mock_file_object()
 
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file",
             return_value=mock_file,
         ) as mock_retrieve:
             result = file_retrieve(
@@ -72,7 +72,7 @@ class TestFileRetrieveProviderRouting:
         expected_file_id = "gs://my-bucket/path/to/file.jsonl"
 
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file",
             return_value=mock_file,
         ) as mock_retrieve:
             file_retrieve(
@@ -88,12 +88,12 @@ class TestFileRetrieveProviderRouting:
         Before the fix, vertex_ai fell through to the else-branch which raised
         BadRequestError. Verify it no longer does.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         mock_file = self._make_mock_file_object()
 
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file",
             return_value=mock_file,
         ):
             try:
@@ -106,12 +106,12 @@ class TestFileRetrieveProviderRouting:
 
     def test_should_not_raise_bad_request_for_gemini(self):
         """Same as above but for 'gemini'."""
-        import litellm
+        from token_iq import gateway as litellm
 
         mock_file = self._make_mock_file_object()
 
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file",
             return_value=mock_file,
         ):
             try:

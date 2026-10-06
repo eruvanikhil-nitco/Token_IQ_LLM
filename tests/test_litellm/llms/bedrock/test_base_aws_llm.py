@@ -17,8 +17,8 @@ from botocore.auth import SigV4Auth
 from botocore.credentials import Credentials
 from botocore.exceptions import NoCredentialsError
 
-import litellm
-from litellm.llms.bedrock.base_aws_llm import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.base_aws_llm import (
     AwsAuthError,
     BaseAWSLLM,
     Boto3CredentialsInfo,
@@ -279,7 +279,7 @@ def test_web_identity_token_oidc_reference_still_resolved():
     base = BaseAWSLLM()
     env = _os_environ_without_aws_keys()
     with patch.dict(os.environ, env, clear=True), patch(
-        "litellm.llms.bedrock.base_aws_llm.get_secret", return_value=None
+        "token_iq.gateway.llms.bedrock.base_aws_llm.get_secret", return_value=None
     ):
         with pytest.raises(AwsAuthError) as exc:
             base.get_credentials(
@@ -424,7 +424,7 @@ def test_get_aws_region_name_boto3_fallback():
     base_aws_llm = BaseAWSLLM()
 
     # Test case 1: boto3.Session() returns a configured region
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
         mock_get_secret.return_value = None  # No region in env vars
 
         with patch("boto3.Session") as mock_boto3_session:
@@ -439,7 +439,7 @@ def test_get_aws_region_name_boto3_fallback():
             mock_boto3_session.assert_called_once()
 
     # Test case 2: boto3.Session() returns None for region (should default to us-west-2)
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
         mock_get_secret.return_value = None  # No region in env vars
 
         with patch("boto3.Session") as mock_boto3_session:
@@ -454,7 +454,7 @@ def test_get_aws_region_name_boto3_fallback():
             mock_boto3_session.assert_called_once()
 
     # Test case 3: boto3 import/session creation raises exception (should default to us-west-2)
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
         mock_get_secret.return_value = None  # No region in env vars
 
         with patch("boto3.Session") as mock_boto3_session:
@@ -475,7 +475,7 @@ def test_get_aws_region_name_boto3_fallback():
         mock_boto3_session.assert_not_called()
 
     # Test case 5: aws_region_name found in environment variables (should not use boto3)
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
 
         def side_effect(key, default=None):
             if key == "AWS_REGION_NAME":
@@ -549,7 +549,7 @@ def test_get_aws_region_name_rejects_malformed_region_from_env():
     """
     base_aws_llm = BaseAWSLLM()
 
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
 
         def side_effect(key, default=None):
             if key == "AWS_REGION_NAME":
@@ -582,7 +582,7 @@ def test_get_aws_region_name_for_non_llm_api_calls_rejects_malformed_env():
     """
     base_aws_llm = BaseAWSLLM()
 
-    with patch("litellm.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
+    with patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret") as mock_get_secret:
 
         def side_effect(key, default=None):
             if key == "AWS_REGION_NAME":
@@ -1638,7 +1638,7 @@ def test_web_identity_token_sts_client_uses_build_sts_client_kwargs():
     with patch.dict(os.environ, {"AWS_REGION": "eu-west-1"}, clear=True):
         with patch("boto3.client", return_value=mock_sts_client) as mock_boto3_client:
             with patch(
-                "litellm.llms.bedrock.base_aws_llm.get_secret",
+                "token_iq.gateway.llms.bedrock.base_aws_llm.get_secret",
                 return_value="oidc-token",
             ):
                 base_aws_llm._auth_with_web_identity_token(
@@ -2397,7 +2397,7 @@ def test_assume_role_without_external_id():
 
 def test_converse_handler_external_id_extraction():
     """Test that BedrockConverseLLM properly extracts and passes aws_external_id parameter"""
-    from litellm.llms.bedrock.chat.converse_handler import BedrockConverseLLM
+    from token_iq.gateway.llms.bedrock.chat.converse_handler import BedrockConverseLLM
 
     converse_llm = BedrockConverseLLM()
 
@@ -2421,7 +2421,7 @@ def test_converse_handler_external_id_extraction():
                 "get_runtime_endpoint",
                 return_value=("https://test", "https://test"),
             ):
-                with patch("litellm.AmazonConverseConfig") as mock_config:
+                with patch("token_iq.gateway.AmazonConverseConfig") as mock_config:
                     mock_config.return_value._transform_request.return_value = {
                         "test": "data"
                     }
@@ -2431,7 +2431,7 @@ def test_converse_handler_external_id_extraction():
                         mock_headers.return_value = MagicMock()
                         mock_headers.return_value.headers = {"Authorization": "test"}
                         with patch(
-                            "litellm.llms.custom_httpx.http_handler._get_httpx_client"
+                            "token_iq.gateway.llms.custom_httpx.http_handler._get_httpx_client"
                         ) as mock_client:
                             mock_http_client = MagicMock()
                             mock_response = MagicMock()
@@ -2952,7 +2952,7 @@ class TestGetBedrockModelIdArnHandling:
     ARN = "arn:aws:bedrock:us-east-1:086734376398:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
     def _call(self, model: str, optional_params: dict | None = None) -> str:
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         provider = BaseAWSLLM.get_bedrock_invoke_provider(model)
         return BaseAWSLLM.get_bedrock_model_id(
@@ -3003,7 +3003,7 @@ class TestGetBedrockModelIdArnHandling:
     def test_arn_url_matches_expected(self):
         """Full URL built from messages config must match expected encoded form."""
         import urllib.parse
-        from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeMessagesConfig,
         )
 

@@ -14,7 +14,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from litellm.proxy.middleware.in_flight_requests_middleware import (
+from token_iq.gateway.proxy.middleware.in_flight_requests_middleware import (
     InFlightRequestsMiddleware,
     get_in_flight_requests,
 )

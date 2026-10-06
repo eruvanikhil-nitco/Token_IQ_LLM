@@ -2,7 +2,7 @@
 
 
 
-from litellm.llms.vertex_ai.common_utils import add_object_type
+from token_iq.gateway.llms.vertex_ai.common_utils import add_object_type
 
 
 def test_add_object_type_empty_properties_keeps_type():

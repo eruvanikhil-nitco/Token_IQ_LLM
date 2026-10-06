@@ -9,8 +9,8 @@ import orjson
 import pytest
 from fastapi import HTTPException
 
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse
-from litellm.proxy.ocr_endpoints.endpoints import _native_response, _parse_ocr_request
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse
+from token_iq.gateway.proxy.ocr_endpoints.endpoints import _native_response, _parse_ocr_request
 
 AZURE_NATIVE_OPERATION = {
     "status": "succeeded",

@@ -11,16 +11,16 @@ load_dotenv()
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import MagicMock, patch
 
 
-from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 
 
 def test_process_gemini_media_gcs_explicit_format_octet_stream_and_alias():
     """Explicit format bypasses registry; image/jpg alias still applies."""
-    from litellm.types.llms.vertex_ai import FileDataType
+    from token_iq.gateway.types.llms.vertex_ai import FileDataType
 
     r1 = _process_gemini_media(
         "gs://bucket/object-no-ext",
@@ -39,17 +39,17 @@ def test_process_gemini_media_gcs_explicit_format_octet_stream_and_alias():
 
 def test_process_gemini_media_gcs_without_extension_errors_and_metadata_mock():
     with patch(
-        "litellm.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
+        "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
         return_value=None,
     ):
         with pytest.raises(litellm.BadRequestError) as exc:
             _process_gemini_media("gs://bucket/image-without-extension")
     assert "Unable to determine mime type for gs URI" in str(exc.value)
 
-    from litellm.types.llms.vertex_ai import FileDataType
+    from token_iq.gateway.types.llms.vertex_ai import FileDataType
 
     with patch(
-        "litellm.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
+        "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
         return_value="image/jpeg",
     ) as m:
         r = _process_gemini_media("gs://bucket/image-without-extension")
@@ -59,7 +59,7 @@ def test_process_gemini_media_gcs_without_extension_errors_and_metadata_mock():
     m.assert_called()
 
     with patch(
-        "litellm.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
+        "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
         return_value="image/jpg",
     ):
         r_alias = _process_gemini_media("gs://bucket/image-without-extension")
@@ -69,7 +69,7 @@ def test_process_gemini_media_gcs_without_extension_errors_and_metadata_mock():
 def test_process_gemini_media_rejects_gcs_metadata_mime_not_supported_by_gemini():
     """Non-empty GCS contentType that fails _normalize_and_validate_gemini_mime_type."""
     with patch(
-        "litellm.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
+        "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
         return_value="application/x-litellm-unit-test-unknown-mime",
     ):
         with pytest.raises(
@@ -80,10 +80,10 @@ def test_process_gemini_media_rejects_gcs_metadata_mime_not_supported_by_gemini(
 
 
 def test_file_block_uses_mime_type_alias_for_extensionless_gcs():
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
-    from litellm.types.llms.vertex_ai import FileDataType
+    from token_iq.gateway.types.llms.vertex_ai import FileDataType
 
     messages = [
         {
@@ -126,13 +126,13 @@ def test_file_block_uses_mime_type_alias_for_extensionless_gcs():
     ],
 )
 def test_is_valid_gcs_bucket_name_matrix(bucket, expected):
-    from litellm.llms.vertex_ai.gemini.transformation import _is_valid_gcs_bucket_name
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _is_valid_gcs_bucket_name
 
     assert _is_valid_gcs_bucket_name(bucket) is expected
 
 
 def test_get_gcs_object_content_type_explicit_vertex_success_and_token_failure():
-    from litellm.llms.vertex_ai.gemini import transformation as gt
+    from token_iq.gateway.llms.vertex_ai.gemini import transformation as gt
 
     mock_v = MagicMock()
     mock_v.get_access_token.return_value = ("test-token", "test-project")
@@ -146,7 +146,7 @@ def test_get_gcs_object_content_type_explicit_vertex_success_and_token_failure()
     with (
         patch.object(gt, "_GCS_METADATA_VERTEX_BASE", mock_v),
         patch(
-            "litellm.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
             return_value=http,
         ),
     ):
@@ -178,7 +178,7 @@ def test_get_gcs_object_content_type_explicit_vertex_success_and_token_failure()
 
 
 def test_get_gcs_object_content_type_http_error_explicit_vs_anonymous():
-    from litellm.llms.vertex_ai.gemini import transformation as gt
+    from token_iq.gateway.llms.vertex_ai.gemini import transformation as gt
 
     mock_v = MagicMock()
     mock_v.get_access_token.return_value = ("t", "p")
@@ -192,7 +192,7 @@ def test_get_gcs_object_content_type_http_error_explicit_vs_anonymous():
     with (
         patch.object(gt, "_GCS_METADATA_VERTEX_BASE", mock_v),
         patch(
-            "litellm.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
             return_value=http,
         ),
     ):
@@ -214,7 +214,7 @@ def test_get_gcs_object_content_type_http_error_explicit_vs_anonymous():
     with (
         patch.object(gt, "_GCS_METADATA_VERTEX_BASE", mock_v2),
         patch(
-            "litellm.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
             return_value=http2,
         ),
     ):
@@ -226,7 +226,7 @@ def test_get_gcs_object_content_type_http_error_explicit_vs_anonymous():
 
 
 def test_get_gcs_object_content_type_anonymous_success_no_auth_header():
-    from litellm.llms.vertex_ai.gemini import transformation as gt
+    from token_iq.gateway.llms.vertex_ai.gemini import transformation as gt
 
     mock_v = MagicMock()
     ok = MagicMock()
@@ -239,7 +239,7 @@ def test_get_gcs_object_content_type_anonymous_success_no_auth_header():
     with (
         patch.object(gt, "_GCS_METADATA_VERTEX_BASE", mock_v),
         patch(
-            "litellm.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
             return_value=http,
         ),
     ):
@@ -253,7 +253,7 @@ def test_get_gcs_object_content_type_anonymous_success_no_auth_header():
 
 
 def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text():
-    from litellm.llms.vertex_ai.gemini import transformation as gemini_transformation
+    from token_iq.gateway.llms.vertex_ai.gemini import transformation as gemini_transformation
 
     messages = [
         {
@@ -315,7 +315,7 @@ def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text()
     with (
         patch.object(gemini_transformation, "_GCS_METADATA_VERTEX_BASE", mock_v),
         patch(
-            "litellm.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_metadata_http_handler",
             return_value=mock_http,
         ),
         patch(
@@ -336,7 +336,7 @@ def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text()
 
     async def run_plain():
         with patch(
-            "litellm.llms.vertex_ai.gemini.transformation.asyncify",
+            "token_iq.gateway.llms.vertex_ai.gemini.transformation.asyncify",
             side_effect=AssertionError("asyncify must not run without extensionless gs://"),
         ):
             return await gemini_transformation.async_transform_request_body(
@@ -456,7 +456,7 @@ def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text()
     ],
 )
 def test_openai_messages_may_need_sync_gcs_metadata_fetch_matrix(messages, expected):
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _openai_messages_may_need_sync_gcs_metadata_fetch,
     )
 

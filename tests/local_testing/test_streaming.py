@@ -6,25 +6,27 @@ import json
 import os
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from typing import Tuple
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
 
-import litellm.litellm_core_utils
-import litellm.litellm_core_utils.litellm_logging
-from litellm.utils import ModelResponseListIterator
-from litellm.types.utils import ModelResponseStream
+import token_iq.gateway.core_utils
+from token_iq import gateway as litellm
+import token_iq.gateway.core_utils.litellm_logging
+from token_iq import gateway as litellm
+from token_iq.gateway.utils import ModelResponseListIterator
+from token_iq.gateway.types.utils import ModelResponseStream
 
 from dotenv import load_dotenv
 
 load_dotenv()
 import random
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     AuthenticationError,
     BadRequestError,
     ModelResponse,
@@ -689,7 +691,7 @@ def gemini_mock_post_streaming(url, **kwargs):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_completion_gemini_stream_accumulated_json(sync_mode):
     try:
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
         litellm.set_verbose = True
         print("Streaming gemini response")
@@ -1485,7 +1487,7 @@ def test_sagemaker_weird_response():
     try:
         import json
 
-        from litellm.llms.sagemaker.completion.handler import TokenIterator
+        from token_iq.gateway.llms.sagemaker.completion.handler import TokenIterator
 
         chunk = """<s>[INST] Hey, how's it going? [/INST],
         I'm doing well, thanks for asking! How about you? Is there anything you'd like to chat about or ask? I'm here to help with any questions you might have."""
@@ -1545,7 +1547,7 @@ def test_sagemaker_weird_response():
 @pytest.mark.asyncio
 async def test_completion_watsonx_stream():
     litellm.set_verbose = True
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     try:
         response = await acompletion(
@@ -2590,7 +2592,7 @@ async def test_azure_astreaming_and_function_calling():
             "content": f"What is the weather like in Boston? {uuid.uuid4()}",
         }
     ]
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     litellm.cache = Cache(
         type="redis",
@@ -3331,7 +3333,7 @@ def test_unit_test_custom_stream_wrapper_function_call():
     """
     Test if model returns a tool call, the finish reason is correctly set to 'tool_calls'
     """
-    from litellm.types.llms.openai import ChatCompletionDeltaChunk
+    from token_iq.gateway.types.llms.openai import ChatCompletionDeltaChunk
 
     litellm.set_verbose = False
     delta: ChatCompletionDeltaChunk = {
@@ -3361,7 +3363,7 @@ def test_unit_test_custom_stream_wrapper_function_call():
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.litellm_core_utils.litellm_logging.Logging(
+        logging_obj=litellm.core_utils.litellm_logging.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3379,7 +3381,7 @@ def test_unit_test_custom_stream_wrapper_function_call():
     assert finish_reason == "tool_calls"
 
     ## UNIT TEST RECREATING MODEL RESPONSE
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -3436,7 +3438,7 @@ def test_unit_test_perplexity_citations_chunk():
     """
     Test if model returns a tool call, the finish reason is correctly set to 'tool_calls'
     """
-    from litellm.types.llms.openai import ChatCompletionDeltaChunk
+    from token_iq.gateway.types.llms.openai import ChatCompletionDeltaChunk
 
     litellm.set_verbose = False
     delta: ChatCompletionDeltaChunk = {
@@ -3471,7 +3473,7 @@ def test_unit_test_perplexity_citations_chunk():
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.litellm_core_utils.litellm_logging.Logging(
+        logging_obj=litellm.core_utils.litellm_logging.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3574,8 +3576,8 @@ def test_mock_response_iterator_tool_use():
     """
     Relevant Issue: https://github.com/BerriAI/litellm/issues/7364
     """
-    from litellm.llms.bedrock.chat.invoke_handler import MockResponseIterator
-    from litellm.types.utils import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import MockResponseIterator
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Function,
         Message,
@@ -3672,8 +3674,8 @@ def test_reasoning_content_completion(model):
 
 
 def test_is_delta_empty():
-    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-    from litellm.types.utils import Delta
+    from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+    from token_iq.gateway.types.utils import Delta
 
     custom_stream_wrapper = CustomStreamWrapper(
         completion_stream=None,
@@ -3695,7 +3697,7 @@ def test_is_delta_empty():
 
 
 def test_streaming_with_cost_calculation():
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
     from typing import Optional
 
     litellm.include_cost_in_streaming_usage = True

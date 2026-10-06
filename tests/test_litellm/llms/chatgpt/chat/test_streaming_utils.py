@@ -9,8 +9,8 @@ are normalized to match the OpenAI streaming spec:
 
 import pytest
 
-from litellm.llms.chatgpt.chat.streaming_utils import ChatGPTToolCallNormalizer
-from litellm.types.utils import (
+from token_iq.gateway.llms.chatgpt.chat.streaming_utils import ChatGPTToolCallNormalizer
+from token_iq.gateway.types.utils import (
     ChatCompletionDeltaToolCall,
     Delta,
     Function,

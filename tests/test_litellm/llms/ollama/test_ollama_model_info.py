@@ -18,9 +18,9 @@ if "httpx" not in sys.modules:
     sys.modules["httpx"] = httpx_mod
 
 import httpx
-import litellm
+from token_iq import gateway as litellm
 
-from litellm.llms.ollama.common_utils import OllamaModelInfo
+from token_iq.gateway.llms.ollama.common_utils import OllamaModelInfo
 
 
 class DummyResponse:
@@ -229,7 +229,7 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_uses_provided_api_base(self, monkeypatch):
         """When api_base is passed, get_model_info should use it instead of env var or default."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_urls = []
 
@@ -244,7 +244,7 @@ class TestOllamaGetModelInfo:
             )
             return resp
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         result = config.get_model_info(
@@ -256,7 +256,7 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_falls_back_to_env_var(self, monkeypatch):
         """When no api_base is passed, should fall back to OLLAMA_API_BASE env var."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_urls = []
         captured_headers = []
@@ -266,7 +266,7 @@ class TestOllamaGetModelInfo:
             captured_headers.append(headers)
             return DummyResponse({"template": "", "model_info": {}}, status_code=200)
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         monkeypatch.setenv("OLLAMA_API_BASE", "http://env-server:11434")
         monkeypatch.setenv("OLLAMA_API_KEY", "env-api-key")
 
@@ -280,7 +280,7 @@ class TestOllamaGetModelInfo:
         self, monkeypatch
     ):
         """When api_key is explicit, model info should send it to the provided api_base."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_headers = []
 
@@ -288,7 +288,7 @@ class TestOllamaGetModelInfo:
             captured_headers.append(headers)
             return DummyResponse({"template": "", "model_info": {}}, status_code=200)
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         config.get_model_info(
@@ -303,7 +303,7 @@ class TestOllamaGetModelInfo:
         self, monkeypatch
     ):
         """An empty explicit key must not fall back to server-side creds for a custom base."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_headers = []
 
@@ -311,7 +311,7 @@ class TestOllamaGetModelInfo:
             captured_headers.append(headers)
             return DummyResponse({"template": "", "model_info": {}}, status_code=200)
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         monkeypatch.setenv("OLLAMA_API_KEY", "server-side-ollama-key")
         monkeypatch.setattr(litellm, "api_key", "global-provider-key")
         monkeypatch.setattr(litellm, "openai_key", "global-openai-key")
@@ -342,7 +342,7 @@ class TestOllamaGetModelInfo:
             )
 
         litellm.get_model_info.cache_clear()
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         monkeypatch.setenv("OLLAMA_API_KEY", "server-side-ollama-key")
         monkeypatch.setattr(litellm, "api_key", "global-provider-key")
         monkeypatch.setattr(litellm, "openai_key", "global-openai-key")
@@ -374,7 +374,7 @@ class TestOllamaGetModelInfo:
             )
 
         litellm.get_model_info.cache_clear()
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         monkeypatch.setenv("OLLAMA_API_KEY", "server-side-ollama-key")
         try:
             model_info = litellm.get_model_info(
@@ -396,7 +396,7 @@ class TestOllamaGetModelInfo:
         key must still reach the backend rather than be served from a result cached
         with a different key.
         """
-        from litellm.utils import _cached_get_model_info
+        from token_iq.gateway.utils import _cached_get_model_info
 
         captured_headers = []
 
@@ -410,7 +410,7 @@ class TestOllamaGetModelInfo:
                 status_code=200,
             )
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         litellm.get_model_info.cache_clear()
         try:
             for api_key in ("key-one", "key-two", "key-three"):
@@ -431,7 +431,7 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_normalizes_generate_api_base(self, monkeypatch):
         """When completion passes the final generate URL, model info should use the server base."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_urls = []
 
@@ -439,7 +439,7 @@ class TestOllamaGetModelInfo:
             captured_urls.append(url)
             return DummyResponse({"template": "", "model_info": {}}, status_code=200)
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         config.get_model_info(
@@ -450,12 +450,12 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_graceful_fallback_on_connection_error(self, monkeypatch):
         """When the Ollama server is unreachable, should return defaults instead of raising."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         def mock_post(url, json, headers=None):
             raise ConnectionError("Connection refused")
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         monkeypatch.delenv("OLLAMA_API_BASE", raising=False)
 
         config = OllamaConfig()
@@ -471,7 +471,7 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_graceful_fallback_on_http_error_status(self, monkeypatch):
         """A non-2xx /api/show response must fall back to defaults, not parse the error body."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         def mock_post(url, json, headers=None):
             return DummyResponse(
@@ -482,7 +482,7 @@ class TestOllamaGetModelInfo:
                 status_code=404,
             )
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         result = config.get_model_info(
@@ -497,7 +497,7 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_strips_ollama_prefix(self, monkeypatch):
         """Should strip 'ollama/' or 'ollama_chat/' prefix from model name."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         captured_json = []
 
@@ -505,7 +505,7 @@ class TestOllamaGetModelInfo:
             captured_json.append(json)
             return DummyResponse({"template": "", "model_info": {}}, status_code=200)
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         config.get_model_info(
@@ -520,12 +520,12 @@ class TestOllamaGetModelInfo:
 
     def test_get_model_info_skips_network_for_static_model(self, monkeypatch):
         """Statically-priced models must not trigger an /api/show network call."""
-        from litellm.llms.ollama.completion.transformation import OllamaConfig
+        from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
         def mock_post(url, json, headers=None):
             raise AssertionError("Static Ollama model should not query /api/show")
 
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
 
         config = OllamaConfig()
         assert config.get_model_info("ollama/llama2") is None
@@ -547,7 +547,7 @@ class TestOllamaGetModelInfo:
             )
 
         litellm.get_model_info.cache_clear()
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         try:
             model_info = litellm.get_model_info(
                 "ollama/unknown-model", api_base="http://localhost:11434"
@@ -566,7 +566,7 @@ class TestOllamaGetModelInfo:
             raise AssertionError("Static Ollama model should not query /api/show")
 
         litellm.get_model_info.cache_clear()
-        monkeypatch.setattr("litellm.module_level_client.post", mock_post)
+        monkeypatch.setattr("token_iq.gateway.module_level_client.post", mock_post)
         try:
             model_info = litellm.get_model_info("ollama/llama2")
         finally:
@@ -587,7 +587,7 @@ class TestOllamaAuthHeaders:
         This tests the bug fix where Ollama requests with API keys
         were not including the Authorization header.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers that were passed to the completion call
@@ -606,7 +606,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with ollama provider and api_key
@@ -635,7 +635,7 @@ class TestOllamaAuthHeaders:
 
         This tests the bug fix for the ollama_chat provider variant.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers that were passed to the completion call
@@ -654,7 +654,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with ollama_chat provider and api_key
@@ -681,7 +681,7 @@ class TestOllamaAuthHeaders:
         Test that when no api_key is provided to ollama completion,
         no Authorization header is added.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers that were passed to the completion call
@@ -700,7 +700,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion without api_key
@@ -725,7 +725,7 @@ class TestOllamaAuthHeaders:
 
         This ensures the fix respects existing Authorization headers.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers that were passed to the completion call
@@ -744,7 +744,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with both api_key and existing Authorization header
@@ -775,7 +775,7 @@ class TestOllamaAuthHeaders:
 
         This tests the real-world use case of using Ollama's hosted service.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers and api_base that were passed to the completion call
@@ -798,7 +798,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with ollama.com as api_base and api_key
@@ -833,7 +833,7 @@ class TestOllamaAuthHeaders:
 
         This tests the real-world use case for the ollama_chat variant.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers and api_base that were passed to the completion call
@@ -856,7 +856,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with ollama.com as api_base and api_key
@@ -896,7 +896,7 @@ class TestOllamaAuthHeaders:
 
         This ensures we don't add empty or None Authorization headers.
         """
-        import litellm
+        from token_iq import gateway as litellm
         from unittest.mock import MagicMock, patch
 
         # Track the headers that were passed to the completion call
@@ -915,7 +915,7 @@ class TestOllamaAuthHeaders:
 
         # Mock the base_llm_http_handler.completion method at the module level
         with patch(
-            "litellm.main.base_llm_http_handler.completion", side_effect=mock_completion
+            "token_iq.gateway.main.base_llm_http_handler.completion", side_effect=mock_completion
         ):
             try:
                 # Call completion with ollama.com but no api_key

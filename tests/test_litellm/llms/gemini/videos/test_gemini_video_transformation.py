@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, Mock, patch
 import httpx
 import pytest
 
-from litellm.llms.gemini.videos.transformation import GeminiVideoConfig
-from litellm.llms.openai.cost_calculation import video_generation_cost
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.videos.main import VideoObject
+from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
+from token_iq.gateway.llms.openai.cost_calculation import video_generation_cost
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.videos.main import VideoObject
 
 
 class TestGeminiVideoConfig:
@@ -281,7 +281,7 @@ class TestGeminiVideoConfig:
 
     def test_map_openai_params_with_extra_body(self):
         """Test that extra_body params are merged and extra_body is removed."""
-        from litellm.videos.utils import VideoGenerationRequestUtils
+        from token_iq.gateway.videos.utils import VideoGenerationRequestUtils
 
         params_with_extra_body = {
             "seconds": "4",
@@ -558,7 +558,7 @@ class TestGeminiVideoConfig:
         assert isinstance(result, VideoObject)
         assert result.status == "completed"
 
-    @patch("litellm.module_level_client")
+    @patch("token_iq.gateway.module_level_client")
     def test_transform_video_content_request(self, mock_client):
         """Test transformation of content download request."""
         video_id = "gemini::operations/generate_1234567890::veo-3.0"

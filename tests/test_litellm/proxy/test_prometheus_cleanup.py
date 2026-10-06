@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.proxy.prometheus_cleanup import mark_worker_exit, wipe_directory
-from litellm.proxy.proxy_cli import ProxyInitializationHelpers
+from token_iq.gateway.proxy.prometheus_cleanup import mark_worker_exit, wipe_directory
+from token_iq.gateway.proxy.proxy_cli import ProxyInitializationHelpers
 
 
 class TestWipeDirectory:

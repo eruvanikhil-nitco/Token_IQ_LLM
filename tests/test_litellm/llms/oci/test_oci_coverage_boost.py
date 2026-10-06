@@ -2,10 +2,10 @@
 Coverage-boost tests for the OCI provider happy paths.
 
 Covers:
-  - litellm/llms/oci/common_utils.py  (sign_with_manual_credentials, routing)
-  - litellm/llms/oci/chat/generic.py  (message adaptation, tool conversion, streaming)
-  - litellm/llms/oci/chat/cohere.py   (message adaptation, response parsing, streaming)
-  - litellm/llms/oci/chat/transformation.py  (OCIChatConfig methods, stream wrappers)
+  - token_iq/gateway/llms/oci/common_utils.py  (sign_with_manual_credentials, routing)
+  - token_iq/gateway/llms/oci/chat/generic.py  (message adaptation, tool conversion, streaming)
+  - token_iq/gateway/llms/oci/chat/cohere.py   (message adaptation, response parsing, streaming)
+  - token_iq/gateway/llms/oci/chat/transformation.py  (OCIChatConfig methods, stream wrappers)
 
 All tests are self-contained and require no real OCI credentials or network access.
 """
@@ -19,30 +19,30 @@ from unittest.mock import patch, MagicMock, AsyncMock
 import httpx
 
 if TYPE_CHECKING:
-    from litellm.llms.oci.chat.transformation import OCIStreamWrapper
+    from token_iq.gateway.llms.oci.chat.transformation import OCIStreamWrapper
 
-from litellm import ModelResponse
-from litellm.llms.oci.chat.cohere import (
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.llms.oci.chat.cohere import (
     _extract_text_content,
     adapt_messages_to_cohere_standard,
     handle_cohere_response,
     handle_cohere_stream_chunk,
 )
-from litellm.llms.oci.chat.generic import (
+from token_iq.gateway.llms.oci.chat.generic import (
     adapt_messages_to_generic_oci_standard,
     adapt_messages_to_generic_oci_standard_tool_response,
     adapt_tool_definition_to_oci_standard,
     adapt_tools_to_openai_standard,
     handle_generic_stream_chunk,
 )
-from litellm.llms.oci.chat.transformation import OCIChatConfig, get_vendor_from_model
-from litellm.llms.oci.common_utils import (
+from token_iq.gateway.llms.oci.chat.transformation import OCIChatConfig, get_vendor_from_model
+from token_iq.gateway.llms.oci.common_utils import (
     OCIError,
     sign_with_manual_credentials,
     sign_oci_request,
     validate_oci_environment,
 )
-from litellm.types.llms.oci import OCIVendors, OCIToolCall
+from token_iq.gateway.types.llms.oci import OCIVendors, OCIToolCall
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
@@ -67,10 +67,10 @@ _GENERIC_MODEL = "meta.llama-3-70b-instruct"
 # ===========================================================================
 
 
-@patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
-@patch("litellm.llms.oci.common_utils.load_private_key_from_str")
-@patch("litellm.llms.oci.common_utils.padding")
-@patch("litellm.llms.oci.common_utils.hashes")
+@patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
+@patch("token_iq.gateway.llms.oci.common_utils.load_private_key_from_str")
+@patch("token_iq.gateway.llms.oci.common_utils.padding")
+@patch("token_iq.gateway.llms.oci.common_utils.hashes")
 def test_sign_with_manual_credentials_inline_key(
     mock_hashes, mock_padding, mock_load_key
 ):
@@ -90,10 +90,10 @@ def test_sign_with_manual_credentials_inline_key(
     mock_key.sign.assert_called_once()
 
 
-@patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
-@patch("litellm.llms.oci.common_utils.load_private_key_from_file")
-@patch("litellm.llms.oci.common_utils.padding")
-@patch("litellm.llms.oci.common_utils.hashes")
+@patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
+@patch("token_iq.gateway.llms.oci.common_utils.load_private_key_from_file")
+@patch("token_iq.gateway.llms.oci.common_utils.padding")
+@patch("token_iq.gateway.llms.oci.common_utils.hashes")
 def test_sign_with_manual_credentials_key_file(
     mock_hashes, mock_padding, mock_load_file
 ):
@@ -113,10 +113,10 @@ def test_sign_with_manual_credentials_key_file(
     mock_load_file.assert_called_once_with("/tmp/key.pem")
 
 
-@patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
-@patch("litellm.llms.oci.common_utils.load_private_key_from_str")
-@patch("litellm.llms.oci.common_utils.padding")
-@patch("litellm.llms.oci.common_utils.hashes")
+@patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
+@patch("token_iq.gateway.llms.oci.common_utils.load_private_key_from_str")
+@patch("token_iq.gateway.llms.oci.common_utils.padding")
+@patch("token_iq.gateway.llms.oci.common_utils.hashes")
 def test_sign_with_manual_credentials_authorization_contains_key_id(
     mock_hashes, mock_padding, mock_load_key
 ):
@@ -154,10 +154,10 @@ def test_sign_oci_request_routes_to_signer_when_present():
     assert isinstance(body, bytes)
 
 
-@patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
-@patch("litellm.llms.oci.common_utils.load_private_key_from_str")
-@patch("litellm.llms.oci.common_utils.padding")
-@patch("litellm.llms.oci.common_utils.hashes")
+@patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
+@patch("token_iq.gateway.llms.oci.common_utils.load_private_key_from_str")
+@patch("token_iq.gateway.llms.oci.common_utils.padding")
+@patch("token_iq.gateway.llms.oci.common_utils.hashes")
 def test_sign_oci_request_routes_to_manual_when_no_signer(
     mock_hashes, mock_padding, mock_load_key
 ):
@@ -177,9 +177,9 @@ def test_sign_oci_request_routes_to_manual_when_no_signer(
 
 def test_require_cryptography_available_does_not_raise():
     """_require_cryptography() should not raise when the package is importable."""
-    from litellm.llms.oci.common_utils import _require_cryptography
+    from token_iq.gateway.llms.oci.common_utils import _require_cryptography
 
-    with patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True):
+    with patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True):
         _require_cryptography()  # must not raise
 
 
@@ -805,10 +805,10 @@ class TestOCIChatConfigGetErrorClass:
 
 
 class TestOCIChatConfigSignRequest:
-    @patch("litellm.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
-    @patch("litellm.llms.oci.common_utils.load_private_key_from_str")
-    @patch("litellm.llms.oci.common_utils.padding")
-    @patch("litellm.llms.oci.common_utils.hashes")
+    @patch("token_iq.gateway.llms.oci.common_utils._CRYPTOGRAPHY_AVAILABLE", True)
+    @patch("token_iq.gateway.llms.oci.common_utils.load_private_key_from_str")
+    @patch("token_iq.gateway.llms.oci.common_utils.padding")
+    @patch("token_iq.gateway.llms.oci.common_utils.hashes")
     def test_sign_request_delegates(self, mock_hashes, mock_padding, mock_load_key):
         mock_key = MagicMock()
         mock_key.sign.return_value = b"sig"
@@ -1029,7 +1029,7 @@ class TestOCIChatConfigTransformRequest:
 
 class TestOCIStreamWrapperChunkCreator:
     def _make_wrapper(self, model: str) -> "OCIStreamWrapper":
-        from litellm.llms.oci.chat.transformation import OCIStreamWrapper
+        from token_iq.gateway.llms.oci.chat.transformation import OCIStreamWrapper
 
         return OCIStreamWrapper(
             completion_stream=iter([]),
@@ -1097,7 +1097,7 @@ class TestOCIStreamWrapperChunkCreator:
 
 
 def test_get_sync_custom_stream_wrapper_returns_wrapper():
-    from litellm.llms.oci.chat.transformation import OCIStreamWrapper
+    from token_iq.gateway.llms.oci.chat.transformation import OCIStreamWrapper
 
     config = OCIChatConfig()
 
@@ -1128,7 +1128,7 @@ def test_get_sync_custom_stream_wrapper_returns_wrapper():
 
 @pytest.mark.asyncio
 async def test_get_async_custom_stream_wrapper_returns_wrapper():
-    from litellm.llms.oci.chat.transformation import OCIStreamWrapper
+    from token_iq.gateway.llms.oci.chat.transformation import OCIStreamWrapper
 
     config = OCIChatConfig()
 

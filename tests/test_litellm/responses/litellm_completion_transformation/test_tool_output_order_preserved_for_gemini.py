@@ -5,7 +5,7 @@ Gemini/Vertex requires tool outputs to immediately follow the assistant tool cal
 The ResponsesAPI->Chat conversion must not move tool outputs to the end.
 """
 
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
 

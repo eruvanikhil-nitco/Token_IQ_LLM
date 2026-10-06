@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 import io
-import litellm
+from token_iq import gateway as litellm
 from test_streaming import streaming_format_tests
 
 
@@ -13,9 +13,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.litellm_core_utils.prompt_templates.factory import anthropic_messages_pt
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
 
 # litellm.num_retries =3
 litellm.cache = None
@@ -24,7 +24,7 @@ user_message = "Write a short poem about the sky"
 messages = [{"content": user_message, "role": "user"}]
 import logging
 
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 
 
 def logger_fn(user_model_dict):
@@ -88,7 +88,7 @@ async def test_completion_sagemaker_messages_api(sync_mode):
         litellm.set_verbose = True
         verbose_logger.setLevel(logging.DEBUG)
         print("testing sagemaker")
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
         if sync_mode is True:
             client = HTTPHandler()
@@ -269,7 +269,7 @@ async def test_acompletion_sagemaker_non_stream():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
@@ -329,7 +329,7 @@ async def test_completion_sagemaker_non_stream():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
@@ -390,7 +390,7 @@ async def test_completion_sagemaker_prompt_template_non_stream():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
@@ -446,7 +446,7 @@ async def test_completion_sagemaker_non_stream_with_aws_params():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function

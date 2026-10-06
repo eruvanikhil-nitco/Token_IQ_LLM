@@ -13,17 +13,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy._types import (
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.common_utils.model_listing_utils import (
+from token_iq.gateway.proxy.common_utils.model_listing_utils import (
     TeamModelNameTranslator,
     configured_display_names,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     _get_proxy_model_info,
     _translate_model_name_for_response,
 )
@@ -126,7 +126,7 @@ async def test_model_info_v2_translates_team_model_name(monkeypatch):
     monkeypatch.setattr(
         ps, "_enrich_model_info_with_litellm_data", lambda model, **kw: model
     )
-    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+    import token_iq.gateway.proxy.agent_endpoints.model_list_helpers as mlh
 
     monkeypatch.setattr(
         mlh,
@@ -182,7 +182,7 @@ async def test_model_info_v2_exact_model_filter_matches_team_public_name(monkeyp
     monkeypatch.setattr(
         ps, "_enrich_model_info_with_litellm_data", lambda model, **kw: model
     )
-    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+    import token_iq.gateway.proxy.agent_endpoints.model_list_helpers as mlh
 
     monkeypatch.setattr(
         mlh,
@@ -1421,8 +1421,8 @@ async def test_retrieve_model_by_public_name_returns_200(monkeypatch):
     advertises the public team name, so retrieve must accept the same name,
     resolve it to the internal routing key for lookup, and echo the public name
     back as the model id."""
-    import litellm
-    import litellm.proxy.utils as proxy_utils
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.utils as proxy_utils
 
     team_row = _team_row()
     router = _public_named_router(team_row)
@@ -1457,8 +1457,8 @@ async def test_retrieve_model_by_internal_name_returns_public_id(monkeypatch):
     public id `/v1/models` advertises for that deployment, not the path. Otherwise
     a client iterating the listing's id and then retrieving each one would observe
     a different id depending on which alias they queried by."""
-    import litellm
-    import litellm.proxy.utils as proxy_utils
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
     deployment = MagicMock()
@@ -1490,8 +1490,8 @@ async def test_retrieve_model_by_internal_name_keeps_internal_id_when_flag_disab
 ):
     """With `use_team_public_model_name=false`, retrieve must keep the internal
     routing key as the response id, mirroring `/v1/models`' legacy output."""
-    import litellm
-    import litellm.proxy.utils as proxy_utils
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
     deployment = MagicMock()
@@ -1521,8 +1521,8 @@ async def test_retrieve_model_by_internal_name_keeps_internal_id_when_flag_disab
 async def test_retrieve_model_by_inaccessible_public_name_404s(monkeypatch):
     """A caller without access to a team model still gets 404 when retrieving by
     its public name; resolution never crosses the access boundary."""
-    import litellm
-    import litellm.proxy.utils as proxy_utils
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
     deployment = MagicMock()

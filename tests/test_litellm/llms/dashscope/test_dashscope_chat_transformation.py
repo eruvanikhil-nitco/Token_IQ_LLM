@@ -7,12 +7,12 @@ DashScope is an OpenAI-compatible provider with minor customizations.
 
 
 
-from litellm.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.llms.openai import AllMessageValues
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.llms.dashscope.chat.transformation import DashScopeChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.dashscope.chat.transformation import DashScopeChatConfig
 
 
 class TestDashScopeConfig:

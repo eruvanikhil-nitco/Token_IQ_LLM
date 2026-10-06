@@ -71,7 +71,7 @@ LIT010  Variable assignment without a `Final` declaration. Every local and modul
         assignments inside a `for`/`while` body (pyright forbids Final in a loop;
         this exemption applies everywhere, including under `global`), valueless
         declarations (`x: int` binds nothing), dunder names, `_`, class bodies,
-        `TypeAlias` declarations, and module-level names in `litellm/__init__.py`:
+        `TypeAlias` declarations, and module-level names in `token_iq/gateway/__init__.py`:
         that namespace is the SDK's runtime-settable config surface (users follow
         the documented `litellm.api_key = ...` pattern and the proxy rebinds these
         via setattr), and the package ships py.typed, so a Final there turns every

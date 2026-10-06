@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from botocore.credentials import Credentials
 from typing import Dict, Any
-from litellm.llms.bedrock.base_aws_llm import (
+from token_iq.gateway.llms.bedrock.base_aws_llm import (
     BaseAWSLLM,
     AwsAuthError,
     Boto3CredentialsInfo,
@@ -37,7 +37,7 @@ def test_get_cache_key(base_aws_llm):
 
 # Test web identity token authentication
 @patch("boto3.client")
-@patch("litellm.llms.bedrock.base_aws_llm.get_secret")  # Add this patch
+@patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret")  # Add this patch
 def test_auth_with_web_identity_token(mock_get_secret, mock_boto3_client, base_aws_llm):
     # Mock get_secret to return a token
     mock_get_secret.return_value = "mocked_oidc_token"

@@ -18,7 +18,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from litellm.integrations.opentelemetry import OpenTelemetry, OpenTelemetryConfig
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry, OpenTelemetryConfig
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ def _make_arize_phoenix_logger(exporter: InMemorySpanExporter):
     ArizePhoenixLogger._init_tracing creates its own TracerProvider, so we
     pass the exporter via config and let it build the provider internally.
     """
-    from litellm.integrations.arize.arize_phoenix import ArizePhoenixLogger
+    from token_iq.gateway.integrations.arize.arize_phoenix import ArizePhoenixLogger
 
     config = OpenTelemetryConfig(exporter=exporter)
     return ArizePhoenixLogger(config=config, callback_name="arize_phoenix")
@@ -56,7 +56,7 @@ def _make_arize_logger(exporter: InMemorySpanExporter):
     ArizeLogger._init_tracing creates its own TracerProvider, so we pass
     the exporter via config and let it build the provider internally.
     """
-    from litellm.integrations.arize.arize import ArizeLogger
+    from token_iq.gateway.integrations.arize.arize import ArizeLogger
 
     config = OpenTelemetryConfig(exporter=exporter)
     return ArizeLogger(config=config, callback_name="arize")
@@ -131,7 +131,7 @@ class TestOtelDedupCheck(unittest.TestCase):
     """The ``otel`` callback dedup must use exact type check, not isinstance."""
 
     def test_arize_phoenix_logger_is_not_matched_by_otel_dedup(self):
-        from litellm.integrations.arize.arize_phoenix import ArizePhoenixLogger
+        from token_iq.gateway.integrations.arize.arize_phoenix import ArizePhoenixLogger
 
         phoenix_logger = _make_arize_phoenix_logger(InMemorySpanExporter())
 
@@ -140,7 +140,7 @@ class TestOtelDedupCheck(unittest.TestCase):
         assert type(phoenix_logger) is not OpenTelemetry
 
     def test_arize_logger_is_not_matched_by_otel_dedup(self):
-        from litellm.integrations.arize.arize import ArizeLogger
+        from token_iq.gateway.integrations.arize.arize import ArizeLogger
 
         arize_logger = _make_arize_logger(InMemorySpanExporter())
 
@@ -155,16 +155,16 @@ class TestOtelDedupCheck(unittest.TestCase):
 class TestProxyLoggerNotOverwritten(unittest.TestCase):
     """Arize / Phoenix must not overwrite ``proxy_server.open_telemetry_logger``."""
 
-    @patch("litellm.proxy.proxy_server.open_telemetry_logger", None)
+    @patch("token_iq.gateway.proxy.proxy_server.open_telemetry_logger", None)
     def test_arize_phoenix_does_not_set_proxy_otel_logger(self):
-        from litellm.proxy import proxy_server
+        from token_iq.gateway.proxy import proxy_server
 
         _make_arize_phoenix_logger(InMemorySpanExporter())
         assert proxy_server.open_telemetry_logger is None
 
-    @patch("litellm.proxy.proxy_server.open_telemetry_logger", None)
+    @patch("token_iq.gateway.proxy.proxy_server.open_telemetry_logger", None)
     def test_arize_does_not_set_proxy_otel_logger(self):
-        from litellm.proxy import proxy_server
+        from token_iq.gateway.proxy import proxy_server
 
         _make_arize_logger(InMemorySpanExporter())
         assert proxy_server.open_telemetry_logger is None
@@ -176,13 +176,13 @@ class TestPhoenixAutoInitWithOtelOnly(unittest.TestCase):
 
     def setUp(self):
         """Save original callbacks to restore after each test."""
-        import litellm
+        from token_iq import gateway as litellm
 
         self._original_callbacks = litellm.callbacks[:]
 
     def tearDown(self):
         """Restore original callbacks to prevent global state leakage."""
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.callbacks = self._original_callbacks
 
@@ -194,8 +194,8 @@ class TestPhoenixAutoInitWithOtelOnly(unittest.TestCase):
         clear=False,
     )
     def test_auto_init_creates_phoenix_logger(self):
-        from litellm.integrations.arize.arize_phoenix import ArizePhoenixLogger
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.integrations.arize.arize_phoenix import ArizePhoenixLogger
+        from token_iq.gateway.core_utils.litellm_logging import (
             _maybe_auto_initialize_arize_phoenix,
         )
 
@@ -210,8 +210,8 @@ class TestPhoenixAutoInitWithOtelOnly(unittest.TestCase):
         ), "Phoenix logger should be auto-initialized when env vars are set"
 
     def test_no_auto_init_without_env_vars(self):
-        from litellm.integrations.arize.arize_phoenix import ArizePhoenixLogger
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.integrations.arize.arize_phoenix import ArizePhoenixLogger
+        from token_iq.gateway.core_utils.litellm_logging import (
             _maybe_auto_initialize_arize_phoenix,
         )
 

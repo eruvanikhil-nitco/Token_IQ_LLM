@@ -13,9 +13,9 @@ import pytest
 
 import httpx
 
-from litellm.llms.custom_httpx.llm_http_handler import AsyncHTTPHandler
-from litellm.llms.vertex_ai.files.transformation import VertexAIFilesConfig
-from litellm.types.llms.openai import CreateFileRequest
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.vertex_ai.files.transformation import VertexAIFilesConfig
+from token_iq.gateway.types.llms.openai import CreateFileRequest
 
 
 class TestVertexAIBinaryFileUpload:

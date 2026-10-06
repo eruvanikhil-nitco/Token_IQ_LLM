@@ -2,8 +2,8 @@
 import pytest
 
 
-import litellm
-from litellm.llms.azure_ai.rerank.transformation import AzureAIRerankConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure_ai.rerank.transformation import AzureAIRerankConfig
 
 
 class TestAzureAIRerankConfigGetCompleteUrl:

@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
@@ -71,14 +71,14 @@ def _patch_org_admin_deps(get_user_return):
     """Context manager that patches the lazy imports inside _is_user_org_admin_for_team."""
     return (
         patch(
-            "litellm.proxy.auth.auth_checks.get_user_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_user_object",
             new_callable=AsyncMock,
             return_value=get_user_return,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock(), create=True),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock(), create=True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock(), create=True),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock(), create=True),
         patch(
-            "litellm.proxy.proxy_server.user_api_key_cache", MagicMock(), create=True
+            "token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock(), create=True
         ),
     )
 
@@ -93,7 +93,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_org_admin_for_teams_org_returns_true(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -110,7 +110,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_org_admin_different_org_returns_false(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -127,7 +127,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_team_without_org_returns_false(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -138,7 +138,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_org_member_not_admin_returns_false(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -155,7 +155,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_no_user_id_returns_false(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -175,7 +175,7 @@ class TestValidateMembership:
 
     @pytest.mark.asyncio
     async def test_proxy_admin_allowed(self):
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             validate_membership,
         )
 
@@ -185,7 +185,7 @@ class TestValidateMembership:
 
     @pytest.mark.asyncio
     async def test_direct_team_member_allowed(self):
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             validate_membership,
         )
 
@@ -195,7 +195,7 @@ class TestValidateMembership:
 
     @pytest.mark.asyncio
     async def test_org_admin_for_team_org_allowed(self):
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             validate_membership,
         )
 
@@ -210,7 +210,7 @@ class TestValidateMembership:
     @pytest.mark.asyncio
     async def test_non_member_non_org_admin_rejected(self):
         from fastapi import HTTPException
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             validate_membership,
         )
 
@@ -228,7 +228,7 @@ class TestValidateMembership:
 
     @pytest.mark.asyncio
     async def test_team_key_matches_team_allowed(self):
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             validate_membership,
         )
 
@@ -251,7 +251,7 @@ class TestUserIsOrgAdminRouteCheck:
     """
 
     def test_no_candidate_org_ids_returns_false(self):
-        from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
+        from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
 
         user = LiteLLM_UserTable(
             user_id="org-admin-user",
@@ -261,7 +261,7 @@ class TestUserIsOrgAdminRouteCheck:
         assert result is False, "Must NOT grant blanket access when no org in request"
 
     def test_matching_org_id_returns_true(self):
-        from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
+        from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
 
         user = LiteLLM_UserTable(
             user_id="org-admin-user",
@@ -273,7 +273,7 @@ class TestUserIsOrgAdminRouteCheck:
         assert result is True
 
     def test_non_matching_org_id_returns_false(self):
-        from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
+        from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
 
         user = LiteLLM_UserTable(
             user_id="org-admin-user",
@@ -285,7 +285,7 @@ class TestUserIsOrgAdminRouteCheck:
         assert result is False
 
     def test_organizations_list_field(self):
-        from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
+        from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
 
         user = LiteLLM_UserTable(
             user_id="org-admin-user",
@@ -297,13 +297,13 @@ class TestUserIsOrgAdminRouteCheck:
         assert result is True
 
     def test_none_user_object_returns_false(self):
-        from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
+        from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
 
         result = _user_is_org_admin(request_data={}, user_object=None)
         assert result is False
 
     def test_user_list_in_self_managed_routes(self):
         """Verify /user/list is in self_managed_routes so org admins can reach it."""
-        from litellm.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import LiteLLMRoutes
 
         assert "/user/list" in LiteLLMRoutes.self_managed_routes.value

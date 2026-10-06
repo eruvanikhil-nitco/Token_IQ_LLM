@@ -10,15 +10,15 @@ import pytest
 from datetime import datetime
 from typing import Optional
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.mcp import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.mcp import (
     MCPPreCallRequestObject,
     MCPPreCallResponseObject,
     MCPDuringCallRequestObject,
     MCPDuringCallResponseObject,
     MCPPostCallResponseObject,
 )
-from litellm.types.llms.base import HiddenParams
+from token_iq.gateway.types.llms.base import HiddenParams
 
 
 class TestMCPAccessControlHook(CustomLogger):

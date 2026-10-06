@@ -2,11 +2,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     _base_vertex_proxy_route,
 )
-from litellm.types.router import DeploymentTypedDict
+from token_iq.gateway.types.router import DeploymentTypedDict
 
 
 @pytest.mark.asyncio
@@ -35,30 +35,30 @@ async def test_vertex_passthrough_load_balancing():
     # Mock get_vertex_model_id_from_url to return a model ID
     with (
         patch(
-            "litellm.llms.vertex_ai.common_utils.get_vertex_model_id_from_url",
+            "token_iq.gateway.llms.vertex_ai.common_utils.get_vertex_model_id_from_url",
             return_value="gemini-pro",
         ),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
         patch(
-            "litellm.llms.vertex_ai.common_utils.get_vertex_project_id_from_url",
+            "token_iq.gateway.llms.vertex_ai.common_utils.get_vertex_project_id_from_url",
             return_value=None,
         ),
         patch(
-            "litellm.llms.vertex_ai.common_utils.get_vertex_location_from_url",
+            "token_iq.gateway.llms.vertex_ai.common_utils.get_vertex_location_from_url",
             return_value=None,
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router"
         ) as mock_pt_router,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints._prepare_vertex_auth_headers",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._prepare_vertex_auth_headers",
             new_callable=AsyncMock,
         ) as mock_prep_headers,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
         ) as mock_create_route,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
             new_callable=AsyncMock,
         ) as mock_auth,
     ):
@@ -108,8 +108,8 @@ def test_get_available_deployment_for_pass_through_no_deployments():
     """
     Test that correct error is thrown when there are no pass-through deployments
     """
-    import litellm
-    from litellm.router import Router
+    from token_iq import gateway as litellm
+    from token_iq.gateway.router import Router
 
     model_list = [
         {
@@ -139,7 +139,7 @@ async def test_async_get_available_deployment_for_pass_through():
     """
     Test the async version of get_available_deployment_for_pass_through
     """
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     model_list = [
         {
@@ -175,8 +175,8 @@ async def test_vertex_passthrough_forwards_anthropic_beta_header():
     """
     from starlette.datastructures import Headers
 
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         _prepare_vertex_auth_headers,
     )
 
@@ -278,8 +278,8 @@ async def test_vertex_passthrough_does_not_forward_litellm_auth_token():
     """
     from starlette.datastructures import Headers
 
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         _prepare_vertex_auth_headers,
     )
 
@@ -359,7 +359,7 @@ def test_forward_headers_from_request_x_pass_prefix():
     This is tested on BasePassthroughUtils.forward_headers_from_request which is used
     by all pass-through endpoints (not just Vertex AI).
     """
-    from litellm.passthrough.utils import BasePassthroughUtils
+    from token_iq.gateway.passthrough.utils import BasePassthroughUtils
 
     # Simulate incoming request headers
     request_headers = {
@@ -406,7 +406,7 @@ def test_forward_headers_from_request_protected_headers_not_overwritten():
     protocol-level header names are silently dropped and do not overwrite
     values already present in the outbound headers dict.
     """
-    from litellm.passthrough.utils import BasePassthroughUtils
+    from token_iq.gateway.passthrough.utils import BasePassthroughUtils
 
     proxy_headers = {
         "authorization": "Bearer proxy-upstream-key",
@@ -459,7 +459,7 @@ def test_forward_headers_custom_wins_case_insensitive_over_request_authorization
     When forwarding request headers, provider-signed/custom headers must win
     even if the incoming request uses a different case for the same header name.
     """
-    from litellm.passthrough.utils import BasePassthroughUtils
+    from token_iq.gateway.passthrough.utils import BasePassthroughUtils
 
     request_headers = {
         "authorization": "Bearer sk-litellm-key",
@@ -492,7 +492,7 @@ def test_forward_headers_never_forwards_client_accept_encoding():
     the proxy relay raw compressed bytes with the content-encoding header stripped
     (garbled JSON for /v1/models and count_tokens through the Anthropic passthrough).
     """
-    from litellm.passthrough.utils import BasePassthroughUtils
+    from token_iq.gateway.passthrough.utils import BasePassthroughUtils
 
     request_headers = {
         "accept-encoding": "gzip, deflate, br, zstd",
@@ -547,19 +547,19 @@ async def test_vertex_passthrough_custom_model_name_replaced_in_url():
     test_endpoint = "v1/projects/nv-gcpllmgwit-20250411173346/locations/global/publishers/google/models/gcp/google/gemini-3-pro:generateContent"
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router"
         ) as mock_pt_router,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints._prepare_vertex_auth_headers",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._prepare_vertex_auth_headers",
             new_callable=AsyncMock,
         ) as mock_prep_headers,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
         ) as mock_create_route,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
             new_callable=AsyncMock,
         ) as mock_auth,
     ):

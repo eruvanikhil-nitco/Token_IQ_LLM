@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestTavilySearch:
@@ -43,7 +43,7 @@ class TestTavilySearch:
 
         # Mock the httpx AsyncClient post method
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response

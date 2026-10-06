@@ -5,14 +5,14 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm.responses.litellm_completion_transformation import session_handler
-from litellm.responses.litellm_completion_transformation.session_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.responses.litellm_completion_transformation import session_handler
+from token_iq.gateway.responses.litellm_completion_transformation.session_handler import (
     ResponsesSessionHandler,
     _normalize_redacted_tool_call_arguments,
 )
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.utils import Message
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.utils import Message
 
 
 @pytest.mark.asyncio
@@ -222,7 +222,7 @@ async def test_e2e_cold_storage_successful_retrieval():
             new_callable=AsyncMock,
         ) as mock_get_spend_logs,
         patch.object(session_handler, "COLD_STORAGE_HANDLER") as mock_cold_storage,
-        patch("litellm.cold_storage_custom_logger", return_value="s3"),
+        patch("token_iq.gateway.cold_storage_custom_logger", return_value="s3"),
     ):
 
         # Setup mocks
@@ -347,7 +347,7 @@ async def test_should_check_cold_storage_for_full_payload():
     # Test case 4: None request (should return True)
     proxy_request_none = None
 
-    with patch("litellm.cold_storage_custom_logger", return_value="s3"):
+    with patch("token_iq.gateway.cold_storage_custom_logger", return_value="s3"):
         # Test case 1: Should return True for truncated content
         result1 = ResponsesSessionHandler._should_check_cold_storage_for_full_payload(
             proxy_request_with_truncated_pdf
@@ -539,7 +539,7 @@ async def test_message_history_retries_a_spend_log_the_batch_writer_has_not_flus
     )
     fake_prisma_client = _FakePrismaClient(results=[[], [spend_log]])
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma_client):
         result = await ResponsesSessionHandler.get_chat_completion_message_history_for_previous_response_id(
             request_id
         )
@@ -567,7 +567,7 @@ async def test_message_history_reconstructs_every_turn_of_the_session_in_order()
         ]
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma_client):
         result = await ResponsesSessionHandler.get_chat_completion_message_history_for_previous_response_id(
             second_request_id
         )
@@ -588,7 +588,7 @@ async def test_session_lookup_stops_retrying_once_the_budget_is_spent(
 ):
     fake_prisma_client = _FakePrismaClient(results=[])
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma_client):
         spend_logs = await ResponsesSessionHandler.get_all_spend_logs_for_previous_response_id(
             "chatcmpl-does-not-exist"
         )
@@ -613,7 +613,7 @@ async def test_message_history_looks_up_the_decoded_chat_completion_id():
         results=[[_spend_log(request_id, "session-a", "Hello.", "Hi.")]]
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma_client):
         await ResponsesSessionHandler.get_all_spend_logs_for_previous_response_id(
             encoded_response_id
         )
@@ -631,8 +631,8 @@ async def test_session_lookup_does_not_retry_when_spend_logs_are_disabled(
     """
     fake_prisma_client = _FakePrismaClient(results=[])
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma_client), patch(
-        "litellm.proxy.proxy_server.disable_spend_logs", True
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma_client), patch(
+        "token_iq.gateway.proxy.proxy_server.disable_spend_logs", True
     ):
         spend_logs = await ResponsesSessionHandler.get_all_spend_logs_for_previous_response_id(
             "chatcmpl-does-not-exist"

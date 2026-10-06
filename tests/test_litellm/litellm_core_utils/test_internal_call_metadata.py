@@ -1,11 +1,11 @@
 """Unit tests for internal-call metadata forwarding: budget-reservation stripping and origin stamping."""
 
-from litellm.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
-from litellm.litellm_core_utils.internal_call_metadata import (
+from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
+from token_iq.gateway.core_utils.internal_call_metadata import (
     forwarded_internal_call_metadata,
     sanitized_forwardable_call_metadata,
 )
-from litellm.types.utils import SHADOW_EVAL_ROUTER_CALL_ORIGIN
+from token_iq.gateway.types.utils import SHADOW_EVAL_ROUTER_CALL_ORIGIN
 
 PARENT = {
     "user_api_key": "sk-hash",
@@ -54,8 +54,8 @@ class TestSubCallMetadataSanitization:
     from sub-call metadata, in either of the shapes it knows how to read."""
 
     def test_cost_callback_cannot_recover_reservation_from_sanitized_metadata(self):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.proxy_track_cost_callback import (
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import (
             _get_budget_reservation_from_metadata,
         )
 
@@ -84,7 +84,7 @@ class TestSubCallMetadataSanitization:
         get_litellm_metadata_from_kwargs prefers litellm_metadata whenever truthy, so an
         origin-only dict would make an empty litellm_metadata win and silently drop
         requester_ip_address, tags and spend_logs_metadata from the classifier's row."""
-        from litellm.litellm_core_utils.core_helpers import get_litellm_metadata_from_kwargs
+        from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
 
         parent = {
             "user_api_key": "sk-abc",
@@ -106,7 +106,7 @@ class TestSubCallMetadataSanitization:
         assert resolved["tags"] == ["prod"]
 
     def test_sanitized_auth_keeps_access_group_fields_and_leaves_original_untouched(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         auth = UserAPIKeyAuth(
             api_key="sk-abc",

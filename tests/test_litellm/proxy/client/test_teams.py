@@ -3,7 +3,7 @@ import time
 import pytest
 import requests
 
-from litellm.proxy.client.teams import TeamsManagementClient
+from token_iq.gateway.proxy.client.teams import TeamsManagementClient
 
 
 def test_list_gives_up_at_the_timeout_instead_of_hanging(hanging_server):

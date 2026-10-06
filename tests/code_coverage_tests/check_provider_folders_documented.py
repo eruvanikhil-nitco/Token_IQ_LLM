@@ -2,8 +2,8 @@
 Code coverage test to ensure all provider folders are documented.
 
 This script validates that:
-1. Every provider folder in litellm/llms/ has a corresponding entry in provider_endpoints_support.json
-2. Every provider in litellm/llms/openai_like/providers.json is documented in provider_endpoints_support.json
+1. Every provider folder in token_iq/gateway/llms/ has a corresponding entry in provider_endpoints_support.json
+2. Every provider in token_iq/gateway/llms/openai_like/providers.json is documented in provider_endpoints_support.json
 """
 
 import json
@@ -46,7 +46,7 @@ def get_repo_root() -> Path:
 
 
 def get_llm_provider_folders() -> Set[str]:
-    """Get all provider folder names from litellm/llms directory."""
+    """Get all provider folder names from token_iq/gateway/llms directory."""
     repo_root = get_repo_root()
     llms_dir = repo_root / "litellm" / "llms"
 
@@ -78,7 +78,7 @@ def load_provider_endpoints_file() -> Dict:
 
 
 def get_openai_like_providers() -> Set[str]:
-    """Get all provider names from litellm/llms/openai_like/providers.json."""
+    """Get all provider names from token_iq/gateway/llms/openai_like/providers.json."""
     repo_root = get_repo_root()
     providers_file = repo_root / "litellm" / "llms" / "openai_like" / "providers.json"
 
@@ -135,8 +135,8 @@ def main():
 
     has_errors = False
 
-    # Check 1: Provider folders in litellm/llms
-    print("\n📁 Checking provider folders in litellm/llms/...")
+    # Check 1: Provider folders in token_iq/gateway/llms
+    print("\n📁 Checking provider folders in token_iq/gateway/llms/...")
     provider_folders = get_llm_provider_folders()
     print(f"✓ Found {len(provider_folders)} provider folders")
 
@@ -194,7 +194,7 @@ def main():
         error_msg = "\n❌ ERROR: The following provider folders are not documented:\n"
         error_msg += "=" * 70 + "\n"
         for folder in undocumented_folders:
-            error_msg += f"  - litellm/llms/{folder}/\n"
+            error_msg += f"  - token_iq/gateway/llms/{folder}/\n"
 
         error_msg += "\n" + "=" * 70 + "\n"
         error_msg += f"\n💡 To fix: Add entries for these {len(undocumented_folders)} provider(s)\n"

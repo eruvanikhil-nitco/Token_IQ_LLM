@@ -7,7 +7,7 @@ import sys
 if sys.version_info < (3, 11):  # BaseExceptionGroup is a builtin only from 3.11
     from exceptiongroup import BaseExceptionGroup
 
-from litellm.proxy._experimental.mcp_server.faults import iter_exception_tree
+from token_iq.gateway.proxy._experimental.mcp_server.faults import iter_exception_tree
 
 
 def test_yields_the_root_itself_first():

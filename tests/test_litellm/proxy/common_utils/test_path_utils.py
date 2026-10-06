@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from litellm.proxy.common_utils.path_utils import safe_filename, safe_join
+from token_iq.gateway.proxy.common_utils.path_utils import safe_filename, safe_join
 
 
 class TestSafeJoin:

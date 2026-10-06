@@ -6,8 +6,8 @@ and non-string objects (e.g. Pydantic BaseModel events from the Responses API) p
 import pytest
 from pydantic import BaseModel
 
-from litellm.llms.base_llm.base_model_iterator import BaseModelResponseIterator
-from litellm.types.utils import GenericStreamingChunk
+from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
+from token_iq.gateway.types.utils import GenericStreamingChunk
 
 
 class TestBaseModelResponseIterator:

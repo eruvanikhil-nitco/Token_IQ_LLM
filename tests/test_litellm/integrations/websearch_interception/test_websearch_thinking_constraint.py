@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
 
@@ -65,7 +65,7 @@ class TestThinkingBudgetTokensConstraint:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -101,7 +101,7 @@ class TestThinkingBudgetTokensConstraint:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -137,7 +137,7 @@ class TestThinkingBudgetTokensConstraint:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -173,7 +173,7 @@ class TestThinkingBudgetTokensConstraint:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -206,7 +206,7 @@ class TestThinkingBudgetTokensConstraint:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -293,7 +293,7 @@ class TestLoggingObjExcludedFromFollowUp:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -334,7 +334,7 @@ class TestLoggingObjExcludedFromFollowUp:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -384,7 +384,7 @@ class TestFollowUpErrorScenarios:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fail_acreate,
             ),
             patch.object(
@@ -416,7 +416,7 @@ class TestFollowUpErrorScenarios:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(
@@ -463,7 +463,7 @@ class TestFollowUpErrorScenarios:
 
         with (
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 side_effect=_fake_acreate,
             ),
             patch.object(

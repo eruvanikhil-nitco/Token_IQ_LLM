@@ -1,8 +1,8 @@
 import sys, os
 import pytest
 
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
 from unittest.mock import patch
 import json
 
@@ -12,8 +12,8 @@ def test_initialize_deployment_for_pass_through_success(reusable_credentials):
     """
     Test successful initialization of a Vertex AI pass-through deployment
     """
-    from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
-    from litellm.types.utils import CredentialItem
+    from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
+    from token_iq.gateway.types.utils import CredentialItem
 
     vertex_project = "test-project"
     vertex_location = "us-central1"
@@ -60,7 +60,7 @@ def test_initialize_deployment_for_pass_through_success(reusable_credentials):
     )
 
     # Verify the credentials were properly set
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         passthrough_endpoint_router,
     )
 
@@ -145,7 +145,7 @@ def test_add_vertex_pass_through_deployment():
     router.add_deployment(deployment)
 
     # Get the vertex credentials from the router
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         passthrough_endpoint_router,
     )
 

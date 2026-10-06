@@ -11,15 +11,16 @@ from unittest.mock import Mock, patch
 
 # Import modules that need to be reloaded
 import importlib
-import litellm.litellm_core_utils.get_model_cost_map
-import litellm
+import token_iq.gateway.core_utils.get_model_cost_map
+from token_iq import gateway as litellm
+from token_iq import gateway as litellm
 
 # Reload modules to pick up environment variable
-importlib.reload(litellm.litellm_core_utils.get_model_cost_map)
+importlib.reload(litellm.core_utils.get_model_cost_map)
 importlib.reload(litellm)
 
-from litellm import completion
-from litellm.llms.bedrock.common_utils import (
+from token_iq.gateway import completion
+from token_iq.gateway.llms.bedrock.common_utils import (
     BedrockModelInfo,
     AmazonBedrockGlobalConfig,
 )
@@ -42,7 +43,7 @@ class TestBedrockGovCloudSupport:
 
     def test_govcloud_models_in_model_cost(self):
         """Test that GovCloud models are present in model cost configuration"""
-        from litellm import model_cost
+        from token_iq.gateway import model_cost
 
         # Test Claude models in GovCloud
         assert (
@@ -115,14 +116,14 @@ class TestBedrockGovCloudSupport:
         )
         assert base_model == "meta.llama3-8b-instruct-v1:0"
 
-    @patch("litellm.llms.bedrock.common_utils.init_bedrock_client")
+    @patch("token_iq.gateway.llms.bedrock.common_utils.init_bedrock_client")
     def test_govcloud_client_initialization(self, mock_init_client):
         """Test that Bedrock client can be initialized with GovCloud regions"""
         mock_client = Mock()
         mock_init_client.return_value = mock_client
 
         # Test that init_bedrock_client accepts GovCloud regions
-        from litellm.llms.bedrock.common_utils import init_bedrock_client
+        from token_iq.gateway.llms.bedrock.common_utils import init_bedrock_client
 
         # This should not raise an error
         client = init_bedrock_client(
@@ -150,7 +151,7 @@ class TestBedrockGovCloudSupport:
 
     def test_govcloud_model_cost_properties(self):
         """Test that GovCloud models have proper cost configuration"""
-        from litellm import model_cost
+        from token_iq.gateway import model_cost
 
         # Check a specific GovCloud model has all required properties
         govcloud_model = model_cost[
@@ -167,7 +168,7 @@ class TestBedrockGovCloudSupport:
 
     def test_govcloud_model_pricing_verification(self):
         """Test that GovCloud models have correct pricing that differs from base models"""
-        from litellm import model_cost
+        from token_iq.gateway import model_cost
 
         # Claude Haiku 4.5 commercial list pricing is under the us.* inference profile id
         base_model = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
@@ -277,11 +278,11 @@ class TestBedrockGovCloudSupport:
             == base_haiku_pricing["output_cost_per_token"] * 1.2
         )
 
-    @patch("litellm.completion")
+    @patch("token_iq.gateway.completion")
     def test_govcloud_completion_cost_calculation(self, mock_completion):
         """Test that completion requests use correct pricing for GovCloud models"""
-        from litellm import completion_cost, Choices, Message, ModelResponse
-        from litellm.utils import Usage
+        from token_iq.gateway import completion_cost, Choices, Message, ModelResponse
+        from token_iq.gateway.utils import Usage
 
         # Mock completion response for base model
         # Use us.* inference profile ID to match us.* pricing ($1.10/$5.50 per MTok)
@@ -472,7 +473,7 @@ class TestBedrockGovCloudSupport:
             abs(large_gov_cost / large_base_cost - 1.2) < 0.15
         ), f"Large gov cost should be ~20% higher than base: got {large_gov_cost}, base {large_base_cost}"
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_govcloud_completion_with_cost_tracking(self, mock_post):
         """Test that completion requests with cost tracking use correct pricing for GovCloud models"""
         from unittest.mock import Mock
@@ -538,7 +539,7 @@ class TestBedrockGovCloudSupport:
         assert mock_post.call_count == 3
 
         # Verify usage information is present
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         assert isinstance(base_result, ModelResponse)
         assert isinstance(gov_east_result, ModelResponse)
@@ -617,8 +618,8 @@ class TestBedrockGovCloudSupport:
 
     def test_govcloud_cost_per_token_with_region(self):
         """Test that cost_per_token function correctly uses region-based pricing for GovCloud models"""
-        from litellm import cost_per_token
-        from litellm.utils import Usage
+        from token_iq.gateway import cost_per_token
+        from token_iq.gateway.utils import Usage
 
         # Test usage object
         usage = Usage(prompt_tokens=20, completion_tokens=10, total_tokens=30)

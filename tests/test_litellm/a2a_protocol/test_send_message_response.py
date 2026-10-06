@@ -1,6 +1,6 @@
 """Tests for LiteLLMSendMessageResponse JSON-RPC normalization."""
 
-from litellm.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
 
 
 def test_from_dict_backfills_id_on_agent_error_response():

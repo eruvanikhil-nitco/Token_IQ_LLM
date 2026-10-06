@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 logging.basicConfig(level=logging.DEBUG)
 
-import litellm
-from litellm import completion
-from litellm.caching import InMemoryCache
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.caching import InMemoryCache
 
 litellm.num_retries = 3
 litellm.success_callback = ["langfuse"]
@@ -210,7 +210,7 @@ def create_async_task(**completion_kwargs):
 @pytest.mark.flaky(retries=12, delay=2)
 async def test_langfuse_logging_without_request_response(stream, langfuse_client):
     try:
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
 
         _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
         litellm.set_verbose = True
@@ -274,7 +274,7 @@ async def test_langfuse_logging_audio_transcriptions(langfuse_client):
     """
     Test that creates a trace with masked input and output
     """
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
     litellm.set_verbose = True
@@ -312,7 +312,7 @@ async def test_langfuse_masked_input_output(langfuse_client):
     """
     Test that creates a trace with masked input and output
     """
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     for mask_value in [True, False]:
         _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
@@ -362,7 +362,7 @@ async def test_aaalangfuse_logging_metadata(langfuse_client):
     Release is just set for the trace
     Tags is just set for the trace
     """
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     litellm.set_verbose = True
     litellm.success_callback = ["langfuse"]
@@ -849,7 +849,7 @@ generation_params = {
 )
 def test_langfuse_prompt_type(prompt):
 
-    from litellm.integrations.langfuse.langfuse import _add_prompt_to_generation_params
+    from token_iq.gateway.integrations.langfuse.langfuse import _add_prompt_to_generation_params
     from unittest.mock import patch, MagicMock, Mock
 
     clean_metadata = {
@@ -960,7 +960,7 @@ def test_langfuse_prompt_type(prompt):
 
 
 def test_langfuse_logging_metadata():
-    from litellm.integrations.langfuse.langfuse import log_requester_metadata
+    from token_iq.gateway.integrations.langfuse.langfuse import log_requester_metadata
 
     metadata = {"key": "value", "requester_metadata": {"key": "value"}}
 

@@ -5,10 +5,10 @@ lazily on its first export (in the BatchSpanProcessor worker thread)."""
 import httpx
 import pytest
 
-from litellm.integrations.otel.plumbing import providers
-from litellm.integrations.otel.model.config import ExporterSpec
-from litellm.integrations.otel.presets import agentops as agentops_mod
-from litellm.integrations.otel.presets.agentops import (
+from token_iq.gateway.integrations.otel.plumbing import providers
+from token_iq.gateway.integrations.otel.model.config import ExporterSpec
+from token_iq.gateway.integrations.otel.presets import agentops as agentops_mod
+from token_iq.gateway.integrations.otel.presets.agentops import (
     _AGENTOPS_ENDPOINT,
     _AGENTOPS_EXPORTER_KIND,
     _build_agentops_exporter,
@@ -50,7 +50,7 @@ def test_dynamic_cred_presets_tag_exporter_with_matching_owner(monkeypatch):
     (``TenantTracerCache``) applies that integration's credentials only to its
     own exporter and never bleeds them onto a co-configured backend.
     """
-    from litellm.integrations.otel.presets import (
+    from token_iq.gateway.integrations.otel.presets import (
         DYNAMIC_HEADERS_BY_CALLBACK,
         PRESET_BY_CALLBACK,
     )
@@ -63,7 +63,7 @@ def test_dynamic_cred_presets_tag_exporter_with_matching_owner(monkeypatch):
     monkeypatch.setenv("WANDB_API_KEY", "w")
     monkeypatch.setenv("WANDB_PROJECT_ID", "entity/project")
 
-    from litellm.integrations.otel.model.config import ExporterOwner
+    from token_iq.gateway.integrations.otel.model.config import ExporterOwner
 
     for callback_name in DYNAMIC_HEADERS_BY_CALLBACK:
         cfg = PRESET_BY_CALLBACK[callback_name]()
@@ -164,8 +164,8 @@ def test_agentops_endpoint_points_at_live_host():
 
 def test_newrelic_preset_reads_env_license_key(monkeypatch):
     monkeypatch.setenv("NEW_RELIC_LICENSE_KEY", "env-license-key")
-    from litellm.integrations.otel.model.config import ExporterOwner
-    from litellm.integrations.otel.presets.newrelic import newrelic_preset
+    from token_iq.gateway.integrations.otel.model.config import ExporterOwner
+    from token_iq.gateway.integrations.otel.presets.newrelic import newrelic_preset
 
     cfg = newrelic_preset()
     spec = next(e for e in cfg.exporters if e.owner == ExporterOwner.NEWRELIC)
@@ -181,8 +181,8 @@ def test_newrelic_preset_without_key_still_contributes_owned_spec(monkeypatch):
     # exist even with no operator env key; requires_headers keeps the keyless
     # copy from ever exporting.
     monkeypatch.delenv("NEW_RELIC_LICENSE_KEY", raising=False)
-    from litellm.integrations.otel.model.config import ExporterOwner
-    from litellm.integrations.otel.presets.newrelic import newrelic_preset
+    from token_iq.gateway.integrations.otel.model.config import ExporterOwner
+    from token_iq.gateway.integrations.otel.presets.newrelic import newrelic_preset
 
     cfg = newrelic_preset()
     spec = next(e for e in cfg.exporters if e.owner == ExporterOwner.NEWRELIC)
@@ -194,8 +194,8 @@ def test_newrelic_preset_operator_region_and_content_knob(monkeypatch):
     monkeypatch.setenv("NEW_RELIC_LICENSE_KEY", "env-license-key")
     monkeypatch.setenv("NEW_RELIC_REGION", "EU")
     monkeypatch.setenv("NEW_RELIC_AI_MONITORING_RECORD_CONTENT_ENABLED", "true")
-    from litellm.integrations.otel.model.config import ExporterOwner
-    from litellm.integrations.otel.presets.newrelic import newrelic_preset
+    from token_iq.gateway.integrations.otel.model.config import ExporterOwner
+    from token_iq.gateway.integrations.otel.presets.newrelic import newrelic_preset
 
     cfg = newrelic_preset()
     spec = next(e for e in cfg.exporters if e.owner == ExporterOwner.NEWRELIC)
@@ -209,6 +209,6 @@ def test_newrelic_preset_operator_region_and_content_knob(monkeypatch):
 def test_newrelic_preset_unset_content_knob_keeps_default(monkeypatch):
     monkeypatch.delenv("NEW_RELIC_AI_MONITORING_RECORD_CONTENT_ENABLED", raising=False)
     monkeypatch.delenv("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", raising=False)
-    from litellm.integrations.otel.presets.newrelic import newrelic_preset
+    from token_iq.gateway.integrations.otel.presets.newrelic import newrelic_preset
 
     assert newrelic_preset().capture_span_content is False

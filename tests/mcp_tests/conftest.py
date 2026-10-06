@@ -5,9 +5,9 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 import asyncio
-from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +27,7 @@ def setup_and_teardown():
     """
     curr_dir = os.getcwd()  # Get the current working directory
 
-    from litellm import Router
+    from token_iq.gateway import Router
 
     importlib.reload(litellm)
     import asyncio
@@ -51,7 +51,7 @@ async def drain_logging_worker():
     The logging queue is bound to the running loop, so anything left queued when a test's loop
     goes away is carried onto the next test's loop and fires against its callbacks.
     """
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     yield
 

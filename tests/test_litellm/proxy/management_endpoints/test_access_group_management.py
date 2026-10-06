@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm import Router
-from litellm.proxy.management_endpoints.model_management_endpoints import (
+from token_iq.gateway import Router
+from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
     ReconcileOutcome,
 )
 
@@ -27,11 +27,11 @@ async def test_create_duplicate_access_group_fails():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -71,8 +71,8 @@ async def test_create_duplicate_access_group_fails():
 
     # Mock the imported dependencies from proxy_server (where they're actually imported from)
     with (
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
     ):
 
         # Should raise 409 Conflict
@@ -91,11 +91,11 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
 
     Fixes: https://github.com/BerriAI/litellm/issues/21544
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -119,10 +119,10 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -145,11 +145,11 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
     """
     Test backward compat: model_names still tags ALL deployments sharing that model_name.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -184,10 +184,10 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -205,11 +205,11 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
     """
     Test that when both model_ids and model_names are provided, model_ids is used.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -234,10 +234,10 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -257,11 +257,11 @@ async def test_create_access_group_requires_model_names_or_model_ids():
     Test that creating an access group without model_names or model_ids fails.
     """
     from fastapi import HTTPException
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -273,8 +273,8 @@ async def test_create_access_group_requires_model_names_or_model_ids():
     request_data = NewModelGroupRequest(access_group="production-models")
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await create_model_group(data=request_data, user_api_key_dict=mock_user)
@@ -288,11 +288,11 @@ async def test_create_access_group_invalid_model_id_returns_400():
     Test that passing a non-existent model_id returns 400 error.
     """
     from fastapi import HTTPException
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -311,10 +311,10 @@ async def test_create_access_group_invalid_model_id_returns_400():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -330,11 +330,11 @@ async def test_create_access_group_surfaces_dropped_models():
     pod must report the drop through this file's HTTPException contract, not a 200."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -350,10 +350,10 @@ async def test_create_access_group_surfaces_dropped_models():
     wiped_router = MagicMock()
     wiped_router.get_model_ids.side_effect = [["deploy-A"], []]
     with (
-        patch("litellm.proxy.proxy_server.llm_router", wiped_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", wiped_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -373,11 +373,11 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
     """A concurrent reconcile sampled after the lock is released must not make this
     write's reload look like it dropped the tagged model: the verdict has to judge from
     the ReconcileOutcome the reload captured under the lock, not a fresh router read."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -391,10 +391,10 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
     concurrently_wiped_router = MagicMock()
     concurrently_wiped_router.get_model_ids.side_effect = [["deploy-A"], []]
     with (
-        patch("litellm.proxy.proxy_server.llm_router", concurrently_wiped_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", concurrently_wiped_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(
                 return_value=ReconcileOutcome(
                     still_desired=frozenset({"deploy-A"}), live_after=frozenset({"deploy-A"})
@@ -415,7 +415,7 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
 async def test_tag_deployment_parses_string_model_info_and_refuses_corrupt():
     """The model_info column can arrive as its JSON string; tagging must parse it rather
     than crash, and must refuse to rewrite a present-but-unreadable value."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         _tag_deployment_with_access_group,
     )
 
@@ -455,18 +455,18 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
     mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
     mock_prisma.db.litellm_modelaccessgroupbudgettable.delete = AsyncMock(return_value=None)
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group,
     )
 
     never_served_router = MagicMock()
     never_served_router.get_model_ids.return_value = []
     with (
-        patch("litellm.proxy.proxy_server.llm_router", never_served_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", never_served_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -484,11 +484,11 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
 async def test_create_access_group_read_through_recovers_model_created_on_sibling_replica():
     """Regression: an access group referencing a model that another replica just wrote
     to the DB must be created instead of 400ing until the periodic config reload."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -517,11 +517,11 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
     mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
         patch(
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -541,11 +541,11 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
 async def test_create_access_group_model_missing_everywhere_still_400s():
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         NewModelGroupRequest,
     )
 
@@ -562,9 +562,9 @@ async def test_create_access_group_model_missing_everywhere_still_400s():
     mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await create_model_group(
@@ -733,7 +733,7 @@ class _FakeAuthCache:
 
 
 def _admin():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
 
@@ -758,7 +758,7 @@ def _seed_budget(prisma, access_group, spend=0.0, budget_id="budget-seed", **bud
 @contextmanager
 def _proxy(prisma):
     with patch(  # test-quality-ok: the endpoints import proxy_server.prisma_client themselves; no parameter to inject
-        "litellm.proxy.proxy_server.prisma_client", prisma
+        "token_iq.gateway.proxy.proxy_server.prisma_client", prisma
     ):
         yield
 
@@ -773,10 +773,10 @@ def _proxy_with_stubbed_reload(prisma):
     with (
         _proxy(prisma),
         patch(  # test-quality-ok: live_model_ids_snapshot() reads the llm_router global; the endpoint takes no router
-            "litellm.proxy.proxy_server.llm_router", never_served_router
+            "token_iq.gateway.proxy.proxy_server.llm_router", never_served_router
         ),
         patch(  # test-quality-ok: the endpoint calls its module-level clear_cache import; there is no parameter for it
-            "litellm.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
+            "token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints.clear_cache",
             new=AsyncMock(return_value=ReconcileOutcome(still_desired=None, live_after=None)),
         ),
     ):
@@ -785,7 +785,7 @@ def _proxy_with_stubbed_reload(prisma):
 
 def _eviction_journal(access_group):
     """Both auth cache keys, in the order a write path has to evict them."""
-    from litellm.proxy.common_utils.user_api_key_cache import (
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import (
         model_access_group_cache_key,
         model_access_group_registry_cache_key,
     )
@@ -808,10 +808,10 @@ def _assert_evicted_after_write(journal, access_group, write_entry):
 async def test_put_access_group_budget_creates_the_row_and_its_budget():
     """First PUT has to create both halves: the budget row it links, and the access group row
     that carries the link and the shared spend."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -840,10 +840,10 @@ async def test_put_access_group_budget_creates_the_row_and_its_budget():
 async def test_second_put_replaces_the_budget_instead_of_creating_another():
     """PUT is idempotent: a second call must update the budget already linked to the group,
     not leave a second budget row (and a second group row) behind."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -875,10 +875,10 @@ async def test_second_put_replaces_the_budget_instead_of_creating_another():
 
 @pytest.mark.asyncio
 async def test_put_access_group_budget_links_an_existing_budget_without_creating_one():
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -906,10 +906,10 @@ async def test_put_access_group_budget_rejects_an_empty_body():
     """An empty PUT would register the group as budgeted while enforcing nothing."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -934,10 +934,10 @@ async def test_put_access_group_budget_rejects_an_unparseable_duration():
     """An unparseable duration can only be discovered by the reset job, long after the write."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -962,7 +962,7 @@ def test_access_group_budget_request_rejects_rate_limit_fields():
     promise rate limiting that never happens."""
     from pydantic import ValidationError
 
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -973,7 +973,7 @@ def test_access_group_budget_request_rejects_rate_limit_fields():
 
 @pytest.mark.asyncio
 async def test_get_access_group_budget_returns_the_budget_and_the_shared_spend():
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         get_access_group_budget,
     )
 
@@ -993,7 +993,7 @@ async def test_get_access_group_budget_returns_the_budget_and_the_shared_spend()
 @pytest.mark.asyncio
 async def test_get_access_group_budget_on_a_budgetless_group_is_200_not_404():
     """A real group that simply has no budget is not an error; only an unknown group is."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         get_access_group_budget,
     )
 
@@ -1010,12 +1010,12 @@ async def test_get_access_group_budget_on_a_budgetless_group_is_200_not_404():
 async def test_access_group_budget_routes_404_on_an_unknown_group():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group_budget,
         get_access_group_budget,
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -1048,7 +1048,7 @@ async def test_access_group_budget_routes_404_on_an_unknown_group():
 async def test_delete_access_group_budget_drops_the_row_and_spares_the_shared_budget():
     """The group row goes; the LiteLLM_BudgetTable row it linked survives, as /tag/delete leaves a
     tag's. That row can be shared, so deleting it would be data loss for whatever else points at it."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group_budget,
     )
 
@@ -1069,7 +1069,7 @@ async def test_delete_access_group_budget_drops_the_row_and_spares_the_shared_bu
 async def test_delete_access_group_budget_on_a_budgetless_group_still_evicts():
     """budget_deleted is False, but the group can still be sitting in the cached registry of
     budgeted groups, so the eviction has to run whether or not a row was there to drop."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group_budget,
     )
 
@@ -1090,7 +1090,7 @@ async def test_deleting_the_access_group_strips_deployments_before_dropping_the_
     """Ordering is the point: stripping first means a failure leaves an unreachable budget row,
     while the reverse leaves a live group whose enforcement silently vanished. The shared
     LiteLLM_BudgetTable row survives here too."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group,
     )
 
@@ -1113,7 +1113,7 @@ async def test_deleting_the_access_group_strips_deployments_before_dropping_the_
 
 @pytest.mark.asyncio
 async def test_access_group_info_surfaces_the_budget_and_spend():
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         get_access_group_info,
     )
 
@@ -1134,7 +1134,7 @@ async def test_access_group_info_surfaces_the_budget_and_spend():
 async def test_list_access_groups_carries_each_group_budget_and_spend():
     """The dashboard renders the budget column straight off the listing, so a group's budget has to
     ride along with it rather than needing a follow-up read per row."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         list_access_groups,
     )
 
@@ -1162,7 +1162,7 @@ async def test_list_access_groups_carries_each_group_budget_and_spend():
 
 @pytest.mark.asyncio
 async def test_list_access_groups_reports_a_budgetless_group_as_unbudgeted_rather_than_omitting_it():
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         list_access_groups,
     )
 
@@ -1182,10 +1182,10 @@ async def test_put_access_group_budget_evicts_both_auth_cache_keys():
     """Auth reads the per-group row and the registry of budgeted groups cache-first with no
     freshness check, so a PUT that skips either eviction returns 200 and enforces nothing until
     the TTL expires. Both keys, after the write."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         set_access_group_budget,
     )
-    from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
         AccessGroupBudgetRequest,
     )
 
@@ -1208,7 +1208,7 @@ async def test_put_access_group_budget_evicts_both_auth_cache_keys():
 async def test_delete_access_group_budget_evicts_both_auth_cache_keys():
     """Clearing a budget has the same window as setting one: until both keys are dropped, auth
     keeps enforcing the budget that is already gone."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group_budget,
     )
 
@@ -1226,7 +1226,7 @@ async def test_delete_access_group_budget_evicts_both_auth_cache_keys():
 @pytest.mark.asyncio
 async def test_deleting_the_access_group_evicts_both_auth_cache_keys():
     """The group-delete cascade drops the budget row too, so it owes the same two evictions."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group,
     )
 
@@ -1245,7 +1245,7 @@ async def test_deleting_the_access_group_evicts_both_auth_cache_keys():
 async def test_deleting_an_access_group_that_never_had_a_budget_still_evicts():
     """The cascade's delete finds no row and reports nothing dropped, but the group can still be
     sitting in the cached registry of budgeted groups, so both keys have to go regardless."""
-    from litellm.proxy.management_endpoints.model_access_group_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group,
     )
 

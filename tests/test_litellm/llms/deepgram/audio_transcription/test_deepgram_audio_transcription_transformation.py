@@ -6,14 +6,14 @@ from unittest.mock import MagicMock
 import pytest
 
 
-import litellm
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     AudioTranscriptionRequestData,
 )
-from litellm.llms.deepgram.audio_transcription.transformation import (
+from token_iq.gateway.llms.deepgram.audio_transcription.transformation import (
     DeepgramAudioTranscriptionConfig,
 )
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 @pytest.fixture

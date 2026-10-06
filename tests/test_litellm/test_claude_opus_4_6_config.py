@@ -5,7 +5,7 @@ Validate Claude Opus 4.6 model configuration entries.
 import json
 import os
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_claude_4_6_australia_region_uses_au_prefix_not_apac():

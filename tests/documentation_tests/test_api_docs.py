@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import argparse
 import re
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @dataclass

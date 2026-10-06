@@ -11,12 +11,12 @@ from typing import Any, Literal, Optional
 import pytest
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
-from litellm.llms.openai.chat.guardrail_translation.handler import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
+from token_iq.gateway.llms.openai.chat.guardrail_translation.handler import (
     OpenAIChatCompletionsHandler,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Choices,
     Function,
@@ -949,7 +949,7 @@ class TestOpenAIChatCompletionsHandlerStreamingOutput:
         This test verifies the fix for the bug where accessing chunk.choices[0]
         would raise IndexError when a streaming chunk has an empty choices list.
         """
-        from litellm.types.utils import ModelResponseStream
+        from token_iq.gateway.types.utils import ModelResponseStream
 
         handler = OpenAIChatCompletionsHandler()
         guardrail = MockPassThroughGuardrail(guardrail_name="test")
@@ -978,7 +978,7 @@ class TestOpenAIChatCompletionsHandlerStreamingOutput:
     @pytest.mark.asyncio
     async def test_process_output_streaming_response_with_valid_choices(self):
         """Test that streaming response with valid choices still works correctly"""
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         handler = OpenAIChatCompletionsHandler()
         guardrail = MockPassThroughGuardrail(guardrail_name="test")
@@ -1033,7 +1033,7 @@ class TestOpenAIChatCompletionsHandlerStreamingOutput:
         This tests the has_stream_ended check when iterating through chunks with mixed choices.
         The stream hasn't finished yet (no finish_reason), so it won't trigger stream_chunk_builder.
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         handler = OpenAIChatCompletionsHandler()
         guardrail = MockPassThroughGuardrail(guardrail_name="test")
@@ -1147,7 +1147,7 @@ class TestIncrementalScanRespectsSkipFlags:
     """
 
     def _bedrock_guardrail(self):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
 
         guardrail = BedrockGuardrail(
             guardrail_name="bedrock-incremental-skip-flags",
@@ -1337,7 +1337,7 @@ class DuplicateToolReturningGuardrail(CustomGuardrail):
 
 class TestScanOnlyToolResults:
     def _bedrock_guardrail(self):
-        from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
 
         guardrail = BedrockGuardrail(
             guardrail_name="bedrock-scan-only-tool-results",
@@ -1566,7 +1566,7 @@ class TestBuildBlockSseChunks:
     """build_block_sse_chunks turns a streaming ModifyResponseException into 200 SSE chunks"""
 
     def _exc(self, original_response=None):
-        from litellm.exceptions import ModifyResponseException
+        from token_iq.gateway.exceptions import ModifyResponseException
 
         return ModifyResponseException(
             message="Blocked by policy.",
@@ -1635,7 +1635,7 @@ class TestCheckStreamingHasEnded:
         assert handler._check_streaming_has_ended(chunks) is True
 
     def test_object_finish_chunk_marks_stream_ended(self):
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         handler = OpenAIChatCompletionsHandler()
         chunks = [
@@ -1652,7 +1652,7 @@ class TestStreamingScanKey:
 
     @staticmethod
     def _chunk(content, finish_reason=None, index=0):
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         return ModelResponseStream(
             choices=[StreamingChoices(index=index, delta=Delta(content=content), finish_reason=finish_reason)]
@@ -1678,7 +1678,7 @@ class TestStreamingScanKey:
         assert ended_key == open_key
 
     def test_tool_calls_only_enter_the_key_once_the_stream_has_ended(self):
-        from litellm.types.utils import (
+        from token_iq.gateway.types.utils import (
             ChatCompletionDeltaToolCall,
             Delta,
             Function,

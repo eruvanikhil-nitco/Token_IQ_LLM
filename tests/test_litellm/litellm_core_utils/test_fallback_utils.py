@@ -1,11 +1,11 @@
-"""Tests for litellm.litellm_core_utils.fallback_utils."""
+"""Tests for litellm.core_utils.fallback_utils."""
 
 import pytest
 import httpx
 
-import litellm
-from litellm.litellm_core_utils.core_helpers import process_response_headers
-from litellm.litellm_core_utils.fallback_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.core_helpers import process_response_headers
+from token_iq.gateway.core_utils.fallback_utils import (
     async_completion_with_fallbacks,
 )
 

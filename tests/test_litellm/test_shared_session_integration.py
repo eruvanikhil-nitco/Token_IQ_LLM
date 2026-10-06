@@ -8,7 +8,7 @@ import pytest
 
 # Add the litellm directory to the path
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestSharedSessionIntegration:
@@ -60,7 +60,7 @@ class TestSharedSessionIntegration:
         mock_session.closed = False
 
         # Mock the completion function to avoid actual API calls
-        with patch("litellm.completion") as mock_completion:
+        with patch("token_iq.gateway.completion") as mock_completion:
             mock_completion.return_value = {
                 "choices": [{"message": {"content": "test"}}]
             }

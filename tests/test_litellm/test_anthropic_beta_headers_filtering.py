@@ -15,8 +15,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.anthropic_beta_headers_manager import (
+from token_iq import gateway as litellm
+from token_iq.gateway.anthropic_beta_headers_manager import (
     filter_and_transform_beta_headers,
     update_request_with_filtered_beta,
 )
@@ -32,7 +32,7 @@ class TestAnthropicBetaHeadersFiltering:
         monkeypatch.setenv("LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS", "True")
 
         # Clear the cached config to ensure fresh load with local config
-        from litellm import anthropic_beta_headers_manager
+        from token_iq.gateway import anthropic_beta_headers_manager
 
         anthropic_beta_headers_manager._BETA_HEADERS_CONFIG = None
 
@@ -150,7 +150,7 @@ class TestAnthropicBetaHeadersFiltering:
         unsupported = self.get_unsupported_headers("anthropic")
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.get_async_httpx_client"
+            "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client"
         ) as mock_client_factory:
             mock_response = MagicMock()
             mock_response.status_code = 200
@@ -198,7 +198,7 @@ class TestAnthropicBetaHeadersFiltering:
         unsupported = self.get_unsupported_headers("azure_ai")
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.get_async_httpx_client"
+            "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client"
         ) as mock_client_factory:
             mock_response = MagicMock()
             mock_response.status_code = 200
@@ -315,7 +315,7 @@ class TestAnthropicBetaHeadersFiltering:
         unsupported = self.get_unsupported_headers("vertex_ai")
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.get_async_httpx_client"
+            "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client"
         ) as mock_client_factory:
             mock_response = MagicMock()
             mock_response.status_code = 200
@@ -335,7 +335,7 @@ class TestAnthropicBetaHeadersFiltering:
             mock_client_factory.return_value = mock_client
 
             with patch(
-                "litellm.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token"
+                "token_iq.gateway.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token"
             ) as mock_token:
                 mock_token.return_value = ("test-token", "test-project")
 

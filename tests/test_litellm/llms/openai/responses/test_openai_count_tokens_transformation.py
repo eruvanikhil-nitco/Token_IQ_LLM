@@ -1,7 +1,7 @@
 
 import pytest
 
-from litellm.llms.openai.responses.count_tokens.transformation import (
+from token_iq.gateway.llms.openai.responses.count_tokens.transformation import (
     OpenAICountTokensConfig,
 )
 

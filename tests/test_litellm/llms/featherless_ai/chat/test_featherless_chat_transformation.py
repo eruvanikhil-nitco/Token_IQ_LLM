@@ -9,7 +9,7 @@ Featherless AI is an OpenAI-compatible provider with a few customizations.
 import pytest
 
 
-from litellm.llms.featherless_ai.chat.transformation import FeatherlessAIConfig
+from token_iq.gateway.llms.featherless_ai.chat.transformation import FeatherlessAIConfig
 
 
 class TestFeatherlessAIConfig:
@@ -56,7 +56,7 @@ class TestFeatherlessAIConfig:
         """Test proper inheritance from OpenAIGPTConfig"""
         config = FeatherlessAIConfig()
 
-        from litellm.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
+        from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 
         assert isinstance(config, OpenAIGPTConfig)
         assert hasattr(config, "get_supported_openai_params")
@@ -225,12 +225,12 @@ class TestFeatherlessAIConfig:
         Mock test for Featherless AI completion using the model format from docs.
         This test mocks the actual HTTP request to test the integration properly.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.disable_aiohttp_transport = (
             True  # since this uses respx, we need to set use_aiohttp_transport to False
         )
-        from litellm import completion
+        from token_iq.gateway import completion
 
         # Set up environment variables for the test
         api_key = "fake-featherless-key"

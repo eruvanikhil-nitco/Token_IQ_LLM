@@ -2,10 +2,10 @@ from fastapi import FastAPI
 import uvicorn
 from memory_profiler import profile
 import os
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 from dotenv import load_dotenv
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 load_dotenv()
 

@@ -5,9 +5,9 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
-from litellm.types.llms.openai import OpenAIRealtimeStreamSessionEvents
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+from token_iq.gateway.types.llms.openai import OpenAIRealtimeStreamSessionEvents
 
 
 def test_gemini_realtime_transformation_session_created():
@@ -149,7 +149,7 @@ def test_gemini_realtime_transformation_content_delta():
 
 
 def test_gemini_model_turn_event_mapping():
-    from litellm.types.llms.openai import OpenAIRealtimeEventTypes
+    from token_iq.gateway.types.llms.openai import OpenAIRealtimeEventTypes
 
     config = GeminiRealtimeConfig()
     assert config is not None
@@ -175,7 +175,7 @@ def test_gemini_model_turn_event_mapping():
 
 
 def test_gemini_realtime_transformation_audio_delta():
-    from litellm.types.llms.openai import OpenAIRealtimeEventTypes
+    from token_iq.gateway.types.llms.openai import OpenAIRealtimeEventTypes
 
     config = GeminiRealtimeConfig()
     assert config is not None
@@ -266,7 +266,7 @@ def test_gemini_output_audio_transcript_delta_uses_active_response_ids():
 
 
 def test_gemini_realtime_transformation_generation_complete():
-    from litellm.types.llms.openai import OpenAIRealtimeEventTypes
+    from token_iq.gateway.types.llms.openai import OpenAIRealtimeEventTypes
 
     config = GeminiRealtimeConfig()
     assert config is not None
@@ -1886,7 +1886,7 @@ def test_gemini_response_done_bills_audio_output_tokens_at_audio_rate(monkeypatc
     """Regression for the Gemini Live AUDIO output breakdown: responseTokensDetails
     must survive into response.done usage and bill at output_cost_per_audio_token,
     not the text rate."""
-    from litellm.cost_calculator import (
+    from token_iq.gateway.cost_calculator import (
         RealtimeAPITokenUsageProcessor,
         handle_realtime_stream_cost_calculation,
     )
@@ -2008,8 +2008,8 @@ def test_gemini_chat_model_with_text_output_modalities_keeps_audio_eager_setup(
 def test_generation_complete_without_prior_delta_keeps_turn_usage(patch_gemini_audio_cost_map_entries):
     from typing import Final
 
-    from litellm.types.llms.gemini import BidiGenerateContentServerMessage
-    from litellm.types.realtime import RealtimeResponseTransformInput
+    from token_iq.gateway.types.llms.gemini import BidiGenerateContentServerMessage
+    from token_iq.gateway.types.realtime import RealtimeResponseTransformInput
 
     config: Final = GeminiRealtimeConfig()
     turn_end_frame: Final[BidiGenerateContentServerMessage] = {
@@ -2048,8 +2048,8 @@ def test_generation_complete_without_prior_delta_keeps_turn_usage(patch_gemini_a
 def test_bare_generation_complete_without_prior_delta_is_dropped(patch_gemini_audio_cost_map_entries):
     from typing import Final
 
-    from litellm.types.llms.gemini import BidiGenerateContentServerMessage
-    from litellm.types.realtime import RealtimeResponseTransformInput
+    from token_iq.gateway.types.llms.gemini import BidiGenerateContentServerMessage
+    from token_iq.gateway.types.realtime import RealtimeResponseTransformInput
 
     config: Final = GeminiRealtimeConfig()
     bare_frame: Final[BidiGenerateContentServerMessage] = {"serverContent": {"generationComplete": True}}
@@ -2087,8 +2087,8 @@ def test_transcribe_live_completed_event_carries_estimated_usage(patch_gemini_tr
     175 text tok/min out): 96000 pcm16 bytes = 2s at 24kHz -> 50 in / 6 out."""
     from typing import Final
 
-    from litellm.types.llms.gemini import BidiGenerateContentServerMessage
-    from litellm.types.realtime import RealtimeInputAudioTranscriptionUsage, RealtimeResponseTransformInput
+    from token_iq.gateway.types.llms.gemini import BidiGenerateContentServerMessage
+    from token_iq.gateway.types.realtime import RealtimeInputAudioTranscriptionUsage, RealtimeResponseTransformInput
 
     config: Final = GeminiRealtimeConfig()
     config.transform_realtime_request(_input_audio_append_message(96000), "gemini-3.5-transcribe-live")
@@ -2150,8 +2150,8 @@ def test_non_transcription_live_model_completed_event_has_no_usage(patch_gemini_
     double-bill, so the estimate is gated to audio_transcription-mode models."""
     from typing import Final
 
-    from litellm.types.llms.gemini import BidiGenerateContentServerMessage
-    from litellm.types.realtime import RealtimeResponseTransformInput
+    from token_iq.gateway.types.llms.gemini import BidiGenerateContentServerMessage
+    from token_iq.gateway.types.realtime import RealtimeResponseTransformInput
 
     config: Final = GeminiRealtimeConfig()
     config.transform_realtime_request(_input_audio_append_message(96000), "gemini-3.1-flash-live-preview")
@@ -2191,7 +2191,7 @@ def test_unbilled_usage_on_session_close_flushes_trailing_audio(patch_gemini_tra
     so the streaming layer can bill it (144000 pcm16 bytes = 3s -> 75 in / 9 out)."""
     from typing import Final
 
-    from litellm.types.realtime import RealtimeInputAudioTranscriptionUsage
+    from token_iq.gateway.types.realtime import RealtimeInputAudioTranscriptionUsage
 
     config: Final = GeminiRealtimeConfig()
     config.transform_realtime_request(_input_audio_append_message(144000), "gemini-3.5-transcribe-live")

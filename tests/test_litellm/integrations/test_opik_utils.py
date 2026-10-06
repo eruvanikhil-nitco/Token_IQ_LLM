@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from litellm.integrations.opik.utils import create_uuid7
+from token_iq.gateway.integrations.opik.utils import create_uuid7
 
 
 def _timestamp_ms(uuid_str: str) -> int:
@@ -22,7 +22,7 @@ def test_create_uuid7_encodes_timestamp_in_milliseconds():
     fixed = datetime(2026, 6, 24, 10, 0, 0, tzinfo=timezone.utc)
 
     with patch(
-        "litellm.integrations.opik.utils.time.time", return_value=fixed.timestamp()
+        "token_iq.gateway.integrations.opik.utils.time.time", return_value=fixed.timestamp()
     ):
         value = create_uuid7()
 

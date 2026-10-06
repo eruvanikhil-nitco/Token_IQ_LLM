@@ -6,8 +6,8 @@ when AsyncHTTPHandler instances are garbage collected.
 import asyncio
 import gc
 import httpx
-from litellm.llms.openai.common_utils import BaseOpenAILLM
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 async def test_httpx_client_not_closed_by_handler_gc():

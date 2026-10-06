@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.azure.text_to_speech.transformation import AzureAVATextToSpeechConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.text_to_speech.transformation import AzureAVATextToSpeechConfig
 
 
 @pytest.fixture
@@ -286,7 +286,7 @@ def test_transform_text_to_speech_response(
     )
 
     # Should return HttpxBinaryResponseContent wrapper
-    from litellm.types.llms.openai import HttpxBinaryResponseContent
+    from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
     assert isinstance(result, HttpxBinaryResponseContent)
 
@@ -678,7 +678,7 @@ def test_transform_text_to_speech_request_ssml_with_mstts_namespace(
     assert "rate='+20%'" in ssml
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_litellm_speech_with_ssml_passthrough(mock_post):
     """
     Test that litellm.speech passes SSML through to Azure AVA without transformation

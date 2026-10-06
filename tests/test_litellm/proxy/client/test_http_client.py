@@ -9,7 +9,7 @@ import requests
 
 import responses
 
-from litellm.proxy.client.http_client import HTTPClient
+from token_iq.gateway.proxy.client.http_client import HTTPClient
 
 
 @pytest.fixture

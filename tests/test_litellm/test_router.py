@@ -15,15 +15,15 @@ import pytest
 
 
 
-import litellm
-from litellm import Router
-from litellm.exceptions import MidStreamFallbackError
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.bedrock.common_utils import BedrockError
-from litellm.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.exceptions import MidStreamFallbackError
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.bedrock.common_utils import BedrockError
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
     SERVER_FULFILLED_TOOL_LEAK_ERROR_SSE_BYTES,
 )
-from litellm.router import (
+from token_iq.gateway.router import (
     MAX_BUFFERED_PRE_CONTENT_ANTHROPIC_CHUNKS,
     FallbackAwareAnthropicMessagesStream,
     _anthropic_stream_commits_now,
@@ -104,10 +104,10 @@ def test_router_with_model_info_and_model_group():
 
 
 def test_router_model_group_encrypted_content_affinity_callback_registration():
-    from litellm.router_utils.pre_call_checks.deployment_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
         DeploymentAffinityCheck,
     )
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -170,8 +170,8 @@ def test_router_model_group_encrypted_content_affinity_callback_registration():
 
 @pytest.mark.asyncio
 async def test_encrypted_content_affinity_model_group_config_is_additive():
-    from litellm.responses.utils import ResponsesAPIRequestUtils
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 
@@ -297,7 +297,7 @@ async def test_async_router_acreate_file_uses_deployment_custom_llm_provider():
         ],
     )
 
-    with patch("litellm.acreate_file", return_value=MagicMock()) as mock_acreate_file:
+    with patch("token_iq.gateway.acreate_file", return_value=MagicMock()) as mock_acreate_file:
         await router.acreate_file(
             model="team-azure-batch",
             purpose="batch",
@@ -334,7 +334,7 @@ async def test_async_router_acreate_file_forwards_target_model_names_to_litellm_
         ],
     )
 
-    with patch("litellm.acreate_file", return_value=MagicMock()) as mock_acreate_file:
+    with patch("token_iq.gateway.acreate_file", return_value=MagicMock()) as mock_acreate_file:
         await router.acreate_file(
             model="chained-batch",
             purpose="batch",
@@ -362,7 +362,7 @@ async def test_async_router_acreate_file_does_not_inject_target_model_names_for_
         ],
     )
 
-    with patch("litellm.acreate_file", return_value=MagicMock()) as mock_acreate_file:
+    with patch("token_iq.gateway.acreate_file", return_value=MagicMock()) as mock_acreate_file:
         await router.acreate_file(
             model="gpt-4.1-batch",
             purpose="batch",
@@ -437,7 +437,7 @@ async def test_async_router_afile_content_uses_deployment_custom_llm_provider():
     This prevents "None is not a valid LlmProviders" errors when calling file content operations.
     """
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.types.llms.openai import HttpxBinaryResponseContent
+    from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
     router = litellm.Router(
         model_list=[
@@ -458,7 +458,7 @@ async def test_async_router_afile_content_uses_deployment_custom_llm_provider():
     mock_response.response = MagicMock()
 
     with patch(
-        "litellm.llms.azure.files.handler.AzureOpenAIFilesAPI.afile_content",
+        "token_iq.gateway.llms.azure.files.handler.AzureOpenAIFilesAPI.afile_content",
         return_value=mock_response,
     ) as mock_afile_content:
         result = await router.afile_content(
@@ -500,7 +500,7 @@ async def test_arouter_async_get_healthy_deployments():
 
 
 @pytest.mark.asyncio
-@patch("litellm.amoderation")
+@patch("token_iq.gateway.amoderation")
 async def test_arouter_amoderation_with_credential_name(mock_amoderation):
     """
     Test that router.amoderation passes litellm_credential_name to the underlying litellm.amoderation call
@@ -556,7 +556,7 @@ def test_arouter_ignore_invalid_deployments():
     """
     Test that router.ignore_invalid_deployments is set to True
     """
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     router = litellm.Router(
         model_list=[
@@ -663,7 +663,7 @@ async def test_arouter_filter_team_based_models():
     """
     Test that router.filter_team_based_models filters out models that are not in the team
     """
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     router = litellm.Router(
         model_list=[
@@ -843,7 +843,7 @@ def test_arouter_responses_api_bridge():
     """
     from unittest.mock import MagicMock, patch
 
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     router = litellm.Router(
         model_list=[
@@ -913,7 +913,7 @@ def test_add_invalid_provider_to_router():
     """
     Test that router.add_deployment raises an error if the provider is invalid
     """
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     router = litellm.Router(
         model_list=[
@@ -1246,7 +1246,7 @@ async def test_ageneric_api_call_does_not_add_session_model():
     ],
 )
 def test_with_router_resolved_session_model(session, expected):
-    from litellm.router import _with_router_resolved_session_model
+    from token_iq.gateway.router import _with_router_resolved_session_model
 
     assert dict(_with_router_resolved_session_model(session, "resolved")) == expected
 
@@ -1285,7 +1285,7 @@ def test_cached_get_model_group_info():
     Test that _cached_get_model_group_info caches results and
     invalidates on deployment changes.
     """
-    from litellm.types.router import Deployment, LiteLLM_Params
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
     router = litellm.Router(
         model_list=[
@@ -1422,7 +1422,7 @@ def test_model_group_info_cost_none_when_db_model_info_has_no_cost():
     ],
 )
 def test_cost_value_as_float(value, expected):
-    from litellm.router import _cost_value_as_float
+    from token_iq.gateway.router import _cost_value_as_float
 
     assert _cost_value_as_float(value) == expected
 
@@ -1436,7 +1436,7 @@ def test_get_model_access_groups_caching():
     Test that get_model_access_groups caches the no-args result
     and invalidates on deployment changes.
     """
-    from litellm.types.router import Deployment, LiteLLM_Params
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
     router = litellm.Router(
         model_list=[
@@ -1525,7 +1525,7 @@ def test_get_model_access_groups_cache_invalidation_upsert_deployment():
     """
     Test that upsert_deployment invalidates the access groups cache.
     """
-    from litellm.types.router import Deployment, LiteLLM_Params
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
     router = litellm.Router(
         model_list=[
@@ -1568,7 +1568,7 @@ async def test_acompletion_streaming_iterator_reraises_original_exception_when_a
     MidStreamFallbackError."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError, RateLimitError
+    from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 
     router = litellm.Router(
         model_list=[
@@ -1643,7 +1643,7 @@ async def test_acompletion_streaming_iterator_edge_cases():
     """Test edge cases for _acompletion_streaming_iterator."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     router = litellm.Router(
         model_list=[
@@ -1783,7 +1783,7 @@ def test_completion_streaming_iterator_fallback_on_429():
     """
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     router = litellm.Router(
         model_list=[
@@ -1885,7 +1885,7 @@ def test_completion_streaming_iterator_reraises_mid_chunk_error():
     has already been sent to the client."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     router = litellm.Router(
         model_list=[
@@ -1940,7 +1940,7 @@ def test_completion_streaming_iterator_reraises_original_exception_when_availabl
     MidStreamFallbackError."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError, RateLimitError
+    from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 
     router = litellm.Router(
         model_list=[
@@ -2003,8 +2003,8 @@ def test_completion_streaming_iterator_reraises_mid_chunk_error_with_no_text_con
     the client receives duplicated/inconsistent output."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.types.utils import Delta, StreamingChoices
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.types.utils import Delta, StreamingChoices
 
     router = litellm.Router(
         model_list=[
@@ -2074,7 +2074,7 @@ async def test_acompletion_streaming_iterator_pre_first_chunk_skips_continuation
     """When MidStreamFallbackError has is_pre_first_chunk=True, use original messages."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
 
     router = litellm.Router(
         model_list=[
@@ -2145,8 +2145,8 @@ async def test_acompletion_streaming_iterator_reraises_mid_chunk_error_with_no_t
     the client receives duplicated/inconsistent output."""
     from unittest.mock import MagicMock
 
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.types.utils import Delta, StreamingChoices
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.types.utils import Delta, StreamingChoices
 
     router = litellm.Router(
         model_list=[
@@ -2232,10 +2232,10 @@ def _make_responses_iterator(
     LiteLLMCompletionStreamingIterator so the wrapper's bridge-path
     isinstance check (used by usage extraction) matches.
     """
-    from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+    from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
         LiteLLMCompletionStreamingIterator,
     )
-    from litellm.responses.streaming_iterator import (
+    from token_iq.gateway.responses.streaming_iterator import (
         BaseResponsesAPIStreamingIterator,
     )
 
@@ -3361,7 +3361,7 @@ def test_get_deployment_model_info_base_model_flow():
     print("✓ All base model flow test cases passed!")
 
 
-@patch("litellm.model_cost", {})
+@patch("token_iq.gateway.model_cost", {})
 def test_get_deployment_model_info_base_model_merge_priority():
     """Test that base model info merging respects the correct priority order"""
     from unittest.mock import patch
@@ -3544,7 +3544,7 @@ def test_update_kwargs_with_deployment_uses_pass_through_request_timeout():
     kwargs: dict = {}
 
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"pass_through_request_timeout": 6},
     ):
         router._update_kwargs_with_deployment(
@@ -3688,7 +3688,7 @@ def test_get_deployment_credentials_with_provider_resolves_credential_name():
     Test that get_deployment_credentials_with_provider correctly resolves
     litellm_credential_name to actual credential values (for UI-created models).
     """
-    from litellm.types.utils import CredentialItem
+    from token_iq.gateway.types.utils import CredentialItem
 
     # Setup credential list with a test credential
     litellm.credential_list = [
@@ -3917,7 +3917,7 @@ def test_pattern_match_router_remove_deployment():
     remove_deployment must drop only the deployment with the given model id and
     delete patterns whose deployment list becomes empty.
     """
-    from litellm.router_utils.pattern_match_deployments import PatternMatchRouter
+    from token_iq.gateway.router_utils.pattern_match_deployments import PatternMatchRouter
 
     pattern_router = PatternMatchRouter()
     pattern_router.add_pattern(
@@ -3944,7 +3944,7 @@ def test_team_wildcard_credentials_refreshed_on_upsert_and_set_model_list():
     Regression: replacing a team wildcard deployment (upsert or model list
     reload) must serve the new credentials, not the stale cached ones.
     """
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     router = litellm.Router(model_list=[_team_wildcard_model(api_key="old-key")])
 
@@ -4125,12 +4125,12 @@ async def test_anthropic_messages_call_type_is_cached():
     """
     import asyncio
 
-    from litellm.caching.dual_cache import DualCache
-    from litellm.router_utils.pre_call_checks.prompt_caching_deployment_check import (
+    from token_iq.gateway.caching.dual_cache import DualCache
+    from token_iq.gateway.router_utils.pre_call_checks.prompt_caching_deployment_check import (
         PromptCachingDeploymentCheck,
     )
-    from litellm.router_utils.prompt_caching_cache import PromptCachingCache
-    from litellm.types.utils import (
+    from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
+    from token_iq.gateway.types.utils import (
         CallTypes,
         StandardLoggingHiddenParams,
         StandardLoggingMetadata,
@@ -4584,8 +4584,8 @@ def test_update_kwargs_with_deployment_model_info_in_metadata():
 
 def test_combine_fallback_usage():
     """Test that _combine_fallback_usage merges partial and fallback usage."""
-    from litellm.router import Router
-    from litellm.types.utils import Usage
+    from token_iq.gateway.router import Router
+    from token_iq.gateway.types.utils import Usage
 
     # Create a stream chunk with usage
     chunk = litellm.ModelResponseStream(
@@ -4610,8 +4610,8 @@ async def test_acompletion_streaming_iterator_does_not_log_success_on_terminal_f
     recovery for the failure row happens in the streaming handler, not here, so
     this guards only against reintroducing a success log for a failed stream.
     """
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.types.utils import Delta, StreamingChoices, Usage
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.types.utils import Delta, StreamingChoices, Usage
 
     router = litellm.Router(
         model_list=[
@@ -4988,7 +4988,7 @@ def test_try_early_resolve_deployments_for_model_not_in_names():
 
 
 def _router_with_two_deployments(blocked_flags):
-    import litellm
+    from token_iq import gateway as litellm
 
     model_list = []
     for idx, blocked in enumerate(blocked_flags):
@@ -5007,7 +5007,7 @@ def _router_with_two_deployments(blocked_flags):
 
 
 def test_get_fully_blocked_model_names_treats_missing_key_as_unblocked():
-    import litellm
+    from token_iq import gateway as litellm
 
     router = litellm.Router(
         model_list=[
@@ -5055,7 +5055,7 @@ async def test_async_get_fully_unhealthy_model_names_ignores_stale_state():
 
 @pytest.mark.asyncio
 async def test_async_get_fully_unhealthy_model_names_includes_team_alias():
-    import litellm
+    from token_iq import gateway as litellm
 
     router = litellm.Router(
         model_list=[
@@ -5095,7 +5095,7 @@ def test_filter_blocked_deployments_drops_blocked_keeps_unblocked():
 
 
 def test_get_available_deployment_raises_when_addressed_dict_is_blocked():
-    import litellm
+    from token_iq import gateway as litellm
 
     router = _router_with_two_deployments([True, True])
     with pytest.raises(litellm.ServiceUnavailableError):
@@ -5103,7 +5103,7 @@ def test_get_available_deployment_raises_when_addressed_dict_is_blocked():
 
 
 def _router_with_two_pass_through_deployments(blocked_flags):
-    import litellm
+    from token_iq import gateway as litellm
 
     model_list = []
     for idx, blocked in enumerate(blocked_flags):
@@ -5130,7 +5130,7 @@ def test_initialize_deployment_for_pass_through_keeps_bedrock_iam_deployment():
     Bedrock deployments using IAM/OIDC auth have no api_key; pass-through
     init must not raise and drop them from routing (#27728).
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     router = litellm.Router(
         model_list=[
@@ -5172,7 +5172,7 @@ def test_is_deployment_blocked_static_helper_reflects_blocked_flag():
     """
     import types
 
-    import litellm
+    from token_iq import gateway as litellm
 
     router = _router_with_two_deployments([True, False])
     blocked_dep = router.get_deployment("dep-0")
@@ -5309,7 +5309,7 @@ class TestRouterRequestTimeoutPropagation:
 
 def _make_deferred_stream_wrapper(make_call_fn):
     """Return a CustomStreamWrapper with completion_stream=None and the given make_call."""
-    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+    from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
     logging_obj = MagicMock()
     logging_obj.model_call_details = {"litellm_params": {}}
@@ -5356,7 +5356,7 @@ async def test_acompletion_deferred_stream_skipped_when_stream_already_set():
     fetch_stream() call must be skipped entirely; no exception should be raised even
     if make_call would fail.
     """
-    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+    from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
     async def would_fail(**kwargs):
         raise RuntimeError("should not be called")
@@ -5390,7 +5390,7 @@ async def test_acompletion_deferred_stream_skipped_when_stream_already_set():
     )
 
     with patch(
-        "litellm.acompletion",
+        "token_iq.gateway.acompletion",
         new_callable=AsyncMock,
         return_value=already_set_wrapper,
     ):
@@ -5412,7 +5412,7 @@ def test_completion_deferred_stream_skipped_when_stream_already_set():
     """A non-deferred sync provider already has completion_stream populated, so the
     eager fetch must be skipped and make_call left untouched.
     """
-    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+    from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
     def would_fail(**kwargs):
         raise RuntimeError("should not be called")
@@ -5438,7 +5438,7 @@ def test_completion_deferred_stream_skipped_when_stream_already_set():
         ],
     )
 
-    with patch("litellm.completion", return_value=already_set_wrapper):
+    with patch("token_iq.gateway.completion", return_value=already_set_wrapper):
         result = router._completion(
             model="openai/gpt-4o",
             messages=[{"role": "user", "content": "Hello"}],
@@ -5451,8 +5451,8 @@ def test_completion_deferred_stream_skipped_when_stream_already_set():
 
 
 def test_stream_chunks_have_generated_content_detects_text_and_non_text():
-    from litellm.router import _stream_chunks_have_generated_content
-    from litellm.types.utils import (
+    from token_iq.gateway.router import _stream_chunks_have_generated_content
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -5667,7 +5667,7 @@ def test_get_configured_display_name_treats_malformed_values_as_absent():
 async def test_acreate_batch_request_bedrock_tags_override_deployment_tags():
     import httpx
 
-    from litellm.llms.bedrock.common_utils import CommonBatchFilesUtils
+    from token_iq.gateway.llms.bedrock.common_utils import CommonBatchFilesUtils
 
     deployment_tags = [{"key": "application", "value": "config-level"}]
     request_tags = [{"key": "application", "value": "request-level"}]
@@ -5702,7 +5702,7 @@ async def test_acreate_batch_request_bedrock_tags_override_deployment_tags():
         "sign_aws_request",
         return_value=({"Authorization": "signed"}, b"{}"),
     ) as mock_sign, patch(
-        "litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
         return_value=mock_client,
     ):
         await router.acreate_batch(
@@ -5730,7 +5730,7 @@ async def test_avector_store_search_injects_router():
     SDK search call so provider transforms can resolve router-managed
     embedding models (e.g. S3 Vectors query embeddings).
     """
-    from litellm.types.vector_stores import VectorStoreSearchResponse
+    from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
     expected_response = VectorStoreSearchResponse(
         object="vector_store.search_results.page", search_query="q", data=[]
@@ -5738,7 +5738,7 @@ async def test_avector_store_search_injects_router():
     mock_asearch = AsyncMock(return_value=expected_response)
     # Router.__init__ binds asearch via a local import, so patch the module
     # attribute before constructing the Router.
-    with patch("litellm.vector_stores.main.asearch", new=mock_asearch):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
+    with patch("token_iq.gateway.vector_stores.main.asearch", new=mock_asearch):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
         router = litellm.Router(
             model_list=[
                 {
@@ -5772,7 +5772,7 @@ async def test_avector_store_create_does_not_inject_router():
             }
         ]
     )
-    with patch("litellm.vector_stores.main.acreate", new=mock_acreate):  # test-quality-ok: the SDK call is the only place a leaked router kwarg would surface
+    with patch("token_iq.gateway.vector_stores.main.acreate", new=mock_acreate):  # test-quality-ok: the SDK call is the only place a leaked router kwarg would surface
         create_response = await router.avector_store_create(model=None, custom_llm_provider="openai")
 
     assert create_response is expected_response
@@ -5786,7 +5786,7 @@ def test_vector_store_search_injects_router():
     the router down to the SDK search call so provider transforms can resolve
     router-managed embedding models, same as avector_store_search.
     """
-    from litellm.types.vector_stores import VectorStoreSearchResponse
+    from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
     expected_response = VectorStoreSearchResponse(
         object="vector_store.search_results.page", search_query="q", data=[]
@@ -5794,7 +5794,7 @@ def test_vector_store_search_injects_router():
     mock_search = MagicMock(return_value=expected_response)
     # Router.__init__ binds search via a local import, so patch the module
     # attribute before constructing the Router.
-    with patch("litellm.vector_stores.main.search", new=mock_search):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
+    with patch("token_iq.gateway.vector_stores.main.search", new=mock_search):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
         router = litellm.Router(
             model_list=[
                 {
@@ -5819,7 +5819,7 @@ def test_vector_store_create_does_not_inject_router():
     mock_create = MagicMock(return_value=expected_response)
     # Router.__init__ binds create via a local import, so patch the module
     # attribute before constructing the Router.
-    with patch("litellm.vector_stores.main.create", new=mock_create):  # test-quality-ok: the SDK call is the only place a leaked router kwarg would surface
+    with patch("token_iq.gateway.vector_stores.main.create", new=mock_create):  # test-quality-ok: the SDK call is the only place a leaked router kwarg would surface
         router = litellm.Router(
             model_list=[
                 {
@@ -5839,7 +5839,7 @@ def test_model_info_is_active_for_environment_matrix(monkeypatch):
     """The model-write endpoints consult this predicate to tell a deliberately
     environment-inactive model from one dropped by a failed reload; the Router's own
     deployment gate delegates to it, so the two can never diverge."""
-    from litellm.router import model_info_is_active_for_environment
+    from token_iq.gateway.router import model_info_is_active_for_environment
 
     assert model_info_is_active_for_environment(model_info=None) is True
     assert model_info_is_active_for_environment(model_info={"id": "m1"}) is True
@@ -5959,7 +5959,7 @@ class TestUpsertDeploymentRollback:
     """
 
     def test_failed_upsert_keeps_previous_deployment_serving(self):
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         router = litellm.Router(
             model_list=[
@@ -5987,7 +5987,7 @@ class TestUpsertDeploymentRollback:
         assert [model["model_name"] for model in router.model_list] == ["prod-model"]
 
     def test_failed_fresh_add_returns_none_without_restore(self):
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         router = litellm.Router(model_list=[], ignore_invalid_deployments=True)
 
@@ -6059,7 +6059,7 @@ class TestUpsertDeploymentRename:
 
     @staticmethod
     def _deployment(model_name: str, tpm: int | None = None):
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         return Deployment(
             model_name=model_name,
@@ -6115,13 +6115,13 @@ class TestConsumedRequestTagsStamp:
         async def async_pre_routing_hook(
             self, model, request_kwargs, messages=None, input=None, specific_deployment=False
         ):
-            from litellm.types.router import PreRoutingHookResponse
+            from token_iq.gateway.types.router import PreRoutingHookResponse
 
             return PreRoutingHookResponse(model=self.rewrite_to, messages=messages)
 
     @classmethod
     def _router(cls, marker_tags=("route",)) -> "litellm.Router":
-        from litellm.types.router import TaggedPreRoutingStrategy
+        from token_iq.gateway.types.router import TaggedPreRoutingStrategy
 
         router = litellm.Router(
             model_list=[
@@ -6137,8 +6137,8 @@ class TestConsumedRequestTagsStamp:
 
     @pytest.mark.asyncio
     async def test_stamps_the_rewritten_group_when_request_tags_selected_the_router(self):
-        from litellm.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
-        from litellm.types.router import ConsumedRequestTagsStamp
+        from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
+        from token_iq.gateway.types.router import ConsumedRequestTagsStamp
 
         router = self._router()
         request_kwargs = {"metadata": {"tags": ["route"]}}
@@ -6151,8 +6151,8 @@ class TestConsumedRequestTagsStamp:
 
     @pytest.mark.asyncio
     async def test_stamps_into_litellm_metadata_when_the_request_uses_that_bucket(self):
-        from litellm.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
-        from litellm.types.router import ConsumedRequestTagsStamp
+        from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
+        from token_iq.gateway.types.router import ConsumedRequestTagsStamp
 
         router = self._router()
         request_kwargs = {"litellm_metadata": {"tags": ["route"]}}
@@ -6165,7 +6165,7 @@ class TestConsumedRequestTagsStamp:
 
     @pytest.mark.asyncio
     async def test_fallback_reentry_with_a_plain_group_clears_the_stale_stamp(self):
-        from litellm.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
+        from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
 
         router = self._router()
         request_kwargs = {"metadata": {"tags": ["route"]}}
@@ -6177,7 +6177,7 @@ class TestConsumedRequestTagsStamp:
 
     @pytest.mark.asyncio
     async def test_no_stamp_when_the_request_is_untagged(self):
-        from litellm.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
+        from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
 
         router = self._router()
         request_kwargs = {"metadata": {}}
@@ -6188,7 +6188,7 @@ class TestConsumedRequestTagsStamp:
 
     @pytest.mark.asyncio
     async def test_no_stamp_when_the_selected_strategy_carries_no_tags(self):
-        from litellm.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
+        from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
 
         router = self._router(marker_tags=())
         request_kwargs = {"metadata": {"tags": ["route"]}}
@@ -6237,7 +6237,7 @@ class TestAutoRouterMaxInputCharsWiring:
         assert self._registered_auto_router(router).max_input_chars == 512
 
     def test_should_fall_back_to_the_shared_default_when_the_deployment_omits_it(self):
-        from litellm.constants import DEFAULT_AUTO_ROUTER_MAX_INPUT_CHARS
+        from token_iq.gateway.constants import DEFAULT_AUTO_ROUTER_MAX_INPUT_CHARS
 
         router = self._router()
 
@@ -6422,7 +6422,7 @@ class TestAutoRouterSharedModelNameConnectionParams:
     async def test_routed_tier_call_goes_out_on_its_own_endpoint_and_credentials(self, plain_entry_first):
         """The outbound provider request for the routed tier hits the tier's own Gemini host
         with the tier's own key, never the plain sibling's api_base or api_key."""
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
         router = self._router(plain_entry_first)
 
@@ -6533,7 +6533,7 @@ def test_stamp_or_clear_metadata_key_writes_and_clears_both_buckets():
 
 
 def test_ensure_deployment_affinity_callback_is_idempotent():
-    from litellm.router_utils.pre_call_checks.deployment_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
         DeploymentAffinityCheck,
     )
 
@@ -6554,7 +6554,7 @@ def test_get_router_model_info_does_not_wipe_cached_pricing():
     """A Deployment's model_info declares the mirrored pricing fields with None defaults;
     merging it must not write those Nones into the lru_cache'd dict get_model_info() owns,
     or /model/info loses built-in prices for every model a worker serves."""
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     litellm.get_model_info.cache_clear()
     expected = copy.deepcopy(litellm.get_model_info(model="anthropic/claude-sonnet-4-5"))
@@ -6575,7 +6575,7 @@ def test_get_router_model_info_does_not_wipe_cached_pricing():
 
 
 def test_get_router_model_info_keeps_explicit_pricing_overrides():
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     litellm.get_model_info.cache_clear()
     router = litellm.Router(model_list=[])
@@ -6619,7 +6619,7 @@ class TestAzureBaseModelFallbackLogging:
         router = self._router_with_azure_deployment("azure/gpt-4o")
 
         with patch(
-            "litellm.router.verbose_router_logger.error"
+            "token_iq.gateway.router.verbose_router_logger.error"
         ) as mock_error:
             model_info = router.get_router_model_info(
                 deployment=None, received_model_name="my-group", id="azure-base-model-test-id"
@@ -6637,7 +6637,7 @@ class TestAzureBaseModelFallbackLogging:
         router = self._router_with_azure_deployment("azure/my-custom-deployment-name")
 
         with patch(
-            "litellm.router.verbose_router_logger.error"
+            "token_iq.gateway.router.verbose_router_logger.error"
         ) as mock_error:
             model_info = router.get_router_model_info(
                 deployment=None, received_model_name="my-group", id="azure-base-model-test-id"
@@ -8318,7 +8318,7 @@ async def test_async_function_with_fallbacks_stamps_despite_forged_reentry_param
 async def test_async_function_with_fallbacks_skips_stamp_on_genuine_reentrant_hop():
     """A re-entrant hop carrying the router's own AttemptedFallbackTargets instance keeps
     the per-hop metadata that run_async_fallback wrote instead of resetting it to zero."""
-    from litellm.router_utils.fallback_event_handlers import AttemptedFallbackTargets
+    from token_iq.gateway.router_utils.fallback_event_handlers import AttemptedFallbackTargets
 
     router = litellm.Router(
         model_list=[
@@ -8586,7 +8586,7 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
     the provisional deployment's id, or a differently-billed deployment loses the credit."""
     import time
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     router = litellm.Router(
         model_list=[

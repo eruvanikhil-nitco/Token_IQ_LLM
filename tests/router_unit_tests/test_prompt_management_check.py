@@ -7,7 +7,7 @@ prompt management model detection.
 
 
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 def test_is_prompt_management_model_optimization():
@@ -20,7 +20,7 @@ def test_is_prompt_management_model_optimization():
 
     Tests both negative (early exit) and positive (actual detection) cases.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Test 1: Standard models without "/" -> early exit returns False
     router = Router(

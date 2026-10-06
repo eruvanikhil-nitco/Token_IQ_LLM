@@ -13,13 +13,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.hosted_vllm.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.hosted_vllm.responses.transformation import (
     HostedVLLMResponsesAPIConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def _make_mock_responses_api_response(content: str = "Hello! I'm doing well.") -> dict:
@@ -73,7 +73,7 @@ def test_hosted_vllm_responses_create_with_string_input():
     )
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
         return_value=mock_client,
     ):
         response = litellm.responses(
@@ -83,7 +83,7 @@ def test_hosted_vllm_responses_create_with_string_input():
             api_key="test-key",
         )
 
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     assert response is not None
     assert isinstance(response, ResponsesAPIResponse)
@@ -99,7 +99,7 @@ def test_hosted_vllm_responses_create_with_explicit_none_extra_body():
     Directly verify the fix in add_provider_specific_params_to_optional_params:
     extra_body=None must not crash when building optional_params.
     """
-    from litellm.utils import get_optional_params
+    from token_iq.gateway.utils import get_optional_params
 
     # This should not raise TypeError: 'NoneType' object is not a mapping
     optional_params = get_optional_params(

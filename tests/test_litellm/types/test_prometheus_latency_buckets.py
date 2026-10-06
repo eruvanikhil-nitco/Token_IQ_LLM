@@ -2,7 +2,7 @@
 
 import math
 
-from litellm.types.integrations.prometheus import LATENCY_BUCKETS
+from token_iq.gateway.types.integrations.prometheus import LATENCY_BUCKETS
 
 
 def test_latency_buckets_include_seven_and_ten_minutes():

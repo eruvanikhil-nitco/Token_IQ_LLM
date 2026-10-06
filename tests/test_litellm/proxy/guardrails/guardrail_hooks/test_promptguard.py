@@ -11,12 +11,12 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy.guardrails.guardrail_hooks.promptguard.promptguard import (
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.promptguard.promptguard import (
     PromptGuardGuardrail,
     PromptGuardMissingCredentials,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.promptguard import (
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.promptguard import (
     PromptGuardConfigModel,
 )
 
@@ -134,7 +134,7 @@ class TestPromptGuardConfiguration:
             assert guardrail.block_on_error is False
 
     def test_supported_event_hooks_set(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         guardrail = PromptGuardGuardrail(api_key="pg_live_abc_123")
         hooks = guardrail.supported_event_hooks
@@ -797,14 +797,14 @@ class TestPromptGuardConfigModel:
 
 class TestPromptGuardInitializer:
     def test_guardrail_initializer_registry_has_entry(self):
-        from litellm.proxy.guardrails.guardrail_hooks.promptguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.promptguard import (
             guardrail_initializer_registry,
         )
 
         assert "promptguard" in guardrail_initializer_registry
 
     def test_guardrail_class_registry_has_entry(self):
-        from litellm.proxy.guardrails.guardrail_hooks.promptguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.promptguard import (
             guardrail_class_registry,
         )
 
@@ -812,6 +812,6 @@ class TestPromptGuardInitializer:
         assert guardrail_class_registry["promptguard"] is PromptGuardGuardrail
 
     def test_enum_value_exists(self):
-        from litellm.types.guardrails import SupportedGuardrailIntegrations
+        from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
         assert SupportedGuardrailIntegrations.PROMPTGUARD.value == "promptguard"

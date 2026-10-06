@@ -5,9 +5,9 @@ import openai
 import pytest
 
 
-import litellm
-from litellm.litellm_core_utils.token_counter import token_counter
-from litellm.llms.openai.common_utils import BaseOpenAILLM
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.token_counter import token_counter
+from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM
 
 # Test parameters for different API functions
 API_FUNCTION_PARAMS = [
@@ -84,9 +84,9 @@ async def test_openai_client_reuse(function_name, is_async, args):
 
     # Determine which client class to mock based on whether the test is async
     client_path = (
-        "litellm.llms.openai.openai.AsyncOpenAI"
+        "token_iq.gateway.llms.openai.openai.AsyncOpenAI"
         if is_async
-        else "litellm.llms.openai.openai.OpenAI"
+        else "token_iq.gateway.llms.openai.openai.OpenAI"
     )
 
     # Create the appropriate patches
@@ -138,7 +138,7 @@ def test_precomputed_init_params_match_inspect_signature():
 
     from openai import AzureOpenAI, OpenAI
 
-    from litellm.llms.openai.common_utils import (
+    from token_iq.gateway.llms.openai.common_utils import (
         _AZURE_OPENAI_INIT_PARAMS,
         _OPENAI_INIT_PARAMS,
     )
@@ -184,9 +184,9 @@ def test_evicting_a_client_built_on_the_callers_session_leaves_that_session_open
     """
     import httpx
 
-    from litellm.caching.evicted_client_closer import EvictedClientCloser
-    from litellm.caching.llm_caching_handler import LLMClientCache
-    from litellm.llms.openai.openai import OpenAIChatCompletion
+    from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 
     shared_session = httpx.AsyncClient()
     closer = EvictedClientCloser(grace_seconds=0.0)
@@ -216,9 +216,9 @@ def test_evicting_a_client_built_on_the_callers_session_leaves_that_session_open
 
 def test_a_client_litellm_built_its_own_http_client_for_is_still_closed(monkeypatch):
     """The ownership check must not turn the reclaim off for the ordinary case."""
-    from litellm.caching.evicted_client_closer import EvictedClientCloser
-    from litellm.caching.llm_caching_handler import LLMClientCache
-    from litellm.llms.openai.openai import OpenAIChatCompletion
+    from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 
     closer = EvictedClientCloser(grace_seconds=0.0)
     monkeypatch.setattr(litellm, "aclient_session", None)

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import io
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
@@ -13,11 +13,11 @@ import pytest
 from fastapi import Request
 from starlette.datastructures import URL, Headers, QueryParams
 
-import litellm
-from litellm.proxy._types import LiteLLMRoutes
-from litellm.proxy.auth.auth_utils import get_request_route
-from litellm.proxy.auth.route_checks import RouteChecks
-from litellm.proxy.proxy_server import app
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy.auth.auth_utils import get_request_route
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy.proxy_server import app
 
 # Configure logging
 logging.basicConfig(
@@ -38,7 +38,7 @@ def test_routes_on_litellm_proxy():
     # missing-route regressions.
     import importlib
 
-    from litellm.proxy._lazy_features import LAZY_FEATURES
+    from token_iq.gateway.proxy._lazy_features import LAZY_FEATURES
 
     registered_paths = [getattr(r, "path", "") for r in app.routes]
     for feat in LAZY_FEATURES:
@@ -246,13 +246,13 @@ def _is_assistants(req):
 
 
 def _metadata_var_name(req):
-    from litellm.proxy.litellm_pre_call_utils import _get_metadata_variable_name
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_metadata_variable_name
 
     return _get_metadata_variable_name(req)
 
 
 def _vector_store_id_in_path(req):
-    from litellm.proxy.common_utils.http_parsing_utils import (
+    from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
         _add_vector_store_id_from_path,
     )
 

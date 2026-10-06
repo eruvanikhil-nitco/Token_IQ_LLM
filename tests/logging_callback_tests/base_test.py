@@ -5,11 +5,11 @@ import pytest
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
-import litellm
-from litellm.exceptions import BadRequestError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.utils import CustomStreamWrapper
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.utils import CustomStreamWrapper
+from token_iq.gateway.types.utils import ModelResponse
 
 # test_example.py
 from abc import ABC, abstractmethod
@@ -22,7 +22,7 @@ class BaseLoggingCallbackTest(ABC):
 
     @pytest.fixture
     def mock_response_obj(self):
-        from litellm.types.utils import (
+        from token_iq.gateway.types.utils import (
             ModelResponse,
             Choices,
             Message,

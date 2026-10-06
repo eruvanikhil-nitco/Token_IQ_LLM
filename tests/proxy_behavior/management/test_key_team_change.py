@@ -19,7 +19,7 @@ from typing import Any, Dict, Optional
 import pytest
 from prisma import Json
 
-from litellm.proxy.utils import hash_token
+from token_iq.gateway.proxy.utils import hash_token
 
 from .actors import TEAM_ALPHA, Actor
 from .conftest import create_scratch_team

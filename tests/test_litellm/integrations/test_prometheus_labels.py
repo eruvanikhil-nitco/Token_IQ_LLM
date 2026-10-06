@@ -4,7 +4,7 @@ Unit tests for prometheus metric labels configuration
 
 import pytest
 
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.types.integrations.prometheus import (
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,
 )
@@ -158,7 +158,7 @@ def test_api_provider_value_flows_through_label_factory():
     """
     from unittest.mock import MagicMock
 
-    from litellm.integrations.prometheus import (
+    from token_iq.gateway.integrations.prometheus import (
         PrometheusLogger,
         UserAPIKeyLabelValues,
         prometheus_label_factory,
@@ -206,7 +206,7 @@ def test_extract_api_provider_from_request_data_failure_path():
     from the requested model name, and return None only when nothing maps so the
     label emits empty rather than a guess.
     """
-    from litellm.integrations.prometheus import PrometheusLogger
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     extract = PrometheusLogger._extract_api_provider_from_request_data
 
@@ -244,8 +244,8 @@ def test_extract_api_provider_swallows_unknown_model_but_logs_unexpected_errors(
     """
     from unittest.mock import patch
 
-    import litellm
-    from litellm.integrations.prometheus import PrometheusLogger
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     extract = PrometheusLogger._extract_api_provider_from_request_data
 
@@ -257,13 +257,13 @@ def test_extract_api_provider_swallows_unknown_model_but_logs_unexpected_errors(
             message="no provider", model="x", llm_provider="y"
         ),
     ):
-        with patch("litellm.integrations.prometheus.verbose_logger") as mock_logger:
+        with patch("token_iq.gateway.integrations.prometheus.verbose_logger") as mock_logger:
             assert extract({"model": "x"}) is None
             mock_logger.debug.assert_not_called()
 
     # Unexpected error: must be logged and still return None (never raised)
     with patch.object(litellm, "get_llm_provider", side_effect=RuntimeError("boom")):
-        with patch("litellm.integrations.prometheus.verbose_logger") as mock_logger:
+        with patch("token_iq.gateway.integrations.prometheus.verbose_logger") as mock_logger:
             assert extract({"model": "x"}) is None
             mock_logger.debug.assert_called_once()
 
@@ -277,7 +277,7 @@ def test_prometheus_metric_labels_structure():
     """Test that all required prometheus metrics have proper label structure"""
     from typing import get_args
 
-    from litellm.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
+    from token_iq.gateway.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
 
     # Test a few key metrics to ensure they have proper label structure
     test_metrics = [
@@ -370,7 +370,7 @@ def test_route_normalization_for_responses_api():
 
     Fix: Routes are normalized to collapse dynamic IDs into placeholders.
     """
-    from litellm.proxy.auth.auth_utils import normalize_request_route
+    from token_iq.gateway.proxy.auth.auth_utils import normalize_request_route
 
     # Test responses API routes
     responses_routes = [
@@ -402,7 +402,7 @@ def test_route_normalization_for_responses_api():
 
 def test_route_normalization_for_sub_routes():
     """Test that sub-routes like /cancel and /input_items are normalized correctly"""
-    from litellm.proxy.auth.auth_utils import normalize_request_route
+    from token_iq.gateway.proxy.auth.auth_utils import normalize_request_route
 
     sub_routes = [
         ("/v1/responses/id1/cancel", "/v1/responses/{response_id}/cancel"),
@@ -425,7 +425,7 @@ def test_route_normalization_for_sub_routes():
 
 def test_route_normalization_preserves_static_routes():
     """Test that static routes are not affected by normalization"""
-    from litellm.proxy.auth.auth_utils import normalize_request_route
+    from token_iq.gateway.proxy.auth.auth_utils import normalize_request_route
 
     static_routes = [
         "/chat/completions",
@@ -448,7 +448,7 @@ def test_route_normalization_preserves_static_routes():
 
 def test_route_normalization_other_dynamic_apis():
     """Test normalization for other OpenAI-compatible APIs with dynamic IDs"""
-    from litellm.proxy.auth.auth_utils import normalize_request_route
+    from token_iq.gateway.proxy.auth.auth_utils import normalize_request_route
 
     test_cases = [
         # Threads API
@@ -487,7 +487,7 @@ def test_prometheus_metrics_use_normalized_routes():
     """
     from unittest.mock import MagicMock
 
-    from litellm.integrations.prometheus import (
+    from token_iq.gateway.integrations.prometheus import (
         PrometheusLogger,
         UserAPIKeyLabelValues,
         prometheus_label_factory,
@@ -536,7 +536,7 @@ def test_prometheus_label_value_sanitization():
     malformed model name) breaks the Prometheus exposition format, causing
     scrapers like Datadog to fail parsing the entire /metrics endpoint.
     """
-    from litellm.integrations.prometheus import (
+    from token_iq.gateway.integrations.prometheus import (
         PrometheusLogger,
         UserAPIKeyLabelValues,
         prometheus_label_factory,
@@ -581,7 +581,7 @@ def test_prometheus_label_value_sanitization():
 
 def test_prometheus_label_value_sanitization_unicode_paragraph_separator():
     """Test that U+2029 (Paragraph Separator) is also stripped."""
-    from litellm.types.integrations.prometheus import _sanitize_prometheus_label_value
+    from token_iq.gateway.types.integrations.prometheus import _sanitize_prometheus_label_value
 
     result = _sanitize_prometheus_label_value("model\u2029name")
     assert result == "modelname"
@@ -592,7 +592,7 @@ def test_prometheus_label_value_sanitization_unicode_paragraph_separator():
 
 def test_prometheus_label_value_sanitization_none():
     """Test that None values pass through unchanged."""
-    from litellm.types.integrations.prometheus import _sanitize_prometheus_label_value
+    from token_iq.gateway.types.integrations.prometheus import _sanitize_prometheus_label_value
 
     assert _sanitize_prometheus_label_value(None) is None
 
@@ -601,7 +601,7 @@ def test_prometheus_label_value_sanitization_none():
 
 def test_prometheus_label_value_sanitization_non_string_types():
     """Test that non-string values (int, bool, etc.) are coerced to str."""
-    from litellm.types.integrations.prometheus import _sanitize_prometheus_label_value
+    from token_iq.gateway.types.integrations.prometheus import _sanitize_prometheus_label_value
 
     assert _sanitize_prometheus_label_value(200) == "200"
     assert _sanitize_prometheus_label_value(True) == "True"
@@ -625,7 +625,7 @@ async def test_success_hook_emits_api_provider_value_on_token_metric():
     """
     import datetime
 
-    from litellm.integrations.prometheus import PrometheusLogger
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     payload = {
         "id": "t",
@@ -695,8 +695,8 @@ async def test_failure_hook_emits_api_provider_value_on_failed_requests_metric()
     fails if the api_provider assignment in the failure hook is removed, which the
     helper-only test cannot catch.
     """
-    from litellm.integrations.prometheus import PrometheusLogger
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     _clear_prometheus_registry()
     try:

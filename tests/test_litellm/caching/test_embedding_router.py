@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 
 
-import litellm
-from litellm.caching._embedding_router import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching._embedding_router import (
     build_router_embedding_metadata,
     resolve_embedding_max_input_tokens,
     resolve_embedding_router,

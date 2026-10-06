@@ -16,11 +16,11 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.snowflake.chat.transformation import (
+from token_iq.gateway.llms.snowflake.chat.transformation import (
     SnowflakeConfig,
     _is_claude_model,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 # ─── Fixtures ──────────────────────────────────────────────────────────────

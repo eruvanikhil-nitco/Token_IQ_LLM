@@ -15,7 +15,7 @@ from uuid import uuid4
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 from a2a.types import MessageSendParams, SendMessageRequest, SendStreamingMessageRequest
 
 
@@ -24,7 +24,7 @@ async def test_a2a_completion_bridge_non_streaming():
     """
     Test non-streaming A2A request via the completion bridge with LangGraph provider.
     """
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     litellm._turn_on_debug()
 
@@ -75,7 +75,7 @@ async def test_a2a_completion_bridge_streaming():
     3. Artifact update (kind: "artifact-update") - Content delivery
     4. Status update (kind: "status-update") - Final "completed" status
     """
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     litellm._turn_on_debug()
 
@@ -160,7 +160,7 @@ async def test_a2a_completion_bridge_bedrock_agentcore():
 
     Uses the AgentCore runtime ARN to call a hosted agent.
     """
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     litellm._turn_on_debug()
 

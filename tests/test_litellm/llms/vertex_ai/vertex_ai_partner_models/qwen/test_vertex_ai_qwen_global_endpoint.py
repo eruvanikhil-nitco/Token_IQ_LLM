@@ -13,9 +13,9 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 
-import litellm
-from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
-from litellm.types.llms.vertex_ai import VertexPartnerProvider
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
+from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
 
 
 @pytest.fixture(autouse=True)
@@ -171,10 +171,10 @@ async def test_vertex_ai_qwen_global_endpoint_url():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "test-project"),
         ),
         patch.dict(

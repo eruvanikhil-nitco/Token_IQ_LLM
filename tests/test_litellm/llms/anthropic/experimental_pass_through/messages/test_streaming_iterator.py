@@ -5,9 +5,9 @@ from datetime import datetime
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.anthropic.experimental_pass_through.messages import streaming_iterator as streaming_iterator_module
-from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import streaming_iterator as streaming_iterator_module
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     INCOMPLETE_STREAM_ERROR_MESSAGE,
     AnthropicMessagesStreamHiddenParams,
     AnthropicMessagesStreamingResponse,
@@ -853,7 +853,7 @@ async def test_abort_upstream_logs_warning_when_aclose_raises(caplog):
 async def test_enqueue_for_client_returns_false_when_already_detached():
     """_enqueue_for_client must return False immediately (without touching the queue)
     when client_detached is already set before the call."""
-    from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
         BaseAnthropicMessagesStreamingIterator,
     )
 
@@ -870,7 +870,7 @@ async def test_enqueue_for_client_returns_false_when_already_detached():
 async def test_enqueue_for_client_returns_false_when_client_detaches_while_queue_full():
     """_enqueue_for_client must return False (and cancel the put) when the queue
     is full and client_detached fires before space becomes available."""
-    from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
         BaseAnthropicMessagesStreamingIterator,
     )
 

@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm.proxy._types import LiteLLMRoutes
-from litellm.proxy.proxy_server import app
-from litellm.types.router import ModelGroupInfo
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.router import ModelGroupInfo
 
 client = TestClient(app)
 
@@ -41,10 +41,10 @@ def _info(
 def _publish(monkeypatch, infos: Sequence[ModelGroupInfo], prisma_client: object | None = None) -> None:
     monkeypatch.setattr(litellm, "public_model_groups", [info.model_group for info in infos])
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.llm_router",
+        "token_iq.gateway.proxy.proxy_server.llm_router",
         _FakeRouter(infos=MappingProxyType({info.model_group: info for info in infos})),
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client)
 
 
 def _named(count: int, **overrides: object) -> Sequence[ModelGroupInfo]:
@@ -271,8 +271,8 @@ def test_the_search_matches_model_group_names_case_insensitively(monkeypatch):
 @pytest.fixture
 def guarded(monkeypatch):
     """A proxy with a master key set, so anything but a public route would demand credentials."""
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-1234")
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-1234")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
 
 
 def test_an_unauthenticated_caller_is_served(monkeypatch, guarded):
@@ -310,7 +310,7 @@ def test_no_published_model_groups_yields_an_empty_but_coherent_envelope(monkeyp
 
 
 def test_no_router_answers_with_a_problem_rather_than_the_openai_error_shape(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
 
     response = _get()
 
@@ -325,8 +325,8 @@ def test_an_unexpected_router_failure_answers_as_a_problem_not_the_openai_error_
             raise RuntimeError("router blew up")
 
     monkeypatch.setattr(litellm, "public_model_groups", ["boom"])
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", _Exploding())
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", _Exploding())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     response = _get()
 

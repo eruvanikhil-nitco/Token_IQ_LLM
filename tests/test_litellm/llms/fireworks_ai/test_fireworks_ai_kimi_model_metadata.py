@@ -36,12 +36,12 @@ def use_local_model_cost_map():
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
-    import litellm
-    from litellm.utils import _invalidate_model_cost_lowercase_map
+    from token_iq import gateway as litellm
+    from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
     original_model_cost = litellm.model_cost
     litellm.model_cost = json.loads(
-        files("litellm")
+        files("token_iq.gateway")
         .joinpath("model_prices_and_context_window_backup.json")
         .read_text(encoding="utf-8")
     )

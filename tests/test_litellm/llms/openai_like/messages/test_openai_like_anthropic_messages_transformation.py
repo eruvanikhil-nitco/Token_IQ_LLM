@@ -1,10 +1,10 @@
 import pytest
 
-from litellm.llms.anthropic.common_utils import AnthropicError
-from litellm.llms.openai_like.messages.transformation import (
+from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
+from token_iq.gateway.llms.openai_like.messages.transformation import (
     OpenAILikeAnthropicMessagesConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 @pytest.fixture
@@ -268,7 +268,7 @@ def test_request_maps_reasoning_effort_to_thinking(config):
 
 
 def test_passthrough_disables_anthropic_beta_filtering(config):
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 
@@ -277,7 +277,7 @@ def test_passthrough_disables_anthropic_beta_filtering(config):
 
 
 def test_anthropic_beta_survives_provider_filter_on_passthrough_path(config):
-    from litellm.anthropic_beta_headers_manager import update_headers_with_filtered_beta
+    from token_iq.gateway.anthropic_beta_headers_manager import update_headers_with_filtered_beta
 
     headers, _ = config.validate_anthropic_messages_environment(
         headers={"Anthropic-Beta": "caller-flag"},
@@ -307,8 +307,8 @@ def test_json_provider_messages_config_probes_capabilities_under_provider_slug()
     ``self.custom_llm_provider``. The JSON-provider config knows its slug, so it
     must expose it; the generic OpenAI-like config has no class-level namespace
     and keeps the inherited ``anthropic`` default."""
-    from litellm.llms.openai_like.json_loader import SimpleProviderConfig
-    from litellm.llms.openai_like.messages.transformation import (
+    from token_iq.gateway.llms.openai_like.json_loader import SimpleProviderConfig
+    from token_iq.gateway.llms.openai_like.messages.transformation import (
         JSONProviderAnthropicMessagesConfig,
     )
 
@@ -398,7 +398,7 @@ def test_request_defaults_missing_cache_control_type_and_drops_non_dict(config):
 def test_native_anthropic_config_keeps_cache_control_ttl():
     """Anthropic itself accepts ttl, so the normalization must stay scoped to
     the OpenAI-like passthrough and never reach the native Anthropic path."""
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 
@@ -433,8 +433,8 @@ def test_deployment_opt_in_keeps_cache_control_ttl():
 
 
 def test_json_provider_constraint_opts_into_cache_control_ttl():
-    from litellm.llms.openai_like.json_loader import SimpleProviderConfig
-    from litellm.llms.openai_like.messages.transformation import (
+    from token_iq.gateway.llms.openai_like.json_loader import SimpleProviderConfig
+    from token_iq.gateway.llms.openai_like.messages.transformation import (
         JSONProviderAnthropicMessagesConfig,
     )
 

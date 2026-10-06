@@ -2,12 +2,12 @@ import asyncio
 import os
 from unittest.mock import AsyncMock, patch
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
-from litellm.proxy.proxy_server import app, initialize
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
+from token_iq.gateway.proxy.proxy_server import app, initialize
 
 
 @pytest.fixture(scope="function")
@@ -24,7 +24,7 @@ def fake_env_vars(monkeypatch):
 
 @pytest.fixture(scope="function")
 def client_no_auth(fake_env_vars):
-    from litellm.proxy.proxy_server import cleanup_router_config_variables
+    from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
     original_disable_aiohttp = litellm.disable_aiohttp_transport
     litellm.disable_aiohttp_transport = True
@@ -38,7 +38,7 @@ def client_no_auth(fake_env_vars):
     # Passthrough of api_base in the JSON body is rejected by default
     # (pre_db_read_auth_checks / is_request_body_safe). This test asserts
     # api_base reaches aocr().
-    from litellm.proxy import proxy_server as _ps
+    from token_iq.gateway.proxy import proxy_server as _ps
 
     if _ps.general_settings is None:
         _ps.general_settings = {}
@@ -53,7 +53,7 @@ def client_no_auth(fake_env_vars):
 
 def test_proxy_reducto_ocr_json_rejects_reducto_id(client_no_auth):
     with patch(
-        "litellm.proxy.proxy_server.llm_router.aocr",
+        "token_iq.gateway.proxy.proxy_server.llm_router.aocr",
         new=AsyncMock(),
     ) as mock_aocr:
         response = client_no_auth.post(
@@ -76,7 +76,7 @@ def test_proxy_reducto_ocr_json_rejects_reducto_id(client_no_auth):
 
 def test_proxy_reducto_ocr_json_rejects_reducto_id_in_image_url(client_no_auth):
     with patch(
-        "litellm.proxy.proxy_server.llm_router.aocr",
+        "token_iq.gateway.proxy.proxy_server.llm_router.aocr",
         new=AsyncMock(),
     ) as mock_aocr:
         response = client_no_auth.post(
@@ -105,7 +105,7 @@ def test_proxy_reducto_ocr_json_passthrough_data_uri(client_no_auth):
     data_uri = "data:application/pdf;base64,JVBERi0xLjQK"
 
     with patch(
-        "litellm.proxy.proxy_server.llm_router.aocr",
+        "token_iq.gateway.proxy.proxy_server.llm_router.aocr",
         new=AsyncMock(return_value=mocked_response),
     ) as mock_aocr:
         response = client_no_auth.post(

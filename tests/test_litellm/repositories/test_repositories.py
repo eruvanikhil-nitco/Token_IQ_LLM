@@ -9,23 +9,23 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.models.base import DomainModel
-from litellm.models.budget import LiteLLM_BudgetTable
-from litellm.models.credentials import CredentialItem
-from litellm.models.team import LiteLLM_TeamTable
-from litellm.repositories.base_repository import BaseRepository
-from litellm.repositories.budget_repository import BudgetRepository
-from litellm.repositories.config_repository import ConfigRepository
-from litellm.repositories.credentials_repository import CredentialsRepository
-from litellm.repositories.model_repository import ModelRepository
-from litellm.repositories.object_permission_repository import (
+from token_iq.gateway.models.base import DomainModel
+from token_iq.gateway.models.budget import LiteLLM_BudgetTable
+from token_iq.gateway.models.credentials import CredentialItem
+from token_iq.gateway.models.team import LiteLLM_TeamTable
+from token_iq.gateway.repositories.base_repository import BaseRepository
+from token_iq.gateway.repositories.budget_repository import BudgetRepository
+from token_iq.gateway.repositories.config_repository import ConfigRepository
+from token_iq.gateway.repositories.credentials_repository import CredentialsRepository
+from token_iq.gateway.repositories.model_repository import ModelRepository
+from token_iq.gateway.repositories.object_permission_repository import (
     ObjectPermissionRepository,
 )
-from litellm.repositories.organization_repository import OrganizationRepository
-from litellm.repositories.project_repository import ProjectRepository
-from litellm.repositories.team_repository import TeamRepository
-from litellm.repositories.user_repository import UserRepository
-from litellm.repositories.verification_token_repository import (
+from token_iq.gateway.repositories.organization_repository import OrganizationRepository
+from token_iq.gateway.repositories.project_repository import ProjectRepository
+from token_iq.gateway.repositories.team_repository import TeamRepository
+from token_iq.gateway.repositories.user_repository import UserRepository
+from token_iq.gateway.repositories.verification_token_repository import (
     VerificationTokenRepository,
 )
 
@@ -203,7 +203,7 @@ class TestBaseRepository:
         assert len(budgets) == 1
 
     def test_record_to_dict_branches(self):
-        from litellm.repositories.base_repository import record_to_dict
+        from token_iq.gateway.repositories.base_repository import record_to_dict
 
         assert record_to_dict({"a": 1}) == {"a": 1}
 
@@ -308,7 +308,7 @@ class TestModelRepository:
         return ModelRepository(client)
 
     def test_table_is_wrapped_for_config_sync(self, repo):
-        from litellm.proxy.common_utils.config_sync_pubsub import (
+        from token_iq.gateway.proxy.common_utils.config_sync_pubsub import (
             _PublishOnWriteActions,
         )
 
@@ -318,11 +318,11 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.encrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.encrypt_value_helper",
         side_effect=lambda v, **kw: f"encrypted_{v}",
     )
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_create_model_encrypts_params(self, mock_decrypt, mock_encrypt, repo):
@@ -336,11 +336,11 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.encrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.encrypt_value_helper",
         side_effect=lambda v, **kw: f"encrypted_{v}",
     )
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_create_model_all_fields(self, mock_decrypt, mock_encrypt, repo):
@@ -360,11 +360,11 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.encrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.encrypt_value_helper",
         side_effect=lambda v, **kw: f"encrypted_{v}",
     )
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_update_model_all_fields(self, mock_decrypt, mock_encrypt, repo):
@@ -386,7 +386,7 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_find_all(self, mock_decrypt, repo):
@@ -409,7 +409,7 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_find_unblocked(self, mock_decrypt, repo):
@@ -426,7 +426,7 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_find_by_name(self, mock_decrypt, repo):
@@ -442,11 +442,11 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.encrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.encrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_update_model(self, mock_decrypt, mock_encrypt, repo):
@@ -465,7 +465,7 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_delete_model(self, mock_decrypt, repo):
@@ -479,11 +479,11 @@ class TestModelRepository:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.encrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.encrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda v, **kw: v,
     )
     async def test_block_unblock_model(self, mock_decrypt, mock_encrypt, repo):
@@ -1332,7 +1332,7 @@ class TestCredentialsRepository:
         return CredentialsRepository(client)
 
     def test_table_is_wrapped_for_config_sync(self, repo):
-        from litellm.proxy.common_utils.config_sync_pubsub import (
+        from token_iq.gateway.proxy.common_utils.config_sync_pubsub import (
             _PublishOnWriteActions,
         )
 
@@ -1526,7 +1526,7 @@ class TestConfigRepository:
         assert result["router_settings"]["timeout"] == 60
 
     @pytest.mark.asyncio
-    @patch("litellm.repositories.config_repository.decrypt_value_helper")
+    @patch("token_iq.gateway.repositories.config_repository.decrypt_value_helper")
     async def test_reconcile_config_with_environment_variables(
         self, mock_decrypt, repo
     ):
@@ -1570,7 +1570,7 @@ class TestConfigRepository:
         )
         assert result["router_settings"] == {"timeout": 30}
 
-    @patch("litellm.repositories.config_repository.decrypt_value_helper")
+    @patch("token_iq.gateway.repositories.config_repository.decrypt_value_helper")
     def test_decrypt_env_variables_non_string(self, mock_decrypt, repo):
         mock_decrypt.side_effect = lambda value, **kw: value
         env_vars = {"string_val": "encrypted", "int_val": 123, "bool_val": True}
@@ -1578,7 +1578,7 @@ class TestConfigRepository:
         assert result["int_val"] == "123"
         assert result["bool_val"] == "True"
 
-    @patch("litellm.repositories.config_repository.decrypt_value_helper")
+    @patch("token_iq.gateway.repositories.config_repository.decrypt_value_helper")
     def test_decrypt_env_variables_none_value(self, mock_decrypt, repo):
         mock_decrypt.return_value = None
         env_vars = {"key": "value"}
@@ -2007,7 +2007,7 @@ class TestModelRepositoryExtended:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.repositories.model_repository.decrypt_value_helper",
+        "token_iq.gateway.repositories.model_repository.decrypt_value_helper",
         side_effect=lambda value, **kw: value,
     )
     async def test_find_by_team_id(self, mock_decrypt, repo):
@@ -2146,7 +2146,7 @@ class TestTeamRepositoryArchiveData:
     def test_build_archive_data_with_all_valid_fields(self, repo):
         from datetime import datetime
 
-        from litellm.models.team import Member
+        from token_iq.gateway.models.team import Member
 
         team = LiteLLM_TeamTable(
             team_id="team-full",
@@ -2237,10 +2237,10 @@ class TestConfigRepositoryDeepCopy:
 
 class TestPrismaTableRepository:
     def test_table_property_returns_named_delegate(self):
-        from litellm.proxy.common_utils.config_sync_pubsub import (
+        from token_iq.gateway.proxy.common_utils.config_sync_pubsub import (
             _PublishOnWriteActions,
         )
-        from litellm.repositories.table_repositories import (
+        from token_iq.gateway.repositories.table_repositories import (
             AgentsRepository,
             PolicyRepository,
         )
@@ -2256,7 +2256,7 @@ class TestPrismaTableRepository:
         assert agents.table._actions is not policy.table._actions
 
     def test_table_access_raises_without_db(self):
-        from litellm.repositories.table_repositories import SpendLogsRepository
+        from token_iq.gateway.repositories.table_repositories import SpendLogsRepository
 
         repo = SpendLogsRepository(None)
         with pytest.raises(RuntimeError, match="No database connected"):
@@ -2280,8 +2280,8 @@ class TestPrismaTableRepository:
     )
 
     def test_each_repository_binds_its_own_table_name(self):
-        import litellm.repositories.table_repositories as tr
-        from litellm.proxy.common_utils.config_sync_pubsub import (
+        import token_iq.gateway.repositories.table_repositories as tr
+        from token_iq.gateway.proxy.common_utils.config_sync_pubsub import (
             _PublishOnWriteActions,
         )
 
@@ -2420,8 +2420,8 @@ class TestArchiveDataMatchesTheSchemaItWritesTo:
     def test_every_archived_team_key_is_a_real_column(self):
         from datetime import datetime
 
-        from litellm.models.team import Member
-        from litellm.repositories.team_repository import TeamRepository
+        from token_iq.gateway.models.team import Member
+        from token_iq.gateway.repositories.team_repository import TeamRepository
 
         team = LiteLLM_TeamTable(
             team_id="team-full",
@@ -2457,8 +2457,8 @@ class TestArchiveDataMatchesTheSchemaItWritesTo:
     def test_every_archived_verification_token_key_is_a_real_column(self):
         """The second instance. A key carrying provider_credentials could not be deleted
         at all: the archive write named a column the table did not have."""
-        from litellm.models.verification_token import LiteLLM_VerificationToken
-        from litellm.repositories.verification_token_repository import VerificationTokenRepository
+        from token_iq.gateway.models.verification_token import LiteLLM_VerificationToken
+        from token_iq.gateway.repositories.verification_token_repository import VerificationTokenRepository
 
         token = LiteLLM_VerificationToken(
             token="hashed",

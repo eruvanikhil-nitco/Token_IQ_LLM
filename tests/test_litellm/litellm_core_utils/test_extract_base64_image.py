@@ -9,7 +9,7 @@ Related issue: https://github.com/BerriAI/litellm/issues/18338
 
 import pytest
 
-from litellm.litellm_core_utils.prompt_templates.common_utils import (
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     _extract_base64_data,
     extract_images_from_message,
 )

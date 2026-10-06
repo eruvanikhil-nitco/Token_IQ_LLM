@@ -3,7 +3,7 @@ from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 from starlette.types import Message
 
-from litellm.proxy.middleware.request_size_limit_middleware import (
+from token_iq.gateway.proxy.middleware.request_size_limit_middleware import (
     RequestSizeLimitMiddleware,
 )
 

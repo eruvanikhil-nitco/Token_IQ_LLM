@@ -2,8 +2,8 @@
 
 import pytest
 
-import litellm
-from litellm.llms.openai.cost_calculation import cost_per_second
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.openai.cost_calculation import cost_per_second
 
 
 def _register_stt(name: str, **pricing: float) -> None:

@@ -7,7 +7,7 @@ from click.testing import CliRunner
 
 
 
-from litellm.proxy.client.cli.main import cli
+from token_iq.gateway.proxy.client.cli.main import cli
 
 
 @pytest.fixture
@@ -15,11 +15,11 @@ def mock_credentials_client(monkeypatch):
     """Patch the CredentialsManagementClient used by the CLI commands."""
     mock_client = MagicMock()
     monkeypatch.setattr(
-        "litellm.proxy.client.credentials.CredentialsManagementClient",
+        "token_iq.gateway.proxy.client.credentials.CredentialsManagementClient",
         mock_client,
     )
     monkeypatch.setattr(
-        "litellm.proxy.client.cli.commands.credentials.CredentialsManagementClient",
+        "token_iq.gateway.proxy.client.cli.commands.credentials.CredentialsManagementClient",
         mock_client,
     )
     return mock_client

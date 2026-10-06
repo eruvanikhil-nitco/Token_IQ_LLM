@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from litellm.llms.nimble.search.transformation import NimbleSearchConfig
+from token_iq.gateway.llms.nimble.search.transformation import NimbleSearchConfig
 
 
 def _config() -> NimbleSearchConfig:

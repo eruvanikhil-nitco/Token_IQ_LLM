@@ -13,16 +13,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from unittest.mock import AsyncMock, MagicMock, patch
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.utils import StandardLoggingPayload
 import pytest
-from litellm.types.router import DeploymentTypedDict
-import litellm
-from litellm import Router
-from litellm.caching.caching import DualCache
-from litellm.router_strategy.lowest_tpm_rpm_v2 import (
+from token_iq.gateway.types.router import DeploymentTypedDict
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_strategy.lowest_tpm_rpm_v2 import (
     LowestTPMLoggingHandler_v2 as LowestTPMLoggingHandler,
 )
-from litellm.utils import get_utc_datetime
+from token_iq.gateway.utils import get_utc_datetime
 from create_mock_standard_logging_payload import create_standard_logging_payload
 
 ### UNIT TESTS FOR TPM/RPM ROUTING ###
@@ -540,7 +540,7 @@ async def test_router_caching_ttl():
 
     assert router.cache.redis_cache is not None
 
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     increment_cache_kwargs = {}
     with patch.object(

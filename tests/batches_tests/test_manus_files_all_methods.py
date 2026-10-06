@@ -4,7 +4,7 @@ E2E test for all Manus Files API methods.
 
 import os
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio

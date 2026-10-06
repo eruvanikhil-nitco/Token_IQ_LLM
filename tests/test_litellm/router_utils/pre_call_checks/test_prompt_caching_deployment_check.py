@@ -5,18 +5,18 @@ from typing import List, cast
 import pytest
 
 
-import litellm
-from litellm.caching.dual_cache import DualCache
-from litellm.constants import DEFAULT_MINIMUM_PROMPT_CACHE_TOKEN_COUNT
-from litellm.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.router_utils.pre_call_checks.prompt_caching_deployment_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.constants import DEFAULT_MINIMUM_PROMPT_CACHE_TOKEN_COUNT
+from token_iq.gateway.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.router_utils.pre_call_checks.prompt_caching_deployment_check import (
     PromptCachingDeploymentCheck,
     _get_min_token_count_for_deployments,
 )
-from litellm.router_utils.prompt_caching_cache import PromptCachingCache
-from litellm.types.llms.openai import AllMessageValues
-from litellm.utils import get_prompt_cache_min_tokens, is_prompt_caching_valid_prompt, token_counter
+from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
+from token_iq.gateway.types.llms.openai import AllMessageValues
+from token_iq.gateway.utils import get_prompt_cache_min_tokens, is_prompt_caching_valid_prompt, token_counter
 
 MODEL_GROUP_ALIAS = "my-claude-group"
 OPUS_4_6_MIN_TOKENS = 4096
@@ -365,7 +365,7 @@ def test_client_supplied_cache_control_keeps_its_own_prefix_boundary(monkeypatch
 
 @pytest.mark.asyncio
 async def test_wildcard_route_resolves_underlying_model_minimum(local_model_cost_map):
-    from litellm import Router
+    from token_iq.gateway import Router
 
     router = Router(
         model_list=[

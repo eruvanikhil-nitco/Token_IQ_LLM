@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.exceptions import UnsupportedParamsError
+from token_iq.gateway.exceptions import UnsupportedParamsError
 
-from litellm.llms.azure_ai.ocr.document_intelligence.transformation import (
+from token_iq.gateway.llms.azure_ai.ocr.document_intelligence.transformation import (
     AzureDocumentIntelligenceOCRConfig,
 )
 

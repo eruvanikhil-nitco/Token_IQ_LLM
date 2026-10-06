@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import pytest
 
-import litellm
-from litellm.rust_bridge import chat_completions as bridge
-from litellm.rust_bridge import configuration
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.rust_bridge import chat_completions as bridge
+from token_iq.gateway.rust_bridge import configuration
+from token_iq.gateway.types.utils import ModelResponse
 
 RUST_RESPONSE = {
     "created": 1_700_000_000,
@@ -352,7 +352,7 @@ class TestFailureClassification:
         assert bridge.chat_completions(**_call_kwargs(ModelResponse())) is None
 
     def test_an_upstream_failure_is_surfaced_with_its_status(self):
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         bridge.set_rust_chat_completions(chat_completions=_RecordingCall(error=_FakeUpstream(429, "429: rate limited")))
         with pytest.raises(APIError) as raised:
@@ -361,7 +361,7 @@ class TestFailureClassification:
         assert "rate limited" in str(raised.value)
 
     def test_a_transport_failure_with_no_response_surfaces_as_a_500(self):
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         bridge.set_rust_chat_completions(chat_completions=_RecordingCall(error=_FakeUpstream(0, "connection reset")))
         with pytest.raises(APIError) as raised:
@@ -375,7 +375,7 @@ class TestFailureClassification:
 
     @pytest.mark.asyncio
     async def test_the_async_wrapper_does_not_fall_back_on_an_upstream_failure(self):
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         bridge.set_rust_chat_completions(achat_completions=_RecordingAsyncCall(error=_FakeUpstream(500, "500: boom")))
         ran = []

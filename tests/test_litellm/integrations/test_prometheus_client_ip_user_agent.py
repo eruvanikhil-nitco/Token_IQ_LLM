@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.integrations.prometheus import (
     UserAPIKeyLabelValues,
 )
 
@@ -17,7 +17,7 @@ async def test_async_post_call_failure_hook_includes_client_ip_user_agent():
     # Mocking
     # Mocking
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         # Initialize attributes manually as __init__ is mocked
@@ -39,7 +39,7 @@ async def test_async_post_call_failure_hook_includes_client_ip_user_agent():
 
     # Mock prometheus_label_factory to inspect arguments
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
 
@@ -81,7 +81,7 @@ async def test_async_post_call_success_hook_includes_client_ip_user_agent():
     """
     # Mocking
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         logger.litellm_proxy_total_requests_metric = MagicMock()
@@ -129,7 +129,7 @@ async def test_async_post_call_success_hook_includes_client_ip_user_agent():
 
     # Mock prometheus_label_factory to inspect arguments
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
 
@@ -169,7 +169,7 @@ def test_set_llm_deployment_failure_metrics_includes_client_ip_user_agent():
     # Mocking
     # Mocking
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         logger.litellm_deployment_failure_responses = MagicMock()
@@ -199,7 +199,7 @@ def test_set_llm_deployment_failure_metrics_includes_client_ip_user_agent():
 
     # Mock prometheus_label_factory to inspect arguments
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
 

@@ -24,18 +24,18 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-import litellm
-from litellm.llms.base_llm.managed_resources.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.managed_resources.utils import (
     resolve_passthrough_managed_id_provider,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.managed_id_codec import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.managed_id_codec import (
     decode,
     encode,
     is_managed,
     new_managed_id,
 )
-from litellm.proxy.pass_through_endpoints.managed_id_rewriter import (
+from token_iq.gateway.proxy.pass_through_endpoints.managed_id_rewriter import (
     _MAX_RAW_ID_GUARD_LOOKUPS,
     _canonical_path,
     _passthrough_provider_marker,

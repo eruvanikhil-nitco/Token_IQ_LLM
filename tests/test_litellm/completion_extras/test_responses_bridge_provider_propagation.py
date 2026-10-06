@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.completion_extras.litellm_responses_transformation.handler import (
+from token_iq.gateway.completion_extras.litellm_responses_transformation.handler import (
     ResponsesToCompletionBridgeHandler,
 )
 
@@ -58,7 +58,7 @@ def test_sync_completion_forwards_custom_llm_provider():
             handler, "validate_input_kwargs", return_value=_validated_kwargs()
         ),
         patch(
-            "litellm.responses",
+            "token_iq.gateway.responses",
             return_value=MagicMock(spec=[]),
         ) as mock_responses,
     ):
@@ -103,7 +103,7 @@ async def test_async_completion_forwards_custom_llm_provider():
         patch.object(
             handler, "validate_input_kwargs", return_value=_validated_kwargs()
         ),
-        patch("litellm.aresponses", _fake_aresponses),
+        patch("token_iq.gateway.aresponses", _fake_aresponses),
     ):
         try:
             await handler.acompletion()
@@ -144,7 +144,7 @@ async def test_async_completion_forwards_aws_region_name():
 
     with (
         patch.object(handler, "validate_input_kwargs", return_value=validated),
-        patch("litellm.aresponses", _fake_aresponses),
+        patch("token_iq.gateway.aresponses", _fake_aresponses),
     ):
         try:
             await handler.acompletion()

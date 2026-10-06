@@ -7,17 +7,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.cost_calculator import default_video_cost_calculator
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.llms.gemini.videos.transformation import GeminiVideoConfig
-from litellm.llms.openai.videos.transformation import OpenAIVideoConfig
-from litellm.types.videos.main import VideoObject, VideoResponse
-from litellm.videos import main as videos_main
-from litellm.videos.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.cost_calculator import default_video_cost_calculator
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
+from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
+from token_iq.gateway.types.videos.main import VideoObject, VideoResponse
+from token_iq.gateway.videos import main as videos_main
+from token_iq.gateway.videos.main import (
     avideo_generation,
     avideo_status,
     video_generation,
@@ -184,7 +184,7 @@ class TestVideoGeneration:
 
     def test_video_generation_request_decodes_encoded_character_ids(self):
         """Encoded character IDs should be decoded before upstream create-video call."""
-        from litellm.types.videos.utils import encode_character_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_character_id_with_provider
 
         config = OpenAIVideoConfig()
         encoded_character_id = encode_character_id_with_provider(
@@ -312,7 +312,7 @@ class TestVideoGeneration:
 
     def test_video_generation_cost_1080p_tier_via_default_calculator(self):
         """default_video_cost_calculator uses output_cost_per_second_1080p when requested."""
-        from litellm.cost_calculator import default_video_cost_calculator
+        from token_iq.gateway.cost_calculator import default_video_cost_calculator
 
         model_info = {
             "output_cost_per_second": 0.05,
@@ -335,7 +335,7 @@ class TestVideoGeneration:
 
         Related: https://github.com/BerriAI/litellm/issues/21907
         """
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         # Create mock response with usage containing duration_seconds
         mock_response = MagicMock()
@@ -365,7 +365,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_video_generation_1080p_tier(self):
         """create_video cost uses output_cost_per_second_1080p when usage.video_resolution is 1080p."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         mock_response = MagicMock()
         mock_response.usage = MagicMock()
@@ -395,7 +395,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_video_edit_uses_video_calculator(self):
         """video_edit is charged via the same video cost path as create_video."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         mock_response = MagicMock()
         mock_response.usage = MagicMock()
@@ -427,7 +427,7 @@ class TestVideoGeneration:
         Regression for https://github.com/BerriAI/litellm/issues/36483: custom video
         pricing was silently ignored because completion_cost only read metadata.
         """
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         mock_response = MagicMock()
         mock_response.usage = {"duration_seconds": 10.0}
@@ -454,7 +454,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_video_uses_provider_reported_cost_without_custom_pricing(self):
         """With no custom pricing, the provider's own reported cost wins over a duration estimate."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         mock_response = MagicMock()
         mock_response.usage = {
@@ -474,7 +474,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_video_custom_pricing_beats_provider_reported_cost(self):
         """Deployment-level custom pricing overrides the provider's reported cost."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         mock_response = MagicMock()
         mock_response.usage = {
@@ -504,7 +504,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_video_resolution_tiers_from_cost_map(self, monkeypatch):
         """The 480p/1080p/4k tier keys resolve from the shipped runwayml cost map entries."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         local_map_path = os.path.join(
             os.path.dirname(__file__), "..", "..", "model_prices_and_context_window.json"
@@ -534,7 +534,7 @@ class TestVideoGeneration:
 
     def test_completion_cost_veo_31_tiers_pin_published_rates(self, monkeypatch):
         """The gemini and vertex_ai veo 3.1 entries bill Google's published per-second tier rates."""
-        from litellm.cost_calculator import completion_cost
+        from token_iq.gateway.cost_calculator import completion_cost
 
         local_map_path = os.path.join(
             os.path.dirname(__file__), "..", "..", "model_prices_and_context_window.json"
@@ -647,7 +647,7 @@ class TestVideoGeneration:
                     mock_client.post.return_value = mock_response
 
                     with patch(
-                        "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+                        "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
                         return_value=mock_client,
                     ):
                         result = handler.video_generation_handler(
@@ -703,7 +703,7 @@ class TestVideoGeneration:
 
     def test_video_generation_unsupported_parameters(self):
         """Test video generation with provider-specific parameters via extra_body."""
-        from litellm.videos.utils import VideoGenerationRequestUtils
+        from token_iq.gateway.videos.utils import VideoGenerationRequestUtils
 
         # Test that provider-specific parameters can be passed via extra_body
         # This allows support for Vertex AI and Gemini specific parameters
@@ -1190,8 +1190,8 @@ def test_openai_transform_video_content_request_variant_none_no_query_param():
 
 def test_video_content_handler_passes_variant_to_url():
     """HTTP handler should pass variant through to the final URL."""
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     if hasattr(litellm, "in_memory_llm_clients_cache"):
         litellm.in_memory_llm_clients_cache.flush_cache()
@@ -1205,7 +1205,7 @@ def test_video_content_handler_passes_variant_to_url():
     mock_client.get.return_value = mock_response
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
         return_value=mock_client,
     ):
         result = handler.video_content_handler(
@@ -1231,8 +1231,8 @@ def test_video_content_handler_passes_variant_to_url():
 
 def test_video_content_handler_uses_get_for_openai():
     """HTTP handler must use GET (not POST) for OpenAI content download."""
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     # Clear the HTTP client cache to prevent test isolation issues
     # In CI, a cached real HTTPHandler from a previous test might bypass the mock
@@ -1252,7 +1252,7 @@ def test_video_content_handler_uses_get_for_openai():
     # Patch _get_httpx_client to ensure no real HTTP client is created
     # This prevents test isolation issues where isinstance check might fail
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client"
     ) as mock_get_client:
         mock_get_client.return_value = mock_client
 
@@ -1277,7 +1277,7 @@ def test_video_content_handler_uses_get_for_openai():
 
 def test_video_content_respects_api_base_and_api_key_from_kwargs():
     """Test that video_content respects api_base and api_key from kwargs (simulating database entry)."""
-    from litellm.videos.main import video_content
+    from token_iq.gateway.videos.main import video_content
 
     # Mock the handler to capture litellm_params
     captured_litellm_params = None
@@ -1287,7 +1287,7 @@ def test_video_content_respects_api_base_and_api_key_from_kwargs():
         captured_litellm_params = kwargs.get("litellm_params")
         return b"mp4-bytes"
 
-    with patch("litellm.videos.main.base_llm_http_handler") as mock_handler:
+    with patch("token_iq.gateway.videos.main.base_llm_http_handler") as mock_handler:
         mock_handler.video_content_handler = capture_litellm_params
 
         # Call video_content with api_base and api_key in kwargs (simulating database entry)
@@ -1330,7 +1330,7 @@ def test_encode_video_id_with_provider_handles_azure_video_prefix():
     'video_69323201cf6081909263f751f89991e6', which were previously skipped
     from encoding, causing video status retrieval to default to 'openai' provider.
     """
-    from litellm.types.videos.utils import (
+    from token_iq.gateway.types.videos.utils import (
         decode_video_id_with_provider,
         encode_video_id_with_provider,
     )
@@ -1397,7 +1397,7 @@ class TestVideoListTransformation:
             custom_llm_provider="azure",
         )
 
-        from litellm.types.videos.utils import decode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import decode_video_id_with_provider
 
         # data[].id should be encoded
         for item in result["data"]:
@@ -1470,7 +1470,7 @@ class TestVideoListTransformation:
         )
 
         # data[].id should still be encoded
-        from litellm.types.videos.utils import decode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import decode_video_id_with_provider
 
         decoded = decode_video_id_with_provider(result["data"][0]["id"])
         assert decoded["custom_llm_provider"] == "azure"
@@ -1481,7 +1481,7 @@ class TestVideoListTransformation:
 
     def test_transform_video_list_request_decodes_after_parameter(self):
         """Encoded 'after' cursor should be decoded back to the raw provider ID."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         config = OpenAIVideoConfig()
 
@@ -1570,12 +1570,12 @@ class TestVideoEndpointsProxyLitellmParams:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from litellm.proxy.proxy_server import (
+        from token_iq.gateway.proxy.proxy_server import (
             cleanup_router_config_variables,
             initialize,
             router,
         )
-        from litellm.proxy.video_endpoints.endpoints import router as video_router
+        from token_iq.gateway.proxy.video_endpoints.endpoints import router as video_router
 
         # Clean up any existing router config
         cleanup_router_config_variables()
@@ -1618,7 +1618,7 @@ class TestVideoEndpointsProxyLitellmParams:
     @pytest.fixture
     def mock_video_generation_response(self):
         """Mock video generation response with encoded video_id."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         # Create an encoded video_id that includes provider and model_id
         original_video_id = "projects/test-project-123/locations/global/publishers/google/models/veo-2.0-generate-001/operations/test-operation-123"
@@ -1684,9 +1684,9 @@ class TestVideoEndpointsProxyLitellmParams:
         def create_mock_coroutine(*args, **kwargs):
             return mock_route_request_func(*args, **kwargs)
 
-        with patch("litellm.proxy.proxy_server.llm_router", mock_router_instance):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router_instance):
             with patch(
-                "litellm.proxy.common_request_processing.route_request",
+                "token_iq.gateway.proxy.common_request_processing.route_request",
                 side_effect=create_mock_coroutine,
             ) as mock_route_request:
                 # Make request to video_status endpoint
@@ -1753,9 +1753,9 @@ class TestVideoEndpointsProxyLitellmParams:
         def create_mock_coroutine(*args, **kwargs):
             return mock_route_request_func(*args, **kwargs)
 
-        with patch("litellm.proxy.proxy_server.llm_router", mock_router_instance):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router_instance):
             with patch(
-                "litellm.proxy.common_request_processing.route_request",
+                "token_iq.gateway.proxy.common_request_processing.route_request",
                 side_effect=create_mock_coroutine,
             ) as mock_route_request:
                 # Make request to video_content endpoint
@@ -1822,9 +1822,9 @@ class TestVideoEndpointsProxyLitellmParams:
         def create_mock_coroutine(*args, **kwargs):
             return mock_route_request_func(*args, **kwargs)
 
-        with patch("litellm.proxy.proxy_server.llm_router", mock_router_instance):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router_instance):
             with patch(
-                "litellm.proxy.common_request_processing.route_request",
+                "token_iq.gateway.proxy.common_request_processing.route_request",
                 side_effect=create_mock_coroutine,
             ) as mock_route_request:
                 # Make request to video_content endpoint
@@ -1880,7 +1880,7 @@ def test_video_remix_handler_uses_api_key_from_litellm_params():
                 mock_client.post.return_value = MagicMock(status_code=200)
 
                 with patch(
-                    "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+                    "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
                     return_value=mock_client,
                 ):
                     handler.video_remix_handler(
@@ -1925,7 +1925,7 @@ async def test_async_video_remix_handler_uses_api_key_from_litellm_params():
                 mock_client.post = AsyncMock(return_value=mock_response)
 
                 with patch(
-                    "litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
+                    "token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
                     return_value=mock_client,
                 ):
                     await handler.async_video_remix_handler(
@@ -1967,7 +1967,7 @@ def test_video_remix_handler_prefers_explicit_api_key():
                 mock_client.post.return_value = MagicMock(status_code=200)
 
                 with patch(
-                    "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+                    "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
                     return_value=mock_client,
                 ):
                     handler.video_remix_handler(
@@ -2041,7 +2041,7 @@ class TestVideoCreateCharacter:
 
     def test_video_create_character_transform_response(self):
         """Verify CharacterObject is returned from response."""
-        from litellm.types.videos.main import CharacterObject
+        from token_iq.gateway.types.videos.main import CharacterObject
 
         config = OpenAIVideoConfig()
         mock_response = MagicMock()
@@ -2063,8 +2063,8 @@ class TestVideoCreateCharacter:
 
     def test_video_create_character_mock_response(self):
         """video_create_character returns CharacterObject on mock_response."""
-        from litellm.types.videos.main import CharacterObject
-        from litellm.videos.main import video_create_character
+        from token_iq.gateway.types.videos.main import CharacterObject
+        from token_iq.gateway.videos.main import video_create_character
 
         response = video_create_character(
             name="hero",
@@ -2099,7 +2099,7 @@ class TestVideoGetCharacter:
 
     def test_video_get_character_transform_response(self):
         """Verify CharacterObject is returned from GET response."""
-        from litellm.types.videos.main import CharacterObject
+        from token_iq.gateway.types.videos.main import CharacterObject
 
         config = OpenAIVideoConfig()
         mock_response = MagicMock()
@@ -2121,8 +2121,8 @@ class TestVideoGetCharacter:
 
     def test_video_get_character_mock_response(self):
         """video_get_character returns CharacterObject on mock_response."""
-        from litellm.types.videos.main import CharacterObject
-        from litellm.videos.main import video_get_character
+        from token_iq.gateway.types.videos.main import CharacterObject
+        from token_iq.gateway.videos.main import video_get_character
 
         response = video_get_character(
             character_id="char_xyz",
@@ -2175,7 +2175,7 @@ class TestVideoEdit:
 
     def test_video_edit_mock_response(self):
         """video_edit returns VideoObject on mock_response."""
-        from litellm.videos.main import video_edit
+        from token_iq.gateway.videos.main import video_edit
 
         response = video_edit(
             video_id="video_abc123",
@@ -2192,7 +2192,7 @@ class TestVideoEdit:
 
     def test_video_edit_strips_encoded_provider_from_video_id(self):
         """Provider-encoded video IDs are decoded before sending to API."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         config = OpenAIVideoConfig()
 
@@ -2249,7 +2249,7 @@ class TestVideoExtension:
 
     def test_video_extension_mock_response(self):
         """video_extension returns VideoObject on mock_response."""
-        from litellm.videos.main import video_extension
+        from token_iq.gateway.videos.main import video_extension
 
         response = video_extension(
             video_id="video_abc123",
@@ -2267,7 +2267,7 @@ class TestVideoExtension:
 
     def test_video_extension_strips_encoded_provider_from_video_id(self):
         """Provider-encoded video IDs are decoded before sending to API."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         config = OpenAIVideoConfig()
 
@@ -2289,8 +2289,8 @@ def video_proxy_test_client():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.video_endpoints.endpoints import router as video_router
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.video_endpoints.endpoints import router as video_router
 
     app = FastAPI()
     app.include_router(video_router)
@@ -2299,7 +2299,7 @@ def video_proxy_test_client():
 
 
 def test_character_id_encode_decode_roundtrip():
-    from litellm.types.videos.utils import (
+    from token_iq.gateway.types.videos.utils import (
         decode_character_id_with_provider,
         encode_character_id_with_provider,
     )
@@ -2317,7 +2317,7 @@ def test_character_id_encode_decode_roundtrip():
 
 
 def test_character_id_decode_handles_missing_base64_padding():
-    from litellm.types.videos.utils import (
+    from token_iq.gateway.types.videos.utils import (
         decode_character_id_with_provider,
         encode_character_id_with_provider,
     )
@@ -2338,8 +2338,8 @@ def test_character_id_decode_handles_missing_base64_padding():
 def test_video_create_character_target_model_names_returns_encoded_id(
     video_proxy_test_client,
 ):
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-    from litellm.types.videos.utils import decode_character_id_with_provider
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.types.videos.utils import decode_character_id_with_provider
 
     captured_data = {}
 
@@ -2379,8 +2379,8 @@ def test_video_create_character_target_model_names_returns_encoded_id(
 
 
 def test_video_get_character_accepts_encoded_character_id(video_proxy_test_client):
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-    from litellm.types.videos.utils import (
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.types.videos.utils import (
         decode_character_id_with_provider,
         encode_character_id_with_provider,
     )
@@ -2404,7 +2404,7 @@ def test_video_get_character_accepts_encoded_character_id(video_proxy_test_clien
     mock_router = MagicMock()
     mock_router.resolve_model_name_from_model_id.return_value = "vertex-ai-sora-2"
 
-    with patch("litellm.proxy.proxy_server.llm_router", mock_router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router):
         with patch.object(
             ProxyBaseLLMRequestProcessing,
             "base_process_llm_request",
@@ -2429,7 +2429,7 @@ def test_video_get_character_accepts_encoded_character_id(video_proxy_test_clien
 def test_edit_and_extension_support_custom_provider_from_extra_body(
     video_proxy_test_client, endpoint
 ):
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
     captured_data = {}
 
@@ -2489,9 +2489,9 @@ async def test_edit_and_extension_read_cached_body_after_auth_consumes_stream(
     from fastapi import Response
     from starlette.requests import Request
 
-    import litellm.proxy.video_endpoints.endpoints as endpoints
-    from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-    from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
+    import token_iq.gateway.proxy.video_endpoints.endpoints as endpoints
+    from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
 
     body = urlencode(form).encode()
     stream = {"sent": False}
@@ -2535,8 +2535,8 @@ async def test_edit_and_extension_read_cached_body_after_auth_consumes_stream(
 def test_edit_and_extension_route_with_encoded_video_ids(
     video_proxy_test_client, endpoint
 ):
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-    from litellm.types.videos.utils import encode_video_id_with_provider
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
     captured_data = {}
 
@@ -2561,7 +2561,7 @@ def test_edit_and_extension_route_with_encoded_video_ids(
     mock_router = MagicMock()
     mock_router.resolve_model_name_from_model_id.return_value = "vertex-ai-sora-2"
 
-    with patch("litellm.proxy.proxy_server.llm_router", mock_router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router):
         with patch.object(
             ProxyBaseLLMRequestProcessing,
             "base_process_llm_request",

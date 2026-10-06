@@ -20,8 +20,8 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from litellm import Router
-from litellm.router_utils.fallback_event_handlers import (
+from token_iq.gateway import Router
+from token_iq.gateway.router_utils.fallback_event_handlers import (
     PRE_ROUTING_SELECTED_MODEL_KEY,
     record_pre_routing_selection,
 )
@@ -391,7 +391,7 @@ def test_refusal_fallback_available_arms_on_generic_rows_only_without_content_po
 def test_chat_content_filter_gate_unchanged_by_generic_rows():
     """The generic-row arming is scoped to /v1/messages safeguard refusals; the chat surface's
     content_filter gate keeps its long-standing content-policy-only semantics."""
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     router = Router(model_list=[FABLE_TIER, OPUS_TARGET], fallbacks=[{"fable-tier": ["opus-target"]}])
     response = ModelResponse(choices=[Choices(finish_reason="content_filter")])

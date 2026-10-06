@@ -6,10 +6,10 @@ from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
 
-import litellm
-from litellm.exceptions import BadRequestError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.utils import (
     CustomStreamWrapper,
     get_supported_openai_params,
     get_optional_params,

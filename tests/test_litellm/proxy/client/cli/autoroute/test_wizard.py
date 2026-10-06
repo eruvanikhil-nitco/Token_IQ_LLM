@@ -11,9 +11,9 @@ from prompt_toolkit.application import create_app_session
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output import DummyOutput
 
-from litellm.proxy.client.cli.commands.autoroute import wizard as wizard_module
-from litellm.proxy.client.cli.commands.autoroute.config import DiscoveredModel
-from litellm.proxy.client.cli.commands.autoroute.wizard import run_configure_wizard
+from token_iq.gateway.proxy.client.cli.commands.autoroute import wizard as wizard_module
+from token_iq.gateway.proxy.client.cli.commands.autoroute.config import DiscoveredModel
+from token_iq.gateway.proxy.client.cli.commands.autoroute.wizard import run_configure_wizard
 
 CHAT_AND_EMBEDDING_GROUPS: List[Dict[str, Any]] = [
     {"id": "gpt-4o-mini", "object": "model", "mode": "chat", "max_input_tokens": 128000},

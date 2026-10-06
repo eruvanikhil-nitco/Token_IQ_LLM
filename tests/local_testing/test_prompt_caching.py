@@ -3,7 +3,7 @@
 import io
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
 
@@ -36,7 +36,7 @@ def _usage_format_tests(usage: litellm.Usage):
 
 
 def test_supports_prompt_caching():
-    from litellm.utils import supports_prompt_caching
+    from token_iq.gateway.utils import supports_prompt_caching
 
     supports_pc = supports_prompt_caching(model="anthropic/claude-sonnet-4-5-20250929")
 

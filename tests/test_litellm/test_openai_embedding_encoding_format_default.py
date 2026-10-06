@@ -5,7 +5,7 @@ import httpx
 import pytest
 import respx
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def _mock_openai_embedding_route(respx_mock: respx.MockRouter) -> respx.Route:

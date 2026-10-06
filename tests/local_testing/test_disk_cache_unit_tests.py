@@ -1,5 +1,5 @@
 from cache_unit_tests import LLMCachingUnitTests
-from litellm.caching import LiteLLMCacheType
+from token_iq.gateway.caching import LiteLLMCacheType
 
 
 class TestDiskCacheUnitTests(LLMCachingUnitTests):

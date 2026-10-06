@@ -4,36 +4,36 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-import litellm
-from litellm.integrations.vector_store_integrations.vector_store_pre_call_hook import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     LiteLLM_ManagedVectorStore,
 )
-from litellm.llms.base_llm.vector_store.transformation import (
+from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     LiteLLMVectorStoreEmbeddingExecutor,
     RouterVectorStoreEmbeddingExecutor,
 )
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.vector_store_endpoints.endpoints import (
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.vector_store_endpoints.endpoints import (
     _update_request_data_with_litellm_managed_vector_store_registry,
     index_create,
     index_list,
 )
-from litellm.proxy.vector_store_endpoints.management_endpoints import (
+from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
     _check_vector_store_access,
     create_vector_store_in_db,
     new_vector_store,
 )
-from litellm.proxy.vector_store_endpoints.utils import (
+from token_iq.gateway.proxy.vector_store_endpoints.utils import (
     check_vector_store_permission,
     is_allowed_to_call_vector_store_endpoint,
     is_allowed_to_call_vector_store_files_endpoint,
 )
-from litellm.proxy.vector_store_files_endpoints.endpoints import (
+from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
     _update_request_data_with_model_routing_hint,
 )
-from litellm.types.utils import EmbeddingResponse, LlmProviders
-from litellm.types.vector_stores import IndexCreateRequest, IndexListResponse
-from litellm.vector_stores.main import _direct_vector_store_embedding_executor
+from token_iq.gateway.types.utils import EmbeddingResponse, LlmProviders
+from token_iq.gateway.types.vector_stores import IndexCreateRequest, IndexListResponse
+from token_iq.gateway.vector_stores.main import _direct_vector_store_embedding_executor
 
 
 def _serialize_litellm_params(litellm_params):
@@ -105,10 +105,10 @@ async def test_vector_store_embedding_executors_preserve_explicit_configuration(
 
     with (
         patch(  # test-quality-ok: isolates SDK dispatch from external embedding providers
-            "litellm.embedding", return_value=response
+            "token_iq.gateway.embedding", return_value=response
         ) as embedding,
         patch(  # test-quality-ok: isolates async SDK dispatch from external embedding providers
-            "litellm.aembedding", new=AsyncMock(return_value=response)
+            "token_iq.gateway.aembedding", new=AsyncMock(return_value=response)
         ) as aembedding,
     ):
         assert sdk_executor.embed("openai/model", "sync", {"api_key": "explicit"}) is response
@@ -134,10 +134,10 @@ async def test_vector_store_embedding_executors_preserve_explicit_configuration(
 
     with (
         patch(  # test-quality-ok: verifies explicit store configuration at the SDK boundary
-            "litellm.embedding", return_value=response
+            "token_iq.gateway.embedding", return_value=response
         ) as explicit_embedding,
         patch(  # test-quality-ok: verifies async explicit store configuration at the SDK boundary
-            "litellm.aembedding", new=AsyncMock(return_value=response)
+            "token_iq.gateway.aembedding", new=AsyncMock(return_value=response)
         ) as explicit_aembedding,
     ):
         assert router_executor.embed("openai/model", "query", {"api_key": "store-key"}) is response
@@ -219,7 +219,7 @@ async def test_vector_store_embedding_executor_uses_team_scoped_router_deploymen
     )
     response = EmbeddingResponse(data=[{"embedding": [0.1], "index": 0, "object": "embedding"}])
 
-    with patch("litellm.aembedding", new=AsyncMock(return_value=response)) as mock_aembedding:
+    with patch("token_iq.gateway.aembedding", new=AsyncMock(return_value=response)) as mock_aembedding:
         result = await executor.aembed("shared-embedding", "query", {})
 
     assert result is response
@@ -229,7 +229,7 @@ async def test_vector_store_embedding_executor_uses_team_scoped_router_deploymen
 @pytest.mark.asyncio
 async def test_router_avector_store_file_list_passes_correct_args():
     with patch(
-        "litellm.vector_store_files.main.alist",
+        "token_iq.gateway.vector_store_files.main.alist",
         new=AsyncMock(return_value={"object": "list", "data": []}),
     ) as mock_alist:
         router = litellm.Router(model_list=[])
@@ -252,7 +252,7 @@ async def test_router_avector_store_file_list_passes_correct_args():
 
 def test_router_vector_store_file_delete_passes_correct_args():
     with patch(
-        "litellm.vector_store_files.main.delete",
+        "token_iq.gateway.vector_store_files.main.delete",
         return_value={"deleted": True},
     ) as mock_delete:
         router = litellm.Router(model_list=[])
@@ -376,7 +376,7 @@ async def test_vector_store_file_list_wildcard_model_hint_falls_back_to_team_dep
 
 @pytest.mark.asyncio
 async def test_vector_store_file_list_authorizes_wildcard_query_param_before_credentials():
-    from litellm.proxy.auth.auth_checks import ProxyException
+    from token_iq.gateway.proxy.auth.auth_checks import ProxyException
 
     request = MagicMock(spec=Request)
     request.query_params = {"model": "openai/*"}
@@ -431,7 +431,7 @@ async def test_vector_store_file_list_uses_single_team_model_for_router_routing(
 
 @pytest.mark.asyncio
 async def test_vector_store_file_list_authorizes_inferred_team_model():
-    from litellm.proxy.auth.auth_checks import ProxyException
+    from token_iq.gateway.proxy.auth.auth_checks import ProxyException
 
     request = MagicMock(spec=Request)
     request.query_params = {}
@@ -549,7 +549,7 @@ async def test_vector_store_file_list_requires_explicit_openai_provider_for_team
 
 @pytest.mark.asyncio
 async def test_vector_store_file_list_authorizes_model_query_param_before_credentials():
-    from litellm.proxy.auth.auth_checks import ProxyException
+    from token_iq.gateway.proxy.auth.auth_checks import ProxyException
 
     request = MagicMock(spec=Request)
     request.query_params = {"model": "restricted-deployment"}
@@ -618,7 +618,7 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
     # Test with no vector store registry or DB fallback
     with (
         patch.object(litellm, "vector_store_registry", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         original_data = {"existing_key": "existing_value"}
         result = await _update_request_data_with_litellm_managed_vector_store_registry(
@@ -911,7 +911,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             result = is_allowed_to_call_vector_store_endpoint(
@@ -948,7 +948,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             result = is_allowed_to_call_vector_store_endpoint(
@@ -985,7 +985,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1010,7 +1010,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         mock_user_api_key.team_metadata = None
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=None,
         ):
             result = is_allowed_to_call_vector_store_endpoint(
@@ -1046,7 +1046,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1081,7 +1081,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1111,7 +1111,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             result = is_allowed_to_call_vector_store_endpoint(
@@ -1145,7 +1145,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1177,7 +1177,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1216,7 +1216,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             result = is_allowed_to_call_vector_store_endpoint(
@@ -1248,7 +1248,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1267,8 +1267,8 @@ class TestIsAllowedToCallVectorStoreEndpoint:
 
         from fastapi import HTTPException
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.types.utils import LlmProviders
 
         mock_request = MagicMock()
         mock_request.method = "GET"
@@ -1290,7 +1290,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         }
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=mock_provider_config,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1360,7 +1360,7 @@ class TestIndexCreate:
         )
 
         with patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             mock_prisma,
         ):
             result = await index_create(
@@ -1409,7 +1409,7 @@ class TestIndexList:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_managedvectorstoreindextable.find_many = AsyncMock()
 
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             with pytest.raises(HTTPException) as exc_info:
                 await index_list(
                     user_api_key_dict=UserAPIKeyAuth(
@@ -1425,7 +1425,7 @@ class TestIndexList:
 
     @pytest.mark.asyncio
     async def test_index_list_requires_db_connection(self):
-        with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
             with pytest.raises(HTTPException) as exc_info:
                 await index_list(user_api_key_dict=self._admin())
 
@@ -1442,7 +1442,7 @@ class TestIndexList:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_managedvectorstoreindextable.find_many = AsyncMock(return_value=rows)
 
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             result = await index_list(user_api_key_dict=self._admin())
 
         assert isinstance(result, IndexListResponse)
@@ -1456,7 +1456,7 @@ class TestIndexList:
         )
 
     def test_get_v1_indexes_route_registered(self):
-        from litellm.proxy.vector_store_endpoints.endpoints import router
+        from token_iq.gateway.proxy.vector_store_endpoints.endpoints import router
 
         routes = [
             (method, getattr(route, "path", None))
@@ -1493,7 +1493,7 @@ class TestIsAllowedToCallVectorStoreFilesEndpoint:
         mock_user_api_key.team_metadata = None
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
             return_value=self._mock_provider_config(),
         ):
             result = is_allowed_to_call_vector_store_files_endpoint(
@@ -1520,7 +1520,7 @@ class TestIsAllowedToCallVectorStoreFilesEndpoint:
         mock_user_api_key.team_metadata = None
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
             return_value=self._mock_provider_config(),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -1544,7 +1544,7 @@ class TestIsAllowedToCallVectorStoreFilesEndpoint:
         mock_user_api_key.team_metadata = {}
 
         with patch(
-            "litellm.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
+            "token_iq.gateway.proxy.vector_store_endpoints.utils.ProviderConfigManager.get_provider_vector_store_files_config",
             return_value=None,
         ):
             result = is_allowed_to_call_vector_store_files_endpoint(
@@ -1571,8 +1571,8 @@ class TestVectorStoreManagementEndpointsExist:
         """
         import importlib
 
-        from litellm.proxy._lazy_features import LAZY_FEATURES
-        from litellm.proxy.proxy_server import app
+        from token_iq.gateway.proxy._lazy_features import LAZY_FEATURES
+        from token_iq.gateway.proxy.proxy_server import app
 
         # Force-register the lazy vector_store_management routes so the
         # assertions can find them.
@@ -1626,11 +1626,11 @@ async def test_vector_store_synchronization_across_instances():
     from datetime import datetime, timezone
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.vector_stores import (
+    from token_iq.gateway.types.vector_stores import (
         LiteLLM_ManagedVectorStore,
         VectorStoreDeleteRequest,
     )
-    from litellm.vector_stores.vector_store_registry import VectorStoreRegistry
+    from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
 
     # Simulate two instances with separate in-memory registries
     instance_1_registry = VectorStoreRegistry(vector_stores=[])
@@ -1896,8 +1896,8 @@ async def test_vector_store_update_and_list_synchronization():
     from datetime import datetime, timezone
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
-    from litellm.vector_stores.vector_store_registry import VectorStoreRegistry
+    from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
+    from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
 
     # Simulate two instances with separate in-memory registries
     instance_1_registry = VectorStoreRegistry(vector_stores=[])
@@ -2073,7 +2073,7 @@ async def test_vector_store_update_and_list_synchronization():
 async def test_new_vector_store_persists_embedding_reference_without_credentials():
     import json
 
-    from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
+    from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
 
     mock_prisma_client = MagicMock()
 
@@ -2118,7 +2118,7 @@ async def test_new_vector_store_persists_embedding_reference_without_credentials
     mock_registry.add_vector_store_to_registry = MagicMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
         patch.object(litellm, "vector_store_registry", mock_registry),
     ):
         result = await new_vector_store(vector_store=vector_store_data, user_api_key_dict=mock_user_api_key)
@@ -2139,8 +2139,8 @@ async def test_new_vector_store_auto_resolves_from_router():
     """Test that new_vector_store auto-resolves embedding config from router when model is config-defined."""
     import json
 
-    from litellm.types.router import Deployment, LiteLLM_Params
-    from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params
+    from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
 
     mock_prisma_client = MagicMock()
 
@@ -2196,8 +2196,8 @@ async def test_new_vector_store_auto_resolves_from_router():
     mock_registry.add_vector_store_to_registry = MagicMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
         patch.object(litellm, "vector_store_registry", mock_registry),
     ):
         result = await new_vector_store(
@@ -2427,8 +2427,8 @@ class TestRedactSensitiveLitellmParams:
     """
 
     def test_redacts_well_known_credential_keys(self):
-        from litellm.constants import REDACTED_BY_LITELM_STRING
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2448,7 +2448,7 @@ class TestRedactSensitiveLitellmParams:
             ), f"{k} should be redacted, got {out[k]!r}"
 
     def test_preserves_non_sensitive_keys(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2464,7 +2464,7 @@ class TestRedactSensitiveLitellmParams:
             assert out[k] == v, f"{k} should be preserved verbatim"
 
     def test_handles_none_and_empty(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2472,7 +2472,7 @@ class TestRedactSensitiveLitellmParams:
         assert _redact_sensitive_litellm_params({}) == {}
 
     def test_redaction_does_not_mutate_input_litellm_params(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2492,8 +2492,8 @@ class TestRedactSensitiveLitellmParams:
         its own ``api_key`` / ``aws_*`` / ``vertex_credentials``, and a
         non-recursive redactor would leak them.
         """
-        from litellm.constants import REDACTED_BY_LITELM_STRING
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2523,8 +2523,8 @@ class TestRedactSensitiveLitellmParams:
         """
         import json as _json
 
-        from litellm.constants import REDACTED_BY_LITELM_STRING
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2546,8 +2546,8 @@ class TestRedactSensitiveLitellmParams:
         redactor must NOT echo the value back verbatim — it could contain
         opaque credential material.
         """
-        from litellm.constants import REDACTED_BY_LITELM_STRING
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
 
@@ -2570,11 +2570,11 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
     async def test_update_denied_when_caller_cannot_access_store(self):
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         existing_row = MagicMock()
         existing_row.model_dump = MagicMock(
@@ -2592,15 +2592,15 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=False,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await update_vector_store(
@@ -2623,12 +2623,12 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
     async def test_update_response_redacts_litellm_params(self):
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from litellm.constants import REDACTED_BY_LITELM_STRING
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         existing_row = MagicMock()
         existing_row.model_dump = MagicMock(
@@ -2664,16 +2664,16 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-            patch("litellm.vector_store_registry", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+            patch("token_iq.gateway.vector_store_registry", None),
         ):
             response = await update_vector_store(
                 data=VectorStoreUpdateRequest(
@@ -2694,11 +2694,11 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
         turning an AttributeError into an opaque 500."""
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         existing_row = MagicMock()
         existing_row.model_dump = MagicMock(
@@ -2715,16 +2715,16 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
 
         with (
             patch(  # test-quality-ok: stubs the auth gate so the test exercises the not-found branch under test
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(  # test-quality-ok: stubs the auth gate so the test exercises the not-found branch under test
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            patch("litellm.vector_store_registry", None),  # test-quality-ok: litellm module global is the only injection point for the registry
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+            patch("token_iq.gateway.vector_store_registry", None),  # test-quality-ok: litellm module global is the only injection point for the registry
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await update_vector_store(
@@ -2936,8 +2936,8 @@ def test_vector_store_search_rejects_caller_embedding_selection_params(blocked_k
     """
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.proxy_server import app
 
     mock_auth = UserAPIKeyAuth(user_id="test_internal_user", user_role=LitellmUserRoles.INTERNAL_USER.value)
     original_overrides = app.dependency_overrides.copy()
@@ -3025,10 +3025,10 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -3054,10 +3054,10 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             result = await new_vector_store(
@@ -3082,10 +3082,10 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             result = await new_vector_store(
@@ -3105,25 +3105,25 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
     @pytest.mark.asyncio
     async def test_non_proxy_admin_cannot_attach_credential_on_update(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         captured: dict = {}
         mock_prisma = self._update_capturing_prisma(captured)
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -3152,25 +3152,25 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
         field's presence would let any caller with write access to the store wipe a credential a
         proxy admin attached.
         """
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         captured: dict = {}
         mock_prisma = self._update_capturing_prisma(captured)
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -3193,25 +3193,25 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
     @pytest.mark.asyncio
     async def test_proxy_admin_can_clear_credential_on_update(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         captured: dict = {}
         mock_prisma = self._update_capturing_prisma(captured)
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             response = await update_vector_store(
@@ -3232,25 +3232,25 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
     @pytest.mark.asyncio
     async def test_update_without_the_field_does_not_require_proxy_admin(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         captured: dict = {}
         mock_prisma = self._update_capturing_prisma(captured)
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             response = await update_vector_store(
@@ -3270,25 +3270,25 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
 
     @pytest.mark.asyncio
     async def test_proxy_admin_can_attach_credential_on_update(self):
-        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+        from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             update_vector_store,
         )
-        from litellm.types.vector_stores import VectorStoreUpdateRequest
+        from token_iq.gateway.types.vector_stores import VectorStoreUpdateRequest
 
         captured: dict = {}
         mock_prisma = self._update_capturing_prisma(captured)
 
         with (
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
             patch.object(litellm, "vector_store_registry", None),
         ):
             response = await update_vector_store(

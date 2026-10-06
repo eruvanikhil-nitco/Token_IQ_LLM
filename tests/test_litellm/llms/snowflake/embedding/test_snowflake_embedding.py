@@ -4,7 +4,7 @@ import copy
 
 from unittest.mock import patch
 
-import litellm
+from token_iq import gateway as litellm
 
 model_name = "snowflake-arctic-embed"
 
@@ -22,7 +22,7 @@ embed_response = {
 }
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_snowflake_jwt_account_id(mock_post):
     mock_post().json.return_value = copy.deepcopy(embed_response)
 
@@ -49,7 +49,7 @@ def test_snowflake_jwt_account_id(mock_post):
     assert post_kwargs["url"].endswith("cortex/inference:embed")
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_snowflake_pat_key_account_id(mock_post):
     mock_post().json.return_value = copy.deepcopy(embed_response)
 
@@ -74,7 +74,7 @@ def test_snowflake_pat_key_account_id(mock_post):
     assert "AAAA-BBBB" in post_kwargs["url"]
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_snowflake_env(mock_post):
     mock_post().json.return_value = copy.deepcopy(embed_response)
 

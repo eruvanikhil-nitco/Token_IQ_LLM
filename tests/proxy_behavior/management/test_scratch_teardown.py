@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import LitellmUserRoles
 
 from .actors import ORG_A, ORG_B
 from .conftest import MASTER_KEY, SCRATCH_PREFIX, create_scratch_actor

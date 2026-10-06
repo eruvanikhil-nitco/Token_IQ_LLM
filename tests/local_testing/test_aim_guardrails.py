@@ -6,17 +6,17 @@ from unittest.mock import AsyncMock, patch, call
 import pytest
 from httpx import Request, Response
 
-from litellm import DualCache
-from litellm.proxy._types import ProxyException
-from litellm.proxy.guardrails.guardrail_hooks.aim.aim import (
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim import (
     AimGuardrail,
     AimGuardrailMissingSecrets,
 )
-from litellm.proxy.proxy_server import StreamingCallbackError, UserAPIKeyAuth
-from litellm.types.utils import ModelResponseStream, ModelResponse
+from token_iq.gateway.proxy.proxy_server import StreamingCallbackError, UserAPIKeyAuth
+from token_iq.gateway.types.utils import ModelResponseStream, ModelResponse
 
-import litellm
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 class ReceiveMock:
@@ -97,7 +97,7 @@ async def test_block_callback(mode: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=Response(
             json={
                 "analysis_result": {
@@ -187,7 +187,7 @@ async def test_output_block_raises_proxy_exception():
     )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=block_on_output,
     ):
         with pytest.raises(ProxyException, match="Output blocked") as exc_info:
@@ -245,7 +245,7 @@ async def test_anonymize_multimodal_rejection_raises_proxy_exception():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response_with_detections,
     ):
         with pytest.raises(
@@ -294,7 +294,7 @@ async def test_anonymize_callback__it_returns_redacted_content(mode: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response_with_detections,
     ):
         if mode == "pre_call":
@@ -342,7 +342,7 @@ async def test_post_call__with_anonymized_entities__it_doesnt_deanonymize_output
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
 
         def mock_post_detect_side_effect(url, *args, **kwargs):
@@ -440,7 +440,7 @@ async def test_post_call_stream__all_chunks_are_valid(monkeypatch, length: int):
         yield websocket_mock
 
     monkeypatch.setattr(
-        "litellm.proxy.guardrails.guardrail_hooks.aim.aim.connect", connect_mock
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim.connect", connect_mock
     )
 
     results = []
@@ -500,7 +500,7 @@ async def test_post_call_stream__blocked_chunks(monkeypatch):
         yield websocket_mock
 
     monkeypatch.setattr(
-        "litellm.proxy.guardrails.guardrail_hooks.aim.aim.connect", connect_mock
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim.connect", connect_mock
     )
 
     results = []

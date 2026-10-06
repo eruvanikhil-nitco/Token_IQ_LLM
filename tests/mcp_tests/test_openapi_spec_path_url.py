@@ -5,7 +5,7 @@ from typing import Any, Dict
 import httpx
 import pytest
 
-from litellm.proxy._experimental.mcp_server import openapi_to_mcp_generator as gen
+from token_iq.gateway.proxy._experimental.mcp_server import openapi_to_mcp_generator as gen
 
 
 class _FakeAsyncHTTPHandler:

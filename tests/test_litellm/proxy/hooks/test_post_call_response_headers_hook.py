@@ -10,8 +10,8 @@ from typing import Any, Dict, Optional
 from unittest.mock import patch
 
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 class HeaderInjectorLogger(CustomLogger):
@@ -41,9 +41,9 @@ async def test_response_headers_hook_returns_headers():
     """Test that the hook returns headers from a single callback."""
     injector = HeaderInjectorLogger(headers={"x-custom-id": "abc123"})
 
-    with patch("litellm.callbacks", [injector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -62,9 +62,9 @@ async def test_response_headers_hook_returns_none():
     """Test that returning None results in empty headers dict."""
     injector = HeaderInjectorLogger(headers=None)
 
-    with patch("litellm.callbacks", [injector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -84,9 +84,9 @@ async def test_response_headers_hook_multiple_callbacks_merge():
     injector1 = HeaderInjectorLogger(headers={"x-header-a": "value-a"})
     injector2 = HeaderInjectorLogger(headers={"x-header-b": "value-b"})
 
-    with patch("litellm.callbacks", [injector1, injector2]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector1, injector2]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -107,9 +107,9 @@ async def test_response_headers_hook_later_callback_overrides():
     injector1 = HeaderInjectorLogger(headers={"x-request-id": "first"})
     injector2 = HeaderInjectorLogger(headers={"x-request-id": "second"})
 
-    with patch("litellm.callbacks", [injector1, injector2]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector1, injector2]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -128,9 +128,9 @@ async def test_response_headers_hook_receives_response_on_success():
     injector = HeaderInjectorLogger(headers={"x-ok": "1"})
     mock_response = {"id": "resp-success", "choices": []}
 
-    with patch("litellm.callbacks", [injector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -148,9 +148,9 @@ async def test_response_headers_hook_receives_none_response_on_failure():
     """Test that the hook receives None response for failure cases."""
     injector = HeaderInjectorLogger(headers={"x-error-id": "err-1"})
 
-    with patch("litellm.callbacks", [injector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -166,9 +166,9 @@ async def test_response_headers_hook_receives_none_response_on_failure():
 @pytest.mark.asyncio
 async def test_response_headers_hook_no_callbacks():
     """Test that no callbacks results in empty headers."""
-    with patch("litellm.callbacks", []):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", []):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -228,9 +228,9 @@ async def test_litellm_call_info_from_hidden_params():
             "model_id": "model-abc",
         }
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -263,9 +263,9 @@ async def test_litellm_call_info_from_litellm_metadata():
             "model_id": "deploy-xyz",
         }
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -287,9 +287,9 @@ async def test_litellm_call_info_with_none_response():
     """Test that litellm_call_info handles None response (failure path)."""
     inspector = CallInfoInspectorLogger()
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -318,9 +318,9 @@ async def test_litellm_call_info_backwards_compatible():
             "model_id": "m1",
         }
 
-    with patch("litellm.callbacks", [injector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [injector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -353,9 +353,9 @@ async def test_litellm_call_info_fallback_to_response_attribute():
             "api_base": "https://bedrock.us-east-1.amazonaws.com",
         }
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -390,9 +390,9 @@ async def test_litellm_call_info_fallback_no_hidden_params():
 
         custom_llm_provider = "vertex_ai"
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -423,9 +423,9 @@ async def test_litellm_call_info_hidden_params_takes_priority():
             "model_id": "m1",
         }
 
-    with patch("litellm.callbacks", [inspector]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [inspector]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 

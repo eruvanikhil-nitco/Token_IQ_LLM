@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/interactions/agents/utils.py and main.py
+Unit tests for token_iq/gateway/interactions/agents/utils.py and main.py
 focused on the managed agents SDK surface added in the
 "Gemini managed agents support" PR.
 
@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.interactions.agents import (
+from token_iq import gateway as litellm
+from token_iq.gateway.interactions.agents import (
     acreate,
     adelete,
     aget,
@@ -27,16 +27,16 @@ from litellm.interactions.agents import (
     list as list_agents,
     list_versions,
 )
-from litellm.interactions.agents.main import (
+from token_iq.gateway.interactions.agents.main import (
     _get_agents_api_config,
     _make_logging_obj,
 )
-from litellm.interactions.agents.utils import get_provider_agents_api_config
-from litellm.llms.base_llm.agents.transformation import BaseAgentsAPIConfig
-from litellm.llms.gemini.agents.transformation import GeminiAgentsConfig
+from token_iq.gateway.interactions.agents.utils import get_provider_agents_api_config
+from token_iq.gateway.llms.base_llm.agents.transformation import BaseAgentsAPIConfig
+from token_iq.gateway.llms.gemini.agents.transformation import GeminiAgentsConfig
 
 
-_HANDLER_PATH = "litellm.interactions.agents.main.agents_http_handler"
+_HANDLER_PATH = "token_iq.gateway.interactions.agents.main.agents_http_handler"
 
 
 # ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ the ``uniqueItems: false`` branch, the oneOf to anyOf rewrite, and the
 deterministic note ordering.
 """
 
-from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
 
 class TestOutputFormatArrayObjectConstraints:

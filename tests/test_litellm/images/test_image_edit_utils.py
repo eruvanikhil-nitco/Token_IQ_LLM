@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.images.utils import ImageEditRequestUtils
-from litellm.litellm_core_utils.litellm_logging import use_custom_pricing_for_model
-from litellm.llms.base_llm.image_edit.transformation import BaseImageEditConfig
-from litellm.types.images.main import ImageEditOptionalRequestParams
+from token_iq import gateway as litellm
+from token_iq.gateway.images.utils import ImageEditRequestUtils
+from token_iq.gateway.core_utils.litellm_logging import use_custom_pricing_for_model
+from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
+from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 
 
 class MockImageEditConfig(BaseImageEditConfig):
@@ -189,7 +189,7 @@ class TestImageEditCustomPricing:
         When the router provides model_info with custom pricing fields,
         image_edit should include model_info and metadata in litellm_params.
         """
-        from litellm.images.main import image_edit
+        from token_iq.gateway.images.main import image_edit
 
         custom_model_info = {
             "id": "test-deployment-id",
@@ -218,21 +218,21 @@ class TestImageEditCustomPricing:
 
         with (
             patch(
-                "litellm.images.main.get_llm_provider",
+                "token_iq.gateway.images.main.get_llm_provider",
                 return_value=("test-model", "openai", None, None),
             ),
             patch(
-                "litellm.images.main.ProviderConfigManager.get_provider_image_edit_config",
+                "token_iq.gateway.images.main.ProviderConfigManager.get_provider_image_edit_config",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.images.main._get_ImageEditRequestUtils",
+                "token_iq.gateway.images.main._get_ImageEditRequestUtils",
                 return_value=MagicMock(
                     get_requested_image_edit_optional_param=MagicMock(return_value={}),
                     get_optional_params_image_edit=MagicMock(return_value={}),
                 ),
             ),
-            patch("litellm.images.main.base_llm_http_handler") as mock_handler,
+            patch("token_iq.gateway.images.main.base_llm_http_handler") as mock_handler,
         ):
             mock_handler.image_edit_handler.return_value = MagicMock()
 
@@ -284,7 +284,7 @@ class TestImageEditHandlerCredentialsForwarding:
         VertexAIGeminiImageEditConfig.validate_environment should read
         vertex_ai_project/vertex_ai_credentials from litellm_params first.
         """
-        from litellm.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
+        from token_iq.gateway.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
             VertexAIGeminiImageEditConfig,
         )
 
@@ -315,7 +315,7 @@ class TestImageEditHandlerCredentialsForwarding:
         VertexAIImagenImageEditConfig.validate_environment should read
         vertex_ai_project/vertex_ai_credentials from litellm_params first.
         """
-        from litellm.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
+        from token_iq.gateway.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
             VertexAIImagenImageEditConfig,
         )
 
@@ -349,7 +349,7 @@ class TestImageEditHandlerCredentialsForwarding:
         vertex_ai_project and vertex_ai_location from litellm_params,
         not only from env vars / global settings.
         """
-        from litellm.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
+        from token_iq.gateway.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
             VertexAIImagenImageEditConfig,
         )
 
@@ -376,13 +376,13 @@ class TestImageEditHandlerCredentialsForwarding:
         """
         import inspect
 
-        from litellm.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
+        from token_iq.gateway.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
             VertexAIGeminiImageEditConfig,
         )
-        from litellm.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
+        from token_iq.gateway.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
             VertexAIImagenImageEditConfig,
         )
-        from litellm.llms.openai.image_edit.transformation import (
+        from token_iq.gateway.llms.openai.image_edit.transformation import (
             OpenAIImageEditConfig,
         )
 

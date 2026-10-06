@@ -8,9 +8,9 @@ import traceback
 import pytest
 
 
-import litellm
-from litellm import completion, embedding
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, embedding
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class MyCustomHandler(CustomLogger):
@@ -447,7 +447,7 @@ async def test_cost_tracking_with_caching():
     """
     Important Test - This tests if that cost is 0 for cached responses
     """
-    from litellm import Cache
+    from token_iq.gateway import Cache
 
     litellm.set_verbose = True
     litellm.cache = Cache(
@@ -492,7 +492,7 @@ def test_redis_cache_completion_stream():
     # Important Test - This tests if we can add to streaming cache, when custom callbacks are set
     import random
 
-    from litellm import Cache
+    from token_iq.gateway import Cache
 
     try:
         print("\nrunning test_redis_cache_completion_stream")

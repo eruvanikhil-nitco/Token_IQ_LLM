@@ -7,8 +7,8 @@ import sys
 
 import pytest
 import requests
-from litellm.proxy.client.chat import ChatClient
-from litellm.proxy.client.exceptions import UnauthorizedError
+from token_iq.gateway.proxy.client.chat import ChatClient
+from token_iq.gateway.proxy.client.exceptions import UnauthorizedError
 
 
 def _load_http_mocking_responses():

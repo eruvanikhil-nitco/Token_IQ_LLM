@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.custom_httpx.http_handler import get_shared_realtime_ssl_context
+from token_iq.gateway.llms.custom_httpx.http_handler import get_shared_realtime_ssl_context
 
 
 
@@ -12,7 +12,7 @@ from litellm.llms.custom_httpx.http_handler import get_shared_realtime_ssl_conte
     "api_base", ["https://api.openai.com/v1", "https://api.openai.com"]
 )
 def test_openai_realtime_handler_url_construction(api_base):
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
 
     handler = OpenAIRealtime()
     url = handler._construct_url(
@@ -27,8 +27,8 @@ def test_openai_realtime_handler_url_construction(api_base):
 
 
 def test_openai_realtime_handler_url_with_extra_params():
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/v1"
@@ -52,8 +52,8 @@ def test_openai_realtime_handler_model_parameter_inclusion():
     was being excluded from the query string, causing OpenAI to return
     invalid_request_error.missing_model errors.
     """
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/"
@@ -98,8 +98,8 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_async_realtime_success():
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/v1"
@@ -127,7 +127,7 @@ async def test_async_realtime_success():
             "websockets.connect", return_value=DummyAsyncContextManager(mock_backend_ws)
         ) as mock_ws_connect,
         patch(
-            "litellm.llms.openai.realtime.handler.RealTimeStreaming"
+            "token_iq.gateway.llms.openai.realtime.handler.RealTimeStreaming"
         ) as mock_realtime_streaming,
     ):
         mock_streaming_instance = MagicMock()
@@ -153,8 +153,8 @@ async def test_async_realtime_url_contains_model():
     Test that the async_realtime method properly constructs a URL with the model parameter
     when connecting to OpenAI, preventing 'missing_model' errors.
     """
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/"
@@ -182,7 +182,7 @@ async def test_async_realtime_url_contains_model():
             "websockets.connect", return_value=DummyAsyncContextManager(mock_backend_ws)
         ) as mock_ws_connect,
         patch(
-            "litellm.llms.openai.realtime.handler.RealTimeStreaming"
+            "token_iq.gateway.llms.openai.realtime.handler.RealTimeStreaming"
         ) as mock_realtime_streaming,
     ):
 
@@ -224,8 +224,8 @@ async def test_async_realtime_url_contains_model():
 @pytest.mark.asyncio
 async def test_async_realtime_forwards_openai_beta_header_when_client_sends_it():
     """Upstream WS gets OpenAI-Beta: realtime=v1 only when the client WebSocket included it."""
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/"
@@ -257,7 +257,7 @@ async def test_async_realtime_forwards_openai_beta_header_when_client_sends_it()
             "websockets.connect", return_value=DummyAsyncContextManager(mock_backend_ws)
         ) as mock_ws_connect,
         patch(
-            "litellm.llms.openai.realtime.handler.RealTimeStreaming"
+            "token_iq.gateway.llms.openai.realtime.handler.RealTimeStreaming"
         ) as mock_realtime_streaming,
     ):
         mock_streaming_instance = MagicMock()
@@ -288,9 +288,9 @@ async def test_async_realtime_uses_max_size_parameter():
 
     This verifies the fix for: https://github.com/BerriAI/litellm/issues/15747
     """
-    from litellm.constants import REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.constants import REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "https://api.openai.com/"
@@ -318,7 +318,7 @@ async def test_async_realtime_uses_max_size_parameter():
             "websockets.connect", return_value=DummyAsyncContextManager(mock_backend_ws)
         ) as mock_ws_connect,
         patch(
-            "litellm.llms.openai.realtime.handler.RealTimeStreaming"
+            "token_iq.gateway.llms.openai.realtime.handler.RealTimeStreaming"
         ) as mock_realtime_streaming,
     ):
 
@@ -360,8 +360,8 @@ async def test_async_realtime_ws_url_has_no_ssl():
 
     This verifies the fix for: https://github.com/BerriAI/litellm/issues/19222
     """
-    from litellm.llms.openai.realtime.handler import OpenAIRealtime
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.llms.openai.realtime.handler import OpenAIRealtime
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     handler = OpenAIRealtime()
     api_base = "http://localhost:8113"  # Non-SSL local server
@@ -388,7 +388,7 @@ async def test_async_realtime_ws_url_has_no_ssl():
             "websockets.connect", return_value=DummyAsyncContextManager(mock_backend_ws)
         ) as mock_ws_connect,
         patch(
-            "litellm.llms.openai.realtime.handler.RealTimeStreaming"
+            "token_iq.gateway.llms.openai.realtime.handler.RealTimeStreaming"
         ) as mock_realtime_streaming,
     ):
 

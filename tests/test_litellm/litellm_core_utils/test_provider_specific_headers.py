@@ -1,9 +1,9 @@
 import pytest
 
-from litellm.litellm_core_utils.get_provider_specific_headers import (
+from token_iq.gateway.core_utils.get_provider_specific_headers import (
     ProviderSpecificHeaderUtils,
 )
-from litellm.types.utils import ProviderSpecificHeader
+from token_iq.gateway.types.utils import ProviderSpecificHeader
 
 
 class TestProviderSpecificHeaderUtils:

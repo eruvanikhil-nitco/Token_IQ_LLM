@@ -39,7 +39,7 @@ def create_mock_router_with_fallbacks():
 
 def test_model_list_function_signature():
     """Test that model_list function has the correct signature with new parameters."""
-    from litellm.proxy.proxy_server import model_list
+    from token_iq.gateway.proxy.proxy_server import model_list
     import inspect
 
     sig = inspect.signature(model_list)
@@ -59,11 +59,11 @@ def test_model_list_function_signature():
     assert fallback_type_param.default is None, "fallback_type should default to None"
 
 
-@patch("litellm.proxy.proxy_server.llm_router")
-@patch("litellm.proxy.proxy_server.get_complete_model_list")
-@patch("litellm.proxy.proxy_server.get_key_models")
-@patch("litellm.proxy.proxy_server.get_team_models")
-@patch("litellm.proxy.proxy_server.get_all_fallbacks")
+@patch("token_iq.gateway.proxy.proxy_server.llm_router")
+@patch("token_iq.gateway.proxy.proxy_server.get_complete_model_list")
+@patch("token_iq.gateway.proxy.proxy_server.get_key_models")
+@patch("token_iq.gateway.proxy.proxy_server.get_team_models")
+@patch("token_iq.gateway.proxy.proxy_server.get_all_fallbacks")
 def test_model_list_with_fallback_metadata(
     mock_get_all_fallbacks,
     mock_get_team_models,
@@ -99,7 +99,7 @@ def test_model_list_with_fallback_metadata(
 
     # Import the constants we need
     try:
-        from litellm.proxy.proxy_server import DEFAULT_MODEL_CREATED_AT_TIME
+        from token_iq.gateway.proxy.proxy_server import DEFAULT_MODEL_CREATED_AT_TIME
     except ImportError:
         DEFAULT_MODEL_CREATED_AT_TIME = 1640995200  # Default fallback
 
@@ -271,7 +271,7 @@ def test_response_structure_compatibility():
 
 def test_get_all_fallbacks_integration():
     """Test that get_all_fallbacks function can be imported and has correct signature."""
-    from litellm.proxy.auth.model_checks import get_all_fallbacks
+    from token_iq.gateway.proxy.auth.model_checks import get_all_fallbacks
     import inspect
 
     # Test function signature

@@ -15,8 +15,8 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from litellm.proxy import proxy_server
-from litellm.types.llms.openai import HttpxBinaryResponseContent
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
 
 @pytest.fixture
@@ -83,7 +83,7 @@ def patched_speech_error(monkeypatch):
 
 @pytest.fixture
 def patched_speech_provider_rejection(monkeypatch, patched_speech_error):
-    import litellm
+    from token_iq import gateway as litellm
 
     async def _raise(*args, **kwargs):
         raise litellm.BadRequestError(

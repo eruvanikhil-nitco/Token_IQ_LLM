@@ -5,13 +5,13 @@ import httpx
 import pytest
 
 
-from litellm.llms.vertex_ai.image_generation import (
+from token_iq.gateway.llms.vertex_ai.image_generation import (
     get_vertex_ai_image_generation_config,
 )
-from litellm.llms.vertex_ai.image_generation.vertex_gemini_transformation import (
+from token_iq.gateway.llms.vertex_ai.image_generation.vertex_gemini_transformation import (
     VertexAIGeminiImageGenerationConfig,
 )
-from litellm.llms.vertex_ai.image_generation.vertex_imagen_transformation import (
+from token_iq.gateway.llms.vertex_ai.image_generation.vertex_imagen_transformation import (
     VertexAIImagenImageGenerationConfig,
 )
 
@@ -114,7 +114,7 @@ class TestVertexAIGeminiImageGenerationConfig:
 
     def test_map_openai_params_image_config_non_dict_warns_and_drops(self):
         """Non-dict imageConfig is dropped with a warning, not silently discarded"""
-        with patch("litellm.llms.vertex_ai.image_generation.vertex_gemini_transformation.verbose_logger") as mock_log:
+        with patch("token_iq.gateway.llms.vertex_ai.image_generation.vertex_gemini_transformation.verbose_logger") as mock_log:
             result = self.config.map_openai_params(
                 {"imageConfig": "bad-string-value"}, {}, "gemini-3.1-flash-image", False
             )
@@ -288,7 +288,7 @@ class TestVertexAIGeminiImageGenerationConfig:
         }
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         model_response = ImageResponse()
         result = self.config.transform_image_generation_response(
@@ -339,7 +339,7 @@ class TestVertexAIGeminiImageGenerationConfig:
         }
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         model_response = ImageResponse()
         result = self.config.transform_image_generation_response(
@@ -380,7 +380,7 @@ class TestVertexAIGeminiImageGenerationConfig:
         }
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         model_response = ImageResponse()
         result = self.config.transform_image_generation_response(
@@ -426,7 +426,7 @@ class TestVertexAIGeminiImageGenerationConfig:
         }
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         result = self.config.transform_image_generation_response(
             model="gemini-2.5-flash-image",
@@ -518,7 +518,7 @@ class TestVertexAIImagenImageGenerationConfig:
         mock_response.json.return_value = {"predictions": [{"bytesBase64Encoded": "base64_encoded_image_data"}]}
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         model_response = ImageResponse()
         result = self.config.transform_image_generation_response(
@@ -548,7 +548,7 @@ class TestVertexAIImagenImageGenerationConfig:
         }
         mock_response.headers = {}
 
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         model_response = ImageResponse()
         result = self.config.transform_image_generation_response(

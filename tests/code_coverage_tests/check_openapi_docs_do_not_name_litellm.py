@@ -85,7 +85,7 @@ def _schema_from_app() -> Mapping[str, object]:
     """Build the app and generate its schema, so this gate cannot read a stale file."""
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     return app.openapi()
 

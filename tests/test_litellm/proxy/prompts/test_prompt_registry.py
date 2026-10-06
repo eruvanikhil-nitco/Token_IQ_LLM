@@ -1,8 +1,8 @@
 import pytest
 
-import litellm
-from litellm.proxy.prompts.prompt_registry import InMemoryPromptRegistry
-from litellm.types.prompts.init_prompts import PromptInfo, PromptLiteLLMParams, PromptSpec
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.prompts.prompt_registry import InMemoryPromptRegistry
+from token_iq.gateway.types.prompts.init_prompts import PromptInfo, PromptLiteLLMParams, PromptSpec
 
 
 def _db_prompt_spec(content: str) -> PromptSpec:

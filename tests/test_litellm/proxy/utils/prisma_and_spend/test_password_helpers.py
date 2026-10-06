@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.utils import (
     _hash_token_if_needed,
     hash_password,
     hash_token,

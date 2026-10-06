@@ -4,18 +4,18 @@ from unittest.mock import AsyncMock
 
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 import asyncio
 import logging
 from opentelemetry import trace
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-from litellm._logging import verbose_logger
-from litellm.integrations.arize.arize_phoenix import ArizePhoenixLogger
-from litellm.integrations._types.open_inference import (
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.arize.arize_phoenix import ArizePhoenixLogger
+from token_iq.gateway.integrations._types.open_inference import (
     OpenInferenceSpanKindValues,
     SpanAttributes as OISpanAttributes,
 )
-from litellm.integrations.opentelemetry import (
+from token_iq.gateway.integrations.opentelemetry import (
     LITELLM_PROXY_REQUEST_SPAN_NAME,
     LITELLM_TRACER_NAME,
     LITELLM_REQUEST_SPAN_NAME,
@@ -24,7 +24,7 @@ from litellm.integrations.opentelemetry import (
     RAW_REQUEST_SPAN_NAME,
     Span,
 )
-from litellm.proxy._types import SpanAttributes
+from token_iq.gateway.proxy._types import SpanAttributes
 
 verbose_logger.setLevel(logging.DEBUG)
 

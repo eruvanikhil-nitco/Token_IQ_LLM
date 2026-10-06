@@ -12,9 +12,9 @@ import httpx
 import pytest
 import respx
 
-import litellm
-from litellm import Router
-from litellm.llms.base_llm.vector_store.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     LiteLLMVectorStoreEmbeddingExecutor,
     RouterVectorStoreEmbeddingExecutor,
 )
@@ -247,7 +247,7 @@ class TestRouterEmbeddingIntegration:
         router = Router(model_list=model_list)
 
         # Test first deployment
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(model="embedding-deployment-1", input=["test"])
@@ -256,7 +256,7 @@ class TestRouterEmbeddingIntegration:
             assert call_kwargs["api_key"] == "key-1"
 
         # Test second deployment
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(model="embedding-deployment-2", input=["test"])
@@ -291,7 +291,7 @@ class TestRouterEmbeddingIntegration:
         )
 
         # Test: No request headers - router headers should be used
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(
@@ -327,7 +327,7 @@ class TestRouterEmbeddingIntegration:
             default_litellm_params={"metadata": {"environment": "test", "service": "embedding-service"}},
         )
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(
@@ -375,7 +375,7 @@ class TestRouterEmbeddingIntegration:
 
         router = Router(model_list=model_list, num_retries=2)
 
-        with patch("litellm.aembedding", new_callable=AsyncMock) as mock_aembedding:
+        with patch("token_iq.gateway.aembedding", new_callable=AsyncMock) as mock_aembedding:
             mock_aembedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             await router.aembedding(model="test-embedding", input=["test"])
@@ -399,7 +399,7 @@ class TestRouterEmbeddingIntegration:
 
         router = Router(model_list=model_list, timeout=30.0)
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(model="test-embedding", input=["test"])
@@ -439,7 +439,7 @@ class TestRouterEmbeddingIntegration:
 
         # Make multiple calls and verify headers are always present
         for i in range(5):
-            with patch("litellm.embedding") as mock_embedding:
+            with patch("token_iq.gateway.embedding") as mock_embedding:
                 mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
                 router.embedding(model="shared-embedding-model", input=[f"test {i}"])
@@ -479,7 +479,7 @@ class TestRouterEmbeddingIntegration:
         )
 
         # Simulate primary failing, fallback succeeding
-        with patch("litellm.aembedding", new_callable=AsyncMock) as mock_aembedding:
+        with patch("token_iq.gateway.aembedding", new_callable=AsyncMock) as mock_aembedding:
             call_count = 0
 
             async def side_effect(*args, **kwargs):
@@ -528,7 +528,7 @@ class TestRouterEmbeddingIntegration:
             default_litellm_params={"headers": {"X-Custom-Azure-Header": "azure-value"}},
         )
 
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(data=[{"embedding": [0.1, 0.2]}])
 
             router.embedding(model="azure-embedding", input=["test"])

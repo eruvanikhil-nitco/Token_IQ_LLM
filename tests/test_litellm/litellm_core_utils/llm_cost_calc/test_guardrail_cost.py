@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.guardrail_cost import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
     bedrock_guardrail_cost,
     cost_breakdown_with_guardrail,
     guardrail_information_cost,
@@ -114,7 +114,7 @@ def test_cost_breakdown_with_guardrail_merges_and_creates():
 
 
 def test_azure_prompt_shield_guardrail_cost_paid_tier_prices_text_records():
-    from litellm.litellm_core_utils.llm_cost_calc.guardrail_cost import (
+    from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
         azure_prompt_shield_guardrail_cost,
     )
 
@@ -127,7 +127,7 @@ def test_azure_prompt_shield_guardrail_cost_paid_tier_prices_text_records():
 
 
 def test_azure_prompt_shield_guardrail_cost_free_tier_is_zero():
-    from litellm.litellm_core_utils.llm_cost_calc.guardrail_cost import (
+    from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
         azure_prompt_shield_guardrail_cost,
     )
 
@@ -135,7 +135,7 @@ def test_azure_prompt_shield_guardrail_cost_free_tier_is_zero():
 
 
 def test_azure_prompt_shield_guardrail_cost_unconfigured_is_none():
-    from litellm.litellm_core_utils.llm_cost_calc.guardrail_cost import (
+    from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
         azure_prompt_shield_guardrail_cost,
     )
 
@@ -143,7 +143,7 @@ def test_azure_prompt_shield_guardrail_cost_unconfigured_is_none():
 
 
 def test_azure_prompt_shield_guardrail_cost_no_text_records_is_zero():
-    from litellm.litellm_core_utils.llm_cost_calc.guardrail_cost import (
+    from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
         azure_prompt_shield_guardrail_cost,
     )
 

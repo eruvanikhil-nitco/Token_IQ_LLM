@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
 # Add the project root to the path
 
-import litellm.experimental_mcp_client.client as mcp_client_module
-from litellm.experimental_mcp_client.client import MCPClient
-from litellm.types.mcp import MCPAuth, MCPTransport
+import token_iq.gateway.experimental_mcp_client.client as mcp_client_module
+from token_iq.gateway.experimental_mcp_client.client import MCPClient
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
 from mcp.types import CallToolResult as MCPCallToolResult
 from mcp.types import ListToolsResult, PaginatedRequestParams
 from mcp.types import Tool as MCPTool
@@ -18,7 +18,7 @@ from mcp.types import Tool as MCPTool
 
 def test_mcp_client_uses_configurable_default_timeout():
     """MCPClient should use MCP_CLIENT_TIMEOUT constant when no timeout is passed."""
-    with patch("litellm.experimental_mcp_client.client.MCP_CLIENT_TIMEOUT", 120.0):
+    with patch("token_iq.gateway.experimental_mcp_client.client.MCP_CLIENT_TIMEOUT", 120.0):
         # Client reads constant at runtime when timeout is None
         client = MCPClient(
             server_url="http://example.com",

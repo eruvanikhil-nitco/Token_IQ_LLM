@@ -14,7 +14,7 @@ import yaml
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     app as proxy_app,
     cleanup_router_config_variables,
     initialize,

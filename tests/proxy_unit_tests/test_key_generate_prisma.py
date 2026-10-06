@@ -22,7 +22,7 @@
 import os
 import re
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime, timezone
 from unittest import mock
 
@@ -35,22 +35,22 @@ load_dotenv()
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 
 import pytest
 
-import litellm
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy.management_endpoints.internal_user_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
     user_info,
     user_update,
 )
-from litellm.proxy.auth.auth_checks import get_key_object
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy.auth.auth_checks import get_key_object
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_key_fn,
     generate_key_fn,
     generate_key_helper_fn,
@@ -60,12 +60,12 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
     update_key_fn,
     key_aliases,
 )
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     new_team,
     team_info,
     update_team,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     LitellmUserRoles,
     audio_transcriptions,
     chat_completion,
@@ -75,27 +75,27 @@ from litellm.proxy.proxy_server import (
     moderations,
     user_api_key_auth,
 )
-from litellm.proxy.image_endpoints import image_generation
-from litellm.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.proxy.image_endpoints import image_generation
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
     new_end_user,
 )
-from litellm.proxy.spend_tracking.spend_management_endpoints import (
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
     global_spend,
     spend_key_fn,
     spend_user_fn,
     view_spend_logs,
 )
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 from starlette.datastructures import URL
 
-from litellm.caching.caching import DualCache
-from litellm.types.proxy.management_endpoints.ui_sso import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     LiteLLM_UpperboundKeyGenerateParams,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     DynamoDBArgs,
     GenerateKeyRequest,
     KeyRequest,
@@ -123,7 +123,7 @@ request_data = {
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}
@@ -156,7 +156,7 @@ async def test_new_user_response(prisma_client):
         setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
 
         await litellm.proxy.proxy_server.prisma_client.connect()
-        from litellm.proxy.proxy_server import user_api_key_cache
+        from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
         _team_id = "ishaan-special-team_{}".format(uuid.uuid4())
         await new_team(
@@ -245,7 +245,7 @@ def test_generate_and_call_with_valid_key(prisma_client, api_route):
 
         async def test():
             await litellm.proxy.proxy_server.prisma_client.connect()
-            from litellm.proxy.proxy_server import user_api_key_cache
+            from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
             user_api_key_dict = UserAPIKeyAuth(
                 user_role=LitellmUserRoles.PROXY_ADMIN,
@@ -513,8 +513,8 @@ def test_call_with_user_over_budget(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -611,8 +611,8 @@ def test_call_with_end_user_over_budget(prisma_client):
         result = await user_api_key_auth(request=request, api_key=bearer_token)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -689,7 +689,7 @@ def test_call_with_proxy_over_budget(prisma_client):
         litellm_proxy_budget_name,
     )
     setattr(litellm, "max_budget", 0.00001)
-    from litellm.proxy.proxy_server import user_api_key_cache
+    from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     user_api_key_cache.set_cache(
         key="{}:spend".format(litellm_proxy_budget_name), value=0
@@ -721,8 +721,8 @@ def test_call_with_proxy_over_budget(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -783,7 +783,7 @@ def test_call_with_user_over_budget_stream(prisma_client):
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     litellm.set_verbose = True
     verbose_proxy_logger.setLevel(logging.DEBUG)
@@ -813,8 +813,8 @@ def test_call_with_user_over_budget_stream(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -877,7 +877,7 @@ def test_call_with_proxy_over_budget_stream(prisma_client):
         litellm_proxy_budget_name,
     )
     setattr(litellm, "max_budget", 0.00001)
-    from litellm.proxy.proxy_server import user_api_key_cache
+    from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     user_api_key_cache.set_cache(
         key="{}:spend".format(litellm_proxy_budget_name), value=0
@@ -886,7 +886,7 @@ def test_call_with_proxy_over_budget_stream(prisma_client):
 
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     litellm.set_verbose = True
     verbose_proxy_logger.setLevel(logging.DEBUG)
@@ -920,8 +920,8 @@ def test_call_with_proxy_over_budget_stream(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -1063,7 +1063,7 @@ def test_delete_key(prisma_client):
 
         async def test():
             await litellm.proxy.proxy_server.prisma_client.connect()
-            from litellm.proxy.proxy_server import user_api_key_cache
+            from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
             request = NewUserRequest()
             key = await new_user(
@@ -1120,7 +1120,7 @@ def test_delete_key_auth(prisma_client):
 
         async def test():
             await litellm.proxy.proxy_server.prisma_client.connect()
-            from litellm.proxy.proxy_server import user_api_key_cache
+            from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
             request = NewUserRequest()
             key = await new_user(
@@ -1256,7 +1256,7 @@ def test_generate_and_update_key(prisma_client):
     # 11. Generate a Key, cal key/info, call key/update, call key/info
     # Check if data gets updated
     # Check if untouched data does not get updated
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     print("prisma client=", prisma_client)
 
@@ -1571,15 +1571,15 @@ def test_call_with_key_over_budget(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.caching.caching import Cache
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.caching.caching import Cache
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
         litellm.cache = Cache()
         import time
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
 
         request_id = f"chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac{uuid.uuid4()}"
 
@@ -1690,18 +1690,18 @@ def test_call_with_key_over_budget_no_cache(prisma_client):
         print("result from user auth with new key", result)
 
         # update spend using track_cost callback, make 2nd request, it should fail
-        from litellm.proxy.proxy_server import _ProxyDBLogger
-        from litellm.proxy.proxy_server import user_api_key_cache
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
         user_api_key_cache.in_memory_cache.cache_dict = {}
         setattr(litellm.proxy.proxy_server, "proxy_batch_write_at", 1)
 
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.caching.caching import Cache
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.caching.caching import Cache
 
         litellm.cache = Cache()
         import time
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
 
         request_id = f"chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac{uuid.uuid4()}"
 
@@ -1804,7 +1804,7 @@ async def test_aasync_call_with_key_over_model_budget(
 
     # Use the proxy server's existing budget limiter instead of creating a new one
     # This ensures the budget limiter's cache is shared between the callback and auth checks
-    from litellm.proxy.proxy_server import model_max_budget_limiter
+    from token_iq.gateway.proxy.proxy_server import model_max_budget_limiter
 
     # set budget for chatgpt-v-3 to 0.000001, expect the next request to fail
     model_max_budget = {
@@ -1940,10 +1940,10 @@ async def test_call_with_key_never_over_budget(prisma_client):
 
         # update spend using track_cost callback, make 2nd request, it should fail
         import time
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
 
-        from litellm import Choices, Message, ModelResponse, Usage
-        from litellm.proxy.proxy_server import _ProxyDBLogger
+        from token_iq.gateway import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
         proxy_db_logger = _ProxyDBLogger()
 
@@ -2002,7 +2002,7 @@ async def test_call_with_key_over_budget_stream(prisma_client):
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     litellm.set_verbose = True
     verbose_proxy_logger.setLevel(logging.DEBUG)
@@ -2031,10 +2031,10 @@ async def test_call_with_key_over_budget_stream(prisma_client):
 
     # update spend using track_cost callback, make 2nd request, it should fail
     import time
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
-    from litellm import Choices, Message, ModelResponse, Usage
-    from litellm.proxy.proxy_server import _ProxyDBLogger
+    from token_iq.gateway import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
     proxy_db_logger = _ProxyDBLogger()
 
@@ -2346,7 +2346,7 @@ async def test_upperbound_key_param_none_duration(prisma_client):
 
 
 def test_get_bearer_token():
-    from litellm.proxy.auth.user_api_key_auth import _get_bearer_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _get_bearer_token
 
     # Test valid Bearer token
     api_key = "Bearer valid_token"
@@ -2380,7 +2380,7 @@ async def test_update_logs_with_spend_logs_url(prisma_client):
     """
     Unit test for making sure spend logs list is still updated when url passed in
     """
-    from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+    from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 
     db_spend_update_writer = DBSpendUpdateWriter()
 
@@ -2405,7 +2405,7 @@ async def test_update_logs_with_spend_logs_url(prisma_client):
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 async def test_user_api_key_auth(prisma_client):
-    from litellm.proxy.proxy_server import ProxyException
+    from token_iq.gateway.proxy.proxy_server import ProxyException
 
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
@@ -2447,7 +2447,7 @@ async def test_user_api_key_auth(prisma_client):
 async def test_user_api_key_auth_without_master_key(prisma_client):
     # if master key is not set, expect all calls to go through
     try:
-        from litellm.proxy.proxy_server import ProxyException
+        from token_iq.gateway.proxy.proxy_server import ProxyException
 
         setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
         setattr(litellm.proxy.proxy_server, "master_key", None)
@@ -2504,10 +2504,10 @@ async def test_key_with_no_permissions(prisma_client):
 
 
 async def track_cost_callback_helper_fn(generated_key: str, user_id: str):
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
-    from litellm import Choices, Message, ModelResponse, Usage
-    from litellm.proxy.proxy_server import _ProxyDBLogger
+    from token_iq.gateway import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.proxy.proxy_server import _ProxyDBLogger
 
     request_id = f"chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac{uuid.uuid4()}"
     resp = ModelResponse(
@@ -2557,7 +2557,7 @@ async def test_proxy_load_test_db(prisma_client):
     import logging
     import time
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     litellm.set_verbose = True
     verbose_proxy_logger.setLevel(logging.DEBUG)
@@ -2614,7 +2614,7 @@ async def test_proxy_load_test_db(prisma_client):
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 async def test_master_key_hashing(prisma_client):
     try:
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
 
         print("prisma client=", prisma_client)
 
@@ -2624,7 +2624,7 @@ async def test_master_key_hashing(prisma_client):
         setattr(litellm.proxy.proxy_server, "master_key", master_key)
 
         await litellm.proxy.proxy_server.prisma_client.connect()
-        from litellm.proxy.proxy_server import user_api_key_cache
+        from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
         _team_id = "ishaans-special-team_{}".format(uuid.uuid4())
         user_api_key_dict = UserAPIKeyAuth(
@@ -2667,7 +2667,7 @@ async def test_master_key_hashing(prisma_client):
 
         # Master-key auth substitutes a stable alias so the master key (or
         # its hash) never propagates into spend logs / metrics / audit trails.
-        from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+        from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
         assert result.api_key == LITELLM_PROXY_MASTER_KEY_ALIAS
         assert result.api_key != hash_token(master_key)
@@ -2694,7 +2694,7 @@ async def test_reset_spend_authentication(prisma_client):
     setattr(litellm.proxy.proxy_server, "master_key", master_key)
 
     await litellm.proxy.proxy_server.prisma_client.connect()
-    from litellm.proxy.proxy_server import user_api_key_cache
+    from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     bearer_token = "Bearer " + master_key
 
@@ -2782,7 +2782,7 @@ async def test_create_update_team(prisma_client):
     import datetime
 
     await litellm.proxy.proxy_server.prisma_client.connect()
-    from litellm.proxy.proxy_server import user_api_key_cache
+    from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     _team_id = "test-team_{}".format(uuid.uuid4())
     response = await new_team(
@@ -3437,7 +3437,7 @@ async def test_aadmin_only_routes(prisma_client):
         "allowed_routes": ["/embeddings", "/key/generate"],
         "admin_only_routes": ["/key/generate"],
     }
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     initial_general_settings = getattr(proxy_server, "general_settings")
 
@@ -3501,8 +3501,8 @@ async def test_list_keys(prisma_client):
     """
     from fastapi import Query
 
-    from litellm.proxy.proxy_server import hash_token
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
@@ -3637,8 +3637,8 @@ async def test_key_aliases(prisma_client):
     """
     import asyncio
     import uuid
-    import litellm
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     # Wire up test prisma client
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
@@ -3765,7 +3765,7 @@ async def test_user_api_key_auth_db_unavailable():
         api_key="Bearer sk-123456789",
     )
 
-    from litellm.proxy.auth.auth_exception_handler import (
+    from token_iq.gateway.proxy.auth.auth_exception_handler import (
         DB_UNAVAILABLE_FALLBACK_USER_ID,
     )
 
@@ -3830,13 +3830,13 @@ async def test_user_api_key_auth_db_unavailable_not_allowed():
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 @pytest.mark.asyncio
 @mock.patch(
-    "litellm.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_write_secret"
+    "token_iq.gateway.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_write_secret"
 )
 @mock.patch(
-    "litellm.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_read_secret"
+    "token_iq.gateway.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_read_secret"
 )
 @mock.patch(
-    "litellm.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_delete_secret"
+    "token_iq.gateway.secret_managers.aws_secret_manager_v2.AWSSecretsManagerV2.async_delete_secret"
 )
 async def test_key_generate_with_secret_manager_call(
     mock_delete_secret, mock_read_secret, mock_write_secret, prisma_client
@@ -3848,13 +3848,13 @@ async def test_key_generate_with_secret_manager_call(
     delete the key
     assert it is deleted from the secret manager
     """
-    from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
-    from litellm.types.secret_managers.main import (
+    from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+    from token_iq.gateway.types.secret_managers.main import (
         KeyManagementSystem,
         KeyManagementSettings,
     )
 
-    from litellm.proxy.hooks.key_management_event_hooks import (
+    from token_iq.gateway.proxy.hooks.key_management_event_hooks import (
         LITELLM_PREFIX_STORED_VIRTUAL_KEYS,
     )
 
@@ -4039,7 +4039,7 @@ async def test_enforce_unique_key_alias(prisma_client):
     3. Test it allows updating a key with its own existing alias
     4. Test it blocks updating a key with another key's alias
     """
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _enforce_unique_key_alias,
     )
 
@@ -4108,7 +4108,7 @@ def test_should_track_cost_callback():
     """
     Test that the should_track_cost_callback function works as expected
     """
-    from litellm.proxy.hooks.proxy_track_cost_callback import (
+    from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import (
         _should_track_cost_callback,
     )
 
@@ -4129,7 +4129,7 @@ async def test_get_paginated_teams(prisma_client):
     2. Test total count matches across pages
     3. Test page size is respected
     """
-    from litellm.proxy.management_endpoints.team_endpoints import get_paginated_teams
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import get_paginated_teams
 
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
@@ -4183,8 +4183,8 @@ async def test_reset_budget_job(prisma_client, entity_type):
     from datetime import datetime, timedelta
     import time
 
-    from litellm.proxy.common_utils.reset_budget_job import ResetBudgetJob
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.common_utils.reset_budget_job import ResetBudgetJob
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Setup
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
@@ -4319,13 +4319,13 @@ async def test_reset_budget_job(prisma_client, entity_type):
 def test_delete_nonexistent_key_returns_404(prisma_client):
     # Try to delete a key that does not exist, expect a 404 error
     import random, string
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         KeyRequest,
         UserAPIKeyAuth,
         LitellmUserRoles,
         ProxyException,
     )
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         delete_key_fn,
     )
     from starlette.datastructures import URL

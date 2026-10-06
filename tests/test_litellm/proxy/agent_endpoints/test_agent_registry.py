@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.constants import REDACTED_BY_LITELM_STRING
-from litellm.proxy.agent_endpoints.agent_registry import (
+from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+from token_iq.gateway.proxy.agent_endpoints.agent_registry import (
     AgentRegistry,
     GrantMigrationResult,
     _restore_redacted_litellm_params,
@@ -360,7 +360,7 @@ def test_legacy_full_entry_hash_still_resolves_the_config_agent():
 def test_public_agent_groups_holding_the_legacy_id_still_mark_the_config_agent_public(monkeypatch):
     """LIT-5144: config.yaml written before the fix stores the full-entry hash in
     public_agent_groups; the agent must stay public after its id became name-based."""
-    import litellm
+    from token_iq import gateway as litellm
 
     entry: Final = {
         "agent_name": "public-agent",

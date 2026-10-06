@@ -18,11 +18,11 @@ from openai.types.chat import ChatCompletionMessage
 from openai.types.chat.chat_completion import ChatCompletion, Choice
 from respx import MockRouter
 
-import litellm
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.litellm_core_utils.prompt_templates.factory import anthropic_messages_pt
-from litellm.router import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
+from token_iq.gateway.router import Router
 
 
 @pytest.mark.asyncio()

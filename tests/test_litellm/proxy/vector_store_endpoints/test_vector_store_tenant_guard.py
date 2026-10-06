@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request, Response
 
-import litellm
-from litellm.proxy._types import LiteLLM_ManagedVectorStoresTable, UserAPIKeyAuth
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LiteLLM_ManagedVectorStoresTable, UserAPIKeyAuth
 
 
 def _mock_request() -> MagicMock:
@@ -18,7 +18,7 @@ def _mock_request() -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_vector_store_search_forces_path_id_over_body_id():
-    from litellm.proxy.vector_store_endpoints.endpoints import vector_store_search
+    from token_iq.gateway.proxy.vector_store_endpoints.endpoints import vector_store_search
 
     captured_data = {}
 
@@ -29,7 +29,7 @@ async def test_vector_store_search_forces_path_id_over_body_id():
     request = _mock_request()
     with (
         patch(
-            "litellm.proxy.proxy_server._read_request_body",
+            "token_iq.gateway.proxy.proxy_server._read_request_body",
             new=AsyncMock(
                 return_value={
                     "vector_store_id": "vs_body_victim",
@@ -38,9 +38,9 @@ async def test_vector_store_search_forces_path_id_over_body_id():
             ),
         ),
         patch.object(litellm, "vector_store_registry", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         patch(
-            "litellm.proxy.vector_store_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+            "token_iq.gateway.proxy.vector_store_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=fake_base_process,
         ),
     ):
@@ -57,7 +57,7 @@ async def test_vector_store_search_forces_path_id_over_body_id():
 
 @pytest.mark.asyncio
 async def test_vector_store_file_create_forces_path_id_over_body_id():
-    from litellm.proxy.vector_store_files_endpoints.endpoints import (
+    from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
         vector_store_file_create,
     )
 
@@ -77,7 +77,7 @@ async def test_vector_store_file_create_forces_path_id_over_body_id():
     request = _mock_request()
     with (
         patch(
-            "litellm.proxy.proxy_server._read_request_body",
+            "token_iq.gateway.proxy.proxy_server._read_request_body",
             new=AsyncMock(
                 return_value={
                     "vector_store_id": "vs_body_victim",
@@ -87,7 +87,7 @@ async def test_vector_store_file_create_forces_path_id_over_body_id():
         ),
         patch.object(litellm, "vector_store_registry", mock_registry),
         patch(
-            "litellm.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+            "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=fake_base_process,
         ),
     ):
@@ -110,7 +110,7 @@ async def test_vector_store_file_create_forces_path_id_over_body_id():
 async def test_vector_store_file_list_resolves_managed_vector_store_before_team_fallback():
     import base64
 
-    from litellm.proxy.vector_store_files_endpoints.endpoints import (
+    from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
         vector_store_file_list,
     )
 
@@ -150,12 +150,12 @@ async def test_vector_store_file_list_resolves_managed_vector_store_before_team_
 
     with (
         patch(
-            "litellm.proxy.vector_store_files_endpoints.endpoints.assert_user_can_access_vector_store_id",
+            "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.assert_user_can_access_vector_store_id",
             new=AsyncMock(return_value=None),
         ),
-        patch("litellm.proxy.proxy_server.llm_router", llm_router),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", llm_router),
         patch(
-            "litellm.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+            "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=fake_base_process,
         ),
     ):
@@ -177,7 +177,7 @@ async def test_vector_store_file_list_resolves_managed_vector_store_before_team_
 
 @pytest.mark.asyncio
 async def test_vector_store_file_create_denies_other_team_path_store():
-    from litellm.proxy.vector_store_files_endpoints.endpoints import (
+    from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
         vector_store_file_create,
     )
 
@@ -191,12 +191,12 @@ async def test_vector_store_file_create_denies_other_team_path_store():
     request = _mock_request()
     with (
         patch(
-            "litellm.proxy.proxy_server._read_request_body",
+            "token_iq.gateway.proxy.proxy_server._read_request_body",
             new=AsyncMock(return_value={"file_id": "file_123"}),
         ),
         patch.object(litellm, "vector_store_registry", mock_registry),
         patch(
-            "litellm.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+            "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=AsyncMock(),
         ) as mock_base_process,
     ):
@@ -214,7 +214,7 @@ async def test_vector_store_file_create_denies_other_team_path_store():
 
 @pytest.mark.asyncio
 async def test_rag_query_denies_nested_other_team_vector_store():
-    from litellm.proxy.rag_endpoints.endpoints import rag_query
+    from token_iq.gateway.proxy.rag_endpoints.endpoints import rag_query
 
     mock_registry = MagicMock()
     mock_registry.get_litellm_managed_vector_store_from_registry.return_value = {
@@ -226,7 +226,7 @@ async def test_rag_query_denies_nested_other_team_vector_store():
     request = _mock_request()
     with (
         patch(
-            "litellm.proxy.rag_endpoints.endpoints._read_request_body",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints._read_request_body",
             new=AsyncMock(
                 return_value={
                     "model": "gpt-4o-mini",
@@ -237,7 +237,7 @@ async def test_rag_query_denies_nested_other_team_vector_store():
         ),
         patch.object(litellm, "vector_store_registry", mock_registry),
         patch(
-            "litellm.proxy.rag_endpoints.endpoints.litellm.aquery",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
             new=AsyncMock(),
         ) as mock_aquery,
     ):
@@ -254,7 +254,7 @@ async def test_rag_query_denies_nested_other_team_vector_store():
 
 @pytest.mark.asyncio
 async def test_rag_ingest_denies_nested_other_team_vector_store():
-    from litellm.proxy.rag_endpoints.endpoints import rag_ingest
+    from token_iq.gateway.proxy.rag_endpoints.endpoints import rag_ingest
 
     mock_registry = MagicMock()
     mock_registry.get_litellm_managed_vector_store_from_registry.return_value = {
@@ -266,7 +266,7 @@ async def test_rag_ingest_denies_nested_other_team_vector_store():
     request = _mock_request()
     with (
         patch(
-            "litellm.proxy.rag_endpoints.endpoints.parse_rag_ingest_request",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.parse_rag_ingest_request",
             new=AsyncMock(
                 return_value=(
                     {
@@ -283,7 +283,7 @@ async def test_rag_ingest_denies_nested_other_team_vector_store():
         ),
         patch.object(litellm, "vector_store_registry", mock_registry),
         patch(
-            "litellm.proxy.rag_endpoints.endpoints.litellm.aingest",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aingest",
             new=AsyncMock(),
         ) as mock_aingest,
     ):
@@ -299,8 +299,8 @@ async def test_rag_ingest_denies_nested_other_team_vector_store():
 
 
 def test_rag_payload_scan_rejects_excessive_nesting():
-    from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
-    from litellm.proxy.rag_endpoints.endpoints import (
+    from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
+    from token_iq.gateway.proxy.rag_endpoints.endpoints import (
         _collect_vector_store_ids_from_payload,
     )
 
@@ -318,8 +318,8 @@ def test_rag_payload_scan_rejects_excessive_nesting():
 
 
 def test_rag_payload_scan_accepts_vector_store_id_at_depth_limit():
-    from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
-    from litellm.proxy.rag_endpoints.endpoints import (
+    from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
+    from token_iq.gateway.proxy.rag_endpoints.endpoints import (
         _collect_vector_store_ids_from_payload,
     )
 
@@ -334,8 +334,8 @@ def test_rag_payload_scan_accepts_vector_store_id_at_depth_limit():
 
 
 def test_rag_payload_scan_ignores_primitive_list_beyond_depth_limit():
-    from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
-    from litellm.proxy.rag_endpoints.endpoints import (
+    from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
+    from token_iq.gateway.proxy.rag_endpoints.endpoints import (
         _collect_vector_store_ids_from_payload,
     )
 
@@ -351,7 +351,7 @@ def test_rag_payload_scan_ignores_primitive_list_beyond_depth_limit():
 
 @pytest.mark.asyncio
 async def test_responses_file_search_denies_other_team_vector_store():
-    from litellm.proxy.common_request_processing import (
+    from token_iq.gateway.proxy.common_request_processing import (
         _authorize_response_file_search_vector_stores,
     )
 
@@ -381,7 +381,7 @@ async def test_responses_file_search_denies_other_team_vector_store():
 
 @pytest.mark.asyncio
 async def test_vertex_discovery_denies_other_team_vector_store_credentials():
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         _base_vertex_proxy_route,
     )
 
@@ -394,7 +394,7 @@ async def test_vertex_discovery_denies_other_team_vector_store_credentials():
     }
 
     with patch(
-        "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth",
         new=AsyncMock(return_value=UserAPIKeyAuth(team_id="team-a")),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -411,7 +411,7 @@ async def test_vertex_discovery_denies_other_team_vector_store_credentials():
 
 @pytest.mark.asyncio
 async def test_get_managed_vector_store_uses_shared_cache_helper_for_db_fallback():
-    from litellm.proxy.vector_store_endpoints.utils import (
+    from token_iq.gateway.proxy.vector_store_endpoints.utils import (
         get_litellm_managed_vector_store,
     )
 
@@ -437,11 +437,11 @@ async def test_get_managed_vector_store_uses_shared_cache_helper_for_db_fallback
 
     with (
         patch.object(litellm, "vector_store_registry", mock_registry),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
+            "token_iq.gateway.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
             new=cache_helper,
         ),
     ):
@@ -457,7 +457,7 @@ async def test_get_managed_vector_store_uses_shared_cache_helper_for_db_fallback
 
 @pytest.mark.asyncio
 async def test_get_managed_vector_store_fails_closed_on_lookup_error():
-    from litellm.proxy.vector_store_endpoints.utils import (
+    from token_iq.gateway.proxy.vector_store_endpoints.utils import (
         get_litellm_managed_vector_store,
     )
 
@@ -475,7 +475,7 @@ async def test_get_managed_vector_store_fails_closed_on_lookup_error():
 
 @pytest.mark.asyncio
 async def test_vertex_discovery_allows_unregistered_provider_native_datastore_id():
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         vertex_discovery_proxy_route,
     )
 
@@ -484,11 +484,11 @@ async def test_vertex_discovery_allows_unregistered_provider_native_datastore_id
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_litellm_managed_vector_store",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_litellm_managed_vector_store",
             new=AsyncMock(return_value=None),
         ) as mock_lookup,
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints._base_vertex_proxy_route",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._base_vertex_proxy_route",
             new=AsyncMock(return_value={"ok": True}),
         ) as mock_base_route,
     ):
@@ -505,7 +505,7 @@ async def test_vertex_discovery_allows_unregistered_provider_native_datastore_id
 
 @pytest.mark.asyncio
 async def test_milvus_passthrough_denies_other_team_vector_store_index():
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         milvus_proxy_route,
     )
 
@@ -530,15 +530,15 @@ async def test_milvus_passthrough_denies_other_team_vector_store_index():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_request_body",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_request_body",
             new=AsyncMock(return_value={"collectionName": "managed_index"}),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
             return_value=True,
         ),
         patch.object(litellm, "vector_store_index_registry", mock_index_registry),
@@ -557,7 +557,7 @@ async def test_milvus_passthrough_denies_other_team_vector_store_index():
 
 @pytest.mark.asyncio
 async def test_azure_passthrough_denies_other_team_vector_store_index():
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         azure_proxy_route,
     )
 
@@ -582,17 +582,17 @@ async def test_azure_passthrough_denies_other_team_vector_store_index():
     }
 
     with (
-        patch("litellm.proxy.proxy_server.llm_router", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", MagicMock()),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_passthrough_request_using_router_model",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_passthrough_request_using_router_model",
             return_value=False,
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
             return_value=True,
         ),
         patch.object(litellm, "vector_store_index_registry", mock_index_registry),

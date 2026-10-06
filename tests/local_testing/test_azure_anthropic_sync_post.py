@@ -20,8 +20,8 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from litellm.exceptions import Timeout as LitellmTimeout
-from litellm.llms.custom_httpx.http_handler import (
+from token_iq.gateway.exceptions import Timeout as LitellmTimeout
+from token_iq.gateway.llms.custom_httpx.http_handler import (
     MaskedHTTPStatusError,
     _get_httpx_client,
 )

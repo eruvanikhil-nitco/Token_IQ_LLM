@@ -9,11 +9,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
 
 class TestAnthropicEndpoints(unittest.TestCase):
-    @patch("litellm.litellm_core_utils.safe_json_dumps.safe_dumps")
+    @patch("token_iq.gateway.core_utils.safe_json_dumps.safe_dumps")
     @pytest.mark.asyncio
     async def test_async_data_generator_anthropic_dict_handling(self, mock_safe_dumps):
         """Test async_data_generator_anthropic handles dictionary chunks properly"""
@@ -67,7 +67,7 @@ class TestBlockedResponseUsage:
     """Blocked responses report the blocked LLM response's real usage."""
 
     def test_uses_original_response_usage(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import _blocked_response_usage
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import _blocked_response_usage
 
         # original_response is the AnthropicMessagesResponse the LLM produced
         # before the guardrail blocked it; its usage is real.
@@ -78,7 +78,7 @@ class TestBlockedResponseUsage:
         }
 
     def test_zero_usage_when_no_original_response(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import _blocked_response_usage
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import _blocked_response_usage
 
         # Pre-call blocks never invoked the LLM -> nothing consumed.
         assert _blocked_response_usage(None) == {
@@ -92,9 +92,9 @@ class TestBlockedResponseUsage:
         usage, carried on ModifyResponseException.original_response."""
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm.proxy.anthropic_endpoints.endpoints as ep
-        import litellm.proxy.proxy_server as proxy_server
-        from litellm.integrations.custom_guardrail import ModifyResponseException
+        import token_iq.gateway.proxy.anthropic_endpoints.endpoints as ep
+        import token_iq.gateway.proxy.proxy_server as proxy_server
+        from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
 
         exc = ModifyResponseException(
             message="blocked by guardrail",
@@ -130,9 +130,9 @@ class TestProxyExceptionPassthrough:
     async def test_anthropic_response_reraises_proxy_exception_unwrapped(self):
         """A 400 ProxyException from request validation must surface as-is,
         not be re-wrapped into a code-500 ProxyException."""
-        import litellm.proxy.anthropic_endpoints.endpoints as ep
-        import litellm.proxy.proxy_server as proxy_server
-        from litellm.proxy._types import ProxyErrorTypes, ProxyException
+        import token_iq.gateway.proxy.anthropic_endpoints.endpoints as ep
+        import token_iq.gateway.proxy.proxy_server as proxy_server
+        from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
 
         exc = ProxyException(
             message="Invalid type for 'metadata': expected an object, but got a string instead.",
@@ -172,9 +172,9 @@ class TestHttpExceptionDictDetail:
         /v1/chat/completions and /v1/responses, not the str() of the exception."""
         from fastapi import HTTPException
 
-        import litellm.proxy.anthropic_endpoints.endpoints as ep
-        import litellm.proxy.proxy_server as proxy_server
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        import token_iq.gateway.proxy.anthropic_endpoints.endpoints as ep
+        import token_iq.gateway.proxy.proxy_server as proxy_server
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         detail = {
             "error": "Content blocked: keyword 'kumquat' detected",
@@ -213,9 +213,9 @@ class TestFailureHookRequestData:
         """Request setup replaces the processor's data dict (adding the logging
         object the failure hook needs to lift token usage from); the exception
         handler must pass that replaced dict, not the raw request body dict."""
-        import litellm.proxy.anthropic_endpoints.endpoints as ep
-        import litellm.proxy.proxy_server as proxy_server
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        import token_iq.gateway.proxy.anthropic_endpoints.endpoints as ep
+        import token_iq.gateway.proxy.proxy_server as proxy_server
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         captured = {}
 
@@ -249,7 +249,7 @@ class TestEventLoggingBatchEndpoint:
         """Test that the event_logging_batch endpoint exists and returns 200"""
         from fastapi import FastAPI
 
-        from litellm.proxy.anthropic_endpoints.endpoints import router
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import router
 
         app = FastAPI()
         app.include_router(router)
@@ -271,7 +271,7 @@ class TestStripTotalTokens(unittest.TestCase):
     """
 
     def test_strips_total_tokens_when_present(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import (
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import (
             _strip_total_tokens_from_anthropic_response,
         )
 
@@ -292,7 +292,7 @@ class TestStripTotalTokens(unittest.TestCase):
         assert response["usage"]["cache_read_input_tokens"] == 0
 
     def test_no_op_when_total_tokens_absent(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import (
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import (
             _strip_total_tokens_from_anthropic_response,
         )
 
@@ -301,7 +301,7 @@ class TestStripTotalTokens(unittest.TestCase):
         assert response["usage"] == {"input_tokens": 100, "output_tokens": 50}
 
     def test_no_op_when_usage_missing(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import (
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import (
             _strip_total_tokens_from_anthropic_response,
         )
 
@@ -310,7 +310,7 @@ class TestStripTotalTokens(unittest.TestCase):
         assert response == {"id": "msg_123"}
 
     def test_no_op_on_non_dict_response(self):
-        from litellm.proxy.anthropic_endpoints.endpoints import (
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import (
             _strip_total_tokens_from_anthropic_response,
         )
 
@@ -326,7 +326,7 @@ class TestStripTotalTokens(unittest.TestCase):
         """
         from types import SimpleNamespace
 
-        from litellm.proxy.anthropic_endpoints.endpoints import (
+        from token_iq.gateway.proxy.anthropic_endpoints.endpoints import (
             _strip_total_tokens_from_anthropic_response,
         )
 
@@ -347,6 +347,6 @@ class TestStripTotalTokensFeatureFlag(unittest.TestCase):
     """
 
     def test_flag_defaults_off(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         assert litellm.strip_anthropic_total_tokens is False

@@ -7,8 +7,8 @@ from unittest.mock import Mock
 import httpx
 
 from tests.vector_store_tests.base_vector_store_test import BaseVectorStoreTest
-from litellm.llms.bedrock.vector_stores.transformation import BedrockVectorStoreConfig
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.bedrock.vector_stores.transformation import BedrockVectorStoreConfig
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
 
 class TestBedrockVectorStore(BaseVectorStoreTest):
@@ -100,7 +100,7 @@ class TestBedrockVectorStore(BaseVectorStoreTest):
 
 @pytest.mark.asyncio
 async def test_bedrock_search_with_router():
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     # init router
     _router = Router(model_list=[])
@@ -119,12 +119,12 @@ async def test_bedrock_search_with_credentials_managed_registry():
     when AWS environment variables are not set, ensuring credentials are managed properly.
     """
     from unittest.mock import patch, MagicMock
-    from litellm.router import Router
-    from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
-    from litellm.types.utils import CredentialItem
-    from litellm.vector_stores.vector_store_registry import VectorStoreRegistry
+    from token_iq.gateway.router import Router
+    from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
+    from token_iq.gateway.types.utils import CredentialItem
+    from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
     from datetime import datetime, timezone
-    import litellm
+    from token_iq import gateway as litellm
 
     # Store original registry and credential list
     original_registry = getattr(litellm, "vector_store_registry", None)
@@ -179,7 +179,7 @@ async def test_bedrock_search_with_credentials_managed_registry():
         ) as mock_get_creds:
             # Mock the actual search call to avoid making real API calls
             with patch(
-                "litellm.vector_stores.main.base_llm_http_handler.vector_store_search_handler"
+                "token_iq.gateway.vector_stores.main.base_llm_http_handler.vector_store_search_handler"
             ) as mock_handler:
                 mock_handler.return_value = {
                     "data": [

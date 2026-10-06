@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
     _request_auth_header,
     _request_extra_headers,
     _request_resolved_auth_headers,
@@ -27,12 +27,12 @@ from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
     resolve_operation_params,
 )
 
-from litellm.proxy._experimental.mcp_server.exceptions import (
+from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
     MCPOpenApiUpstreamError,
     MCPUpstreamAuthError,
 )
 
-GET_ASYNC_CLIENT_TARGET = "litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator.get_async_httpx_client"
+GET_ASYNC_CLIENT_TARGET = "token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator.get_async_httpx_client"
 
 
 def _create_mock_client(method: str, response_text: str, status_code: int = 200) -> AsyncMock:
@@ -887,7 +887,7 @@ class TestResolveOperationParams:
 
 class TestSanitizeOpenAPIToolName:
     def test_replaces_slashes(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
@@ -897,35 +897,35 @@ class TestSanitizeOpenAPIToolName:
         )
 
     def test_replaces_other_punctuation(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
         assert sanitize_openapi_tool_name("foo.bar:baz qux") == "foo_bar_baz_qux"
 
     def test_lowercases(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
         assert sanitize_openapi_tool_name("Pulls/List-Files") == "pulls_list-files"
 
     def test_already_valid_passes_through(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
         assert sanitize_openapi_tool_name("plain-tool_name") == "plain-tool_name"
 
     def test_empty_string(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
         assert sanitize_openapi_tool_name("") == ""
 
     def test_caps_at_128_chars(self):
-        from litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
+        from token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator import (
             sanitize_openapi_tool_name,
         )
 
@@ -939,7 +939,7 @@ class TestRegisterToolsFromOpenAPI:
     def test_github_style_operation_ids_are_sanitized(self, monkeypatch):
         import re
 
-        from litellm.proxy._experimental.mcp_server import openapi_to_mcp_generator
+        from token_iq.gateway.proxy._experimental.mcp_server import openapi_to_mcp_generator
 
         registered: list = []
 
@@ -987,7 +987,7 @@ class TestRegisterToolsFromOpenAPI:
     ):
         import re
 
-        from litellm.proxy._experimental.mcp_server import openapi_to_mcp_generator
+        from token_iq.gateway.proxy._experimental.mcp_server import openapi_to_mcp_generator
 
         registered: list = []
 
@@ -1336,7 +1336,7 @@ class TestUpstreamStatusIsClassified:
         """
         import httpx
 
-        from litellm.llms.custom_httpx.http_handler import MaskedHTTPStatusError
+        from token_iq.gateway.llms.custom_httpx.http_handler import MaskedHTTPStatusError
 
         request = httpx.Request(method.upper(), "https://api.example.com/reports")
         raw = httpx.Response(

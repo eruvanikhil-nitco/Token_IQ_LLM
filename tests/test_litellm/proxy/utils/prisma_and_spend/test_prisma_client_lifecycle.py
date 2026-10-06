@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 @pytest.mark.asyncio
@@ -125,7 +125,7 @@ def test_writer_db_returns_db_when_no_routing(prisma_client: PrismaClient) -> No
 
 
 def test_writer_db_unwraps_routing_wrapper(prisma_client: PrismaClient) -> None:
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     inner_writer = MagicMock(name="WriterInsideRouter")
 

@@ -13,14 +13,14 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm import LlmProviders
-from litellm.llms.gigachat.embedding.transformation import (
+from token_iq.gateway import LlmProviders
+from token_iq.gateway.llms.gigachat.embedding.transformation import (
     GigaChatEmbeddingConfig,
     GigaChatEmbeddingError,
 )
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.types.utils import EmbeddingResponse
 
-TRANSFORM_MODULE = "litellm.llms.gigachat.embedding.transformation"
+TRANSFORM_MODULE = "token_iq.gateway.llms.gigachat.embedding.transformation"
 
 
 def _make_httpx_response(body: dict, status_code: int = 200) -> httpx.Response:

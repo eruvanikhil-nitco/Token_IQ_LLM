@@ -12,14 +12,14 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import (
     oauth_protected_resource_path,
     raise_public,
     raise_user_oauth_challenge,
     to_server_spec,
     to_subject,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
     ApiKeyConfig,
     AuthorizationCodeConfig,
     ClientCredentialsConfig,
@@ -32,8 +32,8 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
     SharedKey,
     TokenExchangeConfig,
 )
-from litellm.types.mcp import MCPAuth, MCPTransport
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def _server(**kwargs) -> MCPServer:
@@ -464,7 +464,7 @@ def test_raise_user_oauth_challenge_includes_server_root_path():
 
 
 def test_raise_token_exchange_challenge_is_rfc9728_invalid_token():
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import (
         raise_token_exchange_challenge,
     )
 
@@ -480,7 +480,7 @@ def test_raise_token_exchange_challenge_is_rfc9728_invalid_token():
 
 
 def test_raise_token_exchange_challenge_includes_server_root_path():
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import (
         raise_token_exchange_challenge,
     )
 
@@ -491,7 +491,7 @@ def test_raise_token_exchange_challenge_includes_server_root_path():
 
 
 def test_raise_token_exchange_challenge_static_form_is_unchanged_without_step_up():
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import (
         raise_token_exchange_challenge,
     )
 
@@ -507,7 +507,7 @@ def test_raise_token_exchange_challenge_static_form_is_unchanged_without_step_up
 def test_raise_token_exchange_challenge_uses_insufficient_claims_with_claims_present():
     # Per the Microsoft claims-challenge format, a claims challenge MUST use error=insufficient_claims
     # (the value MSAL-family clients key on), and the claims ride base64-encoded, never raw.
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import (
         raise_token_exchange_challenge,
     )
 

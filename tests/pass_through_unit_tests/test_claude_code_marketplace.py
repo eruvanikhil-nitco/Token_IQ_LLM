@@ -14,14 +14,14 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.proxy_server import LitellmUserRoles
-from litellm.caching.caching import DualCache
-from litellm.types.proxy.claude_code_endpoints import RegisterPluginRequest
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import LitellmUserRoles
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.types.proxy.claude_code_endpoints import RegisterPluginRequest
 
 # Import the functions we're testing
-from litellm.proxy.anthropic_endpoints.claude_code_endpoints.claude_code_marketplace import (
+from token_iq.gateway.proxy.anthropic_endpoints.claude_code_endpoints.claude_code_marketplace import (
     register_plugin,
     get_marketplace,
 )

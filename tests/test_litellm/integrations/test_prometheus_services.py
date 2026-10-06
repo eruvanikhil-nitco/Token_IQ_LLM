@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.integrations.prometheus_services import (
+from token_iq.gateway.integrations.prometheus_services import (
     PrometheusServicesLogger,
     ServiceMetrics,
     ServiceTypes,
@@ -103,7 +103,7 @@ def test_update_gauge():
 
 def test_services_logger_default_latency_buckets():
     """PrometheusServicesLogger uses the new reduced default latency buckets."""
-    from litellm.types.integrations.prometheus import LATENCY_BUCKETS
+    from token_iq.gateway.types.integrations.prometheus import LATENCY_BUCKETS
 
     pl = PrometheusServicesLogger()
     assert pl.latency_buckets == LATENCY_BUCKETS
@@ -114,7 +114,7 @@ def test_services_logger_default_latency_buckets():
 
 def test_services_logger_custom_latency_buckets():
     """prometheus_latency_buckets setting is respected by PrometheusServicesLogger."""
-    import litellm
+    from token_iq import gateway as litellm
     from prometheus_client import REGISTRY
 
     custom_buckets = [0.1, 0.5, 1.0, 5.0, 10.0]

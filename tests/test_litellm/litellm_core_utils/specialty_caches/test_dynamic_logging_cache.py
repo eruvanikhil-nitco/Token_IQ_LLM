@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.litellm_core_utils.specialty_caches.dynamic_logging_cache import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
     LangfuseInMemoryCache,
 )
 
@@ -18,7 +18,7 @@ class TestLangfuseInMemoryCache:
         """Set up test fixtures before each test method."""
         self.cache = LangfuseInMemoryCache(max_size_in_memory=2, default_ttl=1)
 
-    @patch("litellm.initialized_langfuse_clients", 5)
+    @patch("token_iq.gateway.initialized_langfuse_clients", 5)
     def test_langfuse_client_count_decrements_on_eviction(self):
         """Test that langfuse client count decrements when elements get evicted from cache."""
 
@@ -33,7 +33,7 @@ class TestLangfuseInMemoryCache:
 
         # Patch the LangFuseLogger import to return our mock class
         with patch(
-            "litellm.integrations.langfuse.langfuse.LangFuseLogger", MockLangFuseLogger
+            "token_iq.gateway.integrations.langfuse.langfuse.LangFuseLogger", MockLangFuseLogger
         ):
             # Add the mock logger to cache with expired TTL
             expired_time = time.time() - 1  # Already expired
@@ -49,7 +49,7 @@ class TestLangfuseInMemoryCache:
             # Verify client count was decremented
             assert litellm.initialized_langfuse_clients == initial_count - 1
 
-    @patch("litellm.initialized_langfuse_clients", 3)
+    @patch("token_iq.gateway.initialized_langfuse_clients", 3)
     def test_langfuse_client_shutdown_called_on_eviction(self):
         """Test that langfuse client shutdown is called to close the thread."""
 
@@ -64,7 +64,7 @@ class TestLangfuseInMemoryCache:
 
         # Patch the LangFuseLogger import to return our mock class
         with patch(
-            "litellm.integrations.langfuse.langfuse.LangFuseLogger", MockLangFuseLogger
+            "token_iq.gateway.integrations.langfuse.langfuse.LangFuseLogger", MockLangFuseLogger
         ):
             # Add the mock logger to cache
             self.cache.cache_dict["test_key"] = mock_logger

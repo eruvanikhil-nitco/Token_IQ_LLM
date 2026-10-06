@@ -10,11 +10,11 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from litellm.proxy.health_endpoints._health_endpoints import router
-from litellm.proxy.middleware.in_flight_requests_middleware import (
+from token_iq.gateway.proxy.health_endpoints._health_endpoints import router
+from token_iq.gateway.proxy.middleware.in_flight_requests_middleware import (
     InFlightRequestsMiddleware,
 )
-from litellm.proxy.shutdown.graceful_shutdown_manager import GracefulShutdownManager
+from token_iq.gateway.proxy.shutdown.graceful_shutdown_manager import GracefulShutdownManager
 
 
 @pytest.fixture(autouse=True)
@@ -36,7 +36,7 @@ def client():
 
 @pytest.fixture
 def enable_drain(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(
         proxy_server, "general_settings", {"enable_drain_endpoint": True}
@@ -45,7 +45,7 @@ def enable_drain(monkeypatch):
 
 @pytest.fixture
 def enable_drain_with_token(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(
         proxy_server,
@@ -55,7 +55,7 @@ def enable_drain_with_token(monkeypatch):
 
 
 def test_drain_disabled_by_default_returns_404_with_no_side_effect(client, monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(proxy_server, "general_settings", {})
     resp = client.get("/health/drain")
@@ -66,7 +66,7 @@ def test_drain_disabled_by_default_returns_404_with_no_side_effect(client, monke
 def test_drain_disabled_ignores_token_header(client, monkeypatch):
     """A token alone must not bypass the enable flag; otherwise enabling the
     token side-channel would silently enable the endpoint."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(
         proxy_server, "general_settings", {"drain_endpoint_token": "secret-123"}
@@ -121,7 +121,7 @@ def test_drain_with_token_from_env_var(client, enable_drain, monkeypatch):
 
 
 def test_drain_general_settings_token_overrides_env_var(client, monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(
         proxy_server,

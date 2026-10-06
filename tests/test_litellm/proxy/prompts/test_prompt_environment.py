@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import MagicMock
-from litellm.types.prompts.init_prompts import (
+from token_iq.gateway.types.prompts.init_prompts import (
     PromptInfo,
     PromptSpec,
     PromptLiteLLMParams,
@@ -50,7 +50,7 @@ def test_prompt_spec_default_environment():
 
 def test_create_versioned_prompt_spec_includes_environment():
     """create_versioned_prompt_spec should populate environment and created_by from DB row."""
-    from litellm.proxy.prompts.prompt_endpoints import create_versioned_prompt_spec
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import create_versioned_prompt_spec
 
     mock_db_prompt = MagicMock()
     mock_db_prompt.model_dump.return_value = {
@@ -79,8 +79,8 @@ def test_create_versioned_prompt_spec_includes_environment():
 async def test_create_prompt_stores_environment_and_created_by():
     """create_prompt should pass environment and created_by to the DB."""
     from unittest.mock import AsyncMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth, LitellmUserRoles
-    from litellm.proxy.prompts.prompt_endpoints import create_prompt, Prompt
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import create_prompt, Prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
@@ -119,9 +119,9 @@ async def test_create_prompt_stores_environment_and_created_by():
         prompt_info=PromptInfo(prompt_type="db", environment="staging"),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
         with patch(
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry:
             mock_registry.initialize_prompt.return_value = PromptSpec(
                 prompt_id="my_prompt.v1",
@@ -142,8 +142,8 @@ async def test_create_prompt_stores_environment_and_created_by():
 async def test_update_prompt_stores_environment_and_created_by():
     """update_prompt should pass environment and created_by to new version."""
     from unittest.mock import AsyncMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth, LitellmUserRoles
-    from litellm.proxy.prompts.prompt_endpoints import update_prompt, Prompt
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import update_prompt, Prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
@@ -187,9 +187,9 @@ async def test_update_prompt_stores_environment_and_created_by():
         prompt_info=PromptInfo(prompt_type="db", environment="production"),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
         with patch(
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry:
             mock_registry.get_prompt_by_id.return_value = PromptSpec(
                 prompt_id="my_prompt.v1",
@@ -217,8 +217,8 @@ async def test_update_prompt_stores_environment_and_created_by():
 async def test_delete_prompt_scoped_to_environment():
     """delete_prompt with environment param should scope deletion."""
     from unittest.mock import AsyncMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth, LitellmUserRoles
-    from litellm.proxy.prompts.prompt_endpoints import delete_prompt
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import delete_prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
@@ -229,7 +229,7 @@ async def test_delete_prompt_scoped_to_environment():
     mock_prisma_client.db.litellm_prompttable.delete_many = AsyncMock(return_value=None)
 
     with patch(
-        "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+        "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
     ) as mock_registry:
         prompt_spec = PromptSpec(
             prompt_id="test_prompt.v1",
@@ -241,7 +241,7 @@ async def test_delete_prompt_scoped_to_environment():
         )
         mock_registry.get_prompt_by_id.return_value = prompt_spec
 
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
             await delete_prompt(
                 prompt_id="test_prompt",
                 user_api_key_dict=mock_user_auth,

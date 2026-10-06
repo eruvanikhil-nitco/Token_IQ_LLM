@@ -22,7 +22,7 @@ ARTIFACT: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-reachability.jso
 # would mark a module "used" because something tests it, which is not the question being
 # asked: phase 5 deletes a feature and its tests together.
 SKIP: Final[tuple[str, ...]] = (
-    "litellm/proxy/_experimental/out/",
+    "token_iq/gateway/proxy/_experimental/out/",
     "tests/",
     "ui/",
     "docs/",
@@ -37,11 +37,11 @@ SKIP: Final[tuple[str, ...]] = (
 # `_lazy_imports_registry` alone holds 269 paths, most of them provider transformations, which
 # are exactly what phase 5 has to decide about.
 LITERAL_SOURCES: Final[tuple[str, ...]] = (
-    "litellm._lazy_imports_registry",
-    "litellm.llms",
-    "litellm.proxy._lazy_openapi_snapshot",
-    "litellm.proxy.guardrails.guardrail_registry",
-    "litellm.proxy.prompts.prompt_registry",
+    "token_iq.gateway._lazy_imports_registry",
+    "token_iq.gateway.llms",
+    "token_iq.gateway.proxy._lazy_openapi_snapshot",
+    "token_iq.gateway.proxy.guardrails.guardrail_registry",
+    "token_iq.gateway.proxy.prompts.prompt_registry",
 )
 
 # The process entry points that nothing imports. Hardcoding these was a mistake once already:
@@ -49,10 +49,10 @@ LITERAL_SOURCES: Final[tuple[str, ...]] = (
 # of CLI look dead. The console scripts are now read from pyproject rather than listed here.
 SEED_MODULES: Final[tuple[str, ...]] = (
     "litellm",
-    "litellm.proxy.proxy_server",
-    "litellm.proxy.proxy_cli",
+    "token_iq.gateway.proxy.proxy_server",
+    "token_iq.gateway.proxy.proxy_cli",
     # Run as a script by the container entrypoint, never imported.
-    "litellm.proxy.prisma_migration",
+    "token_iq.gateway.proxy.prisma_migration",
 )
 
 
@@ -81,7 +81,7 @@ def token_iq_modules(repo: pathlib.Path) -> tuple[str, ...]:
     paths: Final = {
         line.strip()
         for line in finished.stdout.splitlines()
-        if line.strip().endswith(".py") and not line.startswith("litellm/proxy/_experimental/out")
+        if line.strip().endswith(".py") and not line.startswith("token_iq/gateway/proxy/_experimental/out")
     }
     return tuple(
         sorted(

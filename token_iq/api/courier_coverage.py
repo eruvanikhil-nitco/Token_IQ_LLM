@@ -27,7 +27,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Final
 
-from litellm.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy._types import LiteLLMRoutes
 
 # Dispatch predicates whose derived name is not the route prefix. Everything else
 # reduces mechanically: `is_anthropic_route` -> `anthropic`.
@@ -75,7 +75,7 @@ class ProviderCourierCoverage:
 
 def pricing_branch_providers() -> tuple[str, ...]:
     """Providers priced by a branch in the success handler's dispatch, read from its source."""
-    from litellm.proxy.pass_through_endpoints.success_handler import PassThroughEndpointLogging
+    from token_iq.gateway.proxy.pass_through_endpoints.success_handler import PassThroughEndpointLogging
 
     source: Final = inspect.getsource(PassThroughEndpointLogging.normalize_llm_passthrough_logging_payload)
     derived: Final = {
@@ -88,9 +88,9 @@ def pricing_branch_providers() -> tuple[str, ...]:
 
 
 def _has_config_usage_reader(provider: str) -> bool:
-    from litellm.llms.base_llm.passthrough.transformation import BasePassthroughConfig
-    from litellm.types.utils import LlmProviders
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.llms.base_llm.passthrough.transformation import BasePassthroughConfig
+    from token_iq.gateway.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
 
     try:
         config: Final = ProviderConfigManager.get_provider_passthrough_config(

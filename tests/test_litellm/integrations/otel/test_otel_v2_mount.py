@@ -20,12 +20,12 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
 )
 from opentelemetry.trace import SpanKind  # noqa: E402
 
-from litellm.integrations.otel.model.config import (  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import (  # noqa: E402
     OpenTelemetryV2Config,
     is_otel_v2_enabled,
 )
-from litellm.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
-from litellm.integrations.otel.mount import (  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
+from token_iq.gateway.integrations.otel.mount import (  # noqa: E402
     PASSTHROUGH_PREFIXES,
     _passthrough_span_name_hook,
     instrument_fastapi_app,

@@ -15,9 +15,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm.proxy import proxy_server
-from litellm.proxy._types import LitellmUserRoles
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import LitellmUserRoles
 
 from .conftest import normalize  # type: ignore[import-not-found]
 

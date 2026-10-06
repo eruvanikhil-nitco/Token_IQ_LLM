@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse
 from base_llm_unit_tests import BaseLLMChatTest, BaseOSeriesModelsTest
 
 
@@ -98,7 +98,7 @@ def test_azure_o3_streaming():
     Test that o3 models handles fake streaming correctly.
     """
     from openai import AzureOpenAI
-    from litellm import completion
+    from token_iq.gateway import completion
 
     client = AzureOpenAI(
         api_key="my-fake-o1-key",
@@ -129,7 +129,7 @@ def test_azure_o_series_routing():
     Allows user to pass model="azure/o_series/<any-deployment-name>" for explicit o_series model routing.
     """
     from openai import AzureOpenAI
-    from litellm import completion
+    from token_iq.gateway import completion
 
     client = AzureOpenAI(
         api_key="my-fake-o1-key",
@@ -155,9 +155,9 @@ def test_azure_o_series_routing():
         assert "stream" not in mock_create.call_args.kwargs
 
 
-@patch("litellm.main.azure_o1_chat_completions._get_openai_client")
+@patch("token_iq.gateway.main.azure_o1_chat_completions._get_openai_client")
 def test_openai_o_series_max_retries_0(mock_get_openai_client):
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
     response = litellm.completion(

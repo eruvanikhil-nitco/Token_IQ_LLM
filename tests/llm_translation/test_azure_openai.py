@@ -3,7 +3,7 @@ import os
 
 import httpx
 import pytest
-from litellm.llms.azure.common_utils import process_azure_headers
+from token_iq.gateway.llms.azure.common_utils import process_azure_headers
 from httpx import Headers
 from base_embedding_unit_tests import BaseLLMEmbeddingTest
 
@@ -97,8 +97,8 @@ def test_process_azure_headers_with_dict_input():
 from httpx import Client
 from unittest.mock import MagicMock, patch
 from openai import AzureOpenAI
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 
 @pytest.mark.parametrize(
@@ -117,7 +117,7 @@ from litellm import completion
     ],
 )
 def test_azure_extra_headers(input, call_type, header_value):
-    from litellm import embedding, image_generation
+    from token_iq.gateway import embedding, image_generation
 
     # Clear the LLM clients cache to ensure the new http_client is used
     litellm.in_memory_llm_clients_cache.flush_cache()
@@ -182,7 +182,7 @@ def test_azure_extra_headers(input, call_type, header_value):
     ],
 )
 def test_process_azure_endpoint_url(api_base, model, expected_endpoint):
-    from litellm.llms.azure.azure import AzureChatCompletion
+    from token_iq.gateway.llms.azure.azure import AzureChatCompletion
 
     azure_chat_completion = AzureChatCompletion()
     input_args = {
@@ -217,7 +217,7 @@ class TestAzureEmbedding(BaseLLMEmbeddingTest):
 def test_get_azure_ad_token_from_username_password(
     mock_get_bearer_token_provider, mock_credential
 ):
-    from litellm.llms.azure.common_utils import (
+    from token_iq.gateway.llms.azure.common_utils import (
         get_azure_ad_token_from_username_password,
     )
 
@@ -291,10 +291,10 @@ def test_azure_openai_gpt_4o_naming(monkeypatch):
     ],
 )
 def test_azure_gpt_4o_with_tool_call_and_response_format(api_version):
-    from litellm import completion
+    from token_iq.gateway import completion
     from typing import Optional
     from pydantic import BaseModel
-    import litellm
+    from token_iq import gateway as litellm
 
 
     client = AzureOpenAI(
@@ -368,7 +368,7 @@ def test_map_openai_params():
     """
     Ensure response_format does not override tools
     """
-    from litellm.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
+    from token_iq.gateway.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
 
     azure_openai_config = AzureOpenAIConfig()
     tools = [
@@ -462,13 +462,13 @@ def test_map_openai_params():
 @pytest.mark.parametrize("max_retries", [0, 4])
 @pytest.mark.parametrize("stream", [True, False])
 @patch(
-    "litellm.main.azure_chat_completions.make_sync_azure_openai_chat_completion_request"
+    "token_iq.gateway.main.azure_chat_completions.make_sync_azure_openai_chat_completion_request"
 )
 def test_azure_max_retries_0(
     mock_make_sync_azure_openai_chat_completion_request, max_retries, stream
 ):
-    import litellm
-    from litellm import completion
+    from token_iq import gateway as litellm
+    from token_iq.gateway import completion
 
     # Clear the LLM clients cache to ensure max_retries is set correctly
     litellm.in_memory_llm_clients_cache.flush_cache()
@@ -494,13 +494,13 @@ def test_azure_max_retries_0(
 
 @pytest.mark.parametrize("max_retries", [0, 4])
 @pytest.mark.parametrize("stream", [True, False])
-@patch("litellm.main.azure_chat_completions.make_azure_openai_chat_completion_request")
+@patch("token_iq.gateway.main.azure_chat_completions.make_azure_openai_chat_completion_request")
 @pytest.mark.asyncio
 async def test_async_azure_max_retries_0(
     make_azure_openai_chat_completion_request, max_retries, stream
 ):
-    import litellm
-    from litellm import acompletion
+    from token_iq import gateway as litellm
+    from token_iq.gateway import acompletion
 
     # Clear the LLM clients cache to ensure max_retries is set correctly
     litellm.in_memory_llm_clients_cache.flush_cache()
@@ -527,13 +527,13 @@ async def test_async_azure_max_retries_0(
 @pytest.mark.parametrize("max_retries", [0, 4])
 @pytest.mark.parametrize("stream", [True, False])
 @pytest.mark.parametrize("sync_mode", [True, False])
-@patch("litellm.llms.azure.common_utils.select_azure_base_url_or_endpoint")
+@patch("token_iq.gateway.llms.azure.common_utils.select_azure_base_url_or_endpoint")
 @pytest.mark.asyncio
 async def test_azure_instruct(
     mock_select_azure_base_url_or_endpoint, max_retries, stream, sync_mode
 ):
-    import litellm
-    from litellm import completion, acompletion
+    from token_iq import gateway as litellm
+    from token_iq.gateway import completion, acompletion
 
     # Clear the LLM clients cache to ensure select_azure_base_url_or_endpoint is called
     litellm.in_memory_llm_clients_cache.flush_cache()
@@ -566,13 +566,13 @@ async def test_azure_instruct(
 
 @pytest.mark.parametrize("max_retries", [0, 4])
 @pytest.mark.parametrize("sync_mode", [True, False])
-@patch("litellm.llms.azure.common_utils.select_azure_base_url_or_endpoint")
+@patch("token_iq.gateway.llms.azure.common_utils.select_azure_base_url_or_endpoint")
 @pytest.mark.asyncio
 async def test_azure_embedding_max_retries_0(
     mock_select_azure_base_url_or_endpoint, max_retries, sync_mode
 ):
-    import litellm
-    from litellm import aembedding, embedding
+    from token_iq import gateway as litellm
+    from token_iq.gateway import aembedding, embedding
 
     # Clear the LLM clients cache to ensure select_azure_base_url_or_endpoint is called
     litellm.in_memory_llm_clients_cache.flush_cache()
@@ -606,7 +606,7 @@ async def test_azure_embedding_max_retries_0(
 
 def test_azure_safety_result():
     """Bubble up safety result from Azure OpenAI"""
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
 
@@ -623,8 +623,8 @@ def test_azure_safety_result():
 
 
 def test_azure_openai_responses_bridge():
-    from litellm import completion
-    import litellm
+    from token_iq.gateway import completion
+    from token_iq import gateway as litellm
 
     litellm._turn_on_debug()
 
@@ -671,9 +671,9 @@ def test_azure_with_content_safety_error():
     """
     Verify user can access innererror from the Azure OpenAI exception
     """
-    from litellm import completion
-    from litellm.exceptions import ContentPolicyViolationError
-    from litellm.litellm_core_utils.exception_mapping_utils import exception_type
+    from token_iq.gateway import completion
+    from token_iq.gateway.exceptions import ContentPolicyViolationError
+    from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
     from unittest.mock import MagicMock
 
     mock_exception = Exception(

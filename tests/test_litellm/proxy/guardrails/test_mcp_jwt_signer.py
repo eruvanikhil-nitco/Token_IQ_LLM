@@ -54,11 +54,11 @@ def _decode_unverified(token: str) -> Dict[str, Any]:
 
 def _make_signer(**kwargs: Any):
     # Reset singleton before each signer creation to avoid cross-test pollution
-    import litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
+    import token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
 
     mod._mcp_jwt_signer_instance = None
 
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         MCPJWTSigner,
     )
 
@@ -413,11 +413,11 @@ async def test_signed_token_is_verifiable():
 
 def test_get_mcp_jwt_signer_returns_none_before_init():
     """get_mcp_jwt_signer() returns None before any MCPJWTSigner is created."""
-    import litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
+    import token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
 
     mod._mcp_jwt_signer_instance = None
 
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         get_mcp_jwt_signer,
     )
 
@@ -426,7 +426,7 @@ def test_get_mcp_jwt_signer_returns_none_before_init():
 
 def test_get_mcp_jwt_signer_returns_instance_after_init():
     """get_mcp_jwt_signer() returns the initialized signer instance."""
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         get_mcp_jwt_signer,
     )
 
@@ -802,11 +802,11 @@ def test_initialize_guardrail_passes_all_params():
     to MCPJWTSigner.  Previously only issuer/audience/ttl_seconds were passed;
     all FR-5/9/10/12/13/14/15 params were silently dropped.
     """
-    import litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
+    import token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
 
     mod._mcp_jwt_signer_instance = None
 
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer import (
         initialize_guardrail,
     )
 
@@ -837,7 +837,7 @@ def test_initialize_guardrail_passes_all_params():
 
     guardrail = {"guardrail_name": "mcp-jwt-signer"}
 
-    with patch("litellm.logging_callback_manager.add_litellm_callback"):
+    with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
         signer = initialize_guardrail(litellm_params, guardrail)
 
     assert signer.issuer == "https://litellm.example.com"
@@ -867,7 +867,7 @@ def test_initialize_guardrail_passes_all_params():
 #        _introspect_opaque_token
 # ---------------------------------------------------------------------------
 
-import litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as _signer_mod
+import token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as _signer_mod
 
 
 def _make_httpx_response(json_body: dict, status_code: int = 200):
@@ -900,7 +900,7 @@ async def test_fetch_jwks_returns_keys_and_caches():
     mock_client.get = AsyncMock(return_value=fake_resp)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=mock_client,
     ):
         keys = await _signer_mod._fetch_jwks("https://idp.example.com/jwks")
@@ -924,7 +924,7 @@ async def test_fetch_jwks_uses_cache_on_second_call():
     mock_client.get = AsyncMock()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=mock_client,
     ):
         keys = await _signer_mod._fetch_jwks("https://idp.example.com/jwks")
@@ -951,7 +951,7 @@ async def test_get_oidc_discovery_caches_when_jwks_uri_present():
     }
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_oidc_discovery",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_oidc_discovery",
         new_callable=AsyncMock,
         return_value=discovery_doc,
     ):
@@ -972,7 +972,7 @@ async def test_get_oidc_discovery_does_not_cache_when_jwks_uri_absent():
     bad_doc = {"issuer": "https://idp.example.com"}  # no jwks_uri
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_oidc_discovery",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_oidc_discovery",
         new_callable=AsyncMock,
         return_value=bad_doc,
     ) as mock_fetch:
@@ -1023,7 +1023,7 @@ async def test_verify_incoming_jwt_returns_payload_on_valid_token():
         return_value={"jwks_uri": "https://idp.example.com/jwks"},
     ):
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_jwks",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_jwks",
             new_callable=AsyncMock,
             return_value=jwks["keys"],
         ):
@@ -1055,7 +1055,7 @@ async def test_verify_incoming_jwt_raises_on_expired_token():
         return_value={"jwks_uri": "https://idp.example.com/jwks"},
     ):
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_jwks",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer._fetch_jwks",
             new_callable=AsyncMock,
             return_value=jwks["keys"],
         ):
@@ -1083,7 +1083,7 @@ async def test_introspect_opaque_token_returns_claims_when_active():
     mock_client.post = AsyncMock(return_value=fake_resp)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=mock_client,
     ):
         result = await signer._introspect_opaque_token("opaque-token-abc")
@@ -1104,7 +1104,7 @@ async def test_introspect_opaque_token_raises_on_inactive_token():
     mock_client.post = AsyncMock(return_value=fake_resp)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=mock_client,
     ):
         with pytest.raises(jwt.ExpiredSignatureError):
@@ -1192,8 +1192,8 @@ def test_build_scope_default_is_list_only_when_no_call_type():
 @pytest.mark.asyncio
 async def test_inject_mcp_jwt_returns_unchanged_when_signer_not_configured():
     """No signer configured -> return a fresh copy of extra_headers untouched."""
-    import litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
-    from litellm.proxy._types import UserAPIKeyAuth
+    import token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer as mod
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     mod._mcp_jwt_signer_instance = None
     headers = {"X-Trace-Id": "abc"}
@@ -1210,7 +1210,7 @@ async def test_inject_mcp_jwt_returns_unchanged_when_signer_not_configured():
 @pytest.mark.asyncio
 async def test_inject_mcp_jwt_returns_unchanged_when_user_dict_none():
     """No user_api_key_dict -> short-circuit without invoking the signer."""
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         inject_mcp_jwt_headers_for_upstream,
     )
 
@@ -1225,8 +1225,8 @@ async def test_inject_mcp_jwt_returns_unchanged_when_user_dict_none():
 @pytest.mark.asyncio
 async def test_inject_mcp_jwt_signs_for_list_tools_path():
     """When for_list_tools=True, signer is invoked with list_mcp_tools call_type."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         inject_mcp_jwt_headers_for_upstream,
     )
 
@@ -1250,8 +1250,8 @@ async def test_inject_mcp_jwt_signs_for_list_tools_path():
 @pytest.mark.asyncio
 async def test_inject_mcp_jwt_signs_for_tool_call_path():
     """for_list_tools=False with a tool name signs a call_mcp_tool JWT."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer import (
         inject_mcp_jwt_headers_for_upstream,
     )
 

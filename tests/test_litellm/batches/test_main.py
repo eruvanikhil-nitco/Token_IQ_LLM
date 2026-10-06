@@ -1,5 +1,5 @@
 """
-Provider-dispatch contract tests for litellm/batches/main.py
+Provider-dispatch contract tests for token_iq/gateway/batches/main.py
 
 main.py is the SDK layer beneath the proxy batch endpoints: each of
 create/retrieve/list/cancel_batch is a switch on `custom_llm_provider` (and, for
@@ -32,8 +32,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-import litellm.batches.main as bm
+from token_iq import gateway as litellm
+import token_iq.gateway.batches.main as bm
 
 
 # --------------------------------------------------------------------------- #
@@ -716,7 +716,7 @@ def test_cancel__vertex_credentials_passthrough(seams):
 
 
 def _params(**kw):
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     return GenericLiteLLMParams(**kw)
 

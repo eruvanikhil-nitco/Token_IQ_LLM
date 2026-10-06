@@ -3,12 +3,12 @@ import asyncio
 
 import pytest
 
-import litellm
-from litellm.llms.xai.chat.transformation import XAIChatConfig
-from litellm.llms.xai.common_utils import XAIModelInfo
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from litellm.realtime_api import main as realtime_main
-from litellm.types.router import GenericLiteLLMParams
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
+from token_iq.gateway.llms.xai.common_utils import XAIModelInfo
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.realtime_api import main as realtime_main
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class FakeLogging:

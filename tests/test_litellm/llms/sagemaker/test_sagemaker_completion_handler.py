@@ -18,8 +18,8 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.sagemaker.common_utils import SagemakerError
-from litellm.llms.sagemaker.completion.handler import SagemakerLLM
+from token_iq.gateway.llms.sagemaker.common_utils import SagemakerError
+from token_iq.gateway.llms.sagemaker.completion.handler import SagemakerLLM
 
 
 def _encode_header(name: str, value: str) -> bytes:

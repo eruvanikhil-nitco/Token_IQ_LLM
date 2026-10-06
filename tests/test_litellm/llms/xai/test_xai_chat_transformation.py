@@ -3,13 +3,13 @@ from unittest.mock import Mock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.xai.chat.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.xai.chat.transformation import (
     XAIChatCompletionStreamingHandler,
     XAIChatConfig,
 )
-from litellm.llms.xai.cost_calculator import cost_per_token
-from litellm.types.utils import (
+from token_iq.gateway.llms.xai.cost_calculator import cost_per_token
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     ModelResponse,
     Usage,

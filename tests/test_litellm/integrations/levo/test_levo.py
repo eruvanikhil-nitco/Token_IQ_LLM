@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.integrations.levo.levo import LevoConfig, LevoLogger
-from litellm.integrations.opentelemetry import OpenTelemetryConfig
+from token_iq.gateway.integrations.levo.levo import LevoConfig, LevoLogger
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
 # Try to import OpenTelemetry packages, skip tests if not available
 try:
@@ -164,7 +164,7 @@ class TestLevoIntegration(unittest.TestCase):
         not OPENTELEMETRY_AVAILABLE, reason="OpenTelemetry packages not installed"
     )
     @patch(
-        "litellm.integrations.opentelemetry.OpenTelemetry._init_otel_logger_on_litellm_proxy"
+        "token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_otel_logger_on_litellm_proxy"
     )
     @pytest.mark.asyncio
     async def test_levo_logger_health_check_healthy(self, mock_init_proxy):
@@ -214,7 +214,7 @@ class TestLevoIntegration(unittest.TestCase):
         not OPENTELEMETRY_AVAILABLE, reason="OpenTelemetry packages not installed"
     )
     @patch(
-        "litellm.integrations.opentelemetry.OpenTelemetry._init_otel_logger_on_litellm_proxy"
+        "token_iq.gateway.integrations.opentelemetry.OpenTelemetry._init_otel_logger_on_litellm_proxy"
     )
     def test_levo_logger_callback_name(self, mock_init_proxy):
         """Test that callback_name is properly set and used."""

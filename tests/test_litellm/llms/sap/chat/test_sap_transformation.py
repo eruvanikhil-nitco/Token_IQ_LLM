@@ -8,7 +8,7 @@ class TestSAPTransformationIntegration:
 
     @pytest.fixture
     def mock_config(self):
-        from litellm.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
+        from token_iq.gateway.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
 
         config = GenAIHubOrchestrationConfig()
         config.token_creator = lambda: "Bearer TEST_TOKEN"

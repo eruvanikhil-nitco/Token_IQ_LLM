@@ -5,26 +5,26 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.azure.azure import AzureChatCompletion
-from litellm.llms.azure.image_generation import get_azure_image_generation_config
-from litellm.llms.azure.image_generation.http_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.azure import AzureChatCompletion
+from token_iq.gateway.llms.azure.image_generation import get_azure_image_generation_config
+from token_iq.gateway.llms.azure.image_generation.http_utils import (
     azure_deployment_image_generation_json_body,
 )
-from litellm.llms.azure_ai.image_generation import (
+from token_iq.gateway.llms.azure_ai.image_generation import (
     AzureFoundryMAIImageGenerationConfig,
     get_azure_ai_image_generation_config,
 )
-from litellm.llms.azure_ai.image_generation.cost_calculator import (
+from token_iq.gateway.llms.azure_ai.image_generation.cost_calculator import (
     cost_calculator as azure_ai_image_cost_calculator,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ImageObject,
     ImageResponse,
     ImageUsage,
     ImageUsageInputTokensDetails,
 )
-from litellm.utils import get_optional_params_image_gen
+from token_iq.gateway.utils import get_optional_params_image_gen
 
 
 class TestAzureMAIImageGeneration:
@@ -255,7 +255,7 @@ class TestAzureMAIImageGeneration:
         assert image_response.usage.total_tokens == 1046
 
     def test_transform_image_generation_response_non_json_raises_openai_error(self):
-        from litellm.llms.openai.common_utils import OpenAIError
+        from token_iq.gateway.llms.openai.common_utils import OpenAIError
 
         config = AzureFoundryMAIImageGenerationConfig()
         raw_response = MagicMock(spec=httpx.Response)

@@ -8,7 +8,7 @@ This test verifies the fix for the bug where passing a dict containing 'self',
 
 import pytest
 
-from litellm.types.router import GenericLiteLLMParams, LiteLLM_Params
+from token_iq.gateway.types.router import GenericLiteLLMParams, LiteLLM_Params
 
 
 class TestLiteLLMParamsReservedKeys:

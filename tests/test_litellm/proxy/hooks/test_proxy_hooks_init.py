@@ -16,7 +16,7 @@ silently swallowed the ImportError in `hooks/__init__.py`, leaving
 
 import pytest
 
-from litellm.proxy.hooks import PROXY_HOOKS, get_proxy_hook
+from token_iq.gateway.proxy.hooks import PROXY_HOOKS, get_proxy_hook
 
 
 def test_managed_files_hook_registered():
@@ -40,12 +40,12 @@ def test_isolation_module_does_not_pull_in_proxy_utils():
     import sys
 
     for mod in [
-        "litellm.proxy.utils",
-        "litellm.proxy.management_endpoints.common_utils",
-        "litellm.llms.base_llm.managed_resources.isolation",
+        "token_iq.gateway.proxy.utils",
+        "token_iq.gateway.proxy.management_endpoints.common_utils",
+        "token_iq.gateway.llms.base_llm.managed_resources.isolation",
     ]:
         sys.modules.pop(mod, None)
 
-    importlib.import_module("litellm.llms.base_llm.managed_resources.isolation")
+    importlib.import_module("token_iq.gateway.llms.base_llm.managed_resources.isolation")
     assert "litellm.proxy.utils" not in sys.modules
     assert "litellm.proxy.management_endpoints.common_utils" not in sys.modules

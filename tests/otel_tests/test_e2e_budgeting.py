@@ -69,7 +69,7 @@ async def generate_key(
 async def chat_completion(session, key: str, model: str):
     """Make a chat completion request using OpenAI SDK"""
     from openai import AsyncOpenAI
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     client = AsyncOpenAI(
         api_key=key, base_url="http://0.0.0.0:4000/v1"  # Point to our local proxy
@@ -455,7 +455,7 @@ async def _seed_cli_sso_flow_in_shared_redis(
     except Exception:
         return False
 
-    from litellm.proxy.management_endpoints.ui_sso import (
+    from token_iq.gateway.proxy.management_endpoints.ui_sso import (
         _get_cli_sso_flow_cache_key,
         _hash_cli_sso_secret,
     )

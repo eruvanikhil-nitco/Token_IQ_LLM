@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from litellm.proxy.common_utils.openai_endpoint_utils import (
+from token_iq.gateway.proxy.common_utils.openai_endpoint_utils import (
     remove_sensitive_info_from_deployment,
 )
 

@@ -16,8 +16,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.attribution import (
     AttributionRuleBody,
     AttributionRuleDeletedResponse,
@@ -124,7 +124,7 @@ async def list_attribution_rules(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> AttributionRuleListResponse:
     """Every stored rule mapping a provider account to a team, project or user."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -145,7 +145,7 @@ async def upsert_attribution_rule(
     owner rather than failing: an admin changing their mind is the ordinary case, not an
     error.
     """
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(body.provider)
@@ -177,7 +177,7 @@ async def delete_attribution_rule(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> AttributionRuleDeletedResponse:
     """Remove a rule, after which the spend it claimed goes back to being unallocated."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -196,7 +196,7 @@ async def attribution_unallocated(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> UnallocatedResponse:
     """Per account per day: what the provider billed, what the gateway saw, and who owns the rest."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(provider)

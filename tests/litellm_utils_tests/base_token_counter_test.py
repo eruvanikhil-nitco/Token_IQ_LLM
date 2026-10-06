@@ -16,8 +16,8 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 
-from litellm.llms.base_llm.base_utils import BaseTokenCounter
-from litellm.types.utils import TokenCountResponse
+from token_iq.gateway.llms.base_llm.base_utils import BaseTokenCounter
+from token_iq.gateway.types.utils import TokenCountResponse
 
 
 class BaseTokenCounterTest(ABC):

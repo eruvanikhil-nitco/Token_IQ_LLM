@@ -5,16 +5,16 @@ import os
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.vertex_ai.audio_transcription.gemini_transcribe_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.audio_transcription.gemini_transcribe_transformation import (
     VertexGeminiAudioTranscriptionConfig,
 )
-from litellm.llms.vertex_ai.audio_transcription.transformation import (
+from token_iq.gateway.llms.vertex_ai.audio_transcription.transformation import (
     VertexAIAudioTranscriptionConfig,
 )
-from litellm.llms.vertex_ai.common_utils import VertexAIError
-from litellm.types.utils import LlmProviders, TranscriptionUsageTokensObject
-from litellm.utils import ProviderConfigManager, get_optional_params_transcription
+from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
+from token_iq.gateway.types.utils import LlmProviders, TranscriptionUsageTokensObject
+from token_iq.gateway.utils import ProviderConfigManager, get_optional_params_transcription
 
 AUDIO_BYTES = b"fake-audio-bytes"
 TRANSCRIPT_TEXT = (

@@ -1,6 +1,6 @@
 import os
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import datetime as dt
 from datetime import datetime
 
@@ -13,23 +13,23 @@ load_dotenv()
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 
 import pytest
-import litellm
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy.management_endpoints.team_endpoints import list_team
-from litellm.proxy._types import *
-from litellm.proxy.management_endpoints.internal_user_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team
+from token_iq.gateway.proxy._types import *
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
     user_info,
     user_update,
     get_users,
 )
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_key_fn,
     generate_key_fn,
     generate_key_helper_fn,
@@ -37,12 +37,12 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
     regenerate_key_fn,
     update_key_fn,
 )
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     new_team,
     team_info,
     update_team,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     LitellmUserRoles,
     audio_transcriptions,
     chat_completion,
@@ -52,10 +52,10 @@ from litellm.proxy.proxy_server import (
     moderations,
     user_api_key_auth,
 )
-from litellm.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
     new_end_user,
 )
-from litellm.proxy.spend_tracking.spend_management_endpoints import (
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
     global_spend,
     global_spend_logs,
     global_spend_models,
@@ -64,14 +64,14 @@ from litellm.proxy.spend_tracking.spend_management_endpoints import (
     spend_user_fn,
     view_spend_logs,
 )
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 from starlette.datastructures import URL
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import (
     DynamoDBArgs,
     GenerateKeyRequest,
     KeyRequest,
@@ -86,7 +86,7 @@ from litellm.proxy._types import (
     UpdateUserRequest,
     UserAPIKeyAuth,
 )
-from litellm.types.proxy.management_endpoints.ui_sso import (
+from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     LiteLLM_UpperboundKeyGenerateParams,
 )
 
@@ -95,7 +95,7 @@ proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args.
     params = {"connection_limit": 100, "pool_timeout": 60}
@@ -221,7 +221,7 @@ async def test_regenerate_api_key_with_new_alias_and_expiration(prisma_client):
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
     await litellm.proxy.proxy_server.prisma_client.connect()
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     # generate new key
     key_alias = f"test_alias_regenerate_key-{uuid.uuid4()}"
@@ -273,7 +273,7 @@ async def test_regenerate_key_ui(prisma_client):
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
     await litellm.proxy.proxy_server.prisma_client.connect()
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     # generate new key
     key_alias = f"test_alias_regenerate_key-{uuid.uuid4()}"
@@ -656,18 +656,18 @@ async def test_list_teams(prisma_client):
 
 
 def test_is_team_key():
-    from litellm.proxy.management_endpoints.key_management_endpoints import _is_team_key
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import _is_team_key
 
     assert _is_team_key(GenerateKeyRequest(team_id="test_team_id"))
     assert not _is_team_key(GenerateKeyRequest(user_id="test_user_id"))
 
 
 def test_team_key_generation_team_member_check():
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _team_key_generation_check,
     )
     from fastapi import HTTPException
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     litellm.key_generation_settings = {
         "team_key_generation": {"allowed_team_member_roles": ["admin"]}
@@ -727,16 +727,16 @@ def test_team_key_generation_team_member_check():
 def test_key_generation_required_params_check(
     team_key_generation_settings, input_data, expected_result, key_type
 ):
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _team_key_generation_check,
         _personal_key_generation_check,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         TeamUIKeyGenerationConfig,
         StandardKeyGenerationConfig,
         PersonalUIKeyGenerationConfig,
     )
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
     from fastapi import HTTPException
 
     user_api_key_dict = UserAPIKeyAuth(
@@ -794,7 +794,7 @@ def test_key_generation_required_params_check(
 
 
 def test_personal_key_generation_check():
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _personal_key_generation_check,
     )
     from fastapi import HTTPException
@@ -859,7 +859,7 @@ def test_personal_key_generation_check():
 def test_prepare_metadata_fields(
     update_request_data, non_default_values, existing_metadata, expected_result
 ):
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         prepare_metadata_fields,
     )
 
@@ -882,7 +882,7 @@ async def test_key_update_with_model_specific_params(prisma_client):
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
     await litellm.proxy.proxy_server.prisma_client.connect()
 
-    from litellm.proxy._types import UpdateKeyRequest
+    from token_iq.gateway.proxy._types import UpdateKeyRequest
 
     new_key = await generate_key_fn(
         data=GenerateKeyRequest(models=["gpt-4"]),
@@ -957,7 +957,7 @@ async def test_list_key_helper(prisma_client):
     4. Filtering by key_alias
     5. Return full object vs token only
     """
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _list_key_helper,
     )
 
@@ -1114,10 +1114,10 @@ async def test_list_key_helper_team_filtering(prisma_client):
     3. Verify keys with team_id=None are included
     4. Test with pagination to ensure behavior is consistent across pages
     """
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _list_key_helper,
     )
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     # Setup
     setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
@@ -1227,9 +1227,9 @@ async def test_list_key_helper_team_filtering(prisma_client):
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.management_endpoints.key_management_endpoints.get_team_object")
+@patch("token_iq.gateway.proxy.management_endpoints.key_management_endpoints.get_team_object")
 async def test_key_generate_always_db_team(mock_get_team_object):
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
     )
 

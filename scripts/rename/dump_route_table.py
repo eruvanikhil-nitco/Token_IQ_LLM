@@ -85,7 +85,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     sys.path.insert(0, str(REPO))
     # Imported here rather than at module scope: importing the proxy costs about 600 MB, and
     # --help should not pay for it.
-    from litellm.proxy.proxy_server import app  # noqa: PLC0415  # see above
+    from token_iq.gateway.proxy.proxy_server import app  # noqa: PLC0415  # see above
 
     options.out.parent.mkdir(parents=True, exist_ok=True)
     found: Final = lines(app.routes)

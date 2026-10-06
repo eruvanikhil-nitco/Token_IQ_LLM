@@ -6,12 +6,12 @@ import pytest
 from fastapi import HTTPException
 from httpx import Request, Response
 
-import litellm
-from litellm import ModelResponse
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.guardrails.guardrail_hooks.onyx.onyx import OnyxGuardrail
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.utils import Choices, GenericGuardrailAPIInputs, Message
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx import OnyxGuardrail
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.utils import Choices, GenericGuardrailAPIInputs, Message
 
 
 def test_onyx_guard_config(monkeypatch: pytest.MonkeyPatch):
@@ -49,7 +49,7 @@ def test_onyx_guard_with_custom_timeout_from_kwargs(monkeypatch: pytest.MonkeyPa
     monkeypatch.setenv("ONYX_API_KEY", "test-api-key")
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
     ) as mock_get_client:
         mock_get_client.return_value = MagicMock()
 
@@ -80,7 +80,7 @@ def test_onyx_guard_with_timeout_none_uses_env_var(monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("ONYX_TIMEOUT", "60")
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
     ) as mock_get_client:
         mock_get_client.return_value = MagicMock()
 
@@ -108,7 +108,7 @@ def test_onyx_guard_with_timeout_none_defaults_to_10(monkeypatch: pytest.MonkeyP
     monkeypatch.delenv("ONYX_TIMEOUT", raising=False)
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
     ) as mock_get_client:
         mock_get_client.return_value = MagicMock()
 
@@ -178,7 +178,7 @@ class TestOnyxGuardrail:
         monkeypatch.setenv("ONYX_API_KEY", "test-api-key")
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
         ) as mock_get_client:
             mock_get_client.return_value = MagicMock()
             guardrail = OnyxGuardrail(
@@ -197,7 +197,7 @@ class TestOnyxGuardrail:
         monkeypatch.setenv("ONYX_API_KEY", "test-api-key")
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
         ) as mock_get_client:
             mock_get_client.return_value = MagicMock()
             guardrail = OnyxGuardrail(
@@ -224,7 +224,7 @@ class TestOnyxGuardrail:
         monkeypatch.setenv("ONYX_TIMEOUT", "25")
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
         ) as mock_get_client:
             mock_get_client.return_value = MagicMock()
             # Must pass timeout=None explicitly to trigger env var lookup
@@ -248,7 +248,7 @@ class TestOnyxGuardrail:
         monkeypatch.setenv("ONYX_TIMEOUT", "25")
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx.get_async_httpx_client"
         ) as mock_get_client:
             mock_get_client.return_value = MagicMock()
             guardrail = OnyxGuardrail(

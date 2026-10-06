@@ -10,7 +10,7 @@ This test module verifies that:
 
 import httpx
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_bad_gateway_error_preserves_retry_after_header():

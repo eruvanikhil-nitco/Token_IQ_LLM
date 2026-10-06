@@ -3,8 +3,8 @@ from datetime import datetime, time, timezone
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-import litellm.litellm_core_utils.duration_parser as duration_parser
-from litellm.litellm_core_utils.duration_parser import (
+import token_iq.gateway.core_utils.duration_parser as duration_parser
+from token_iq.gateway.core_utils.duration_parser import (
     duration_in_seconds,
     get_next_standardized_reset_time,
 )

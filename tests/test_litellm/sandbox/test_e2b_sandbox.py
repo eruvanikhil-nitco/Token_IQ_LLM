@@ -11,9 +11,9 @@ import json
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.base_llm.sandbox.transformation import ContainerHandle
-from litellm.llms.e2b.sandbox.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.sandbox.transformation import ContainerHandle
+from token_iq.gateway.llms.e2b.sandbox.transformation import (
     MAX_OUTPUT_BYTES,
     E2BSandboxConfig,
 )

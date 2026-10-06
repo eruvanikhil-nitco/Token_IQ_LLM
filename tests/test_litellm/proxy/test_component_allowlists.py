@@ -59,7 +59,7 @@ from gateway.routes.allowlist import (
     GATEWAY_MOUNT_PATHS,
     GATEWAY_PATH_PREFIXES,
 )
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 for _key, _previous in _PRE_EXISTING_ENV.items():
     if _previous is None:

@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import Request
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.auth_utils import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.auth_utils import (
     _get_customer_id_from_standard_headers,
     abbreviate_api_key,
     check_complete_credentials,
@@ -75,7 +75,7 @@ class TestWarnOnceIfCustomAuthSkipsCommonChecks:
     @pytest.fixture(autouse=True)
     def _reset_sentinel(self, monkeypatch):
         monkeypatch.setattr(
-            "litellm.proxy.auth.auth_utils._custom_auth_common_checks_warning_emitted",
+            "token_iq.gateway.proxy.auth.auth_utils._custom_auth_common_checks_warning_emitted",
             False,
         )
 
@@ -313,7 +313,7 @@ class TestGetEndUserIdFromRequestBodyWithStandardHeaders:
         headers = {"x-litellm-customer-id": "header-customer"}
         request_body = {"user": "body-user"}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers=headers
             )
@@ -324,7 +324,7 @@ class TestGetEndUserIdFromRequestBodyWithStandardHeaders:
         headers = {"x-other-header": "value"}
         request_body = {"user": "body-user"}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers=headers
             )
@@ -338,7 +338,7 @@ def _request_dispatched_to(endpoint) -> Request:
 
 
 def _pass_through_endpoint():
-    from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         LITELLM_PASS_THROUGH_ENDPOINT_MARKER,
     )
 
@@ -466,7 +466,7 @@ def test_get_model_from_request_authorizes_all_file_routing_model_sources():
 
 
 def test_get_model_from_request_extracts_simple_encoded_file_id_model():
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         encode_file_id_with_model,
     )
 
@@ -521,7 +521,7 @@ def test_get_model_from_request_includes_fine_tuning_target_model_query():
 
 
 def test_get_model_from_request_extracts_video_id_model():
-    from litellm.types.videos.utils import encode_video_id_with_provider
+    from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
     video_id = encode_video_id_with_provider(
         video_id="video-provider-id",
@@ -539,7 +539,7 @@ def test_get_model_from_request_extracts_video_id_model():
 
 
 def test_get_model_from_request_resolves_video_id_model_with_router():
-    from litellm.types.videos.utils import encode_video_id_with_provider
+    from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
     provider_video_id = (
         "projects/test-project/locations/us-central1/publishers/google/models/"
@@ -572,7 +572,7 @@ _BATCH_DEPLOYMENT_ID = "8d0eaa7e6c6f54a425dfd0062cb6b0dc"
 
 
 def _managed_batch_router():
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     return Router(
         model_list=[
@@ -642,8 +642,8 @@ async def test_managed_batch_routes_pass_team_model_access_check(route, request_
     """End-to-end regression for #32580: a team scoped to the batch model group got
     ``team_model_access_denied`` on retrieve/cancel because the deployment id, not the
     model group, was authorized. Fails pre-fix with the deployment id in the message."""
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.auth.auth_checks import can_team_access_model
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.auth.auth_checks import can_team_access_model
 
     llm_router = _managed_batch_router()
     model = get_model_from_request(request_data=request_data, route=route, llm_router=llm_router)
@@ -666,7 +666,7 @@ async def test_managed_batch_routes_pass_team_model_access_check(route, request_
 
 
 def test_get_model_from_request_resolves_character_id_model_with_router():
-    from litellm.types.videos.utils import encode_character_id_with_provider
+    from token_iq.gateway.types.videos.utils import encode_character_id_with_provider
 
     character_id = encode_character_id_with_provider(
         character_id="character-provider-id",
@@ -694,11 +694,11 @@ def test_get_model_from_request_resolves_character_id_model_with_router():
 def test_get_model_from_request_only_runs_media_decoders_for_matching_fields():
     with (
         patch(
-            "litellm.types.videos.utils.decode_video_id_with_provider",
+            "token_iq.gateway.types.videos.utils.decode_video_id_with_provider",
             return_value={"model_id": "video-model"},
         ) as video_decoder,
         patch(
-            "litellm.types.videos.utils.decode_character_id_with_provider",
+            "token_iq.gateway.types.videos.utils.decode_character_id_with_provider",
             return_value={"model_id": "character-model"},
         ) as character_decoder,
     ):
@@ -738,15 +738,15 @@ def test_get_model_from_request_only_runs_media_decoders_for_matching_fields():
 def test_get_model_from_request_handles_managed_id_decoder_failures():
     with (
         patch(
-            "litellm.proxy.openai_files_endpoints.common_utils.decode_model_from_file_id",
+            "token_iq.gateway.proxy.openai_files_endpoints.common_utils.decode_model_from_file_id",
             side_effect=Exception("decode failed"),
         ),
         patch(
-            "litellm.llms.base_llm.managed_resources.utils.parse_unified_id",
+            "token_iq.gateway.llms.base_llm.managed_resources.utils.parse_unified_id",
             side_effect=Exception("parse failed"),
         ),
         patch(
-            "litellm.types.videos.utils.decode_video_id_with_provider",
+            "token_iq.gateway.types.videos.utils.decode_video_id_with_provider",
             side_effect=Exception("video decode failed"),
         ),
     ):
@@ -833,7 +833,7 @@ def test_abbreviate_api_key_short_key_is_fully_masked():
 
 
 def test_get_customer_user_header_returns_none_when_no_customer_role():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"}
@@ -843,7 +843,7 @@ def test_get_customer_user_header_returns_none_when_no_customer_role():
 
 
 def test_get_customer_user_header_returns_none_for_single_non_customer_mapping():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mapping = {"header_name": "X-Only-Internal", "litellm_user_role": "internal_user"}
     result = get_customer_user_header_from_mapping(mapping)
@@ -851,7 +851,7 @@ def test_get_customer_user_header_returns_none_for_single_non_customer_mapping()
 
 
 def test_get_customer_user_header_from_mapping_returns_customer_header():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"},
@@ -862,7 +862,7 @@ def test_get_customer_user_header_from_mapping_returns_customer_header():
 
 
 def test_get_customer_user_header_returns_customers_header_in_config_order_when_multiple_exist():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"},
@@ -874,7 +874,7 @@ def test_get_customer_user_header_returns_customers_header_in_config_order_when_
 
 
 def test_get_end_user_id_returns_id_from_user_header_mappings():
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
 
     mappings = [
         {"header_name": "x-openwebui-user-id", "litellm_user_role": "internal_user"},
@@ -885,10 +885,10 @@ def test_get_end_user_id_returns_id_from_user_header_mappings():
 
     with (
         patch(
-            "litellm.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
+            "token_iq.gateway.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
             return_value=None,
         ),
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
     ):
         result = get_end_user_id_from_request_body(
             request_body={}, request_headers=headers
@@ -898,7 +898,7 @@ def test_get_end_user_id_returns_id_from_user_header_mappings():
 
 
 def test_get_end_user_id_returns_first_customer_header_when_multiple_mappings_exist():
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
 
     mappings = [
         {"header_name": "x-openwebui-user-id", "litellm_user_role": "internal_user"},
@@ -913,10 +913,10 @@ def test_get_end_user_id_returns_first_customer_header_when_multiple_mappings_ex
 
     with (
         patch(
-            "litellm.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
+            "token_iq.gateway.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
             return_value=None,
         ),
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
     ):
         result = get_end_user_id_from_request_body(
             request_body={}, request_headers=headers
@@ -926,7 +926,7 @@ def test_get_end_user_id_returns_first_customer_header_when_multiple_mappings_ex
 
 
 def test_get_end_user_id_returns_none_when_no_customer_role_in_mappings():
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
 
     mappings = [
         {"header_name": "x-openwebui-user-id", "litellm_user_role": "internal_user"},
@@ -936,10 +936,10 @@ def test_get_end_user_id_returns_none_when_no_customer_role_in_mappings():
 
     with (
         patch(
-            "litellm.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
+            "token_iq.gateway.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
             return_value=None,
         ),
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
     ):
         result = get_end_user_id_from_request_body(
             request_body={}, request_headers=headers
@@ -949,17 +949,17 @@ def test_get_end_user_id_returns_none_when_no_customer_role_in_mappings():
 
 
 def test_get_end_user_id_falls_back_to_deprecated_user_header_name():
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
 
     general_settings = {"user_header_name": "x-custom-user-id"}
     headers = {"x-custom-user-id": "user-legacy"}
 
     with (
         patch(
-            "litellm.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
+            "token_iq.gateway.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
             return_value=None,
         ),
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
     ):
         result = get_end_user_id_from_request_body(
             request_body={}, request_headers=headers
@@ -972,17 +972,17 @@ class TestCoerceUserIdToStr:
     """Unit tests for the _coerce_user_id_to_str helper."""
 
     def test_plain_string_is_returned_verbatim(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str("alice@example.com") == "alice@example.com"
 
     def test_string_is_stripped(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str("  bob  ") == "bob"
 
     def test_codex_opaque_identifier_is_preserved(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         codex_id = (
             "user_8a4a360c36621665b341e06fb76041d9b6def732bb183eea148d4abc9d97c1de"
@@ -991,18 +991,18 @@ class TestCoerceUserIdToStr:
         assert _coerce_user_id_to_str(codex_id) == codex_id
 
     def test_none_returns_none(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str(None) is None
 
     def test_empty_string_returns_none(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str("") is None
         assert _coerce_user_id_to_str("   ") is None
 
     def test_dict_returns_none(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         payload = {
             "device_id": "abc",
@@ -1012,7 +1012,7 @@ class TestCoerceUserIdToStr:
         assert _coerce_user_id_to_str(payload) is None
 
     def test_list_returns_none(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str(["a", "b"]) is None
 
@@ -1022,8 +1022,8 @@ class TestCoerceUserIdToStr:
         This preserves backwards compatibility: existing deployments that
         intentionally pass JSON-encoded user identifiers keep working.
         """
-        import litellm
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         blob = (
             '{"device_id":"d5abe9199ee7759a0558974e9371e78c7b38d7621aae26d6609c1de61af6afb0",'
@@ -1037,8 +1037,8 @@ class TestCoerceUserIdToStr:
             litellm.validate_end_user_id_in_db = original
 
     def test_json_encoded_dict_string_returns_none_when_validation_enabled(self):
-        import litellm
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         # Same broken shape we saw in spend logs, but pre-stringified to JSON.
         blob = (
@@ -1053,8 +1053,8 @@ class TestCoerceUserIdToStr:
             litellm.validate_end_user_id_in_db = original
 
     def test_json_encoded_list_string_passes_through_by_default(self):
-        import litellm
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         original = litellm.validate_end_user_id_in_db
         litellm.validate_end_user_id_in_db = False
@@ -1064,8 +1064,8 @@ class TestCoerceUserIdToStr:
             litellm.validate_end_user_id_in_db = original
 
     def test_json_encoded_list_string_returns_none_when_validation_enabled(self):
-        import litellm
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         original = litellm.validate_end_user_id_in_db
         litellm.validate_end_user_id_in_db = True
@@ -1075,12 +1075,12 @@ class TestCoerceUserIdToStr:
             litellm.validate_end_user_id_in_db = original
 
     def test_int_returns_str(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str(12345) == "12345"
 
     def test_bool_returns_none(self):
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         # bool is an int subclass — reject explicitly, never produce "True"/"False".
         assert _coerce_user_id_to_str(True) is None
@@ -1088,7 +1088,7 @@ class TestCoerceUserIdToStr:
 
     def test_brace_string_that_isnt_json_is_kept(self):
         """A string starting with `{` but failing to parse stays as-is."""
-        from litellm.proxy.auth.auth_utils import _coerce_user_id_to_str
+        from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         assert _coerce_user_id_to_str("{not json") == "{not json"
 
@@ -1106,7 +1106,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             "litellm_metadata": {"user": "alice@example.com"},
         }
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1118,7 +1118,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             "user": {"device_id": "abc", "session_id": "xyz"},
         }
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1132,7 +1132,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         deployments that send JSON-encoded identifiers working until they
         explicitly opt into the stricter extraction.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         blob = (
             '{"device_id":"d5abe9199ee7759a","account_uuid":"",'
@@ -1143,7 +1143,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         original = litellm.validate_end_user_id_in_db
         litellm.validate_end_user_id_in_db = False
         try:
-            with patch("litellm.proxy.proxy_server.general_settings", {}):
+            with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                 result = get_end_user_id_from_request_body(
                     request_body=request_body, request_headers={}
                 )
@@ -1153,7 +1153,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         assert result == blob
 
     def test_json_encoded_user_string_returns_none_when_validation_enabled(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         request_body = {
             "user": (
@@ -1165,7 +1165,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         original = litellm.validate_end_user_id_in_db
         litellm.validate_end_user_id_in_db = True
         try:
-            with patch("litellm.proxy.proxy_server.general_settings", {}):
+            with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                 result = get_end_user_id_from_request_body(
                     request_body=request_body, request_headers={}
                 )
@@ -1177,7 +1177,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
     def test_plain_string_user_is_preserved(self):
         request_body = {"user": "alice@example.com"}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1191,7 +1191,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         )
         request_body = {"user": codex_id}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1201,7 +1201,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
     def test_int_user_is_coerced_to_string(self):
         request_body = {"user": 12345}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1214,7 +1214,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             "safety_identifier": "alice@example.com",
         }
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1226,7 +1226,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             "safety_identifier": {"device_id": "abc"},
         }
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1238,7 +1238,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             "metadata": {"user_id": {"device_id": "abc"}},
         }
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1248,7 +1248,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
     def test_whitespace_user_falls_through(self):
         request_body = {"user": "   ", "safety_identifier": "alice@example.com"}
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers={}
             )
@@ -1265,10 +1265,10 @@ class TestGetEndUserIdDropsMalformedBodyValues:
 
         with (
             patch(
-                "litellm.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
+                "token_iq.gateway.proxy.auth.auth_utils._get_customer_id_from_standard_headers",
                 return_value=None,
             ),
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
         ):
             result = get_end_user_id_from_request_body(
                 request_body=request_body, request_headers=headers
@@ -1289,7 +1289,7 @@ def _make_deployment_dict(
     return {"model_name": model_name, "litellm_params": litellm_params}
 
 
-_ROUTER_PATCH = "litellm.proxy.proxy_server.llm_router"
+_ROUTER_PATCH = "token_iq.gateway.proxy.proxy_server.llm_router"
 
 
 class TestDeploymentDefaultRpmLimit:
@@ -1562,7 +1562,7 @@ class TestCheckCompleteCredentialsBlocksSSRF:
 
     @pytest.fixture(autouse=True)
     def _enable_url_validation(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(litellm, "user_url_validation", True, raising=False)
 
@@ -1581,10 +1581,10 @@ class TestCheckCompleteCredentialsBlocksSSRF:
         ],
     )
     def test_rejects_private_or_metadata_targets(self, url_field, blocked_url):
-        from litellm.litellm_core_utils.url_utils import SSRFError
+        from token_iq.gateway.core_utils.url_utils import SSRFError
 
         with patch(
-            "litellm.proxy.auth.auth_utils.validate_url",
+            "token_iq.gateway.proxy.auth.auth_utils.validate_url",
             side_effect=SSRFError(f"blocked: {blocked_url}"),
         ):
             with pytest.raises(ValueError, match='is rejected by the SSRF guard') as exc_info:
@@ -1601,7 +1601,7 @@ class TestCheckCompleteCredentialsBlocksSSRF:
     def test_allows_public_target_when_validate_url_passes(self):
         # ``validate_url`` is mocked so no real DNS is performed.
         with patch(
-            "litellm.proxy.auth.auth_utils.validate_url",
+            "token_iq.gateway.proxy.auth.auth_utils.validate_url",
             return_value=("https://api.openai.com/v1", "api.openai.com"),
         ):
             result = check_complete_credentials(
@@ -1617,11 +1617,11 @@ class TestCheckCompleteCredentialsBlocksSSRF:
         # Admins who disable ``user_url_validation`` (default) should not
         # have requests rejected at the proxy boundary even if the URL
         # would fail the SSRF guard.
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
         with patch(
-            "litellm.proxy.auth.auth_utils.validate_url",
+            "token_iq.gateway.proxy.auth.auth_utils.validate_url",
         ) as mocked:
             result = check_complete_credentials(
                 {
@@ -1643,7 +1643,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
     """
 
     def test_clears_admin_organization_and_extra_body_on_base_override(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1669,7 +1669,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         assert "api_version" not in out
 
     def test_clears_aws_and_vertex_secrets_on_base_override(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1692,7 +1692,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         assert "vertex_project" not in out
 
     def test_clears_nvcf_function_id_on_base_override(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1710,7 +1710,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         assert "nvcf_function_id" not in out
 
     def test_clears_use_ssl_on_base_override(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1735,7 +1735,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         # the field name with any value (or empty string) to keep the
         # admin's value forwarded, which is the exfiltration vector this
         # test guards against.
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1759,7 +1759,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         # Regression: a caller that echoes an admin-config field name with
         # an *empty* value (or any value) must not be able to keep the
         # admin's value in ``litellm_params``.
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1781,7 +1781,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         assert "org-admin-secret" not in str(out)
 
     def test_no_clearing_when_only_api_key_overridden(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1800,7 +1800,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         assert out["api_base"] == "https://admin.upstream/v1"
 
     def test_client_api_key_used_when_supplied_with_base_override(self):
-        from litellm.router_utils.clientside_credential_handler import (
+        from token_iq.gateway.router_utils.clientside_credential_handler import (
             get_dynamic_litellm_params,
         )
 
@@ -1834,7 +1834,7 @@ class TestClientsideBaseOverrideOutboundKey:
     when the caller overrides ``api_base``."""
 
     def _router(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         return Router(
             model_list=[
@@ -1851,7 +1851,7 @@ class TestClientsideBaseOverrideOutboundKey:
 
     @pytest.fixture(autouse=True)
     def _ambient_server_key(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setenv("OPENAI_API_KEY", "sk-SERVER-ENV")
         monkeypatch.setattr(litellm, "api_key", None, raising=False)
@@ -1890,7 +1890,7 @@ class TestIsRequestBodySafeBlocksFallbackSmuggle:
 
     @pytest.fixture(autouse=True)
     def _disable_url_validation(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
 
@@ -2020,7 +2020,7 @@ class TestIsRequestBodySafeBlocksFallbackSmuggle:
     def test_nested_api_base_caught_across_router_fallback_rounds(self):
         """An ``api_base`` target nested ``ROUTER_MAX_FALLBACKS - 1`` rounds deep
         is still reached and rejected."""
-        import litellm
+        from token_iq import gateway as litellm
 
         with pytest.raises(ValueError, match="api_base"):
             is_request_body_safe(
@@ -2124,7 +2124,7 @@ class TestIsRequestBodySafeBlocksEndpointTargetingFields:
         # The new banned-params entries should be rejected even when
         # ``user_url_validation`` is off — the gate isn't the URL guard,
         # it's the banned-params list.
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
 
@@ -2371,7 +2371,7 @@ class TestIsRequestBodySafeBlocksNVCFFunctionOverride:
     def test_admin_opt_in_per_deployment_allows_nvcf_function_id(self, monkeypatch):
         """The error message lists per-deployment ``configurable_clientside_auth_params``
         as a second opt-in. Cover that path too so it can't silently regress."""
-        from litellm.proxy.auth import auth_utils
+        from token_iq.gateway.proxy.auth import auth_utils
 
         monkeypatch.setattr(
             auth_utils,
@@ -2424,7 +2424,7 @@ class TestIsRequestBodySafeBlocksRivaUseSsl:
         )
 
     def test_admin_opt_in_per_deployment_allows_use_ssl(self, monkeypatch):
-        from litellm.proxy.auth import auth_utils
+        from token_iq.gateway.proxy.auth import auth_utils
 
         monkeypatch.setattr(
             auth_utils,
@@ -2479,7 +2479,7 @@ class TestIsRequestBodySafeBlocksBedrockTags:
         )
 
     def test_admin_opt_in_per_deployment_allows_bedrock_tags(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[
@@ -2506,7 +2506,7 @@ class TestIsRequestBodySafeBlocksBedrockTags:
         )
 
     def test_per_deployment_opt_in_for_other_param_still_rejects_bedrock_tags(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[
@@ -2683,7 +2683,7 @@ class TestObservabilityCallbackBans:
     metadata blob (multipart/``extra_body`` path).
 
     The ban list is derived from
-    ``litellm.litellm_core_utils.initialize_dynamic_callback_params._supported_callback_params``
+    ``litellm.core_utils.initialize_dynamic_callback_params._supported_callback_params``
     minus a small ``_SAFE_CLIENT_CALLBACK_PARAMS`` allow-list, plus
     ``_EXTRA_BANNED_OBSERVABILITY_PARAMS`` for fields integrations read but
     that are not yet in the canonical allow-list. The derivation keeps the
@@ -2692,7 +2692,7 @@ class TestObservabilityCallbackBans:
 
     @pytest.fixture(autouse=True)
     def _disable_url_validation(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
 
@@ -2878,7 +2878,7 @@ def test_model_level_allow_does_not_skip_subsequent_banned_params(monkeypatch):
     where that bypass matters: a body pairing a model-level-allowed
     ``api_base`` with an observability credential like ``langfuse_host``
     must still reject on the second field, not silently pass."""
-    from litellm.proxy.auth import auth_utils
+    from token_iq.gateway.proxy.auth import auth_utils
 
     monkeypatch.setattr(
         auth_utils,
@@ -2907,11 +2907,11 @@ def test_observability_ban_covers_canonical_supported_callback_params():
     list are banned by default (the safe failure mode); flagging them as
     safe is an explicit decision recorded in
     ``_SAFE_CLIENT_CALLBACK_PARAMS``."""
-    from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+    from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
         _request_blocked_callback_params,
         _supported_callback_params,
     )
-    from litellm.proxy.auth.auth_utils import (
+    from token_iq.gateway.proxy.auth.auth_utils import (
         _BANNED_REQUEST_BODY_PARAMS,
         _SAFE_CLIENT_CALLBACK_PARAMS,
     )
@@ -2967,8 +2967,8 @@ class TestPricingInjectionBlocked:
         assert field in str(exc.value)
 
     def test_all_custom_pricing_fields_are_banned(self):
-        from litellm.proxy.auth.auth_utils import _BANNED_REQUEST_BODY_PARAMS
-        from litellm.types.utils import CustomPricingLiteLLMParams
+        from token_iq.gateway.proxy.auth.auth_utils import _BANNED_REQUEST_BODY_PARAMS
+        from token_iq.gateway.types.utils import CustomPricingLiteLLMParams
 
         banned = set(_BANNED_REQUEST_BODY_PARAMS)
         for field in CustomPricingLiteLLMParams.model_fields:
@@ -3186,18 +3186,18 @@ class TestHasUserSetupSso:
             monkeypatch.delenv(key, raising=False)
 
     def test_false_when_no_sso_env(self):
-        from litellm.proxy.auth.auth_utils import has_user_setup_sso
+        from token_iq.gateway.proxy.auth.auth_utils import has_user_setup_sso
 
         assert has_user_setup_sso() is False
 
     def test_true_for_oauth_client_ids(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import has_user_setup_sso
+        from token_iq.gateway.proxy.auth.auth_utils import has_user_setup_sso
 
         monkeypatch.setenv("GOOGLE_CLIENT_ID", "google-client")
         assert has_user_setup_sso() is True
 
     def test_true_for_saml_metadata_url(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import has_user_setup_sso
+        from token_iq.gateway.proxy.auth.auth_utils import has_user_setup_sso
 
         monkeypatch.setenv(
             "SAML_IDP_METADATA_URL", "https://idp.example.com/metadata.xml"
@@ -3205,7 +3205,7 @@ class TestHasUserSetupSso:
         assert has_user_setup_sso() is True
 
     def test_true_for_saml_metadata_xml(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import has_user_setup_sso
+        from token_iq.gateway.proxy.auth.auth_utils import has_user_setup_sso
 
         monkeypatch.setenv("SAML_IDP_METADATA_XML", "<EntityDescriptor/>")
         assert has_user_setup_sso() is True
@@ -3237,38 +3237,38 @@ class TestIsSsoProviderFullyConfigured:
             monkeypatch.delenv(key, raising=False)
 
     def test_false_when_nothing_configured(self):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         assert is_sso_provider_fully_configured() is False
 
     def test_google_client_id_alone_is_not_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GOOGLE_CLIENT_ID", "google-client")
         assert is_sso_provider_fully_configured() is False
 
     def test_google_with_secret_is_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GOOGLE_CLIENT_ID", "google-client")
         monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "google-secret")
         assert is_sso_provider_fully_configured() is True
 
     def test_microsoft_client_id_alone_is_not_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("MICROSOFT_CLIENT_ID", "ms-client")
         assert is_sso_provider_fully_configured() is False
 
     def test_microsoft_missing_tenant_is_not_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("MICROSOFT_CLIENT_ID", "ms-client")
         monkeypatch.setenv("MICROSOFT_CLIENT_SECRET", "ms-secret")
         assert is_sso_provider_fully_configured() is False
 
     def test_microsoft_with_secret_and_tenant_is_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("MICROSOFT_CLIENT_ID", "ms-client")
         monkeypatch.setenv("MICROSOFT_CLIENT_SECRET", "ms-secret")
@@ -3276,13 +3276,13 @@ class TestIsSsoProviderFullyConfigured:
         assert is_sso_provider_fully_configured() is True
 
     def test_generic_client_id_alone_is_not_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GENERIC_CLIENT_ID", "generic-client")
         assert is_sso_provider_fully_configured() is False
 
     def test_generic_missing_one_endpoint_is_not_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GENERIC_CLIENT_ID", "generic-client")
         monkeypatch.setenv("GENERIC_CLIENT_SECRET", "generic-secret")
@@ -3292,7 +3292,7 @@ class TestIsSsoProviderFullyConfigured:
         assert is_sso_provider_fully_configured() is False
 
     def test_generic_with_every_endpoint_is_ready(self, monkeypatch):
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GENERIC_CLIENT_ID", "generic-client")
         monkeypatch.setenv("GENERIC_CLIENT_SECRET", "generic-secret")
@@ -3302,7 +3302,7 @@ class TestIsSsoProviderFullyConfigured:
         assert is_sso_provider_fully_configured() is True
 
     def test_saml_metadata_url_is_ready_when_runtime_installed(self, monkeypatch):
-        from litellm.proxy.auth import auth_utils
+        from token_iq.gateway.proxy.auth import auth_utils
 
         monkeypatch.setenv("SAML_IDP_METADATA_URL", "https://idp.example.com/metadata.xml")
         monkeypatch.setattr(auth_utils.importlib.util, "find_spec", lambda name: object())
@@ -3312,7 +3312,7 @@ class TestIsSsoProviderFullyConfigured:
         """Regression: python3-saml (``onelogin.saml2``) is an optional
         dependency; SAMLAuthHandler fails closed on every request when it is
         not installed, so IdP metadata alone must not read as ready."""
-        from litellm.proxy.auth import auth_utils
+        from token_iq.gateway.proxy.auth import auth_utils
 
         monkeypatch.setenv("SAML_IDP_METADATA_URL", "https://idp.example.com/metadata.xml")
         monkeypatch.setattr(auth_utils.importlib.util, "find_spec", lambda name: None)
@@ -3326,7 +3326,7 @@ class TestIsSsoProviderFullyConfigured:
         gate does not catch this, every password login 500s instead of
         falling back, on a deployment that configured SAML metadata but
         skipped the extra."""
-        from litellm.proxy.auth import auth_utils
+        from token_iq.gateway.proxy.auth import auth_utils
 
         def _raise(name: str):
             raise ModuleNotFoundError("No module named 'onelogin'")
@@ -3340,7 +3340,7 @@ class TestIsSsoProviderFullyConfigured:
         leftover from a migration) must not stop the check from reaching a
         fully configured Microsoft provider set alongside it — every
         provider is evaluated independently, not in a first-match order."""
-        from litellm.proxy.auth.auth_utils import is_sso_provider_fully_configured
+        from token_iq.gateway.proxy.auth.auth_utils import is_sso_provider_fully_configured
 
         monkeypatch.setenv("GOOGLE_CLIENT_ID", "google-client")
         monkeypatch.setenv("MICROSOFT_CLIENT_ID", "ms-client")
@@ -3588,14 +3588,14 @@ class TestPreDbReadAuthChecksForwardsRoute:
 
     @pytest.mark.asyncio
     async def test_vector_store_create_route_admits_the_credential_field(self):
-        from litellm.proxy.auth.auth_utils import pre_db_read_auth_checks
+        from token_iq.gateway.proxy.auth.auth_utils import pre_db_read_auth_checks
 
         body = {
             "vector_store_id": "vs_fake_store",
             "custom_llm_provider": "bedrock",
             "litellm_credential_name": "fake-bedrock-cred",
         }
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             await pre_db_read_auth_checks(
                 request=self._request("/vector_store/new"),
                 request_data=body,
@@ -3604,10 +3604,10 @@ class TestPreDbReadAuthChecksForwardsRoute:
 
     @pytest.mark.asyncio
     async def test_chat_route_still_rejects_the_credential_field(self):
-        from litellm.proxy.auth.auth_utils import pre_db_read_auth_checks
+        from token_iq.gateway.proxy.auth.auth_utils import pre_db_read_auth_checks
 
         body = {"model": "gpt-4o", "litellm_credential_name": "openai-billing"}
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
                 await pre_db_read_auth_checks(
                     request=self._request("/chat/completions"),

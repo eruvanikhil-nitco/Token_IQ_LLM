@@ -1,5 +1,5 @@
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import datetime as dt
 from datetime import datetime
 
@@ -12,21 +12,22 @@ import io
 import time
 
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 
 from fastapi import HTTPException
 import pytest
-from litellm.proxy.auth.route_checks import RouteChecks
-from litellm.proxy._types import LiteLLM_UserTable, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     router as llm_passthrough_router,
 )
 
 # Replace the actual hash_token function with our mock
-import litellm.proxy.auth.route_checks
+import token_iq.gateway.proxy.auth.route_checks
+from token_iq import gateway as litellm
 
 
 # Mock objects and functions

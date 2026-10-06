@@ -1,7 +1,7 @@
 """
 Test A2A model routing in proxy.
 
-Maps to: litellm/proxy/agent_endpoints/a2a_routing.py
+Maps to: token_iq/gateway/proxy/agent_endpoints/a2a_routing.py
 """
 
 
@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from litellm.proxy.agent_endpoints.a2a_routing import route_a2a_agent_request
-from litellm.proxy.route_llm_request import route_request
+from token_iq.gateway.proxy.agent_endpoints.a2a_routing import route_a2a_agent_request
+from token_iq.gateway.proxy.route_llm_request import route_request
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_route_a2a_model_bypasses_router():
     mock_router.map_team_model = Mock(return_value=None)
 
     # Mock agent in registry
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     mock_agent = AgentResponse(
         agent_id="test-agent-id",
@@ -53,9 +53,9 @@ async def test_route_a2a_model_bypasses_router():
     # Mock litellm.acompletion to verify it's called
     mock_acompletion = AsyncMock(return_value={"id": "test-response"})
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ):
             result = await route_request(
@@ -95,7 +95,7 @@ async def test_route_non_a2a_model_raises_error_if_not_in_router():
     mock_router.map_team_model = Mock(return_value=None)
 
     # Should raise ProxyModelNotFoundError
-    from litellm.proxy.route_llm_request import ProxyModelNotFoundError
+    from token_iq.gateway.proxy.route_llm_request import ProxyModelNotFoundError
 
     with pytest.raises(ProxyModelNotFoundError):
         await route_request(
@@ -141,8 +141,8 @@ def _router_without_models():
 
 @pytest.mark.asyncio
 async def test_route_a2a_model_read_through_recovers_agent_created_on_sibling_replica(monkeypatch):
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.agent_endpoints.agent_registry import global_agent_registry
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.agent_endpoints.agent_registry import global_agent_registry
 
     agent_name = "a2a-sibling-replica-agent"
     prisma_client = Mock()
@@ -164,7 +164,7 @@ async def test_route_a2a_model_read_through_recovers_agent_created_on_sibling_re
     mock_acompletion = AsyncMock(return_value={"id": "read-through-response"})
 
     try:
-        with patch("litellm.acompletion", mock_acompletion):
+        with patch("token_iq.gateway.acompletion", mock_acompletion):
             await route_request(
                 data=data,
                 llm_router=_router_without_models(),

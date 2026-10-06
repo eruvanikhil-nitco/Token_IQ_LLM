@@ -4,7 +4,7 @@ import os
 import httpx
 import pytest
 
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.mark.asyncio

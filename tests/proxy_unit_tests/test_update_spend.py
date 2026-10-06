@@ -1,18 +1,18 @@
 import asyncio
 from unittest.mock import Mock
-from litellm.proxy.utils import _get_redoc_url, _get_docs_url
+from token_iq.gateway.proxy.utils import _get_redoc_url, _get_docs_url
 
 import pytest
 from fastapi import Request
 
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import MagicMock, patch, AsyncMock
 
 
 import httpx
 import math
-from litellm.constants import SPEND_LOG_WRITE_BATCH_MAX_ROWS
-from litellm.proxy.utils import update_spend
+from token_iq.gateway.constants import SPEND_LOG_WRITE_BATCH_MAX_ROWS
+from token_iq.gateway.proxy.utils import update_spend
 
 # The flush chunks the queue by BATCH_SIZE and then splits each chunk by the row
 # budget, so statement counts below are derived from both rather than hardcoded.

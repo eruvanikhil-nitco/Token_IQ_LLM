@@ -9,9 +9,9 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 
 
-import litellm
-from litellm import completion
-from litellm.llms.replicate.chat.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.replicate.chat.handler import (
     async_completion,
     completion as replicate_completion,
 )
@@ -21,7 +21,7 @@ class TestReplicateStartingStatus:
     """Test that Replicate handler correctly handles 'starting' status for DeepSeek models"""
 
     @pytest.mark.asyncio
-    @patch("litellm.llms.replicate.chat.handler.get_async_httpx_client")
+    @patch("token_iq.gateway.llms.replicate.chat.handler.get_async_httpx_client")
     async def test_async_completion_handles_starting_status(self, mock_get_client):
         """Test that async completion polls correctly when status is 'starting'"""
         # Mock the async HTTP client
@@ -110,7 +110,7 @@ class TestReplicateStartingStatus:
         # Verify that GET was called 3 times (starting, processing, succeeded)
         assert mock_client.get.call_count == 3
 
-    @patch("litellm.llms.replicate.chat.handler._get_httpx_client")
+    @patch("token_iq.gateway.llms.replicate.chat.handler._get_httpx_client")
     def test_sync_completion_handles_starting_status(self, mock_get_client):
         """Test that sync completion polls correctly when status is 'starting'"""
         # Mock the sync HTTP client
@@ -189,7 +189,7 @@ class TestReplicateOutputFormats:
 
     def test_transform_response_list_output(self):
         """Test standard list output format"""
-        from litellm.llms.replicate.chat.transformation import ReplicateConfig
+        from token_iq.gateway.llms.replicate.chat.transformation import ReplicateConfig
 
         config = ReplicateConfig()
 
@@ -227,7 +227,7 @@ class TestReplicateOutputFormats:
 
     def test_transform_response_string_output(self):
         """Test string output format (as used by some DeepSeek models)"""
-        from litellm.llms.replicate.chat.transformation import ReplicateConfig
+        from token_iq.gateway.llms.replicate.chat.transformation import ReplicateConfig
 
         config = ReplicateConfig()
 

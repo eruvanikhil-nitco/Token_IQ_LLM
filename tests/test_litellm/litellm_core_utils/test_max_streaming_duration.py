@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -39,20 +39,20 @@ class TestCustomStreamWrapperMaxDuration:
     def test_should_not_raise_when_duration_is_none(self):
         """No limit configured → never raises."""
         wrapper = _make_custom_stream_wrapper()
-        with patch("litellm.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", None):
+        with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", None):
             wrapper._check_max_streaming_duration()  # should not raise
 
     def test_should_not_raise_when_under_limit(self):
         """Stream is under the limit → no error."""
         wrapper = _make_custom_stream_wrapper()
-        with patch("litellm.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 60.0):
+        with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 60.0):
             wrapper._check_max_streaming_duration()  # should not raise
 
     def test_should_raise_timeout_when_exceeded(self):
         """Stream exceeded the limit → litellm.Timeout."""
         wrapper = _make_custom_stream_wrapper()
         wrapper._stream_created_time = time.time() - 20  # simulate 20s elapsed
-        with patch("litellm.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
+        with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
             with pytest.raises(litellm.Timeout, match="max streaming duration"):
                 wrapper._check_max_streaming_duration()
 
@@ -60,7 +60,7 @@ class TestCustomStreamWrapperMaxDuration:
         """__next__ should check the limit before iterating."""
         wrapper = _make_custom_stream_wrapper()
         wrapper._stream_created_time = time.time() - 20
-        with patch("litellm.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
+        with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
             with pytest.raises(litellm.Timeout):
                 wrapper.__next__()
 
@@ -73,7 +73,7 @@ class TestCustomStreamWrapperMaxDuration:
         wrapper = _make_custom_stream_wrapper()
         wrapper.logging_obj.dispatch_failure_handlers = AsyncMock()
         wrapper._stream_created_time = time.time() - 20
-        with patch("litellm.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
+        with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
             with pytest.raises(litellm.Timeout):
                 await wrapper.__anext__()
 
@@ -86,7 +86,7 @@ class TestCustomStreamWrapperMaxDuration:
 class TestResponsesStreamingIteratorMaxDuration:
     def _make_base_iterator(self):
         """Build a minimal BaseResponsesAPIStreamingIterator for testing."""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             BaseResponsesAPIStreamingIterator,
         )
 
@@ -108,7 +108,7 @@ class TestResponsesStreamingIteratorMaxDuration:
     def test_should_not_raise_when_duration_is_none(self):
         it = self._make_base_iterator()
         with patch(
-            "litellm.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
+            "token_iq.gateway.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
             None,
         ):
             it._check_max_streaming_duration()
@@ -116,7 +116,7 @@ class TestResponsesStreamingIteratorMaxDuration:
     def test_should_not_raise_when_under_limit(self):
         it = self._make_base_iterator()
         with patch(
-            "litellm.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
+            "token_iq.gateway.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
             60.0,
         ):
             it._check_max_streaming_duration()
@@ -125,7 +125,7 @@ class TestResponsesStreamingIteratorMaxDuration:
         it = self._make_base_iterator()
         it._stream_created_time = time.time() - 20
         with patch(
-            "litellm.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
+            "token_iq.gateway.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
             10.0,
         ):
             with pytest.raises(litellm.Timeout, match="max streaming duration"):

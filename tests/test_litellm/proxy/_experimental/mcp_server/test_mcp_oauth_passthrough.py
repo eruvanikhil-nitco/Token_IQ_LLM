@@ -17,22 +17,22 @@ from fastapi import HTTPException, Request
 
 
 
-from litellm.proxy._experimental.mcp_server import discoverable_endpoints
-from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+from token_iq.gateway.proxy._experimental.mcp_server import discoverable_endpoints
+from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
     _OAUTH_METADATA_CACHE,
     _OAUTH_METADATA_FETCH_LOCKS,
     _build_oauth_protected_resource_response,
 )
-from litellm.proxy._types import MCPTransport
-from litellm.types.mcp import MCPAuth
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._types import MCPTransport
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 @pytest.fixture(autouse=True)
 def _mock_mcp_client_ip():
     """Bypass IP-based access control in tests."""
     with patch(
-        "litellm.proxy._experimental.mcp_server.discoverable_endpoints.IPAddressUtils.get_mcp_client_ip",
+        "token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints.IPAddressUtils.get_mcp_client_ip",
         return_value=None,
     ):
         yield
@@ -208,7 +208,7 @@ def test_is_oauth_passthrough_false_when_only_delegate_auth_to_upstream_set():
 
 @pytest.mark.asyncio
 async def test_oauth_protected_resource_passthrough_proxies_upstream_metadata():
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -253,7 +253,7 @@ async def test_oauth_protected_resource_passthrough_proxies_upstream_metadata():
 
 @pytest.mark.asyncio
 async def test_oauth_protected_resource_passthrough_cache_hit():
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -380,7 +380,7 @@ async def test_oauth_metadata_cache_expired_entry_is_refetched():
 
 @pytest.mark.asyncio
 async def test_oauth_protected_resource_passthrough_network_error_returns_502():
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -444,7 +444,7 @@ async def test_oauth_protected_resource_gateway_managed_unchanged():
     never fetch upstream metadata. Since LIT-4864 the advertised document is the gateway's
     own aggregate authorization server ({base}/mcp), which serves the keyless DCR flow for
     per-server URLs; the per-server relay endpoints remain for the keyed flow."""
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -505,7 +505,7 @@ async def test_oauth_protected_resource_oauth_delegate_returns_upstream_metadata
     gateway would make a strict IdP refuse to mint it or the upstream reject it.
     A regression that dropped oauth_delegate from the pass-through predicate would
     fall through to the gateway-AS branch and advertise LiteLLM as the AS."""
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -543,7 +543,7 @@ async def test_oauth_protected_resource_true_passthrough_returns_upstream_metada
     resource included, so the client treats the upstream as the resource and
     authorizes directly against it. A regression that rewrote resource (the
     gateway-proxied behavior) would break the transparent-proxy contract."""
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 
@@ -582,7 +582,7 @@ async def test_oauth_protected_resource_dcr_bridge_returns_gateway_facade(auth_t
     facade: resource is the gateway URL the client dialed and authorization_servers names the
     gateway's per-server AS, so DCR-only clients (which enforce the RFC 9728 resource match)
     can register and sign in through the gateway. No upstream metadata fetch happens."""
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
 

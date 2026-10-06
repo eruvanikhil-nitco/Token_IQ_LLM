@@ -5,18 +5,18 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
     VertexPassthroughLoggingHandler,
 )
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 
 MODEL = "gemini-stream-pricing-probe"
 PROMPT_TOKENS = 1000

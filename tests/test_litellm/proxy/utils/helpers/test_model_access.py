@@ -3,10 +3,10 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm import ModelResponse
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import (
     create_model_info_response,
     get_available_models_for_user,
     hash_token,
@@ -128,7 +128,7 @@ def test_create_model_info_response_happy_path_no_metadata():
 
 def test_create_model_info_response_with_metadata_default_general(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_all_fallbacks",
+        "token_iq.gateway.proxy.auth.model_checks.get_all_fallbacks",
         lambda **_kwargs: [{"model": "fallback-1"}],
     )
     result = create_model_info_response(
@@ -157,7 +157,7 @@ def test_create_model_info_response_with_explicit_fallback_type(monkeypatch):
         captured["fallback_type"] = fallback_type
         return ["x"]
 
-    monkeypatch.setattr("litellm.proxy.auth.model_checks.get_all_fallbacks", _capture)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.model_checks.get_all_fallbacks", _capture)
     result = create_model_info_response(
         model_id="gpt-4o",
         provider="openai",
@@ -295,15 +295,15 @@ async def test_get_available_models_for_user_happy_path_returns_complete_list(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_key_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_key_models",
         lambda **_k: ["gpt-4o"],
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_team_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_team_models",
         lambda **_k: ["claude-haiku"],
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_complete_model_list",
+        "token_iq.gateway.proxy.auth.model_checks.get_complete_model_list",
         lambda **_k: ["gpt-4o", "claude-haiku", "gemini"],
     )
     router = _router_with_models(["gpt-4o", "claude-haiku", "gemini"])
@@ -336,15 +336,15 @@ async def test_get_available_models_for_user_happy_path_returns_complete_list(
 @pytest.mark.asyncio
 async def test_get_available_models_for_user_with_none_router(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_key_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_key_models",
         lambda **_k: [],
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_team_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_team_models",
         lambda **_k: [],
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_complete_model_list",
+        "token_iq.gateway.proxy.auth.model_checks.get_complete_model_list",
         lambda **_k: ["user-model"],
     )
     user_api_key_dict = UserAPIKeyAuth(
@@ -378,11 +378,11 @@ async def test_get_available_models_for_user_error_path_complete_list_raises(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_key_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_key_models",
         lambda **_k: [],
     )
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_team_models",
+        "token_iq.gateway.proxy.auth.model_checks.get_team_models",
         lambda **_k: [],
     )
 
@@ -390,7 +390,7 @@ async def test_get_available_models_for_user_error_path_complete_list_raises(
         raise RuntimeError("downstream failure")
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.model_checks.get_complete_model_list", _boom
+        "token_iq.gateway.proxy.auth.model_checks.get_complete_model_list", _boom
     )
     user_api_key_dict = UserAPIKeyAuth(
         api_key="sk-test-key",
@@ -411,8 +411,8 @@ async def test_get_available_models_for_user_error_path_complete_list_raises(
 async def test_get_available_models_for_user_resolves_team_access_group_models(
     monkeypatch,
 ):
-    from litellm.models.access_group import LiteLLM_AccessGroupTable
-    from litellm.models.team import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.models.access_group import LiteLLM_AccessGroupTable
+    from token_iq.gateway.models.team import LiteLLM_TeamTableCachedObj
 
     team = LiteLLM_TeamTableCachedObj(
         team_id="team-1",
@@ -432,8 +432,8 @@ async def test_get_available_models_for_user_resolves_team_access_group_models(
     async def _get_access_object(**_kwargs):
         return access_group
 
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_team_object", _get_team_object)
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_access_object", _get_access_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_team_object", _get_team_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_access_object", _get_access_object)
 
     result = await get_available_models_for_user(
         user_api_key_dict=UserAPIKeyAuth(
@@ -457,12 +457,12 @@ async def test_get_available_models_for_user_resolves_team_access_group_models(
 async def test_get_available_models_for_user_without_access_groups_grants_nothing(
     monkeypatch,
 ):
-    from litellm.models.team import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.models.team import LiteLLM_TeamTableCachedObj
 
     async def _get_team_object(**_kwargs):
         return LiteLLM_TeamTableCachedObj(team_id="team-1", models=["no-default-models"])
 
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_team_object", _get_team_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_team_object", _get_team_object)
 
     result = await get_available_models_for_user(
         user_api_key_dict=UserAPIKeyAuth(
@@ -485,8 +485,8 @@ async def test_get_available_models_for_user_without_access_groups_grants_nothin
 async def test_get_available_models_for_user_resolves_key_access_group_models(
     monkeypatch,
 ):
-    from litellm.models.access_group import LiteLLM_AccessGroupTable
-    from litellm.models.team import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.models.access_group import LiteLLM_AccessGroupTable
+    from token_iq.gateway.models.team import LiteLLM_TeamTableCachedObj
 
     async def _get_team_object(**_kwargs):
         return LiteLLM_TeamTableCachedObj(team_id="team-1", models=["no-default-models"])
@@ -499,10 +499,10 @@ async def test_get_available_models_for_user_resolves_key_access_group_models(
             assigned_key_ids=[hash_token("sk-test-key")],
         )
 
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_team_object", _get_team_object)
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_access_object", _get_access_object)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
-    monkeypatch.setattr("litellm.proxy.proxy_server.user_api_key_cache", MagicMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_team_object", _get_team_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_access_object", _get_access_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock())
 
     result = await get_available_models_for_user(
         user_api_key_dict=UserAPIKeyAuth(

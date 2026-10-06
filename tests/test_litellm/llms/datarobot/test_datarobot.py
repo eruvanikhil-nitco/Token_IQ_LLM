@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm import completion
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway import completion
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 @patch.dict(os.environ, {}, clear=True)

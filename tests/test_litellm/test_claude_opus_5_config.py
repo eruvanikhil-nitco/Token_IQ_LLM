@@ -17,9 +17,9 @@ import os
 
 import pytest
 
-import litellm
-from litellm.constants import BEDROCK_CONVERSE_MODELS
-from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import BEDROCK_CONVERSE_MODELS
+from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 
@@ -163,7 +163,7 @@ def test_opus_5_bedrock_rejects_strict_tools(model_name, local_model_cost_map):
     ``toolSpec.strict`` (``tools.0.custom.strict: Extra inputs are not
     permitted``), same as Opus 4.7/4.8; verified against Bedrock on 2026-07-24.
     Without the flag LiteLLM forwards ``strict`` and every tool call 400s."""
-    from litellm.llms.bedrock.common_utils import bedrock_converse_supports_strict_tools
+    from token_iq.gateway.llms.bedrock.common_utils import bedrock_converse_supports_strict_tools
 
     assert bedrock_converse_supports_strict_tools(model_name) is False
 
@@ -174,7 +174,7 @@ def test_opus_5_prompt_cache_minimum_is_512(local_model_cost_map):
     The router's prompt-caching deployment check reads this value, so a stale
     1024 would route prompts of 512-1023 tokens away from a warm Opus 5
     deployment even though they cache fine."""
-    from litellm.utils import get_prompt_cache_min_tokens
+    from token_iq.gateway.utils import get_prompt_cache_min_tokens
 
     assert get_prompt_cache_min_tokens(model="claude-opus-5") == 512
     assert get_prompt_cache_min_tokens(model="us.anthropic.claude-opus-5") == 512
@@ -184,11 +184,11 @@ def test_opus_5_supports_fast_mode(local_model_cost_map):
     """Fast mode is Opus 5 on the first-party API at $10 / $50 per MTok, i.e. 2x
     base. ``supports_speed`` gates whether ``speed="fast"`` is forwarded at all,
     and ``provider_specific_entry.fast`` is what prices the response."""
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
-    from litellm.llms.anthropic.cost_calculation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.cost_calculation import (
         cost_per_token as anthropic_cost_per_token,
     )
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     assert (
         AnthropicConfig._model_supports_speed_param("claude-opus-5", "anthropic") is True

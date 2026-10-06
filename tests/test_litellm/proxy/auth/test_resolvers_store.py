@@ -4,14 +4,14 @@ from typing import Dict, Optional
 
 import pytest
 
-from litellm.proxy._types import UserAPIKeyAuth, hash_token
-from litellm.proxy.auth.resolvers.exceptions import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, hash_token
+from token_iq.gateway.proxy.auth.resolvers.exceptions import (
     NoDatabaseConnectionError,
     PrincipalMissingSourceKeyError,
 )
-from litellm.proxy.auth.auth_method import AuthMethod
-from litellm.proxy.auth.resolvers.models import Principal, PrincipalType
-from litellm.proxy.auth.resolvers.store import IdentityStore
+from token_iq.gateway.proxy.auth.auth_method import AuthMethod
+from token_iq.gateway.proxy.auth.resolvers.models import Principal, PrincipalType
+from token_iq.gateway.proxy.auth.resolvers.store import IdentityStore
 
 
 class _FakeCache:

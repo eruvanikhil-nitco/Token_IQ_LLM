@@ -5,17 +5,17 @@ import pytest
 
 os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
-import litellm
+from token_iq import gateway as litellm
 
 litellm.model_cost = litellm.get_model_cost_map()
 
-from litellm.llms.aiml.image_generation.cost_calculator import (
+from token_iq.gateway.llms.aiml.image_generation.cost_calculator import (
     cost_calculator as aiml_cost_calculator,
 )
-from litellm.llms.aiml.image_generation.transformation import (
+from token_iq.gateway.llms.aiml.image_generation.transformation import (
     AimlImageGenerationConfig,
 )
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 def test_openai_style_model_supports_full_openai_param_surface():

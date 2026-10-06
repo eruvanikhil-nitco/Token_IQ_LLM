@@ -9,14 +9,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import LiteLLM_UserTable
-from litellm.proxy.management_endpoints.scim.scim_v2 import (
+from token_iq.gateway.proxy._types import LiteLLM_UserTable
+from token_iq.gateway.proxy.management_endpoints.scim.scim_v2 import (
     _set_user_keys_blocked,
     delete_user,
     patch_user,
     update_user,
 )
-from litellm.types.proxy.management_endpoints.scim_v2 import (
+from token_iq.gateway.types.proxy.management_endpoints.scim_v2 import (
     SCIMPatchOp,
     SCIMPatchOperation,
     SCIMUser,
@@ -69,11 +69,11 @@ async def test_set_user_keys_blocked_flips_state_and_invalidates_cache():
         cache_deletions.append(hashed_token)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(side_effect=fake_delete),
         ),
     ):
@@ -100,11 +100,11 @@ async def test_set_user_keys_blocked_noop_when_no_matching_keys():
     mock_client, mock_db = _build_prisma_with_keys(user_keys=[])
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ) as mocked_delete,
     ):
@@ -135,11 +135,11 @@ async def test_set_user_keys_unblocked_skips_admin_blocked_keys():
         cache_deletions.append(hashed_token)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(side_effect=fake_delete),
         ),
     ):
@@ -168,11 +168,11 @@ async def test_scim_delete_user_blocks_keys_before_deleting_user():
     mock_client, mock_db = _build_prisma_with_keys(keys, mock_user=mock_user)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -216,11 +216,11 @@ async def test_scim_delete_user_clears_fk_referenced_rows_before_user_delete():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -286,15 +286,15 @@ async def test_scim_patch_user_active_false_blocks_keys():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -346,15 +346,15 @@ async def test_scim_patch_user_active_true_unblocks_keys():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -403,15 +403,15 @@ async def test_scim_patch_user_no_active_change_does_not_touch_keys():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -466,15 +466,15 @@ async def test_scim_put_user_omitting_active_preserves_deactivated_state():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):
@@ -522,15 +522,15 @@ async def test_scim_put_user_explicit_active_false_blocks_keys():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2._delete_cache_key_object",
             AsyncMock(),
         ),
     ):

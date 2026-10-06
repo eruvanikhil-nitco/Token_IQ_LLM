@@ -15,8 +15,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.ledger import (
     AdjustmentBody,
     InvoiceBody,
@@ -226,7 +226,7 @@ async def ledger_lines(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> LedgerLinesResponse:
     """Every cost line in the period, with its source, evidence level and owner."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if provider is not None:
@@ -260,7 +260,7 @@ async def list_invoices(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> InvoiceListResponse:
     """Every bill an admin has entered, newest period first."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -276,7 +276,7 @@ async def upsert_invoice(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> InvoiceResponse:
     """Enter a bill, or correct the one already entered for that period."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(body.provider)
@@ -312,7 +312,7 @@ async def delete_invoice(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> InvoiceDeletedResponse:
     """Remove a bill, after which its period has nothing to reconcile against."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -332,7 +332,7 @@ async def ledger_reconciliation(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ReconciliationResponse:
     """What the bill says, what the ledger says, and what is left over."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(provider)

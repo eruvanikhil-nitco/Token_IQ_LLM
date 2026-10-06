@@ -32,8 +32,8 @@ import time
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 
-import litellm
-from litellm.types.utils import CallTypes
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import CallTypes
 
 # ---------------------------------------------------------------------------
 # Problem definitions (HumanEval-style)

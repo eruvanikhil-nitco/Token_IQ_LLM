@@ -9,15 +9,15 @@ import asyncio
 import pytest
 from pydantic import SecretStr
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import (
     Error,
     Ok,
     ServerSpec,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
     OboTokenExchanger,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
     TokenExchangeConfig,
 )
 
@@ -127,7 +127,7 @@ async def test_client_secret_post_keeps_creds_in_body_with_no_auth_header():
 async def test_exchange_maps_idp_rejection_to_unauthorized():
     """An IdP 4xx (surfaced as SubjectTokenRejected by the post adapter) is non-retryable: it maps
     to ``unauthorized`` (the 401 OBO challenge), not the retryable ``upstream_unavailable`` (503)."""
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
         SubjectTokenRejected,
     )
 
@@ -144,7 +144,7 @@ async def test_exchange_maps_gateway_fault_to_misconfigured():
     """A gateway-fault RFC 6749 code (invalid_client / invalid_target / ..., surfaced as
     TokenExchangeClientError) is the gateway's problem, not the caller's, so it maps to misconfigured
     (500) rather than the retryable 503 or the 401 OBO challenge the caller can't act on."""
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
         TokenExchangeClientError,
     )
 
@@ -298,7 +298,7 @@ async def test_non_bearer_token_type_is_logged():
 
     post = _RecordingPost({"access_token": "x", "token_type": "N_A", "expires_in": 3600})
     with patch(
-        "litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger.verbose_logger"
+        "token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger.verbose_logger"
     ) as mock_logger:
         await OboTokenExchanger(post, clock=_Clock()).exchange("jwt", _SERVER, _CONFIG)
     assert mock_logger.warning.called
@@ -542,7 +542,7 @@ async def test_distributed_coordinator_refresh_and_reread_use_the_cache():
 
 @pytest.mark.asyncio
 async def test_step_up_rejection_threads_claims_into_unauthorized():
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
         SubjectTokenRejected,
     )
 

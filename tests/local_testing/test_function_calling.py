@@ -7,8 +7,8 @@ import io
 
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-import litellm
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 
 litellm.num_retries = 0
 litellm.cache = None
@@ -259,7 +259,7 @@ def test_aaparallel_function_call_with_anthropic_thinking(model):
         pytest.fail(f"Error occurred: {e}")
 
 
-from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
+from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function, Message
 
 
 _PARALLEL_TOOL_HISTORY_MESSAGES = [
@@ -720,9 +720,9 @@ def test_passing_tool_result_as_list(model):
 @pytest.mark.asyncio
 @pytest.mark.flaky(retries=6, delay=1)
 async def test_watsonx_tool_choice(sync_mode, monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
     import json
-    from litellm import acompletion, completion
+    from token_iq.gateway import acompletion, completion
 
     # Mock the IAM token generation to avoid actual API calls
     monkeypatch.setenv("WATSONX_API_KEY", "mock-api-key")

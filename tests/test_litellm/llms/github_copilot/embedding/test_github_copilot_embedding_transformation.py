@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.exceptions import AuthenticationError
-from litellm.llms.github_copilot.embedding.transformation import (
+from token_iq.gateway.exceptions import AuthenticationError
+from token_iq.gateway.llms.github_copilot.embedding.transformation import (
     GithubCopilotEmbeddingConfig,
 )
-from litellm.llms.github_copilot.common_utils import GetAPIKeyError
+from token_iq.gateway.llms.github_copilot.common_utils import GetAPIKeyError
 
 
 def test_github_copilot_embedding_config_validate_environment():
@@ -168,7 +168,7 @@ def test_github_copilot_embedding_config_transform_request_param_filtering():
 def test_github_copilot_embedding_config_transform_response():
     """Test the GitHub Copilot embedding response transformation."""
     config = GithubCopilotEmbeddingConfig()
-    from litellm.types.utils import EmbeddingResponse
+    from token_iq.gateway.types.utils import EmbeddingResponse
 
     # Mock response
     mock_response = MagicMock()

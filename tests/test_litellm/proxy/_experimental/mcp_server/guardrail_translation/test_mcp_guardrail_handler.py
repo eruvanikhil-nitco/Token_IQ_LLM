@@ -3,12 +3,12 @@
 import pytest
 from mcp.types import CallToolResult, ImageContent, TextContent
 
-from litellm.exceptions import BlockedPiiEntityError
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.proxy._experimental.mcp_server.guardrail_translation.handler import (
+from token_iq.gateway.exceptions import BlockedPiiEntityError
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.proxy._experimental.mcp_server.guardrail_translation.handler import (
     MCPGuardrailTranslationHandler,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 
 class MockGuardrail(CustomGuardrail):
@@ -283,7 +283,7 @@ async def test_structured_content_nested_too_deeply_is_blocked():
     """Too deep to walk must block rather than pass the deeper values unscanned."""
     from fastapi import HTTPException
 
-    from litellm.proxy._experimental.mcp_server.utils import MAX_STRUCTURED_CONTENT_SCAN_DEPTH
+    from token_iq.gateway.proxy._experimental.mcp_server.utils import MAX_STRUCTURED_CONTENT_SCAN_DEPTH
 
     handler = MCPGuardrailTranslationHandler()
     guardrail = SubstitutingGuardrail("jane@example.com", "<EMAIL_ADDRESS>")
@@ -312,7 +312,7 @@ def test_too_deep_json_returns_a_sentinel_rather_than_raising():
     the helper so this pins the contract without reloading the module and leaking
     that reload into other tests.
     """
-    from litellm.proxy._experimental.mcp_server.utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.utils import (
         MAX_STRUCTURED_CONTENT_SCAN_DEPTH,
         json_string_leaves,
     )

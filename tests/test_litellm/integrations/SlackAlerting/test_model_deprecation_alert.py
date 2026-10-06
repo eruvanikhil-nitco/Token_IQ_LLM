@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.constants import SLACK_MODEL_DEPRECATION_LOCK_ID
-from litellm.integrations.SlackAlerting.slack_alerting import SlackAlerting
-from litellm.proxy._types import AlertType
-from litellm.types.integrations.slack_alerting import SlackAlertingCacheKeys
-from litellm.types.proxy.model_deprecation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import SLACK_MODEL_DEPRECATION_LOCK_ID
+from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
+from token_iq.gateway.proxy._types import AlertType
+from token_iq.gateway.types.integrations.slack_alerting import SlackAlertingCacheKeys
+from token_iq.gateway.types.proxy.model_deprecation import (
     DEFAULT_DEPRECATION_CHECK_INTERVAL_SECONDS,
     DEPRECATION_IDLE_POLL_SECONDS,
 )
@@ -155,7 +155,7 @@ async def test_should_alert_once_the_alert_type_and_router_arrive_after_startup(
     with (
         patch.object(alerting, "send_alert", new_callable=AsyncMock) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=stop_after_third_pass,
         ),
         pytest.raises(asyncio.CancelledError),
@@ -199,7 +199,7 @@ async def test_should_wait_for_the_router_instead_of_sleeping_a_full_day(monkeyp
     with (
         patch.object(alerting, "send_alert", new_callable=AsyncMock) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=record_sleep,
         ),
         pytest.raises(asyncio.CancelledError),
@@ -246,7 +246,7 @@ async def test_should_alert_only_from_the_pod_holding_the_daily_lock(
     with (
         patch.object(alerting, "send_alert", new_callable=AsyncMock) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=asyncio.CancelledError,
         ),
         pytest.raises(asyncio.CancelledError),
@@ -283,7 +283,7 @@ async def test_should_retry_on_the_next_poll_when_the_lock_claim_fails(monkeypat
     with (
         patch.object(alerting, "send_alert", new_callable=AsyncMock) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=stop_after_second_pass,
         ),
         pytest.raises(asyncio.CancelledError),
@@ -345,7 +345,7 @@ async def test_should_not_alert_or_claim_the_lock_within_a_day_of_a_sent_alert(m
     with (
         patch.object(alerting, "send_alert", new_callable=AsyncMock) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=asyncio.CancelledError,
         ),
         pytest.raises(asyncio.CancelledError),
@@ -381,7 +381,7 @@ async def test_should_back_off_a_full_day_after_a_pass_raises(monkeypatch):
             side_effect=ValueError("Missing SLACK_WEBHOOK_URL from environment"),
         ) as mock_send_alert,
         patch(
-            "litellm.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
+            "token_iq.gateway.integrations.SlackAlerting.slack_alerting.asyncio.sleep",
             side_effect=stop_after_second_pass,
         ),
         pytest.raises(asyncio.CancelledError),

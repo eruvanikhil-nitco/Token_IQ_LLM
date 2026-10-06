@@ -3,19 +3,22 @@ import json
 
 from dotenv import load_dotenv
 
-import litellm.litellm_core_utils
-import litellm.litellm_core_utils.prompt_templates
-import litellm.litellm_core_utils.prompt_templates.factory
+import token_iq.gateway.core_utils
+from token_iq import gateway as litellm
+import token_iq.gateway.core_utils.prompt_templates
+from token_iq import gateway as litellm
+import token_iq.gateway.core_utils.prompt_templates.factory
+from token_iq import gateway as litellm
 
 load_dotenv()
 from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm import get_optional_params
-from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
-from litellm.types.llms.vertex_ai import BlobType
+from token_iq import gateway as litellm
+from token_iq.gateway import get_optional_params
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
+from token_iq.gateway.types.llms.vertex_ai import BlobType
 
 
 def encode_image_to_base64(image_path):
@@ -26,7 +29,7 @@ def encode_image_to_base64(image_path):
 def test_completion_pydantic_obj_2():
     from pydantic import BaseModel
 
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
     class CalendarEvent(BaseModel):
@@ -104,7 +107,7 @@ def test_completion_pydantic_obj_2():
 def test_build_vertex_schema():
     import json
 
-    from litellm.llms.vertex_ai.common_utils import _build_vertex_schema
+    from token_iq.gateway.llms.vertex_ai.common_utils import _build_vertex_schema
 
     schema = {
         "type": "object",
@@ -251,7 +254,7 @@ def test_vertex_tool_type_field_removal():
 
 
 def test_function_calling_with_gemini():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     with patch.object(client, "post", new=MagicMock()) as mock_post:
@@ -303,7 +306,7 @@ def test_function_calling_with_gemini():
 
 
 def test_multiple_function_call():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     messages = [
@@ -412,7 +415,7 @@ def test_multiple_function_call():
 
 
 def test_multiple_function_call_changed_text_pos():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     messages = [
@@ -519,7 +522,7 @@ def test_multiple_function_call_changed_text_pos():
 
 
 def test_function_calling_with_gemini_multiple_results():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     # Step 1: send the conversation and available functions to the model
@@ -614,7 +617,7 @@ def test_function_calling_with_gemini_multiple_results():
 
 
 def test_logprobs_unit_test():
-    from litellm import VertexGeminiConfig
+    from token_iq.gateway import VertexGeminiConfig
 
     result = VertexGeminiConfig()._transform_logprobs(
         logprobs_result={
@@ -1093,7 +1096,7 @@ def test_logprobs_unit_test():
 
 
 def test_logprobs():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -1193,8 +1196,8 @@ def test_logprobs():
 
 def test_process_gemini_media():
     """Test the _process_gemini_media function for different image sources"""
-    from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
-    from litellm.types.llms.vertex_ai import FileDataType
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
+    from token_iq.gateway.types.llms.vertex_ai import FileDataType
 
     # Test GCS URI
     gcs_result = _process_gemini_media("gs://bucket/image.png")
@@ -1223,7 +1226,7 @@ def test_process_gemini_media():
             ],
         }
     ]
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -1274,7 +1277,7 @@ def test_process_gemini_media():
 
 def test_get_image_mime_type_from_url():
     """Test the _get_image_mime_type_from_url function for different image URLs"""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _get_image_mime_type_from_url,
     )
 
@@ -1333,7 +1336,7 @@ def test_vertex_embedding_url(model, expected_url):
 
     When a fine-tuned embedding model is used, the URL is different from the standard one.
     """
-    from litellm.llms.vertex_ai.common_utils import _get_vertex_url
+    from token_iq.gateway.llms.vertex_ai.common_utils import _get_vertex_url
 
     url, endpoint = _get_vertex_url(
         mode="embedding",
@@ -1356,7 +1359,7 @@ import pytest
 # Add these fixtures below existing fixtures
 @pytest.fixture
 def vertex_client():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     return HTTPHandler()
 
@@ -1375,7 +1378,7 @@ def encoded_images():
 @pytest.fixture
 def mock_convert_url_to_base64():
     with patch(
-        "litellm.litellm_core_utils.prompt_templates.factory.convert_url_to_base64",
+        "token_iq.gateway.core_utils.prompt_templates.factory.convert_url_to_base64",
     ) as mock:
         # Setup the mock to return a valid image object
         mock.return_value = "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
@@ -1550,7 +1553,7 @@ def test_vertex_parallel_tool_calls_false_single_tool():
     assert "tools" in optional_params
 
 
-from litellm.llms.vertex_ai.gemini.transformation import _transform_request_body
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import _transform_request_body
 
 
 def test_system_prompt_only_adds_blank_user_message():

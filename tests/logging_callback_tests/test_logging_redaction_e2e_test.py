@@ -14,11 +14,11 @@ from datetime import datetime
 import httpx
 import pytest
 
-import litellm
-from litellm._logging import verbose_logger
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.responses.main import mock_responses_api_response
-from litellm.types.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.responses.main import mock_responses_api_response
+from token_iq.gateway.types.utils import (
     ModelResponse,
     ResponsesAPIResponse,
     StandardLoggingPayload,
@@ -116,7 +116,7 @@ async def test_dynamic_turn_off_message_logging_overrides_global_off(dynamic_tur
 @pytest.mark.asyncio
 async def test_redaction_with_custom_logger_streaming():
     """Test redaction of responses for custom logger callbacks"""
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     class LoggingWithoutSyncSuccessHandler(Logging):
         def success_handler(self, result=None, start_time=None, end_time=None, cache_hit=None, **kwargs):
@@ -258,7 +258,7 @@ async def test_redaction_responses_api_stream():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=mock_post,
     ):
         response = await litellm.aresponses(
@@ -314,8 +314,8 @@ async def test_redaction_responses_api_stream():
 @pytest.mark.asyncio
 async def test_redaction_responses_api_with_reasoning_summary():
     """Test that reasoning summary in ResponsesAPIResponse output is properly redacted"""
-    import litellm
-    from litellm.litellm_core_utils.redact_messages import perform_redaction
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.redact_messages import perform_redaction
 
     response = litellm.ResponsesAPIResponse(
         id="resp_123",
@@ -382,7 +382,7 @@ async def test_redaction_responses_api_with_reasoning_summary():
 @pytest.mark.asyncio
 async def test_redaction_with_coroutine_objects():
     """Test that redaction handles coroutine objects correctly without pickle errors"""
-    from litellm.litellm_core_utils.redact_messages import perform_redaction
+    from token_iq.gateway.core_utils.redact_messages import perform_redaction
 
     # Test with a coroutine object (simulating streaming response)
     async def mock_async_generator():

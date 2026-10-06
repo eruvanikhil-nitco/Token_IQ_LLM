@@ -14,8 +14,8 @@ gpt-image-1 uses token-based pricing:
 
 import pytest
 
-import litellm
-from litellm.types.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     ImageResponse,
     ImageObject,
@@ -44,7 +44,7 @@ class TestGPTImageCostCalculator:
 
     def test_gpt_image_1_cost_with_text_only(self):
         """Test cost calculation with only text input tokens"""
-        from litellm.llms.openai.image_generation.cost_calculator import cost_calculator
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import cost_calculator
 
         usage = ImageUsage(
             input_tokens=100,
@@ -77,7 +77,7 @@ class TestGPTImageCostCalculator:
 
     def test_gpt_image_1_cost_with_image_input(self):
         """Test cost calculation with both text and image input tokens (for edits)"""
-        from litellm.llms.openai.image_generation.cost_calculator import cost_calculator
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import cost_calculator
 
         usage = ImageUsage(
             input_tokens=600,
@@ -111,7 +111,7 @@ class TestGPTImageCostCalculator:
 
     def test_gpt_image_1_mini_cost(self):
         """Test cost calculation for gpt-image-1-mini model"""
-        from litellm.llms.openai.image_generation.cost_calculator import cost_calculator
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import cost_calculator
 
         usage = ImageUsage(
             input_tokens=100,
@@ -144,7 +144,7 @@ class TestGPTImageCostCalculator:
 
     def test_gpt_image_1_cost_no_usage(self):
         """Test that cost returns 0 when no usage data is available"""
-        from litellm.llms.openai.image_generation.cost_calculator import cost_calculator
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import cost_calculator
 
         image_response = ImageResponse(
             created=1234567890,
@@ -161,7 +161,7 @@ class TestGPTImageCostCalculator:
 
     def test_gpt_image_2_cost_with_text_and_image_tokens(self):
         """Test cost calculation for gpt-image-2 token pricing"""
-        from litellm.llms.openai.image_generation.cost_calculator import cost_calculator
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import cost_calculator
 
         usage = Usage(
             prompt_tokens=600,
@@ -203,7 +203,7 @@ class TestGPTImageCostRouting:
 
     def test_openai_gpt_image_routes_to_token_calculator(self):
         """Test that OpenAI gpt-image-1 routes to token-based calculator"""
-        from litellm.litellm_core_utils.llm_cost_calc.utils import CostCalculatorUtils
+        from token_iq.gateway.core_utils.llm_cost_calc.utils import CostCalculatorUtils
 
         usage = ImageUsage(
             input_tokens=100,
@@ -232,7 +232,7 @@ class TestGPTImageCostRouting:
 
     def test_openai_gpt_image_2_routes_to_token_calculator(self):
         """Test that OpenAI gpt-image-2 routes to token-based calculator"""
-        from litellm.litellm_core_utils.llm_cost_calc.utils import CostCalculatorUtils
+        from token_iq.gateway.core_utils.llm_cost_calc.utils import CostCalculatorUtils
 
         usage = Usage(
             prompt_tokens=100,
@@ -259,7 +259,7 @@ class TestGPTImageCostRouting:
 
     def test_openai_dalle_routes_to_pixel_calculator(self):
         """Test that OpenAI DALL-E still routes to pixel-based calculator"""
-        from litellm.litellm_core_utils.llm_cost_calc.utils import CostCalculatorUtils
+        from token_iq.gateway.core_utils.llm_cost_calc.utils import CostCalculatorUtils
 
         image_response = ImageResponse(
             created=1234567890,
@@ -390,7 +390,7 @@ class TestGPTImage2OutputImageTokensNoBreakdown:
     """
 
     def test_gpt_image_2_output_priced_as_image_when_no_breakdown(self):
-        from litellm.llms.openai.image_generation.cost_calculator import (
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import (
             cost_calculator,
         )
 
@@ -433,7 +433,7 @@ class TestGPTImage2OutputImageTokensNoBreakdown:
         """A chat ``Usage`` with ``completion_tokens_details=None`` must still be
         costed via ``generic_cost_per_token`` (output at the text rate) rather than
         erroring or silently returning 0.0."""
-        from litellm.llms.openai.image_generation.cost_calculator import (
+        from token_iq.gateway.llms.openai.image_generation.cost_calculator import (
             cost_calculator,
         )
 

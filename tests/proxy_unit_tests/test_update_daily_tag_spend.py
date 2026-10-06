@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy.utils import update_daily_tag_spend
-from litellm.proxy._types import DailyTagSpendTransaction
+from token_iq.gateway.proxy.utils import update_daily_tag_spend
+from token_iq.gateway.proxy._types import DailyTagSpendTransaction
 import httpx
-from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_update_daily_tag_spend_logs_error_and_does_not_raise():
         AsyncMock()
     )
 
-    with patch("litellm.proxy.utils.verbose_proxy_logger.error") as error_logger:
+    with patch("token_iq.gateway.proxy.utils.verbose_proxy_logger.error") as error_logger:
         await update_daily_tag_spend(
             prisma_client,
             proxy_logging_obj,

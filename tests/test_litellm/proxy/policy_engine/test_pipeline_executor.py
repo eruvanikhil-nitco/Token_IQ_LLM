@@ -8,13 +8,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.proxy.guardrails.guardrail_hooks.custom_code.custom_code_guardrail import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.custom_code.custom_code_guardrail import (
     CustomCodeGuardrail,
 )
-from litellm.proxy.policy_engine.pipeline_executor import PipelineExecutor
-from litellm.types.proxy.policy_engine.pipeline_types import (
+from token_iq.gateway.proxy.policy_engine.pipeline_executor import PipelineExecutor
+from token_iq.gateway.types.proxy.policy_engine.pipeline_types import (
     GuardrailPipeline,
     PipelineStep,
 )

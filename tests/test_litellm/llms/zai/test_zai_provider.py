@@ -8,9 +8,9 @@ import math
 import pytest
 import respx
 
-import litellm
-from litellm import completion
-from litellm.cost_calculator import cost_per_token
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.cost_calculator import cost_per_token
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def zai_response():
 
 def test_get_llm_provider_zai():
     """Test that get_llm_provider correctly identifies zai provider"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, api_key, api_base = get_llm_provider("zai/glm-4.6")
     assert model == "glm-4.6"

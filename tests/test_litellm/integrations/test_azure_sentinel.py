@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.azure_sentinel.azure_sentinel import AzureSentinelLogger
-from litellm.types.utils import StandardAuditLogPayload, StandardLoggingPayload
+from token_iq.gateway.integrations.azure_sentinel.azure_sentinel import AzureSentinelLogger
+from token_iq.gateway.types.utils import StandardAuditLogPayload, StandardLoggingPayload
 
 
 def _close_periodic_flush_task(coro):

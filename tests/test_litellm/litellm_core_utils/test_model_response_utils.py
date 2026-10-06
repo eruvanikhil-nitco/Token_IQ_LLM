@@ -1,7 +1,7 @@
-from litellm.litellm_core_utils.model_response_utils import (
+from token_iq.gateway.core_utils.model_response_utils import (
     is_model_response_stream_empty,
 )
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
 
 def test_is_model_response_stream_empty():

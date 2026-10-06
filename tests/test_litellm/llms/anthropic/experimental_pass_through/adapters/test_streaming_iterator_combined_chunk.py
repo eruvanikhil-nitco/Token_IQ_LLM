@@ -14,12 +14,12 @@ import json
 from types import SimpleNamespace
 from typing import AsyncIterator
 
-from litellm.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
     AnthropicStreamWrapper,
     _CombinedChunkSplitter,
 )
-from litellm.llms.base_llm.base_model_iterator import MockResponseIterator
-from litellm.types.utils import (
+from token_iq.gateway.llms.base_llm.base_model_iterator import MockResponseIterator
+from token_iq.gateway.types.utils import (
     Choices,
     Delta,
     Message,

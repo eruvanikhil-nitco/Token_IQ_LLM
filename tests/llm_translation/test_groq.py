@@ -9,9 +9,9 @@ import pytest
 # ) # noqa
 # )  # Adds the parent directory to the system path
 
-import litellm
+from token_iq import gateway as litellm
 from base_llm_unit_tests import BaseLLMChatTest
-from litellm.llms.groq.chat.transformation import (
+from token_iq.gateway.llms.groq.chat.transformation import (
     GroqChatConfig,
     GroqChatCompletionStreamingHandler,
 )

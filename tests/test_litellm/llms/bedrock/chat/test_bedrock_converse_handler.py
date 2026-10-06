@@ -12,10 +12,10 @@ import httpx
 import pytest
 
 from botocore.credentials import Credentials
-from litellm.llms.bedrock.chat.converse_handler import BedrockConverseLLM
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.rust_bridge import chat_completions as bridge
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.llms.bedrock.chat.converse_handler import BedrockConverseLLM
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.rust_bridge import chat_completions as bridge
+from token_iq.gateway.types.utils import ModelResponse
 
 RUST_RESPONSE = {
     "created": 1_700_000_000,

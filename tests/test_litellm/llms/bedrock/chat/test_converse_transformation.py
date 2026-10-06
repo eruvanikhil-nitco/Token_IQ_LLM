@@ -7,10 +7,10 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm import ModelResponse, RateLimitError, completion
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.types.llms.bedrock import ConverseTokenUsageBlock
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse, RateLimitError, completion
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.types.llms.bedrock import ConverseTokenUsageBlock
 
 
 def test_transform_usage():
@@ -262,7 +262,7 @@ def test_transform_thinking_blocks_with_redacted_content():
 
 
 def test_apply_tool_call_transformation_if_needed():
-    from litellm.types.utils import Message
+    from token_iq.gateway.types.utils import Message
 
     config = AmazonConverseConfig()
     tool_calls = [
@@ -294,7 +294,7 @@ def test_apply_tool_call_transformation_if_needed():
 
 
 def test_transform_tool_call_with_cache_control():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     config = AmazonConverseConfig()
 
@@ -1071,12 +1071,12 @@ def test_transform_response_with_computer_use_tool():
     """Test response transformation with computer use tool call."""
     import httpx
 
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.llms.bedrock import (
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.llms.bedrock import (
         ConverseResponseBlock,
         ConverseTokenUsageBlock,
     )
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     # Simulate a Bedrock Converse response with a computer-use tool call
     response_json = {
@@ -1166,12 +1166,12 @@ def test_transform_response_with_bash_tool():
     """Test response transformation with bash tool call."""
     import httpx
 
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.llms.bedrock import (
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.llms.bedrock import (
         ConverseResponseBlock,
         ConverseTokenUsageBlock,
     )
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     # Simulate a Bedrock Converse response with a bash tool call
     response_json = {
@@ -1249,8 +1249,8 @@ def test_transform_response_with_bash_tool():
 
 def test_transform_response_with_structured_response_being_called():
     """Test response transformation with structured response."""
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     # Simulate a Bedrock Converse response with a bash tool call
     response_json = {
@@ -1369,8 +1369,8 @@ def test_transform_response_with_structured_response_being_called():
 
 def test_transform_response_with_structured_response_calling_tool():
     """Test response transformation with structured response."""
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     # Simulate a Bedrock Converse response with a bash tool call
     response_json = {
@@ -1503,7 +1503,7 @@ def _mock_converse_response() -> MagicMock:
 
 
 async def _acompletion_captured_request_body(tools: list, messages: list) -> dict:
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=_mock_converse_response()) as mock_post:
@@ -1979,7 +1979,7 @@ def test_map_openai_params_with_response_format():
 @pytest.mark.asyncio
 async def test_assistant_message_cache_control():
     """Test that assistant messages with cache_control generate cachePoint blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2036,7 +2036,7 @@ async def test_assistant_message_cache_control():
 @pytest.mark.asyncio
 async def test_assistant_message_list_content_cache_control():
     """Test assistant messages with list content and cache_control."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2082,7 +2082,7 @@ async def test_assistant_message_list_content_cache_control():
 @pytest.mark.asyncio
 async def test_tool_message_cache_control():
     """Test that tool messages with cache_control generate cachePoint blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2151,7 +2151,7 @@ async def test_tool_message_cache_control():
 @pytest.mark.asyncio
 async def test_tool_message_string_content_cache_control():
     """Test tool messages with string content and message-level cache_control."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2212,7 +2212,7 @@ async def test_tool_message_string_content_cache_control():
 @pytest.mark.asyncio
 async def test_tool_message_search_results_maps_to_bedrock_search_result_block():
     """OpenAI tool message search_results should map to Bedrock searchResult blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2280,7 +2280,7 @@ async def test_tool_message_search_results_maps_to_bedrock_search_result_block()
 @pytest.mark.asyncio
 async def test_tool_message_empty_search_results_falls_back_to_content():
     """Empty search_results must not skip normal tool content processing."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2328,8 +2328,8 @@ async def test_tool_message_empty_search_results_falls_back_to_content():
 
 
 def test_transform_response_omits_annotations_when_citations_not_stitched():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 100},
@@ -2398,11 +2398,11 @@ def test_transform_response_omits_annotations_when_citations_not_stitched():
 
 
 def test_extract_search_results_text_counts_hidden_tool_payload():
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         convert_content_list_to_str,
         extract_search_results_text,
     )
-    from litellm.litellm_core_utils.token_counter import token_counter
+    from token_iq.gateway.core_utils.token_counter import token_counter
 
     hidden = "x" * 500
     message = {
@@ -2451,7 +2451,7 @@ def test_extract_search_results_text_counts_hidden_tool_payload():
 @pytest.mark.asyncio
 async def test_assistant_tool_calls_cache_control():
     """Test that assistant tool_calls with cache_control generate cachePoint blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2505,7 +2505,7 @@ async def test_assistant_tool_calls_cache_control():
 @pytest.mark.asyncio
 async def test_multiple_tool_calls_with_mixed_cache_control():
     """Test multiple tool calls where only some have cache_control."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2568,7 +2568,7 @@ async def test_multiple_tool_calls_with_mixed_cache_control():
 @pytest.mark.asyncio
 async def test_no_cache_control_no_cache_point():
     """Test that messages without cache_control don't generate cachePoint blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -2617,7 +2617,7 @@ async def test_no_cache_control_no_cache_point():
 
 def test_guarded_text_wraps_in_guardrail_converse_content():
     """Test that guarded_text content type gets wrapped in guardContent blocks."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -2720,7 +2720,7 @@ def test_guarded_text_with_system_messages():
 
 def test_guarded_text_with_mixed_content_types():
     """Test guarded_text with mixed content types including images."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -2773,7 +2773,7 @@ def test_guarded_text_with_mixed_content_types():
 @pytest.mark.asyncio
 async def test_async_guarded_text():
     """Test async version of guarded_text processing."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
     )
 
@@ -2812,7 +2812,7 @@ async def test_async_guarded_text():
 
 def test_guarded_text_with_tool_calls():
     """Test guarded_text with tool calls in the conversation."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -3519,8 +3519,8 @@ def test_empty_assistant_message_handling():
     Converse API 400 Bad Request errors.
     """
     # Import the litellm module that factory.py uses to ensure we patch the correct reference
-    import litellm.litellm_core_utils.prompt_templates.factory as factory_module
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    import token_iq.gateway.core_utils.prompt_templates.factory as factory_module
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -3611,8 +3611,8 @@ def test_empty_assistant_message_handling():
 
 def test_bedrock_converse_trailing_prefix_assistant_skips_user_continue():
     """Assistant prefill (prefix: true) must not inject a dummy user 'Please continue.' turn."""
-    import litellm.litellm_core_utils.prompt_templates.factory as factory_module
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    import token_iq.gateway.core_utils.prompt_templates.factory as factory_module
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -3640,8 +3640,8 @@ def test_bedrock_converse_trailing_prefix_assistant_skips_user_continue():
 
 def test_bedrock_converse_leading_prefix_assistant_skips_user_continue():
     """Leading assistant with prefix: true should not prepend dummy user."""
-    import litellm.litellm_core_utils.prompt_templates.factory as factory_module
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    import token_iq.gateway.core_utils.prompt_templates.factory as factory_module
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -3745,7 +3745,7 @@ def test_thinking_with_max_completion_tokens():
     assert result["thinking"]["budget_tokens"] == 5000
 
     # Test case 3: Neither max_tokens nor max_completion_tokens specified - should set maxTokens automatically
-    from litellm.constants import DEFAULT_MAX_TOKENS
+    from token_iq.gateway.constants import DEFAULT_MAX_TOKENS
 
     non_default_params_without_max = {
         "thinking": {"type": "enabled", "budget_tokens": 5000},
@@ -3778,7 +3778,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
 
     Related issue: https://github.com/BerriAI/litellm/issues/14194
     """
-    from litellm.utils import last_assistant_with_tool_calls_has_no_thinking_blocks
+    from token_iq.gateway.utils import last_assistant_with_tool_calls_has_no_thinking_blocks
 
     # Save original modify_params setting
     original_modify_params = litellm.modify_params
@@ -4156,7 +4156,7 @@ def test_native_structured_output_no_fake_stream(monkeypatch):
 
 def test_transform_request_with_output_config():
     """Test that outputConfig flows through _transform_request_helper into the final request."""
-    from litellm.types.llms.bedrock import (
+    from token_iq.gateway.types.llms.bedrock import (
         JsonSchemaDefinition,
         OutputConfigBlock,
         OutputFormat,
@@ -4558,7 +4558,7 @@ def test_parallel_tool_calls_flag_decoupled_from_ttl_pricing(monkeypatch):
     The disable_parallel_tool_use gate must read supports_parallel_tool_use_config,
     not the 1h-TTL pricing field: a model carrying only the former still gets the flag.
     """
-    from litellm.llms.bedrock.common_utils import is_claude_4_5_on_bedrock
+    from token_iq.gateway.llms.bedrock.common_utils import is_claude_4_5_on_bedrock
 
     config = AmazonConverseConfig()
     model = "anthropic.claude-parallel-tool-use-only"
@@ -4780,8 +4780,8 @@ def test_transform_response_with_both_json_tool_call_and_real_tool():
     only the real tool should remain in tool_calls. The json_tool_call should be filtered out.
     Fixes https://github.com/BerriAI/litellm/issues/18381
     """
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 200},
@@ -4871,8 +4871,8 @@ def test_transform_response_does_not_mutate_optional_params():
     Verify that optional_params still contains json_mode after _transform_response.
     Previously, .pop() was used which mutated the caller's dict.
     """
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 50},
@@ -4939,8 +4939,8 @@ def test_streaming_filters_json_tool_call_with_real_tools():
     Verify json_tool_call chunks are converted to text content while real tool
     chunks pass through normally.
     """
-    from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
-    from litellm.types.llms.bedrock import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+    from token_iq.gateway.types.llms.bedrock import (
         ContentBlockDeltaEvent,
         ContentBlockStartEvent,
     )
@@ -5001,8 +5001,8 @@ def test_streaming_without_json_mode_passes_all_tools():
     Verify backward compatibility: when json_mode=False, all tools
     (including json_tool_call if present) pass through unchanged.
     """
-    from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
-    from litellm.types.llms.bedrock import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+    from token_iq.gateway.types.llms.bedrock import (
         ContentBlockDeltaEvent,
         ContentBlockStartEvent,
     )
@@ -5402,8 +5402,8 @@ def test_transform_response_finish_reason_stop_when_json_mode_filters_all_tools(
     After filtering, the response is plain JSON content and should not look
     like a pending tool invocation to callers.
     """
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 100},
@@ -5492,8 +5492,8 @@ def test_transform_response_finish_reason_stop_when_json_mode_filters_all_tools(
 
 
 def test_transform_response_citations_content_maps_to_annotations():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 100},
@@ -5576,8 +5576,8 @@ def test_transform_response_citations_content_maps_to_annotations():
 
 
 def test_transform_response_citation_null_source_title_become_empty_strings():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 100},
@@ -5652,8 +5652,8 @@ def test_transform_response_citation_null_source_title_become_empty_strings():
 
 
 def test_transform_response_citations_offset_tracks_text_only_blocks():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     leading_text = "First sentence without a citation. "
     cited_text = "Apptio is a company that makes calls to Bedrock"
@@ -5738,8 +5738,8 @@ def test_transform_response_citations_offset_tracks_text_only_blocks():
 
 
 def test_transform_response_stitches_citations_for_whitespace_punctuation_text():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     response_json = {
         "metrics": {"latencyMs": 100},
@@ -5821,7 +5821,7 @@ def test_bedrock_tool_message_openai_file_pdf_becomes_document():
     inside a tool message content list should translate to a Bedrock
     toolResult.content[].document block.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -5866,7 +5866,7 @@ def test_bedrock_tool_message_image_url_pdf_data_uri_becomes_document():
     BedrockImageProcessor correctly returns a {"document": ...} block, but the
     tool-result wrapper only appended the "image" case, silently dropping documents.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -5911,7 +5911,7 @@ def test_bedrock_tool_message_file_id_http_url_becomes_document():
     """
     from unittest.mock import patch
 
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockImageProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -5968,8 +5968,8 @@ def test_bedrock_tool_message_file_without_data_or_id_raises():
     tool-result path must match — silently dropping the block makes the model
     see an empty tool result and obscures the caller bug.
     """
-    import litellm
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -5998,7 +5998,7 @@ def test_bedrock_tool_message_image_url_png_still_becomes_image():
     to a Bedrock image block (not document). Locks in existing behavior after
     the document-passthrough fix.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -6034,7 +6034,7 @@ def test_bedrock_tool_message_image_url_png_still_becomes_image():
 
 
 def test_transform_response_does_not_leak_body_on_parse_failure():
-    from litellm.llms.bedrock.common_utils import BedrockError
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 
     leaky_body = {"output": {"message": {"content": [{"text": "secret content"}]}}}
 
@@ -6047,7 +6047,7 @@ def test_transform_response_does_not_leak_body_on_parse_failure():
             return json.dumps(leaky_body)
 
     with patch(
-        "litellm.llms.bedrock.chat.converse_transformation.ConverseResponseBlock",
+        "token_iq.gateway.llms.bedrock.chat.converse_transformation.ConverseResponseBlock",
         side_effect=KeyError("missing required field"),
     ):
         with pytest.raises(BedrockError) as exc_info:
@@ -6194,7 +6194,7 @@ async def test_grounding_source_and_query_rendered_as_text():
     generate path (the model needs to see the RAG context + question). The bedrock
     converse dispatch silently drops unrecognised content types, so these would
     otherwise vanish from the prompt."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -6281,7 +6281,7 @@ async def test_message_level_cache_control_honors_ttl_for_supported_model(
     system-message path. Regression test for the gap left by the system-only
     fix: the message paths called `_get_cache_point_block` without `model` (or
     hardcoded `{"type": "default"}`), silently downgrading 1h to 5m."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockConverseMessagesProcessor,
         _bedrock_converse_messages_pt,
     )
@@ -6311,7 +6311,7 @@ async def test_message_level_cache_control_honors_ttl_for_supported_model(
 def test_message_level_cache_control_drops_ttl_for_unsupported_model(ttl_target):
     """Models outside the extended-caching allow-list must keep emitting the
     plain `{"type": "default"}` cachePoint (Bedrock rejects `ttl` for them)."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -6455,7 +6455,7 @@ def test_adaptive_thinking_dropped_when_max_tokens_too_small_converse():
     """When max_tokens can't fit even the minimum thinking budget, the raw
     adaptive block must be dropped entirely rather than translated, so the
     Bedrock Converse request still succeeds."""
-    from litellm.constants import ANTHROPIC_MIN_THINKING_BUDGET_TOKENS
+    from token_iq.gateway.constants import ANTHROPIC_MIN_THINKING_BUDGET_TOKENS
 
     config = AmazonConverseConfig()
 
@@ -6584,7 +6584,7 @@ def test_usage_from_batch_output_inflates_input_by_cache_counts():
 
 def test_streaming_usage_chunk_is_transformed():
     """The streaming decoder's usage event feeds the same public transform."""
-    from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
     decoder = AWSEventStreamDecoder(model="us.amazon.nova-lite-v1:0")
     chunk = decoder.converse_chunk_parser({"usage": {"inputTokens": 11, "outputTokens": 4, "totalTokens": 15}})

@@ -15,10 +15,10 @@ import copy
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching.caching import DualCache
-from litellm.router_strategy.lowest_latency import LowestLatencyLoggingHandler
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_strategy.lowest_latency import LowestLatencyLoggingHandler
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 
@@ -578,7 +578,7 @@ async def test_lowest_latency_routing_with_timeouts():
     - Run 10 more requests
     - All requests should have been routed to endpoint 2
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
 
@@ -653,7 +653,7 @@ async def test_lowest_latency_routing_first_pick():
     - IT SHOULD NEVER PICK THE Very First deployment everytime all deployment latencies are 0
     - This ensures that after the ttl window resets it randomly picks a deployment
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
 

@@ -13,8 +13,8 @@ load_dotenv()
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import completion, completion_cost, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, completion_cost, embedding
 
 litellm.set_verbose = False
 
@@ -595,14 +595,14 @@ def tgi_mock_post(*args, **kwargs):
     return mock_response
 
 
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.llms.huggingface.embedding.handler.async_get_hf_task_embedding_for_model"
+    "token_iq.gateway.llms.huggingface.embedding.handler.async_get_hf_task_embedding_for_model"
 )
-@patch("litellm.llms.huggingface.embedding.handler.get_hf_task_embedding_for_model")
+@patch("token_iq.gateway.llms.huggingface.embedding.handler.get_hf_task_embedding_for_model")
 @pytest.mark.parametrize("sync_mode", [True, False])
 async def test_hf_embedding_sentence_sim(
     mock_async_get_hf_task_embedding_for_model,
@@ -777,7 +777,7 @@ def test_fireworks_embeddings():
 
 
 def test_watsonx_embeddings(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     # Mock the IAM token generation to avoid actual API calls
     monkeypatch.setenv("WATSONX_API_KEY", "mock-api-key")
@@ -833,7 +833,7 @@ def test_watsonx_embeddings(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_watsonx_aembeddings(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Mock the IAM token generation to avoid actual API calls
     monkeypatch.setenv("WATSONX_API_KEY", "mock-api-key")
@@ -1002,7 +1002,7 @@ async def test_hf_embedddings_with_optional_params(sync_mode):
 
 def test_hosted_vllm_embedding(monkeypatch):
     monkeypatch.setenv("HOSTED_VLLM_API_BASE", "http://localhost:8000")
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     with patch.object(client, "post") as mock_post:
@@ -1024,7 +1024,7 @@ def test_hosted_vllm_embedding(monkeypatch):
 
 def test_llamafile_embedding(monkeypatch):
     monkeypatch.setenv("LLAMAFILE_API_BASE", "http://localhost:8080/v1")
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     with patch.object(client, "post") as mock_post:
@@ -1048,7 +1048,7 @@ def test_llamafile_embedding(monkeypatch):
 @pytest.mark.parametrize("sync_mode", [True, False])
 async def test_lm_studio_embedding(monkeypatch, sync_mode):
     monkeypatch.setenv("LM_STUDIO_API_BASE", "http://localhost:8000")
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     client = HTTPHandler() if sync_mode else AsyncHTTPHandler()
     with patch.object(client, "post") as mock_post:
@@ -1143,7 +1143,7 @@ def test_cohere_img_embeddings(input, input_type):
 async def test_embedding_with_extra_headers(sync_mode):
 
     input = ["hello world"]
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     if sync_mode:
         client = HTTPHandler()
@@ -1213,7 +1213,7 @@ def test_jina_ai_img_embeddings(input_data, expected_payload_input):
     """
     # We patch the `post` method of the HTTPHandler. This intercepts the network
     # request before it's actually sent.
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         # Configure the mock to return a successful, minimal valid response.
         # This prevents litellm from raising an error when processing the response.
         mock_response = MagicMock()
@@ -1303,7 +1303,7 @@ def test_encoding_format_explicit_value_preserved():
     sent as-is to the OpenAI SDK.
     """
     with patch(
-        "litellm.llms.openai.openai.OpenAIChatCompletion._get_openai_client"
+        "token_iq.gateway.llms.openai.openai.OpenAIChatCompletion._get_openai_client"
     ) as mock_get_client:
         # Create a mock client instance
         mock_client_instance = MagicMock()

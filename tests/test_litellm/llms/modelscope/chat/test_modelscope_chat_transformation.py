@@ -15,9 +15,9 @@ import httpx
 import pytest
 import respx
 
-import litellm
-from litellm import completion
-from litellm.llms.modelscope.chat.transformation import ModelScopeChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.modelscope.chat.transformation import ModelScopeChatConfig
 
 DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B"
 

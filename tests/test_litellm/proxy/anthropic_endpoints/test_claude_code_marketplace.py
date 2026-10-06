@@ -10,14 +10,14 @@ import pytest
 from fastapi import HTTPException
 from unittest.mock import AsyncMock, MagicMock
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.proxy_server import LitellmUserRoles
-from litellm.types.proxy.claude_code_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import LitellmUserRoles
+from token_iq.gateway.types.proxy.claude_code_endpoints import (
     RegisterPluginRequest,
     UpdatePluginRequest,
 )
-from litellm.proxy.anthropic_endpoints.claude_code_endpoints.claude_code_marketplace import (
+from token_iq.gateway.proxy.anthropic_endpoints.claude_code_endpoints.claude_code_marketplace import (
     delete_plugin,
     disable_plugin,
     enable_plugin,

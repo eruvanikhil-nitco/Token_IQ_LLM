@@ -3,18 +3,18 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.llms.gemini.image_generation.cost_calculator import (
+from token_iq.gateway.llms.gemini.image_generation.cost_calculator import (
     cost_calculator as gemini_image_generation_cost_calculator,
 )
-from litellm.llms.vertex_ai.image_generation.cost_calculator import (
+from token_iq.gateway.llms.vertex_ai.image_generation.cost_calculator import (
     cost_calculator as vertex_image_generation_cost_calculator,
 )
-from litellm.types.llms.openai import FileSearchTool, WebSearchOptions
-from litellm.types.utils import (
+from token_iq.gateway.types.llms.openai import FileSearchTool, WebSearchOptions
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     ImageObject,
     ImageResponse,
@@ -26,7 +26,7 @@ from litellm.types.utils import (
     StandardBuiltInToolsParams,
 )
 
-from litellm.litellm_core_utils.llm_cost_calc.utils import (
+from token_iq.gateway.core_utils.llm_cost_calc.utils import (
     CostCalculatorUtils,
     PromptTokensDetailsResult,
     TokenTypeCostBreakdown,
@@ -38,7 +38,7 @@ from litellm.litellm_core_utils.llm_cost_calc.utils import (
     generic_cost_per_token,
     get_token_type_cost_breakdown,
 )
-from litellm.types.utils import CacheCreationTokenDetails, Usage
+from token_iq.gateway.types.utils import CacheCreationTokenDetails, Usage
 
 
 @pytest.fixture
@@ -204,7 +204,7 @@ def test_image_tokens_with_custom_pricing():
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -250,7 +250,7 @@ def test_image_tokens_fallback_to_base_cost():
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -351,7 +351,7 @@ def test_video_tokens_fallback_to_base_cost():
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -585,7 +585,7 @@ def test_get_token_base_cost_weekend_only_off_peak_rate():
     from datetime import datetime, timezone
     from typing import cast
 
-    from litellm.types.utils import ModelInfo
+    from token_iq.gateway.types.utils import ModelInfo
 
     model_info = cast(
         ModelInfo,
@@ -619,7 +619,7 @@ def test_get_token_base_cost_applies_off_peak_pricing():
     from datetime import datetime, timezone
     from typing import cast
 
-    from litellm.types.utils import ModelInfo
+    from token_iq.gateway.types.utils import ModelInfo
 
     model_info = cast(
         ModelInfo,
@@ -656,7 +656,7 @@ def test_get_token_base_cost_non_mapping_off_peak_block_bills_standard_rates():
     from datetime import datetime, timezone
     from typing import cast
 
-    from litellm.types.utils import ModelInfo
+    from token_iq.gateway.types.utils import ModelInfo
 
     usage = Usage(prompt_tokens=100, completion_tokens=50, total_tokens=150)
     when = datetime(2026, 1, 1, 18, 0, tzinfo=timezone.utc)
@@ -679,7 +679,7 @@ def test_get_token_base_cost_off_peak_falls_back_to_standard_when_unset():
     from datetime import datetime, timezone
     from typing import cast
 
-    from litellm.types.utils import ModelInfo
+    from token_iq.gateway.types.utils import ModelInfo
 
     model_info = cast(
         ModelInfo,
@@ -700,7 +700,7 @@ def test_get_token_base_cost_off_peak_wins_over_threshold():
     from datetime import datetime, timezone
     from typing import cast
 
-    from litellm.types.utils import ModelInfo
+    from token_iq.gateway.types.utils import ModelInfo
 
     model_info = cast(
         ModelInfo,
@@ -1292,7 +1292,7 @@ def test_router_deployment_with_input_only_tiers_bills_completions_at_the_backen
     """Regression: the router registers a deployment's custom pricing as a standalone
     model_cost entry holding only the supplied fields, so an input-only tier table left
     the output-rate fallback nothing to read and billed every completion at 0."""
-    from litellm import Router
+    from token_iq.gateway import Router
 
     model_id = "litellm-test-router-tiered-input-only"
     backend_model = "anthropic/claude-haiku-4-5"
@@ -1933,7 +1933,7 @@ def test_string_cost_values():
 
     # Mock get_model_info to return our mock model info
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -2029,7 +2029,7 @@ def test_generic_cost_per_token_warm_prefix_cache_spanning_text_and_image_tokens
 
 def test_calculate_cost_component_with_string_values():
     """Test the calculate_cost_component function directly with string cost values."""
-    from litellm.litellm_core_utils.llm_cost_calc.utils import calculate_cost_component
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import calculate_cost_component
 
     # Test with valid string scientific notation
     model_info = {"input_cost_per_token": "3e-7"}
@@ -2101,7 +2101,7 @@ def test_string_cost_values_edge_cases():
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -2138,7 +2138,7 @@ def test_string_cost_values_with_threshold():
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         prompt_cost, completion_cost = generic_cost_per_token(
@@ -2848,7 +2848,7 @@ def test_data_residency_applies_uplift(data_residency, model, _local_model_cost_
     """Models released on/after 2026-03-05 (gpt-5.4/5.5 and gpt-realtime-2.1
     series) apply the 10% regional processing uplift multiplier when
     data_residency is set; gpt-5 and older models do not."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2876,7 +2876,7 @@ def test_data_residency_applies_uplift(data_residency, model, _local_model_cost_
 @pytest.mark.parametrize("model", ["gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-pro", "gpt-4o", "gpt-4.1"])
 def test_data_residency_no_uplift_for_pre_march_2026_models(model, _local_model_cost_map):
     """Models released before 2026-03-05 must not have the regional uplift."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2893,7 +2893,7 @@ def test_data_residency_no_uplift_for_pre_march_2026_models(model, _local_model_
 def test_data_residency_no_uplift_for_unmarked_model(_local_model_cost_map):
     """A model without a regional_processing_uplift_multiplier_* entry should
     fall back to base pricing, not error."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2914,7 +2914,7 @@ def test_data_residency_no_uplift_for_unmarked_model(_local_model_cost_map):
 
 def test_data_residency_none_no_uplift(_local_model_cost_map):
     """data_residency=None should be a no-op even for models with a multiplier."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2935,7 +2935,7 @@ def test_data_residency_none_no_uplift(_local_model_cost_map):
 
 def test_data_residency_composes_with_service_tier(_local_model_cost_map):
     """The uplift multiplies the priority-tier cost, not the standard one."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2966,7 +2966,7 @@ def test_vertex_regional_location_applies_uplift(vertex_location, model, _local_
     """Google bills every non-global Vertex endpoint at 1.1x the global rate for GA
     Gemini 3+ and regional-pricing Claude models, so a request served from a regional
     location must cost 1.1x what the same usage costs on the global endpoint."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -2991,7 +2991,7 @@ def test_vertex_regional_location_applies_uplift(vertex_location, model, _local_
 def test_vertex_global_or_absent_location_no_uplift(vertex_location, _local_model_cost_map):
     """The global endpoint prices at the base rate, whatever the casing, and an
     unresolved location must never uplift."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -3012,7 +3012,7 @@ def test_vertex_global_or_absent_location_no_uplift(vertex_location, _local_mode
 def test_vertex_location_no_uplift_for_uniformly_priced_model(model, _local_model_cost_map):
     """Models Google prices uniformly across endpoints (Gemini 2.x, Claude Opus 4.1
     and older) carry no multiplier and must not move with the location."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -3029,7 +3029,7 @@ def test_vertex_location_no_uplift_for_uniformly_priced_model(model, _local_mode
 
 def test_vertex_uplift_invalid_multiplier_defaults_to_one():
     """A malformed multiplier in the cost map degrades to base pricing, never raises."""
-    from litellm.litellm_core_utils.llm_cost_calc.utils import (
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import (
         get_vertex_regional_endpoint_uplift,
     )
 
@@ -3111,8 +3111,8 @@ def test_priority_service_tier_above_threshold_falls_back_to_standard_for_cache_
 
 
 def test_service_tier_suffixes_constant_in_sync_with_enum():
-    from litellm.litellm_core_utils.llm_cost_calc.utils import _SERVICE_TIER_SUFFIXES
-    from litellm.types.utils import ServiceTier
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import _SERVICE_TIER_SUFFIXES
+    from token_iq.gateway.types.utils import ServiceTier
 
     assert set(_SERVICE_TIER_SUFFIXES) == {f"_{st.value}" for st in ServiceTier}
     # longest-first so a substring match resolves "_ultrafast" before "_fast"
@@ -3122,7 +3122,7 @@ def test_service_tier_suffixes_constant_in_sync_with_enum():
 
 
 def test_get_cost_per_unit_falls_back_from_service_tier_key_to_base():
-    from litellm.litellm_core_utils.llm_cost_calc.utils import _get_cost_per_unit
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import _get_cost_per_unit
 
     model_info = {"input_cost_per_token": 2e-6}
     # service-tier key is absent -> falls back to the base key
@@ -3140,8 +3140,8 @@ def test_get_cost_per_unit_falls_back_from_service_tier_key_to_base():
 def test_threshold_keys_exclude_service_tier_variants():
     from typing import cast
 
-    from litellm.litellm_core_utils.llm_cost_calc.utils import _get_token_base_cost
-    from litellm.types.utils import ModelInfo, Usage
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import _get_token_base_cost
+    from token_iq.gateway.types.utils import ModelInfo, Usage
 
     # The service-tier-suffixed above-threshold key must be excluded from
     # threshold detection. The _priority variant has a higher threshold (300k),
@@ -3514,7 +3514,7 @@ def test_token_type_cost_breakdown_openai_responses_api_cache_write_read(_local_
     input_tokens_details.{cached_tokens, cache_write_tokens}, not the Anthropic-style
     top-level cache_creation_input_tokens. The itemized breakdown must still populate
     cache_read_cost / cache_creation_cost from the transformed usage."""
-    from litellm.responses.utils import ResponseAPILoggingUtils
+    from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
 
 
     model = "gpt-5.6"
@@ -3667,7 +3667,7 @@ def test_token_type_cost_breakdown_applies_anthropic_geo_multiplier(_local_model
     cache costs stay at the base rate and the cache uplift is misattributed to
     plain input for exactly the cache-heavy regional traffic the uplift targets.
     """
-    from litellm.llms.anthropic.cost_calculation import (
+    from token_iq.gateway.llms.anthropic.cost_calculation import (
         cost_per_token as anthropic_cost_per_token,
     )
 
@@ -3739,10 +3739,10 @@ def test_image_response_input_image_tokens_priced_at_image_rate(details_as_dict)
     """
     from unittest.mock import patch
 
-    from litellm.litellm_core_utils.llm_cost_calc.utils import (
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import (
         calculate_image_response_cost_from_usage,
     )
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     mock_model_info = {
         "input_cost_per_token": 5e-6,
@@ -3769,7 +3769,7 @@ def test_image_response_input_image_tokens_priced_at_image_rate(details_as_dict)
     )
 
     with patch(
-        "litellm.litellm_core_utils.llm_cost_calc.utils.get_model_info",
+        "token_iq.gateway.core_utils.llm_cost_calc.utils.get_model_info",
         return_value=mock_model_info,
     ):
         cost = calculate_image_response_cost_from_usage(
@@ -3985,7 +3985,7 @@ def test_fast_service_tier_bills_at_the_priority_rate(_local_model_cost_map):
 
     Before the fix "fast" fell through to standard pricing, so a Fast mode request
     was billed at half of what it actually costs."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(
         prompt_tokens=1_000,
@@ -4014,7 +4014,7 @@ def test_fast_service_tier_bills_at_the_priority_rate(_local_model_cost_map):
 
 
 def test_fast_service_tier_is_case_insensitive(_local_model_cost_map):
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=1_000, completion_tokens=500)
 
@@ -4027,7 +4027,7 @@ def test_fast_service_tier_is_case_insensitive(_local_model_cost_map):
 
 def test_fast_service_tier_matches_priority_above_the_context_threshold(_local_model_cost_map):
     """The above-threshold branch resolves its own cost keys, so the alias has to hold there too."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(prompt_tokens=300_000, completion_tokens=1_000)
 
@@ -4047,7 +4047,7 @@ def test_priority_reasoning_tokens_bill_at_the_priority_output_rate(_local_model
     """Regression: gemini-3.5-flash publishes priority output pricing but no priority
     reasoning key, so reasoning tokens under priority/fast were billed at the standard
     output_cost_per_reasoning_token instead of following the tier's output rate."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(
         prompt_tokens=1_000,
@@ -4078,7 +4078,7 @@ def test_priority_reasoning_tokens_bill_at_the_priority_output_rate(_local_model
 
 
 def test_explicit_tier_reasoning_key_wins_over_the_tier_output_rate():
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model_info = {
         "input_cost_per_token": 1e-06,
@@ -4108,7 +4108,7 @@ def test_explicit_tier_reasoning_key_wins_over_the_tier_output_rate():
 def test_null_tier_reasoning_key_falls_back_to_the_tier_output_rate():
     """get_model_info dumps every ModelInfo field, so an unpublished tier reasoning key
     arrives as an explicit None and must not shadow the tier output rate."""
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model_info = {
         "input_cost_per_token": 1e-06,
@@ -4136,7 +4136,7 @@ def test_null_tier_reasoning_key_falls_back_to_the_tier_output_rate():
 
 
 def test_tier_request_without_tier_pricing_keeps_the_standard_reasoning_rate():
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model_info = {
         "input_cost_per_token": 1e-06,

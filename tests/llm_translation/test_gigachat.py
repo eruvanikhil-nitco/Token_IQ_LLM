@@ -13,7 +13,7 @@ class TestGigaChatMessageTransformation:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -118,7 +118,7 @@ class TestGigaChatCollapseUserMessages:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -128,7 +128,7 @@ class TestGigaChatToolsTransformation:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -185,7 +185,7 @@ class TestGigaChatParamsTransformation:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -262,26 +262,26 @@ class TestGigaChatProviderRegistration:
 
     def test_gigachat_in_provider_list(self):
         """GigaChat should be in provider list"""
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         assert hasattr(LlmProviders, "GIGACHAT")
         assert LlmProviders.GIGACHAT.value == "gigachat"
 
     def test_gigachat_in_chat_providers(self):
         """GigaChat should be in LITELLM_CHAT_PROVIDERS"""
-        from litellm.constants import LITELLM_CHAT_PROVIDERS
+        from token_iq.gateway.constants import LITELLM_CHAT_PROVIDERS
 
         assert "gigachat" in LITELLM_CHAT_PROVIDERS
 
     def test_gigachat_key_exists(self):
         """gigachat_key should be available"""
-        import litellm
+        from token_iq import gateway as litellm
 
         assert hasattr(litellm, "gigachat_key")
 
     def test_gigachat_config_exists(self):
         """GigaChatConfig should be available"""
-        import litellm
+        from token_iq import gateway as litellm
 
         assert hasattr(litellm, "GigaChatConfig")
 
@@ -291,7 +291,7 @@ class TestGigaChatTransformRequest:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -344,7 +344,7 @@ class TestGigaChatSupportedParams:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 
@@ -365,7 +365,7 @@ class TestGigaChatToolChoiceMapping:
 
     @pytest.fixture
     def config(self):
-        from litellm.llms.gigachat.chat.transformation import GigaChatConfig
+        from token_iq.gateway.llms.gigachat.chat.transformation import GigaChatConfig
 
         return GigaChatConfig()
 

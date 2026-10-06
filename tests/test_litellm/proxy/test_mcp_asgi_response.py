@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.proxy_server import _stream_mcp_asgi_response
+from token_iq.gateway.proxy.proxy_server import _stream_mcp_asgi_response
 
 
 @pytest.mark.asyncio

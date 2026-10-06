@@ -1,8 +1,8 @@
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
-from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
+from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
 
 
 @pytest.fixture()

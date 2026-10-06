@@ -7,20 +7,20 @@ from typing import Any, List
 import httpx
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.exceptions import Timeout as LiteLLMTimeout
-from litellm.proxy.guardrails.guardrail_hooks.vigil_guard import (
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.exceptions import Timeout as LiteLLMTimeout
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.vigil_guard import (
     VigilGuardGuardrail,
     guardrail_class_registry,
     guardrail_initializer_registry,
     initialize_guardrail,
 )
-from litellm.proxy.guardrails.guardrail_hooks.vigil_guard.vigil_guard import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.vigil_guard.vigil_guard import (
     _DEFAULT_VIGIL_TIMEOUT,
     VigilGuardMissingConfig,
 )
-from litellm.types.guardrails import LitellmParams, SupportedGuardrailIntegrations
-from litellm.types.proxy.guardrails.guardrail_hooks.vigil_guard import (
+from token_iq.gateway.types.guardrails import LitellmParams, SupportedGuardrailIntegrations
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.vigil_guard import (
     VigilGuardGuardrailConfigModel,
 )
 

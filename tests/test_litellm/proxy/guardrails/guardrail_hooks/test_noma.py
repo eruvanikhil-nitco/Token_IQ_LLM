@@ -6,19 +6,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm import ModelResponse
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.noma import (
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma import (
     NomaGuardrail,
     NomaV2Guardrail,
     initialize_guardrail,
 )
-import litellm.proxy.guardrails.guardrail_hooks.noma.noma as noma_legacy_module
-from litellm.proxy.guardrails.guardrail_hooks.noma.noma import NomaBlockedMessage
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.llms.openai import AllMessageValues
-from litellm.types.utils import Choices, Message
+import token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma as noma_legacy_module
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import NomaBlockedMessage
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.utils import Choices, Message
 
 
 @pytest.fixture
@@ -148,7 +148,7 @@ class TestNomaGuardrailConfiguration:
 
     def test_initialize_guardrail_function(self):
         """Test the initialize_guardrail function"""
-        from litellm.types.guardrails import Guardrail, LitellmParams
+        from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="noma",
@@ -165,7 +165,7 @@ class TestNomaGuardrailConfiguration:
             litellm_params=litellm_params,
         )
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback") as mock_add:
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback") as mock_add:
             result = initialize_guardrail(litellm_params, guardrail)
 
             assert isinstance(result, NomaGuardrail)
@@ -178,7 +178,7 @@ class TestNomaGuardrailConfiguration:
 
     def test_initialize_guardrail_use_v2_routes_to_noma_v2(self):
         """Test migration routing: guardrail=noma + use_v2=True initializes NomaV2Guardrail."""
-        from litellm.types.guardrails import Guardrail, LitellmParams
+        from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="noma",
@@ -194,7 +194,7 @@ class TestNomaGuardrailConfiguration:
             litellm_params=litellm_params,
         )
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback") as mock_add:
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback") as mock_add:
             result = initialize_guardrail(litellm_params, guardrail)
 
             assert isinstance(result, NomaV2Guardrail)
@@ -896,7 +896,7 @@ class TestBackgroundProcessing:
         self, monitor_mode_guardrail, mock_user_api_key_dict, mock_request_data
     ):
         """Test LLM response processing in monitor mode"""
-        from litellm.types.utils import Choices, Message
+        from token_iq.gateway.types.utils import Choices, Message
 
         response = ModelResponse(
             id="test-response-id",
@@ -973,7 +973,7 @@ class TestBackgroundProcessing:
         self, monitor_mode_guardrail, mock_user_api_key_dict, mock_request_data
     ):
         """Test background LLM response check method"""
-        from litellm.types.utils import Choices, Message
+        from token_iq.gateway.types.utils import Choices, Message
 
         response = ModelResponse(
             id="test-response-id",
@@ -1018,7 +1018,7 @@ class TestBackgroundProcessing:
             ],
         }
 
-        with patch("litellm._logging.verbose_proxy_logger.warning") as mock_warning:
+        with patch("token_iq.gateway._logging.verbose_proxy_logger.warning") as mock_warning:
             await monitor_mode_guardrail._handle_verdict_background(
                 "user", "test message", response_json
             )
@@ -1034,7 +1034,7 @@ class TestBackgroundProcessing:
             "scanResult": [{"role": "assistant", "type": "message", "results": {}}],
         }
 
-        with patch("litellm._logging.verbose_proxy_logger.info") as mock_info:
+        with patch("token_iq.gateway._logging.verbose_proxy_logger.info") as mock_info:
             await monitor_mode_guardrail._handle_verdict_background(
                 "assistant", "test response", response_json
             )
@@ -1091,7 +1091,7 @@ class TestBackgroundProcessing:
         self, monitor_mode_guardrail, mock_user_api_key_dict, mock_request_data
     ):
         """Test post-call success hook in monitor mode"""
-        from litellm.types.utils import Choices, Message
+        from token_iq.gateway.types.utils import Choices, Message
 
         # Update event hook to post_call
         monitor_mode_guardrail.event_hook = "post_call"
@@ -1158,7 +1158,7 @@ class TestNomaImageProcessing:
 
     def test_extract_user_message_with_image_url(self):
         """User message with only image_url becomes a single input_image content item."""
-        from litellm.completion_extras.litellm_responses_transformation.transformation import (
+        from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
             LiteLLMResponsesTransformationHandler,
         )
 
@@ -1188,7 +1188,7 @@ class TestNomaImageProcessing:
 
     def test_extract_user_message_with_mixed_content(self):
         """User message with text + image becomes input_text then input_image in content list."""
-        from litellm.completion_extras.litellm_responses_transformation.transformation import (
+        from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
             LiteLLMResponsesTransformationHandler,
         )
 
@@ -1227,7 +1227,7 @@ class TestNomaImageProcessing:
 
     def test_extract_user_message_with_multiple_images(self):
         """User message with multiple images becomes multiple input_image items."""
-        from litellm.completion_extras.litellm_responses_transformation.transformation import (
+        from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
             LiteLLMResponsesTransformationHandler,
         )
 
@@ -1433,7 +1433,7 @@ class TestNomaImageProcessing:
         mock_response.json.return_value = noma_response
         mock_response.raise_for_status = MagicMock()
 
-        from litellm.proxy.guardrails.guardrail_hooks.noma.noma import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import (
             NomaBlockedMessage,
         )
 
@@ -1453,7 +1453,7 @@ class TestNomaImageProcessing:
     @pytest.mark.asyncio
     async def test_image_with_base64_data(self, noma_guardrail, mock_user_api_key_dict):
         """Test extracting image with base64 data URL"""
-        from litellm.completion_extras.litellm_responses_transformation.transformation import (
+        from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
             LiteLLMResponsesTransformationHandler,
         )
 
@@ -1570,7 +1570,7 @@ class TestNomaAnonymizationConfiguration:
 
     def test_initialize_guardrail_with_anonymize_input(self):
         """Test the initialize_guardrail function with anonymize_input"""
-        from litellm.types.guardrails import Guardrail, LitellmParams
+        from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="noma",
@@ -1584,7 +1584,7 @@ class TestNomaAnonymizationConfiguration:
             litellm_params=litellm_params,
         )
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback"):
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
             result = initialize_guardrail(litellm_params, guardrail)
             assert result.anonymize_input is True
 

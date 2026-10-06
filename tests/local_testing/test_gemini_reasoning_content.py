@@ -1,7 +1,7 @@
-from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     VertexGeminiConfig,
 )
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
 

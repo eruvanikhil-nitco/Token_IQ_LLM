@@ -15,7 +15,7 @@ For all tests - test the following:
 
 import os
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -26,21 +26,21 @@ load_dotenv()
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 
 import pytest
 
-import litellm
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy.management_endpoints.internal_user_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
     user_info,
     user_update,
 )
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_key_fn,
     generate_key_fn,
     generate_key_helper_fn,
@@ -48,12 +48,12 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
     regenerate_key_fn,
     update_key_fn,
 )
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     new_team,
     team_info,
     update_team,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     LitellmUserRoles,
     audio_transcriptions,
     chat_completion,
@@ -63,10 +63,10 @@ from litellm.proxy.proxy_server import (
     moderations,
     user_api_key_auth,
 )
-from litellm.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
     new_end_user,
 )
-from litellm.proxy.spend_tracking.spend_management_endpoints import (
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
     global_spend,
     global_spend_logs,
     global_spend_models,
@@ -75,17 +75,17 @@ from litellm.proxy.spend_tracking.spend_management_endpoints import (
     spend_user_fn,
     view_spend_logs,
 )
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 from starlette.datastructures import URL
 
-from litellm.caching.caching import DualCache
-from litellm.types.proxy.management_endpoints.ui_sso import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     LiteLLM_UpperboundKeyGenerateParams,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     DynamoDBArgs,
     GenerateKeyRequest,
     RegenerateKeyRequest,
@@ -106,7 +106,7 @@ proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}
@@ -136,7 +136,7 @@ async def test_view_daily_spend_ui(prisma_client):
     setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
 
     await litellm.proxy.proxy_server.prisma_client.connect()
-    from litellm.proxy.proxy_server import user_api_key_cache
+    from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     spend_logs_for_admin = await global_spend_logs(
         user_api_key_dict=UserAPIKeyAuth(

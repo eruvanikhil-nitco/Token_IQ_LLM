@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.db.prisma_client import PrismaWrapper
-from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
-from litellm.proxy.management_helpers.access_group_key_sync import (
+from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
+from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+from token_iq.gateway.proxy.management_helpers.access_group_key_sync import (
     sync_key_access_group_membership,
     sync_key_regeneration_access_group_membership,
 )

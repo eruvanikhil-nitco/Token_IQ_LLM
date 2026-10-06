@@ -5,8 +5,8 @@ import traceback
 
 import pytest
 
-import litellm
-from litellm import completion, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, embedding
 
 litellm.set_verbose = True
 

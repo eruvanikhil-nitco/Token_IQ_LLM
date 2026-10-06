@@ -20,7 +20,7 @@ from redis.exceptions import (
 )
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
-from litellm.caching.redis_cluster_node_isolation import (
+from token_iq.gateway.caching.redis_cluster_node_isolation import (
     get_litellm_async_redis_cluster_class,
 )
 

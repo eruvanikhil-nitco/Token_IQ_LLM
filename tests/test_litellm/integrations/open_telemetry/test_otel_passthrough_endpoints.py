@@ -6,10 +6,10 @@ import asyncio
 import pytest
 from fastapi import HTTPException
 
-from litellm.caching.dual_cache import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 from ._helpers import (
     assert_server_span_attrs,

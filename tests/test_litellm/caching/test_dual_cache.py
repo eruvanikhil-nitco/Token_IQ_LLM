@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.caching.redis_cache import RedisCache
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.caching.redis_cache import RedisCache
 
 
 @pytest.mark.asyncio
@@ -218,7 +218,7 @@ async def test_dual_cache_sync_and_async_set_cache_use_same_ttl():
 
 def test_circuit_breaker_opens_after_threshold():
     """Circuit opens after N consecutive Redis failures."""
-    from litellm.caching.redis_cache import RedisCircuitBreaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker
 
     cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60)
     for _ in range(3):
@@ -230,7 +230,7 @@ def test_circuit_breaker_opens_after_threshold():
 @pytest.mark.asyncio
 async def test_circuit_breaker_open_skips_redis():
     """When circuit is open, the guard decorator raises immediately without calling the method."""
-    from litellm.caching.redis_cache import (
+    from token_iq.gateway.caching.redis_cache import (
         RedisCircuitBreaker,
         _redis_circuit_breaker_guard,
     )
@@ -258,7 +258,7 @@ async def test_circuit_breaker_open_skips_redis():
 
 def test_circuit_breaker_closes_on_recovery():
     """After recovery_timeout expires, probe is allowed and success closes the circuit."""
-    from litellm.caching.redis_cache import RedisCircuitBreaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker
 
     cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60)
     cb._state = "open"
@@ -280,7 +280,7 @@ def test_circuit_breaker_half_open_concurrent_calls_are_fast_failed():
     state is already HALF_OPEN must be fast-failed (return True), not allowed
     through as additional probes.
     """
-    from litellm.caching.redis_cache import RedisCircuitBreaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker
 
     cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60)
     cb._state = "open"
@@ -299,7 +299,7 @@ def test_circuit_breaker_half_open_concurrent_calls_are_fast_failed():
 
 def test_circuit_breaker_disabled_never_opens():
     """When disabled, failures never open the circuit and is_open() stays False."""
-    from litellm.caching.redis_cache import RedisCircuitBreaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker
 
     cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60, enabled=False)
 
@@ -316,7 +316,7 @@ def test_circuit_breaker_disabled_record_success_leaves_state_untouched():
     a non-default (OPEN) state and assert record_success() returns without
     resetting it — the same enabled-guard contract as is_open/record_failure.
     """
-    from litellm.caching.redis_cache import RedisCircuitBreaker
+    from token_iq.gateway.caching.redis_cache import RedisCircuitBreaker
 
     cb = RedisCircuitBreaker(failure_threshold=3, recovery_timeout=60, enabled=False)
     cb._state = "open"
@@ -331,7 +331,7 @@ def test_circuit_breaker_disabled_record_success_leaves_state_untouched():
 @pytest.mark.asyncio
 async def test_circuit_breaker_disabled_guard_always_calls_method():
     """A disabled breaker lets every guarded call through, even after failures."""
-    from litellm.caching.redis_cache import (
+    from token_iq.gateway.caching.redis_cache import (
         RedisCircuitBreaker,
         _redis_circuit_breaker_guard,
     )

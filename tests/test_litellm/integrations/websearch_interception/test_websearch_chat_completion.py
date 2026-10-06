@@ -10,11 +10,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.integrations.websearch_interception.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.types.utils import LlmProviders, ModelResponse
+from token_iq.gateway.types.utils import LlmProviders, ModelResponse
 
 
 @pytest.fixture
@@ -109,7 +109,7 @@ async def test_websearch_chat_completion_with_openai():
 @pytest.mark.asyncio
 async def test_websearch_chat_completion_hook_detection():
     """Test that websearch hook correctly detects tool calls in response."""
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Choices,
         Function,
@@ -173,7 +173,7 @@ async def test_websearch_chat_completion_hook_detection():
 @pytest.mark.asyncio
 async def test_websearch_not_triggered_without_tool():
     """Test that websearch hook is NOT triggered when no web search tool in request."""
-    from litellm.types.utils import Choices, Message
+    from token_iq.gateway.types.utils import Choices, Message
 
     websearch_logger = WebSearchInterceptionLogger(enabled_providers=[LlmProviders.OPENAI])
 
@@ -219,7 +219,7 @@ async def test_websearch_not_triggered_without_tool():
 @pytest.mark.asyncio
 async def test_websearch_not_triggered_for_disabled_provider():
     """Test that websearch hook is NOT triggered for providers not in enabled_providers."""
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Choices,
         Function,
@@ -285,7 +285,7 @@ async def test_websearch_json_serialization_fix():
     string representation instead of proper JSON, causing providers like
     MiniMax to reject requests with 'invalid function arguments json string'.
     """
-    from litellm.integrations.websearch_interception.transformation import (
+    from token_iq.gateway.integrations.websearch_interception.transformation import (
         WebSearchTransformation,
     )
 
@@ -385,10 +385,10 @@ async def test_maybe_run_chat_completion_agentic_loop_calls_chat_completion_hook
     causing WebSearchInterceptionLogger to never intercept chat completion requests
     even when the LLM returned a litellm_web_search tool call.
     """
-    from litellm.litellm_core_utils.chat_completion_agentic_loop import (
+    from token_iq.gateway.core_utils.chat_completion_agentic_loop import (
         maybe_run_chat_completion_agentic_loop,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Choices,
         Function,
@@ -451,14 +451,14 @@ async def test_maybe_run_chat_completion_agentic_loop_calls_chat_completion_hook
         }
 
     async def fake_build_plan(tools, model, messages, response, optional_params, logging_obj, stream, kwargs):
-        from litellm.types.integrations.custom_logger import AgenticLoopPlan
+        from token_iq.gateway.types.integrations.custom_logger import AgenticLoopPlan
 
         return AgenticLoopPlan(run_agentic_loop=False, response_override=sentinel)
 
     websearch_logger.async_should_run_chat_completion_agentic_loop = fake_should_run_chat_completion
     websearch_logger.async_build_chat_completion_agentic_loop_plan = fake_build_plan
 
-    import litellm as _litellm
+    from token_iq import gateway as _litellm
 
     original_callbacks = _litellm.callbacks[:]
     _litellm.callbacks = [websearch_logger]
@@ -517,7 +517,7 @@ async def test_execute_chat_completion_agentic_loop_strips_tool_choice():
         return ("Bitcoin price is $60,000", None)
 
     with patch.object(websearch_logger, "_execute_search", side_effect=fake_search):
-        with patch("litellm.acompletion", side_effect=fake_acompletion):
+        with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
             await websearch_logger._execute_chat_completion_agentic_loop(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": "What is Bitcoin price?"}],

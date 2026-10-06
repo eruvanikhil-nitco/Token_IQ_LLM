@@ -10,11 +10,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.watsonx.audio_transcription.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.watsonx.audio_transcription.transformation import (
     IBMWatsonXAudioTranscriptionConfig,
 )
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 class TestWatsonXAudioTranscription:
@@ -42,7 +42,7 @@ class TestWatsonXAudioTranscription:
             return mock_response
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
             try:
@@ -105,7 +105,7 @@ class TestWatsonXAudioTranscription:
             return mock_response
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
             try:
@@ -169,7 +169,7 @@ class TestWatsonXAudioTranscription:
             return mock_response
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
             try:
@@ -228,7 +228,7 @@ class TestWatsonXAudioTranscription:
             return mock_response
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
             try:

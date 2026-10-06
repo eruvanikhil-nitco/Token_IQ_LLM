@@ -7,12 +7,12 @@ import httpx
 import pytest
 
 
-from litellm.a2a_protocol.providers.config_manager import A2AProviderConfigManager
-from litellm.a2a_protocol.providers.watsonx_orchestrate import handler as wxo_handler
-from litellm.a2a_protocol.providers.watsonx_orchestrate.handler import (
+from token_iq.gateway.a2a_protocol.providers.config_manager import A2AProviderConfigManager
+from token_iq.gateway.a2a_protocol.providers.watsonx_orchestrate import handler as wxo_handler
+from token_iq.gateway.a2a_protocol.providers.watsonx_orchestrate.handler import (
     WatsonxOrchestrateHandler,
 )
-from litellm.a2a_protocol.providers.watsonx_orchestrate.transformation import (
+from token_iq.gateway.a2a_protocol.providers.watsonx_orchestrate.transformation import (
     WatsonxOrchestrateTransformation,
 )
 
@@ -576,7 +576,7 @@ def test_config_manager_returns_wxo_provider():
 def test_wxo_dashboard_auth_fields():
     fields_path = (
         Path(__file__).resolve().parents[5]
-        / "litellm/proxy/public_endpoints/agent_create_fields.json"
+        / "token_iq/gateway/proxy/public_endpoints/agent_create_fields.json"
     )
     agent_fields = json.loads(fields_path.read_text())
     wxo_agent = next(

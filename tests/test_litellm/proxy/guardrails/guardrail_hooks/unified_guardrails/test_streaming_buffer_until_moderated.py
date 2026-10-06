@@ -15,15 +15,15 @@ from typing import Any, List, Literal, Optional
 
 import pytest
 
-from litellm.integrations.custom_guardrail import (
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     ModifyResponseException,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
     UnifiedLLMGuardrails,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 BLOCK_MESSAGE = "Blocked by policy: this response was withheld."
 ORIGINAL_MARKER = "ORIGINAL-SECRET-ANSWER"

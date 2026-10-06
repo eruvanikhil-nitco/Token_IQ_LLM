@@ -5,7 +5,7 @@ import inspect
 import json
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 import pytest
@@ -14,10 +14,10 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Cache, completion, embedding
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import LiteLLMCommonStrings
+from token_iq import gateway as litellm
+from token_iq.gateway import Cache, completion, embedding
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import LiteLLMCommonStrings
 
 # Test Scenarios (test across completion, streaming, embedding)
 ## 1: Pre-API-Call

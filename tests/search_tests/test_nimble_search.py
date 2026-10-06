@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 MOCK_NIMBLE_RESPONSE = {
@@ -68,7 +68,7 @@ class TestNimbleSearchTransformation:
 
     def test_nimble_search_request_and_response(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ) as mock_post:
             response = litellm.search(
@@ -105,7 +105,7 @@ class TestNimbleSearchTransformation:
     def test_provider_specific_params_survive_to_the_wire(self):
         """Nimble-native params must not be eaten by `filter_out_litellm_params`."""
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ) as mock_post:
             litellm.search(
@@ -130,7 +130,7 @@ class TestNimbleSearchTransformation:
     @pytest.mark.asyncio
     async def test_nimble_asearch(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=AsyncMock(return_value=_mock_response()),
         ) as mock_post:
             response = await litellm.asearch(
@@ -144,7 +144,7 @@ class TestNimbleSearchTransformation:
 
     def test_nimble_search_tracks_cost(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ):
             response = litellm.search(query="pricing check", search_provider="nimble")

@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.llms.custom_httpx.container_handler import _build_url
+from token_iq.gateway.llms.custom_httpx.container_handler import _build_url
 
 
 def test_build_url_encodes_path_params_and_preserves_query():

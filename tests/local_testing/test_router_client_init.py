@@ -14,15 +14,15 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 from openai.lib.azure import OpenAIError
 
-import litellm
-from litellm import APIConnectionError, Router
+from token_iq import gateway as litellm
+from token_iq.gateway import APIConnectionError, Router
 from unittest.mock import ANY
 
 
 @pytest.mark.skip(
     reason="This test is not relevant to the current codebase. The default Azure AD workflow is used."
 )
-@patch("litellm.secret_managers.get_azure_ad_token_provider.os")
+@patch("token_iq.gateway.secret_managers.get_azure_ad_token_provider.os")
 def test_router_init_with_neither_api_key_nor_azure_service_principal_with_secret(
     mocked_os_lib: MagicMock,
 ) -> None:
@@ -157,7 +157,7 @@ async def test_audio_speech_router():
     Test that router uses OpenAI/Azure OpenAI Client initialized during init for litellm.aspeech
     """
 
-    from litellm import Router
+    from token_iq.gateway import Router
 
     litellm.set_verbose = True
 
@@ -180,7 +180,7 @@ async def test_audio_speech_router():
         client_type="async",
     )
 
-    with patch("litellm.aspeech") as mock_aspeech:
+    with patch("token_iq.gateway.aspeech") as mock_aspeech:
         await _router.aspeech(
             model="tts",
             voice="alloy",

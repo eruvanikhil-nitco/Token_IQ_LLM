@@ -46,7 +46,7 @@ def test_eager_loading_enabled():
     """Test that encoding is loaded at import time when env var is set"""
     result = _run_python(
         """
-        import litellm
+        from token_iq import gateway as litellm
         assert hasattr(litellm, "encoding"), "Encoding should be available when eager loading is enabled"
         encoding = litellm.encoding
         assert encoding is not None, "Encoding should not be None"
@@ -80,7 +80,7 @@ def test_eager_loading_env_var_values():
             mods_to_remove = [k for k in sys.modules if k == "litellm" or k.startswith("litellm.")]
             for m in mods_to_remove:
                 del sys.modules[m]
-            import litellm
+            from token_iq import gateway as litellm
             assert hasattr(litellm, "encoding"), f"Encoding missing for {value!r}"
             tokens = litellm.encoding.encode("test")
             assert len(tokens) > 0, f"Encoding broken for {value!r}"
@@ -96,7 +96,7 @@ def test_lazy_loading_default():
     """Test that encoding is lazy loaded by default (when env var is not set)"""
     result = _run_python(
         """
-        import litellm
+        from token_iq import gateway as litellm
         # Encoding should be accessible via __getattr__ (lazy loading)
         encoding = litellm.encoding
         tokens = encoding.encode("Hello, world!")
@@ -117,7 +117,7 @@ def test_tiktoken_cache_dir_set_on_lazy_load():
     result = _run_python(
         """
         import os
-        import litellm
+        from token_iq import gateway as litellm
         # Access encoding (triggers lazy load)
         _ = litellm.encoding
         assert "TIKTOKEN_CACHE_DIR" in os.environ, "TIKTOKEN_CACHE_DIR should be set after lazy loading encoding"

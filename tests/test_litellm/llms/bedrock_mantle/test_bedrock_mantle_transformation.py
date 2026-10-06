@@ -12,9 +12,9 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.bedrock_mantle.chat.transformation import BedrockMantleChatConfig
-from litellm.types.utils import LlmProviders
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock_mantle.chat.transformation import BedrockMantleChatConfig
+from token_iq.gateway.types.utils import LlmProviders
 
 
 @pytest.fixture
@@ -87,7 +87,7 @@ class TestBedrockMantleConfig:
         assert api_base == "https://bedrock-mantle.ca-central-1.api.aws/v1"
 
     def test_aws_region_name_param_overrides_env(self, monkeypatch):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         monkeypatch.setenv("BEDROCK_MANTLE_REGION", "us-west-2")
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -98,7 +98,7 @@ class TestBedrockMantleConfig:
         assert api_base == "https://bedrock-mantle.us-east-2.api.aws/v1"
 
     def test_malicious_aws_region_name_rejected(self, monkeypatch):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -114,7 +114,7 @@ class TestBedrockMantleConfig:
             )
 
     def test_get_llm_provider_rejects_malicious_aws_region_name(self, monkeypatch):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -131,7 +131,7 @@ class TestBedrockMantleConfig:
     def test_get_llm_provider_uses_aws_region_name_for_responses(
         self, monkeypatch, local_cost_map
     ):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -241,7 +241,7 @@ class TestBedrockMantleChatAuth:
     def _signer_that_forbids_credentials(self):
         from unittest.mock import MagicMock
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         signer = BaseAWSLLM()
         signer.get_credentials = MagicMock(
@@ -305,7 +305,7 @@ class TestBedrockMantleChatAuth:
         signer.get_credentials.assert_not_called()
 
     def test_no_bearer_signs_with_sigv4(self, monkeypatch):
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -337,7 +337,7 @@ class TestBedrockMantleChatAuth:
         # Chat passes the OpenAI-mapped optional_params (no aws_region_name) to
         # sign_request, so the SigV4 credential scope has to come from the already
         # region-resolved api_base host or it would disagree with the URL -> 401.
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         for var in (
             "BEDROCK_MANTLE_API_KEY",
@@ -371,7 +371,7 @@ class TestBedrockMantleChatAuth:
         # match the URL host or Bedrock rejects the request with 401. Without the
         # fix, sign_request would prefer aws_region_name and sign for us-west-2
         # while POSTing to eu-west-1.
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         for var in (
             "BEDROCK_MANTLE_API_KEY",
@@ -404,7 +404,7 @@ class TestBedrockMantleChatAuth:
 
         from botocore.exceptions import NoCredentialsError
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -472,7 +472,7 @@ class TestBedrockMantleChatAuth:
             )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
         ):
             response = litellm.completion(
                 model="bedrock_mantle/openai.gpt-oss-120b",
@@ -491,10 +491,10 @@ class TestBedrockMantleChatAuth:
 
         from botocore.credentials import Credentials
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
-        from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+        from token_iq.gateway.types.utils import ModelResponse
 
         for var in ("BEDROCK_MANTLE_API_KEY", "AWS_BEARER_TOKEN_BEDROCK", "BEDROCK_MANTLE_API_BASE"):
             monkeypatch.delenv(var, raising=False)
@@ -610,7 +610,7 @@ class TestBedrockMantleProjectHeader:
             )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
         ):
             response = litellm.completion(
                 model="bedrock_mantle/openai.gpt-oss-120b",

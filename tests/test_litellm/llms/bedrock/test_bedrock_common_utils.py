@@ -3,7 +3,7 @@ import pytest
 
 
 
-from litellm.llms.bedrock.common_utils import BedrockModelInfo
+from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
 # --------------------------------------------------------------------------- #
 # get_bedrock_response_stream_shape lazy-load tests                           #
@@ -13,7 +13,7 @@ from litellm.llms.bedrock.common_utils import BedrockModelInfo
 @pytest.fixture(autouse=True)
 def _reset_bedrock_response_stream_shape_cache():
     """Prevent lru_cache leakage between tests in this module."""
-    import litellm.llms.bedrock.common_utils as mod
+    import token_iq.gateway.llms.bedrock.common_utils as mod
 
     mod.get_bedrock_response_stream_shape.cache_clear()
     mod._get_local_model_cost_map.cache_clear()
@@ -28,7 +28,7 @@ def test_bedrock_response_stream_shape_lazy_loads_once():
     """
     from unittest.mock import MagicMock, patch
 
-    import litellm.llms.bedrock.common_utils as mod
+    import token_iq.gateway.llms.bedrock.common_utils as mod
 
     sentinel = MagicMock()
     with patch.object(
@@ -45,7 +45,7 @@ def test_bedrock_response_stream_shape_loaded_on_first_access():
     In a standard environment with botocore installed it must be non-None.
     """
     pytest.importorskip("botocore")
-    from litellm.llms.bedrock.common_utils import get_bedrock_response_stream_shape
+    from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_response_stream_shape
 
     assert get_bedrock_response_stream_shape() is not None
 
@@ -58,7 +58,7 @@ def test_bedrock_response_stream_shape_load_failure_returns_none():
     """
     from unittest.mock import patch
 
-    import litellm.llms.bedrock.common_utils as mod
+    import token_iq.gateway.llms.bedrock.common_utils as mod
 
     pytest.importorskip("botocore")
     with patch(
@@ -77,7 +77,7 @@ def test_bedrock_response_stream_shape_is_structure_shape():
     pytest.importorskip("botocore")
     from botocore.model import StructureShape
 
-    from litellm.llms.bedrock.common_utils import get_bedrock_response_stream_shape
+    from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_response_stream_shape
 
     loaded_shape = get_bedrock_response_stream_shape()
     assert (
@@ -92,7 +92,7 @@ def test_bedrock_response_stream_shape_same_object_across_calls():
     """
     Repeated calls must return the identical cached object.
     """
-    from litellm.llms.bedrock.common_utils import get_bedrock_response_stream_shape
+    from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_response_stream_shape
 
     first = get_bedrock_response_stream_shape()
     second = get_bedrock_response_stream_shape()
@@ -105,7 +105,7 @@ def test_bedrock_event_stream_decoder_base_uses_module_shape():
     per-instance cache — _parse_message_from_event uses the module constant
     directly, so there is no instance-level _response_stream_shape_cache attr.
     """
-    from litellm.llms.bedrock.common_utils import BedrockEventStreamDecoderBase
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockEventStreamDecoderBase
 
     decoder_a = BedrockEventStreamDecoderBase()
     decoder_b = BedrockEventStreamDecoderBase()
@@ -122,8 +122,8 @@ def test_bedrock_parse_message_from_event_raises_on_none_shape():
     """
     from unittest.mock import MagicMock, patch
 
-    import litellm.llms.bedrock.common_utils as mod
-    from litellm.llms.bedrock.common_utils import (
+    import token_iq.gateway.llms.bedrock.common_utils as mod
+    from token_iq.gateway.llms.bedrock.common_utils import (
         BedrockError,
         BedrockEventStreamDecoderBase,
     )
@@ -176,7 +176,7 @@ def test_explicit_invoke_prefix_wins_over_application_inference_profile_arn():
     that explicitly asks for invoke gets invoke. The auto-route only rescues the
     documented bare form.
     """
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     model = "bedrock/invoke/arn:aws:bedrock:us-west-2:123412341234:application-inference-profile/a1b2c3"
     assert BedrockModelInfo.get_bedrock_route(model) == "invoke"
@@ -254,7 +254,7 @@ def test_context_window_suffix_stripped_for_cost_lookup():
     Models configured like `bedrock/us.anthropic.claude-opus-4-6-v1[1m]`
     should resolve to the base model name so pricing can be found.
     """
-    from litellm.llms.bedrock.common_utils import get_bedrock_base_model
+    from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_base_model
 
     assert (
         get_bedrock_base_model("us.anthropic.claude-opus-4-6-v1[1m]")
@@ -281,7 +281,7 @@ def test_context_window_suffix_stripped_for_cost_lookup():
 
 
 def test_output_config_effort_normalization_uses_model_info_ceiling(monkeypatch):
-    import litellm.llms.bedrock.common_utils as mod
+    import token_iq.gateway.llms.bedrock.common_utils as mod
 
     calls = []
 
@@ -315,7 +315,7 @@ def test_output_config_effort_normalization_uses_model_info_ceiling(monkeypatch)
 def test_bundled_bedrock_opus_model_info_declares_output_config_effort_ceiling(
     model, expected_ceiling
 ):
-    from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+    from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
     model_info = GetModelCostMap.load_local_model_cost_map()[model]
 
@@ -448,8 +448,8 @@ def test_capability_lookups_fall_back_to_base_model_when_regional_entry_lacks_fi
     must not shadow a base entry that has it (`get(model) or get(base)` used to
     short-circuit on the truthy regional dict and drop the capability).
     """
-    import litellm
-    from litellm.llms.bedrock.common_utils import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.bedrock.common_utils import (
         bedrock_converse_supports_parallel_tool_use_config,
         is_claude_4_5_on_bedrock,
     )
@@ -471,7 +471,7 @@ def test_capability_lookups_fall_back_to_base_model_when_regional_entry_lacks_fi
 
 
 def test_merge_bedrock_aws_request_params_strips_caller_identity_when_deployment_has_static_credentials():
-    from litellm.llms.bedrock.common_utils import merge_bedrock_aws_request_params
+    from token_iq.gateway.llms.bedrock.common_utils import merge_bedrock_aws_request_params
 
     merged = merge_bedrock_aws_request_params(
         litellm_params={
@@ -505,7 +505,7 @@ def test_merge_bedrock_aws_request_params_strips_caller_identity_when_deployment
 
 
 def test_merge_bedrock_aws_request_params_keeps_caller_credentials_without_static_deployment_credentials():
-    from litellm.llms.bedrock.common_utils import merge_bedrock_aws_request_params
+    from token_iq.gateway.llms.bedrock.common_utils import merge_bedrock_aws_request_params
 
     merged = merge_bedrock_aws_request_params(
         litellm_params={"aws_region_name": "us-west-2"},
@@ -524,7 +524,7 @@ def test_merge_bedrock_aws_request_params_keeps_caller_credentials_without_stati
 
 def test_strip_unsupported_output_config_keeps_format_drops_effort(local_model_cost_map):
     """On a model with neither effort flag, only the ``format`` key survives."""
-    from litellm.llms.bedrock.common_utils import (
+    from token_iq.gateway.llms.bedrock.common_utils import (
         strip_unsupported_bedrock_invoke_output_config_keys,
     )
 
@@ -542,7 +542,7 @@ def test_strip_unsupported_output_config_keeps_format_drops_effort(local_model_c
 def test_apply_structured_output_prefers_legacy_output_format(local_model_cost_map):
     """The legacy ``output_format`` wins over ``output_config.format`` when a
     request carries both, matching the pre-existing precedence."""
-    from litellm.llms.bedrock.common_utils import (
+    from token_iq.gateway.llms.bedrock.common_utils import (
         apply_bedrock_invoke_structured_output,
     )
 
@@ -571,7 +571,7 @@ def test_sign_aws_request_assumes_role_with_external_id(monkeypatch):
     import boto3
     from botocore.exceptions import ClientError
 
-    from litellm.llms.bedrock.common_utils import CommonBatchFilesUtils
+    from token_iq.gateway.llms.bedrock.common_utils import CommonBatchFilesUtils
 
     monkeypatch.delenv("AWS_EXTERNAL_ID", raising=False)
 

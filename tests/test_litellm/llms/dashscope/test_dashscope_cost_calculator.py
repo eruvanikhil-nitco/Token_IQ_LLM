@@ -15,11 +15,11 @@ import pytest
 
 # Add the project root to Python path
 
-import litellm
-from litellm.llms.dashscope.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.dashscope.cost_calculator import (
     cost_per_token as dashscope_cost_per_token,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     PromptTokensDetailsWrapper,
     Usage,

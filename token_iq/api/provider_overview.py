@@ -28,7 +28,7 @@ from typing import Final
 
 from pydantic import BaseModel, Field
 
-import litellm
+from token_iq import gateway as litellm
 
 # The daily table buckets by whole UTC day, so "today" here means the current UTC day
 # plus the previous one. Calling it 24h would overstate what the rollup can answer.

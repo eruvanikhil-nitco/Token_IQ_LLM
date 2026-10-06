@@ -8,8 +8,8 @@ search provider APIs.
 
 
 
-from litellm.types.utils import all_litellm_params
-from litellm.utils import filter_out_litellm_params
+from token_iq.gateway.types.utils import all_litellm_params
+from token_iq.gateway.utils import filter_out_litellm_params
 
 
 def test_search_tool_name_in_all_litellm_params():

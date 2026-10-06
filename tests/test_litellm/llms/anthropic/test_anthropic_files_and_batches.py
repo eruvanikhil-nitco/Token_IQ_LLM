@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-from litellm.llms.anthropic.files.handler import AnthropicFilesHandler
-from litellm.types.llms.openai import FileContentRequest, HttpxBinaryResponseContent
+from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
+from token_iq.gateway.llms.anthropic.files.handler import AnthropicFilesHandler
+from token_iq.gateway.types.llms.openai import FileContentRequest, HttpxBinaryResponseContent
 
 
 class TestAnthropicFilesHandler:
@@ -136,7 +136,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
@@ -202,7 +202,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
@@ -249,7 +249,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
@@ -310,7 +310,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
@@ -365,7 +365,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)
@@ -460,7 +460,7 @@ class TestAnthropicFilesHandler:
         )
 
         with patch(
-            "litellm.llms.anthropic.files.handler.get_async_httpx_client"
+            "token_iq.gateway.llms.anthropic.files.handler.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_client.get = AsyncMock(return_value=mock_response)

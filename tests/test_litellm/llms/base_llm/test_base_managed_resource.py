@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.llms.base_llm.managed_resources.base_managed_resource import (
+from token_iq.gateway.llms.base_llm.managed_resources.base_managed_resource import (
     BaseManagedResource,
 )
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 
 class _StubResource(BaseManagedResource):

@@ -24,20 +24,20 @@ from fastapi import HTTPException
 # helpers
 # ---------------------------------------------------------------------------
 
-_MCP_MANAGER = "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+_MCP_MANAGER = "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
 _HANDLE_HTTP = (
-    "litellm.proxy._experimental.mcp_server.server.handle_streamable_http_mcp"
+    "token_iq.gateway.proxy._experimental.mcp_server.server.handle_streamable_http_mcp"
 )
-_STREAM_ASGI = "litellm.proxy.proxy_server._stream_mcp_asgi_response"
-_PRISMA = "litellm.proxy.proxy_server.prisma_client"
-_IS_ACCESS_GROUP = "litellm.proxy.proxy_server._is_mcp_access_group_cached"
-_USER_API_KEY_CACHE = "litellm.proxy.proxy_server.user_api_key_cache"
+_STREAM_ASGI = "token_iq.gateway.proxy.proxy_server._stream_mcp_asgi_response"
+_PRISMA = "token_iq.gateway.proxy.proxy_server.prisma_client"
+_IS_ACCESS_GROUP = "token_iq.gateway.proxy.proxy_server._is_mcp_access_group_cached"
+_USER_API_KEY_CACHE = "token_iq.gateway.proxy.proxy_server.user_api_key_cache"
 _GET_ACCESS_GROUP_SERVERS = (
     "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
     "MCPRequestHandler._get_mcp_servers_from_access_groups"
 )
-_FORWARD = "litellm.proxy.proxy_server._mcp_forward_as_path"
-_RESOLVE_CSV = "litellm.proxy.proxy_server._resolve_mcp_csv_tokens"
+_FORWARD = "token_iq.gateway.proxy.proxy_server._mcp_forward_as_path"
+_RESOLVE_CSV = "token_iq.gateway.proxy.proxy_server._resolve_mcp_csv_tokens"
 
 
 def _make_request(path: str = "/test/mcp"):
@@ -91,7 +91,7 @@ async def test_dynamic_mcp_route_resolves_registered_server():
     to /mcp/{name} and the handler returns 200."""
     from starlette.responses import Response
 
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/my_server/mcp")
     fake_mgr = MagicMock()
@@ -122,7 +122,7 @@ async def test_dynamic_mcp_route_comma_list_forwarded_when_tokens_resolve():
     toolset DB lookup is bypassed entirely for comma names."""
     from starlette.responses import Response
 
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     segment = "github_mcp,zapier"
     request = _make_request(f"/{segment}/mcp")
@@ -150,7 +150,7 @@ async def test_dynamic_mcp_route_comma_list_returns_404_when_no_tokens_resolve()
     """A comma-separated segment with zero resolved tokens must 404 instead of
     forwarding (downstream filter falls back to full allowed_mcp_servers when
     no token matches, which would silently broaden scope)."""
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     segment = "ghost1,ghost2"
     request = _make_request(f"/{segment}/mcp")
@@ -176,7 +176,7 @@ async def test_dynamic_mcp_route_comma_list_forwards_only_resolved_subset():
     server filter)."""
     from starlette.responses import Response
 
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     segment = "github_mcp,ghost,zapier"
     request = _make_request(f"/{segment}/mcp")
@@ -203,8 +203,8 @@ async def test_resolve_mcp_csv_tokens_dedupes_and_caps():
     are preserved — downstream resolution may be case-sensitive), drops empty
     fragments, and stops looking up after DEFAULT_MCP_NAMESPACE_CSV_MAX_TOKENS
     unique tokens to bound DB / cache fan-out."""
-    from litellm.constants import DEFAULT_MCP_NAMESPACE_CSV_MAX_TOKENS
-    from litellm.proxy.proxy_server import _resolve_mcp_csv_tokens
+    from token_iq.gateway.constants import DEFAULT_MCP_NAMESPACE_CSV_MAX_TOKENS
+    from token_iq.gateway.proxy.proxy_server import _resolve_mcp_csv_tokens
 
     fake_mgr = MagicMock()
     fake_mgr.get_mcp_server_by_name = MagicMock(return_value=_fake_server())
@@ -232,7 +232,7 @@ async def test_resolve_mcp_csv_tokens_dedupes_and_caps():
 async def test_resolve_mcp_csv_tokens_drops_unknown_and_resolves_access_groups():
     """Unknown tokens are dropped; access-group tokens are accepted via the
     cached existence helper (no per-call uncached DB hit)."""
-    from litellm.proxy.proxy_server import _resolve_mcp_csv_tokens
+    from token_iq.gateway.proxy.proxy_server import _resolve_mcp_csv_tokens
 
     fake_mgr = MagicMock()
     # Only "registered_srv" is a known server alias.
@@ -272,7 +272,7 @@ async def test_resolve_mcp_csv_tokens_drops_unknown_and_resolves_access_groups()
 async def test_dynamic_mcp_route_resolves_toolset():
     """When the segment is a toolset name the toolset context var is set
     and the request is forwarded to /mcp (not /mcp/{name})."""
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/my_toolset/mcp")
     fake_toolset = _fake_toolset("my_toolset", "ts-42")
@@ -286,7 +286,7 @@ async def test_dynamic_mcp_route_resolves_toolset():
 
     async def fake_stream(fn, scope, receive):
         nonlocal captured_toolset_id
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _mcp_active_toolset_id,
         )
 
@@ -314,7 +314,7 @@ async def test_dynamic_mcp_route_resolves_access_group():
     """When the segment is an MCP access group the request is forwarded (not 404)."""
     from starlette.responses import Response
 
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/dev_group/mcp")
 
@@ -341,7 +341,7 @@ async def test_dynamic_mcp_route_access_group_called_with_correct_name():
     """The access group lookup receives exactly the segment from the URL."""
     from starlette.responses import Response
 
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/qa_tools/mcp")
 
@@ -368,7 +368,7 @@ async def test_dynamic_mcp_route_access_group_called_with_correct_name():
 @pytest.mark.asyncio
 async def test_is_mcp_access_group_cached_caches_positive_result():
     """Known access groups are cached after resolving to one or more servers."""
-    from litellm.proxy.proxy_server import _is_mcp_access_group_cached
+    from token_iq.gateway.proxy.proxy_server import _is_mcp_access_group_cached
 
     fake_cache = MagicMock()
     fake_cache.async_get_cache = AsyncMock(return_value=None)
@@ -394,8 +394,8 @@ async def test_is_mcp_access_group_cached_caches_positive_result():
 async def test_is_mcp_access_group_cached_caches_negative_result_briefly():
     """Empty access-group lookups are cached with a short TTL so unauthenticated
     callers cannot force a fresh DB lookup per request for unknown names."""
-    from litellm.constants import DEFAULT_MCP_ACCESS_GROUP_NEGATIVE_CACHE_TTL
-    from litellm.proxy.proxy_server import _is_mcp_access_group_cached
+    from token_iq.gateway.constants import DEFAULT_MCP_ACCESS_GROUP_NEGATIVE_CACHE_TTL
+    from token_iq.gateway.proxy.proxy_server import _is_mcp_access_group_cached
 
     fake_cache = MagicMock()
     fake_cache.async_get_cache = AsyncMock(return_value=None)
@@ -420,7 +420,7 @@ async def test_is_mcp_access_group_cached_caches_negative_result_briefly():
 @pytest.mark.asyncio
 async def test_is_mcp_access_group_cached_returns_cached_negative_without_db():
     """A cached False entry short-circuits the DB lookup on subsequent calls."""
-    from litellm.proxy.proxy_server import _is_mcp_access_group_cached
+    from token_iq.gateway.proxy.proxy_server import _is_mcp_access_group_cached
 
     fake_cache = MagicMock()
     fake_cache.async_get_cache = AsyncMock(return_value=False)
@@ -446,7 +446,7 @@ async def test_is_mcp_access_group_cached_returns_cached_negative_without_db():
 @pytest.mark.asyncio
 async def test_dynamic_mcp_route_unknown_name_returns_404():
     """A segment that is not a server, toolset, or access group → 404."""
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/does_not_exist/mcp")
 
@@ -469,7 +469,7 @@ async def test_dynamic_mcp_route_unknown_name_returns_404():
 @pytest.mark.asyncio
 async def test_dynamic_mcp_route_empty_access_group_returns_404():
     """An access group tag that resolves to zero servers still returns 404."""
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/empty_group/mcp")
 
@@ -497,7 +497,7 @@ async def test_dynamic_mcp_route_empty_access_group_returns_404():
 async def test_dynamic_mcp_route_unexpected_exception_returns_500_without_traceback():
     """CWE-209: an unexpected exception must return 500 with a generic message,
     never leaking str(e) or a Python traceback to the caller."""
-    from litellm.proxy.proxy_server import dynamic_mcp_route
+    from token_iq.gateway.proxy.proxy_server import dynamic_mcp_route
 
     request = _make_request("/boom/mcp")
 
@@ -520,7 +520,7 @@ async def test_dynamic_mcp_route_unexpected_exception_returns_500_without_traceb
 async def test_toolset_mcp_route_unexpected_exception_returns_500_without_traceback():
     """CWE-209: toolset_mcp_route must return 500 with a generic message on
     unexpected errors, never leaking exception text to the caller."""
-    from litellm.proxy.proxy_server import toolset_mcp_route
+    from token_iq.gateway.proxy.proxy_server import toolset_mcp_route
 
     request = _make_request("/toolset/broken_toolset/mcp")
 
@@ -546,13 +546,13 @@ async def test_toolset_mcp_route_unexpected_exception_returns_500_without_traceb
 # 7. Aggregate /mcp without a trailing slash (bare mount prefix)
 # ---------------------------------------------------------------------------
 
-_IS_MCP_AVAILABLE = "litellm.proxy._experimental.mcp_server.utils.is_mcp_available"
+_IS_MCP_AVAILABLE = "token_iq.gateway.proxy._experimental.mcp_server.utils.is_mcp_available"
 
 
 def _test_client():
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     return TestClient(app, follow_redirects=False)
 

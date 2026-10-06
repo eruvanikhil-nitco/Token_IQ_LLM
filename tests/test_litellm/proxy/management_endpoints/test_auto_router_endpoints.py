@@ -11,18 +11,18 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LitellmUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.auto_router_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
     preview_auto_router_routing,
 )
-from litellm.router import Router
-from litellm.types.utils import Choices, Message, ModelResponse
-from litellm.types.management_endpoints.auto_router_endpoints import (
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.types.management_endpoints.auto_router_endpoints import (
     AutoRouterBenchmarksResponse,
     AutoRouterRoutingTestRequest,
 )
@@ -91,7 +91,7 @@ def _request(prompt: str, **config_overrides: object) -> AutoRouterRoutingTestRe
 
 
 async def _route_body(body: Mapping[str, object], monkeypatch: pytest.MonkeyPatch, **config_overrides: object):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "llm_router", _router())
     return await preview_auto_router_routing(
@@ -116,7 +116,7 @@ PLAN_MODE_TOOLS = [{"type": "function", "function": {"name": "exit_plan_mode", "
 
 async def _classifier_user_payload(body: Mapping[str, object], monkeypatch: pytest.MonkeyPatch) -> str:
     """The variable half of the classifier call this body produces."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     router = RecordingRouter("SIMPLE")
     monkeypatch.setattr(proxy_server, "llm_router", router)
@@ -183,7 +183,7 @@ async def test_tier_model_missing_from_the_proxy_is_reported(monkeypatch: pytest
 
 @pytest.mark.asyncio
 async def test_llm_classifier_call_is_billed_to_the_calling_key(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     router = _router()
     calls: list[dict] = []
@@ -345,7 +345,7 @@ def test_a_request_must_carry_exactly_one_usable_conversation(body: dict):
 async def test_a_key_that_cannot_call_the_classifier_model_is_rejected_before_it_is_called(
     monkeypatch: pytest.MonkeyPatch, config_overrides: dict
 ):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     router = _router()
     calls: list[dict] = []
@@ -375,7 +375,7 @@ async def test_a_key_that_cannot_call_the_classifier_model_is_rejected_before_it
 
 @pytest.mark.asyncio
 async def test_a_key_over_its_budget_cannot_run_a_classifier_config(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     router = _router()
     calls: list[dict] = []
@@ -409,7 +409,7 @@ async def test_a_key_over_its_budget_cannot_run_a_classifier_config(monkeypatch:
 
 @pytest.mark.asyncio
 async def test_a_heuristic_config_does_not_need_a_budget(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "llm_router", _router())
 
@@ -430,7 +430,7 @@ async def test_a_heuristic_config_does_not_need_a_budget(monkeypatch: pytest.Mon
 
 @pytest.mark.asyncio
 async def test_no_llm_router_on_the_proxy_is_a_500(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "llm_router", None)
 
@@ -442,7 +442,7 @@ async def test_no_llm_router_on_the_proxy_is_a_500(monkeypatch: pytest.MonkeyPat
 
 @pytest.mark.asyncio
 async def test_non_admin_without_a_team_is_rejected(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "llm_router", _router())
 
@@ -475,12 +475,12 @@ def test_classifier_plugin_is_not_settable_over_http():
 
 
 class TestAutoRouterBenchmarks:
-    from litellm.proxy.management_endpoints.auto_router_endpoints import _SessionAggRow
+    from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import _SessionAggRow
 
     @pytest.fixture(autouse=True)
     def _pin_the_router_global(self, monkeypatch: pytest.MonkeyPatch):
         """Every test here reads proxy_server.llm_router, so no test may inherit a sibling's."""
-        from litellm.proxy import proxy_server
+        from token_iq.gateway.proxy import proxy_server
 
         monkeypatch.setattr(proxy_server, "llm_router", None)
 
@@ -490,8 +490,8 @@ class TestAutoRouterBenchmarks:
         rows: Sequence[Mapping[str, object]],
         model_list: Sequence[object],
     ) -> AutoRouterBenchmarksResponse:
-        from litellm.proxy import proxy_server
-        from litellm.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
+        from token_iq.gateway.proxy import proxy_server
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
 
         class _DB:
             async def query_raw(self, sql: str, *params: object):
@@ -531,7 +531,7 @@ class TestAutoRouterBenchmarks:
     )
 
     def test_overall_hit_rate_counts_hits_independently_of_bucketing(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
 
         totals = _benchmark_totals(self.ROW)
         bucket_hits = totals.cache.same_model.hits + totals.cache.first_visit.hits + totals.cache.return_to_tier.hits
@@ -539,7 +539,7 @@ class TestAutoRouterBenchmarks:
         assert totals.cache.hit_rate_pct == pytest.approx(100.0 * 28 / 38, abs=0.1)
 
     def test_fold_math_matches_hand_computed_truth(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
 
         totals = _benchmark_totals(self.ROW)
         assert totals.sessions == 4
@@ -559,7 +559,7 @@ class TestAutoRouterBenchmarks:
         assert totals.cache.unordered_turns == 1
 
     def test_a_losing_router_reports_negative_savings(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import _benchmark_totals
 
         losing = self.ROW.model_copy(update={"saved_spend": -5.0})
         totals = _benchmark_totals(losing)
@@ -567,7 +567,7 @@ class TestAutoRouterBenchmarks:
         assert totals.saved_pct == -100.0
 
     def test_an_empty_window_folds_to_zeros(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
             _benchmark_totals,
             _summed_agg_row,
         )
@@ -579,7 +579,7 @@ class TestAutoRouterBenchmarks:
         assert totals.cache.hit_rate_pct == 0.0
 
     def test_totals_sum_counters_across_groups_before_deriving_ratios(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
             _benchmark_totals,
             _summed_agg_row,
         )
@@ -601,7 +601,7 @@ class TestAutoRouterBenchmarks:
         assert quality.tier_turns == {"2": 7}
 
     def test_summed_totals_carry_no_tier_map_because_names_are_router_scoped(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import _summed_agg_row
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import _summed_agg_row
 
         quality = self.ROW.model_copy(update={"router_type": "quality", "tier_turns": {"2": 7}})
         complexity = self.ROW.model_copy(update={"tier_turns": {"medium": 7}})
@@ -609,7 +609,7 @@ class TestAutoRouterBenchmarks:
 
     @pytest.mark.asyncio
     async def test_non_admin_roles_cannot_read_benchmarks(self):
-        from litellm.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
 
         with pytest.raises(HTTPException) as err:
             await get_auto_router_benchmarks(
@@ -621,8 +621,8 @@ class TestAutoRouterBenchmarks:
 
     @pytest.mark.asyncio
     async def test_a_reversed_window_is_rejected(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.proxy import proxy_server
-        from litellm.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
+        from token_iq.gateway.proxy import proxy_server
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
 
         monkeypatch.setattr(proxy_server, "prisma_client", object())
         with pytest.raises(HTTPException) as err:
@@ -635,8 +635,8 @@ class TestAutoRouterBenchmarks:
 
     @pytest.mark.asyncio
     async def test_endpoint_returns_groups_and_totals_from_the_rollup(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.proxy import proxy_server
-        from litellm.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
+        from token_iq.gateway.proxy import proxy_server
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
 
         captured: dict = {}
 
@@ -665,8 +665,8 @@ class TestAutoRouterBenchmarks:
     async def test_the_tier_map_reaches_the_response_as_the_jsonb_column_returns_it(
         self, wire_value: dict, expected: dict, monkeypatch: pytest.MonkeyPatch
     ):
-        from litellm.proxy import proxy_server
-        from litellm.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
+        from token_iq.gateway.proxy import proxy_server
+        from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import get_auto_router_benchmarks
 
         class _DB:
             async def query_raw(self, sql: str, *params: object):
@@ -782,8 +782,8 @@ class TestAutoRouterBenchmarks:
         rollup can record must be listable, and a kind it cannot must not be."""
         from typing import get_args, get_type_hints
 
-        from litellm.router_utils.auto_router_model_naming import StrategyRouterKind
-        from litellm.types.utils import StandardLoggingRoutingDecision
+        from token_iq.gateway.router_utils.auto_router_model_naming import StrategyRouterKind
+        from token_iq.gateway.types.utils import StandardLoggingRoutingDecision
 
         recorded = set(get_args(get_type_hints(StandardLoggingRoutingDecision)["router_type"]))
         assert set(get_args(StrategyRouterKind)) - {"semantic"} == recorded
@@ -797,12 +797,12 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 
-from litellm.proxy.management_endpoints.auto_router_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
     get_shadow_eval_job,
     list_shadow_eval_jobs,
     stop_shadow_eval_job,
 )
-from litellm.types.management_endpoints.auto_router_endpoints import SHADOW_EVAL_TURN_VALVE, StartShadowEvalRequest
+from token_iq.gateway.types.management_endpoints.auto_router_endpoints import SHADOW_EVAL_TURN_VALVE, StartShadowEvalRequest
 
 VIEWER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
 NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user")
@@ -1105,7 +1105,7 @@ def test_start_request_bounds_the_combined_target_count_across_types():
 async def test_list_shadow_eval_jobs_rejects_a_lone_filter_half(monkeypatch: pytest.MonkeyPatch):
     """target_type and target_id only mean anything together: a bare id could name a key
     or a team, and a bare type filters nothing."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record()])
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
@@ -1142,7 +1142,7 @@ def test_start_request_pins_baseline_model_to_reverse(overrides):
 async def test_get_shadow_eval_job_pools_counts_and_slices_results_per_key(monkeypatch: pytest.MonkeyPatch):
     """One read answers for every leg: totals and stratifications aggregate over the
     group's leg ids, and the by-key slice maps each leg id back to its key hash."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     tier_rows = [
         {
@@ -1241,7 +1241,7 @@ async def test_get_shadow_eval_job_slices_results_per_router(monkeypatch: pytest
     """A multi-router job's detail carries one slice per arm, aggregated by the arm
     stamped on each attempt row, with unstamped legacy rows attributed to the job's own
     router by the read (the COALESCE against the leg's router_name)."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     def agg(grp: str, wins: int) -> dict[str, object]:
         return {
@@ -1282,7 +1282,7 @@ async def test_get_shadow_eval_job_slices_results_per_router(monkeypatch: pytest
 @pytest.mark.asyncio
 async def test_job_responses_resolve_router_names_with_legacy_fallback(monkeypatch: pytest.MonkeyPatch):
     """Rows from before router_names existed carry their whole set in router_name."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record(router_names=())])
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
@@ -1295,7 +1295,7 @@ async def test_job_responses_resolve_router_names_with_legacy_fallback(monkeypat
 
 @pytest.mark.asyncio
 async def test_get_shadow_eval_job_404s_and_gates_on_role(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "prisma_client", _shadow_prisma())
 
@@ -1312,7 +1312,7 @@ async def test_get_shadow_eval_job_404s_and_gates_on_role(monkeypatch: pytest.Mo
 async def test_list_shadow_eval_jobs_collapses_legs_into_jobs_newest_first(monkeypatch: pytest.MonkeyPatch):
     """A job over two keys is one list entry with both keys, not two entries, and a job
     whose keys all stopped reads stopped while a half-stopped one still runs."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     stamp = datetime.now(timezone.utc)
     prisma = _shadow_prisma(
@@ -1368,7 +1368,7 @@ async def test_list_shadow_eval_jobs_collapses_legs_into_jobs_newest_first(monke
 async def test_list_shadow_eval_jobs_filters_to_jobs_containing_the_key(monkeypatch: pytest.MonkeyPatch):
     """The filter matches a key anywhere in a job's key set and still returns the whole
     job, sibling keys included."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(
         legs=[
@@ -1403,7 +1403,7 @@ async def test_list_shadow_eval_jobs_filters_to_jobs_containing_the_key(monkeypa
 async def test_job_status_runs_until_every_key_stops_and_completed_outranks_stopped(
     monkeypatch: pytest.MonkeyPatch, stopped_flags: tuple[bool, ...], days_left: int, expected: str
 ):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     stamp = datetime.now(timezone.utc)
     prisma = _shadow_prisma(
@@ -1430,7 +1430,7 @@ async def test_list_reads_completed_once_every_key_spends_its_budget(monkeypatch
     it must read completed on the very next list, before any sweep stamps its legs; one
     key under budget keeps the whole job running. An operator starting an unrelated eval
     must never look like it terminated a finished one."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(
         legs=[
@@ -1461,7 +1461,7 @@ async def test_list_reads_completed_once_every_key_spends_its_budget(monkeypatch
 async def test_recorded_operator_stop_outranks_budget_arithmetic(monkeypatch: pytest.MonkeyPatch):
     """A detached attempt can land around the stop and push the raw count past the
     budget; the recorded stopped_by must keep the job reading stopped regardless."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     stamp = datetime.now(timezone.utc)
     prisma = _shadow_prisma(legs=[_leg_record(max_turns=5, stopped_at=stamp, stopped_by="admin")])
@@ -1480,7 +1480,7 @@ async def test_recorded_operator_stop_outranks_budget_arithmetic(monkeypatch: py
 async def test_backfilled_legacy_stop_never_reads_as_completion(monkeypatch: pytest.MonkeyPatch):
     """Jobs stopped before stopped_by existed are backfilled with 'unknown' by the
     migration, so even one whose stray attempts crossed the budget stays stopped."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(
         legs=[_leg_record(max_turns=5, stopped_at=datetime.now(timezone.utc), stopped_by="unknown")]
@@ -1539,7 +1539,7 @@ def test_max_budget_migration_is_additive_and_leaves_legacy_rows_null():
 @pytest.mark.asyncio
 async def test_verdicts_keep_same_id_targets_of_different_kinds_distinct(monkeypatch):
     """A team and a user can legitimately share an id; their slices must not merge."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     leg_rows = [
         {
@@ -1587,7 +1587,7 @@ async def test_verdicts_keep_same_id_targets_of_different_kinds_distinct(monkeyp
 
 
 async def test_stop_rejects_a_job_that_already_spent_its_budget(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record(max_turns=3)])
     prisma.attempt_rows = [{"job_id": "leg-1", "attempt_count": 3, "spend": 0.0}]
@@ -1605,7 +1605,7 @@ async def test_list_reads_completed_once_every_key_spends_its_dollar_budget(monk
     """A spend-budgeted job completes on dollars, not turns: every key's recorded shadow
     plus judge spend reaching max_budget reads completed long before the turn valve, while
     one key with budget left keeps the whole job running."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(
         legs=[
@@ -1634,7 +1634,7 @@ async def test_list_reads_completed_once_every_key_spends_its_dollar_budget(monk
 
 @pytest.mark.asyncio
 async def test_stop_rejects_a_job_whose_dollar_budget_is_spent(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record(max_turns=SHADOW_EVAL_TURN_VALVE, max_budget=0.5)])
     prisma.attempt_rows = [{"job_id": "leg-1", "attempt_count": 7, "spend": 0.5}]
@@ -1652,7 +1652,7 @@ async def test_legacy_jobs_without_a_dollar_budget_stay_turn_gated(monkeypatch: 
     """A job from before spend budgets existed carries max_budget NULL: recorded spend
     can never complete it, only its own max_turns can, so migration changes nothing about
     what it was configured to do."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record(max_turns=200, max_budget=None)])
     prisma.attempt_rows = [{"job_id": "leg-1", "attempt_count": 40, "spend": 250.0}]
@@ -1673,7 +1673,7 @@ async def test_stop_shadow_eval_stops_every_unstopped_leg_and_rejects_non_runnin
 ):
     """One stop ends sampling for the whole job, while a leg that already stopped on its
     own budget keeps the stopped_at it earned."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     earned = datetime.now(timezone.utc) - timedelta(hours=1)
     prisma = _shadow_prisma(legs=[_leg_record(), _leg_record(id="leg-2", target_id="key-hash-2", stopped_at=earned)])
@@ -1717,10 +1717,10 @@ async def test_stop_shadow_eval_stops_every_unstopped_leg_and_rejects_non_runnin
 async def test_validate_config_returns_the_write_gates_verdict_without_saving():
     """The dry-run endpoint must agree with the write gate exactly, so a form showing its
     verdict inline can never pass a config the save would then reject."""
-    from litellm.proxy.management_endpoints.auto_router_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
         validate_complexity_router_config,
     )
-    from litellm.types.management_endpoints.auto_router_endpoints import (
+    from token_iq.gateway.types.management_endpoints.auto_router_endpoints import (
         ComplexityRouterConfigValidationRequest,
     )
 
@@ -1766,7 +1766,7 @@ async def test_routing_test_never_confirms_models_the_caller_cannot_use(monkeypa
     """routed_model_configured must not be an existence oracle for the whole proxy: a team
     admin probing a guessed global model name reads False unless the named team could
     actually use that model, and True once the team grants it."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     def _team_prisma(team_id: str, models: list[str]) -> MagicMock:
         row_data = {
@@ -1813,11 +1813,11 @@ async def test_validate_config_gates_like_the_write_it_rehearses(monkeypatch: py
     """A caller who could not save the router must not get the dry run either: matching
     /model/new, a team admin passes only when naming their own team, and a caller who is
     neither proxy admin nor team admin is rejected before validation runs."""
-    from litellm.proxy import proxy_server
-    from litellm.proxy.management_endpoints.auto_router_endpoints import (
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
         validate_complexity_router_config,
     )
-    from litellm.types.management_endpoints.auto_router_endpoints import (
+    from token_iq.gateway.types.management_endpoints.auto_router_endpoints import (
         ComplexityRouterConfigValidationRequest,
     )
 
@@ -1861,7 +1861,7 @@ def test_every_shadow_eval_sql_constant_speaks_naive_utc():
     NOW() AT TIME ZONE 'utc' and python-side params must cast ::timestamp; a bare NOW() or a
     timestamptz cast writes session-local wall time into the naive column and skews every
     comparison against prisma-written stamps."""
-    import litellm.proxy.management_endpoints.auto_router_endpoints as module
+    import token_iq.gateway.proxy.management_endpoints.auto_router_endpoints as module
 
     sql_constants = {name: value for name, value in vars(module).items() if name.endswith("_SQL")}
     assert sql_constants
@@ -1878,7 +1878,7 @@ async def test_a_stop_racing_the_last_budgeted_attempt_reports_completed_not_sto
     """The statement claims the job only while a leg still samples, so a stop landing in
     the same instant the budget spends records nothing and the job keeps reading
     completed; stamping it would misreport a self-ended job as operator-stopped forever."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record(max_turns=2)])
     prisma.attempt_rows = [{"job_id": "leg-1", "attempt_count": 2, "spend": 0.0}]
@@ -1895,7 +1895,7 @@ async def test_a_stop_racing_the_last_budgeted_attempt_reports_completed_not_sto
 async def test_two_racing_stops_produce_exactly_one_winner(monkeypatch: pytest.MonkeyPatch):
     """The statement's stopped_by IS NULL predicate lets only one racer claim rows; the
     loser reads the stamped state and gets the same answer a late caller gets."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     prisma = _shadow_prisma(legs=[_leg_record()])
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
@@ -1925,7 +1925,7 @@ async def test_two_racing_stops_produce_exactly_one_winner(monkeypatch: pytest.M
 async def test_get_shadow_eval_job_sums_funnel_rows_across_legs(monkeypatch: pytest.MonkeyPatch):
     """Legs with funnel rows sum into job-level coverage counts; a job with no funnel
     rows at all reports None rather than a fabricated zero."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     tier_rows = [
         {
@@ -1960,7 +1960,7 @@ async def test_get_shadow_eval_job_sums_funnel_rows_across_legs(monkeypatch: pyt
 @pytest.mark.asyncio
 async def test_partially_seeded_funnel_reads_as_unknown_coverage(monkeypatch: pytest.MonkeyPatch):
     """One leg's seed failing must not present the other leg's counts as job coverage."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     tier_rows = [
         {

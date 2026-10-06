@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 
 def test_create_aiohttp_transport_sets_enable_cleanup_closed_when_needed(monkeypatch):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     connector_mock = MagicMock(name="connector")
     session_mock = MagicMock(name="session")
@@ -25,7 +25,7 @@ def test_create_aiohttp_transport_sets_enable_cleanup_closed_when_needed(monkeyp
 def test_create_aiohttp_transport_omits_enable_cleanup_closed_when_not_needed(
     monkeypatch,
 ):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     connector_mock = MagicMock(name="connector")
     session_mock = MagicMock(name="session")

@@ -15,8 +15,8 @@ import jwt
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.proxy._types import InvitationClaim
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import InvitationClaim
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -103,15 +103,15 @@ async def test_get_token_rejects_already_used_link():
     If is_accepted is True the link was already claimed.
     The endpoint must raise 401 *before* returning any user data.
     """
-    from litellm.proxy.proxy_server import onboarding
+    from token_iq.gateway.proxy.proxy_server import onboarding
 
     invite = _make_invite(is_accepted=True)
     prisma = _make_prisma(invite)
     request = MagicMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await onboarding(invite_link="invite-abc", request=request)
@@ -125,15 +125,15 @@ async def test_get_token_rejects_already_used_link():
 @pytest.mark.asyncio
 async def test_get_token_rejects_expired_link():
     """An expired link must raise 401 regardless of is_accepted."""
-    from litellm.proxy.proxy_server import onboarding
+    from token_iq.gateway.proxy.proxy_server import onboarding
 
     invite = _make_invite(is_accepted=False, expired=True)
     prisma = _make_prisma(invite)
     request = MagicMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await onboarding(invite_link="invite-abc", request=request)
@@ -145,14 +145,14 @@ async def test_get_token_rejects_expired_link():
 @pytest.mark.asyncio
 async def test_get_token_rejects_missing_link():
     """A link that does not exist in the DB must raise 401."""
-    from litellm.proxy.proxy_server import onboarding
+    from token_iq.gateway.proxy.proxy_server import onboarding
 
     prisma = _make_prisma(invite=None)  # type: ignore[arg-type]
     request = MagicMock()
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await onboarding(invite_link="nonexistent", request=request)
@@ -167,7 +167,7 @@ async def test_get_token_returns_onboarding_token_without_minting_ui_key():
     A valid, unused link should return a short-lived onboarding token, but
     must not reserve the invite or mint a usable UI/API key on GET.
     """
-    from litellm.proxy.proxy_server import onboarding
+    from token_iq.gateway.proxy.proxy_server import onboarding
 
     invite = _make_invite(is_accepted=False)
     user = _make_user()
@@ -176,23 +176,23 @@ async def test_get_token_returns_onboarding_token_without_minting_ui_key():
     request.base_url = "http://localhost:4000/"
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.premium_user", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         patch(
-            "litellm.proxy.proxy_server.generate_key_helper_fn",
+            "token_iq.gateway.proxy.proxy_server.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key,
         patch(
-            "litellm.proxy.proxy_server.get_custom_url",
+            "token_iq.gateway.proxy.proxy_server.get_custom_url",
             return_value="http://localhost:4000/",
         ),
         patch(
-            "litellm.proxy.proxy_server.get_disabled_non_admin_personal_key_creation",
+            "token_iq.gateway.proxy.proxy_server.get_disabled_non_admin_personal_key_creation",
             return_value=False,
         ),
-        patch("litellm.proxy.proxy_server.get_server_root_path", return_value=""),
+        patch("token_iq.gateway.proxy.proxy_server.get_server_root_path", return_value=""),
     ):
         result = await onboarding(invite_link="invite-abc", request=request)
 
@@ -224,7 +224,7 @@ async def test_claim_token_rejects_already_used_link():
     If is_accepted is True, the password has already been set.
     A second claim attempt must be rejected with 401.
     """
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=True, claimed=True)
     prisma = _make_prisma(invite)
@@ -234,7 +234,7 @@ async def test_claim_token_rejects_already_used_link():
         password="NewP@ssw0rd123",
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=_make_claim_request())
 
@@ -247,7 +247,7 @@ async def test_claim_token_rejects_already_used_link():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_expired_link():
     """An expired link must be rejected even if is_accepted is False."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False, expired=True)
     prisma = _make_prisma(invite)
@@ -257,7 +257,7 @@ async def test_claim_token_rejects_expired_link():
         password="NewP@ssw0rd123",
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=_make_claim_request())
 
@@ -268,7 +268,7 @@ async def test_claim_token_rejects_expired_link():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_mismatched_user_id():
     """The user_id in the request must match the one on the invite."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
@@ -278,7 +278,7 @@ async def test_claim_token_rejects_mismatched_user_id():
         password="NewP@ssw0rd123",
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=_make_claim_request())
 
@@ -289,7 +289,7 @@ async def test_claim_token_rejects_mismatched_user_id():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_missing_onboarding_token():
     """The password endpoint must require the onboarding token returned by get_token."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
@@ -300,9 +300,9 @@ async def test_claim_token_rejects_missing_onboarding_token():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=_make_claim_request())
@@ -315,7 +315,7 @@ async def test_claim_token_rejects_missing_onboarding_token():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_wrong_onboarding_session():
     """The onboarding token must be bound to the invite and user being claimed."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
@@ -329,9 +329,9 @@ async def test_claim_token_rejects_wrong_onboarding_session():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=request)
@@ -344,7 +344,7 @@ async def test_claim_token_rejects_wrong_onboarding_session():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_invalid_bearer_token():
     """A regular API key must not be accepted as an onboarding token."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
@@ -356,9 +356,9 @@ async def test_claim_token_rejects_invalid_bearer_token():
     request = _make_claim_request("sk-regular-key")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await claim_onboarding_link(data=data, request=request)
@@ -371,7 +371,7 @@ async def test_claim_token_rejects_invalid_bearer_token():
 @pytest.mark.asyncio
 async def test_claim_token_rejects_concurrent_reuse_before_password_write():
     """Only the first valid claim may reserve the invitation."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
@@ -384,11 +384,11 @@ async def test_claim_token_rejects_concurrent_reuse_before_password_write():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         patch(
-            "litellm.proxy.proxy_server.generate_key_helper_fn",
+            "token_iq.gateway.proxy.proxy_server.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key,
     ):
@@ -408,7 +408,7 @@ async def test_claim_token_sets_accepted_at_after_password_written():
       1. Write the hashed password to the user table.
       2. Set accepted_at on the invitation link after the password write succeeds.
     """
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     user = _make_user()
@@ -424,24 +424,24 @@ async def test_claim_token_sets_accepted_at_after_password_written():
     mock_token_response = {"token": "sk-generated-key", "user_id": "user-123"}
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.premium_user", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         patch(
-            "litellm.proxy.proxy_server.generate_key_helper_fn",
+            "token_iq.gateway.proxy.proxy_server.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value=mock_token_response,
         ),
         patch(
-            "litellm.proxy.proxy_server.get_custom_url",
+            "token_iq.gateway.proxy.proxy_server.get_custom_url",
             return_value="http://localhost:4000/",
         ),
         patch(
-            "litellm.proxy.proxy_server.get_disabled_non_admin_personal_key_creation",
+            "token_iq.gateway.proxy.proxy_server.get_disabled_non_admin_personal_key_creation",
             return_value=False,
         ),
-        patch("litellm.proxy.proxy_server.get_server_root_path", return_value=""),
+        patch("token_iq.gateway.proxy.proxy_server.get_server_root_path", return_value=""),
     ):
         result = await claim_onboarding_link(data=data, request=request)
 
@@ -467,7 +467,7 @@ async def test_claim_token_sets_accepted_at_after_password_written():
 @pytest.mark.asyncio
 async def test_claim_token_rolls_back_invite_when_session_key_mint_fails():
     """A session key failure must not leave the invite permanently consumed."""
-    from litellm.proxy.proxy_server import claim_onboarding_link
+    from token_iq.gateway.proxy.proxy_server import claim_onboarding_link
 
     invite = _make_invite(is_accepted=False)
     user = _make_user()
@@ -481,11 +481,11 @@ async def test_claim_token_rolls_back_invite_when_session_key_mint_fails():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         patch(
-            "litellm.proxy.proxy_server.generate_key_helper_fn",
+            "token_iq.gateway.proxy.proxy_server.generate_key_helper_fn",
             new_callable=AsyncMock,
             side_effect=Exception("key mint failed"),
         ),

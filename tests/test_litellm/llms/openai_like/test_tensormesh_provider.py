@@ -4,7 +4,7 @@ Tests for Tensormesh provider configuration and integration.
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 TENSORMESH_MODELS = [
     "tensormesh/Qwen/Qwen3.5-397B-A17B-FP8",
@@ -25,7 +25,7 @@ class TestTensormeshProviderConfig:
 
     def test_tensormesh_in_provider_list(self):
         """Test that tensormesh is in the provider list"""
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         assert hasattr(LlmProviders, "TENSORMESH")
         assert LlmProviders.TENSORMESH.value == "tensormesh"
@@ -33,7 +33,7 @@ class TestTensormeshProviderConfig:
 
     def test_tensormesh_json_config_exists(self):
         """Test that tensormesh is configured in providers.json"""
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.exists("tensormesh")
 
@@ -46,7 +46,7 @@ class TestTensormeshProviderConfig:
 
     def test_tensormesh_provider_resolution(self):
         """Test that provider resolution finds tensormesh and the default base URL"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="tensormesh/openai/gpt-oss-120b",
@@ -61,7 +61,7 @@ class TestTensormeshProviderConfig:
 
     def test_tensormesh_api_base_override(self):
         """Test that an explicit api_base / api_key overrides the serverless default"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="tensormesh/openai/gpt-oss-120b",
@@ -82,8 +82,8 @@ class TestTensormeshProviderConfig:
     def test_tensormesh_responses_api_enabled(self):
         """Tensormesh declares /v1/responses in supported_endpoints, so litellm
         resolves a responses config for it."""
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.utils import ProviderConfigManager
 
         assert JSONProviderRegistry.supports_responses_api("tensormesh") is True
         config = ProviderConfigManager.get_provider_responses_api_config(
@@ -95,7 +95,7 @@ class TestTensormeshProviderConfig:
 
     def test_tensormesh_router_config(self):
         """Test that tensormesh can be used in Router configuration"""
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[

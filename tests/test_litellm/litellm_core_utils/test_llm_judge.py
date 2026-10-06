@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_judge import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_judge import (
     extract_text_from_content,
     judge_acompletion,
     judge_target,
@@ -91,7 +91,7 @@ async def test_judge_acompletion_prefers_router_and_disables_retries():
 
 @pytest.mark.asyncio
 async def test_judge_acompletion_falls_back_to_sdk_for_unconfigured_model(monkeypatch: pytest.MonkeyPatch):
-    import litellm as litellm_module
+    from token_iq import gateway as litellm_module
 
     sdk = AsyncMock(return_value={"choices": [{"message": {"content": "sdk answer"}}]})
     monkeypatch.setattr(litellm_module, "acompletion", sdk)

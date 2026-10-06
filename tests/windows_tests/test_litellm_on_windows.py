@@ -12,7 +12,7 @@ def test_using_litellm_on_windows():
     """Test that LiteLLM can be imported on Windows systems."""
 
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         print(
             f"litellm imported successfully on Windows ({platform.system()} {platform.release()})"

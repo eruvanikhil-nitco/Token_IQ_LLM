@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import HTTPStatusError, Request, Response
 
-from litellm.integrations.newrelic.newrelic_metrics import (
+from token_iq.gateway.integrations.newrelic.newrelic_metrics import (
     NewRelicMetricsLogger,
     _bucket_metrics,
     build_metric_payload,
 )
-from litellm.types.integrations.newrelic import (
+from token_iq.gateway.types.integrations.newrelic import (
     NEWRELIC_METRIC_COMPLETION_TOKENS,
     NEWRELIC_METRIC_COST_USD,
     NEWRELIC_METRIC_ENDPOINT_BY_REGION,
@@ -287,7 +287,7 @@ class TestQueueAndFlush:
         logger.last_flush_time = 2_000.0
         logger.async_client.post = AsyncMock(return_value=_response(202))
 
-        with patch("litellm.integrations.newrelic.newrelic_metrics.time.time", return_value=2_010.0):
+        with patch("token_iq.gateway.integrations.newrelic.newrelic_metrics.time.time", return_value=2_010.0):
             await logger.async_send_batch()
 
         sent = logger.async_client.post.await_args.kwargs
@@ -400,7 +400,7 @@ class TestErrorPolicy:
         logger.log_queue = [_record()]
         logger.async_client.post = _raises(403)
 
-        with patch("litellm.integrations.newrelic.newrelic_metrics.verbose_logger") as mock_logger:
+        with patch("token_iq.gateway.integrations.newrelic.newrelic_metrics.verbose_logger") as mock_logger:
             await logger.async_send_batch()
 
         assert logger.log_queue == []
@@ -491,7 +491,7 @@ class TestStopFlag:
     @pytest.mark.asyncio
     async def test_eviction_drains_queued_records(self):
         """Eviction must post what is already queued, not silently discard it."""
-        from litellm.litellm_core_utils.specialty_caches.dynamic_logging_cache import (
+        from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
             DynamicLoggingCache,
         )
 
@@ -515,7 +515,7 @@ class TestStopFlag:
 
     @pytest.mark.asyncio
     async def test_dynamic_logging_cache_eviction_calls_stop(self):
-        from litellm.litellm_core_utils.specialty_caches.dynamic_logging_cache import (
+        from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
             DynamicLoggingCache,
         )
 
@@ -695,7 +695,7 @@ async def test_terminal_drop_leaves_untried_late_arrival_for_next_drain():
     serialized drain, never wiped un-tried."""
     logger = _make_logger()
     logger.stop()
-    from litellm.types.integrations.newrelic import NEWRELIC_METRICS_MAX_DRAIN_PASSES
+    from token_iq.gateway.types.integrations.newrelic import NEWRELIC_METRICS_MAX_DRAIN_PASSES
 
     late_record = _record(model="late-arrival")
     posts = {"n": 0}

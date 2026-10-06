@@ -5,15 +5,15 @@ from httpx import Response, Request
 
 import pytest
 
-from litellm.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import (
     DeepKeepGuardrailMissingSecrets,
     DeepKeepGuardrail,
     DeepKeepGuardrailAPIError,
 )
-from litellm.exceptions import GuardrailRaisedException
+from token_iq.gateway.exceptions import GuardrailRaisedException
 
-import litellm
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_deepkeep_guard_config():

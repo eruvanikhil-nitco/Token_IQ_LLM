@@ -14,17 +14,17 @@ import pytest
 
 # Add the project root to Python path
 
-import litellm
-from litellm.cost_calculator import completion_cost, cost_per_token
-from litellm.llms.perplexity.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.cost_calculator import completion_cost, cost_per_token
+from token_iq.gateway.llms.perplexity.cost_calculator import (
     cost_per_token as perplexity_cost_per_token,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     Usage,
     PromptTokensDetailsWrapper,
 )
-from litellm.utils import get_model_info
+from token_iq.gateway.utils import get_model_info
 
 
 class TestPerplexityCostCalculator:
@@ -237,7 +237,7 @@ class TestPerplexityCostCalculator:
 
         # Mock get_model_info to return incomplete model info
         with patch(
-            "litellm.llms.perplexity.cost_calculator.get_model_info"
+            "token_iq.gateway.llms.perplexity.cost_calculator.get_model_info"
         ) as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 2e-6,
@@ -285,7 +285,7 @@ class TestPerplexityCostCalculator:
 
     def test_integration_with_completion_cost_function(self):
         """Test integration with the completion_cost function."""
-        from litellm import ModelResponse
+        from token_iq.gateway import ModelResponse
 
         # Create a mock ModelResponse
         usage = Usage(
@@ -401,9 +401,9 @@ class TestPerplexityCostCalculator:
     def test_uses_perplexity_provided_cost_when_normalized_to_float(self):
         """
         Regression: for Responses API / Agent API models, `ResponseAPIUsage.parse_cost`
-        (litellm/types/llms/openai.py) already flattens Perplexity's
+        (token_iq/gateway/types/llms/openai.py) already flattens Perplexity's
         `usage.cost.total_cost` dict down to a plain float before
-        `_transform_response_api_usage_to_chat_usage` (litellm/responses/utils.py) copies
+        `_transform_response_api_usage_to_chat_usage` (token_iq/gateway/responses/utils.py) copies
         it onto the chat `Usage` object. So `usage.cost` arrives here as a float, not a
         dict, on that path.
 
@@ -512,7 +512,7 @@ class TestPerplexityCostCalculator:
         raised "This model isn't mapped yet" for every Agent API third-party model,
         because the doubled cost-map key was unreachable from the resolution ladder.
         """
-        from litellm import ModelResponse
+        from token_iq.gateway import ModelResponse
 
         response = ModelResponse()
         response.usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)

@@ -6,18 +6,18 @@ from io import BytesIO
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.url_utils import SSRFError
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.hosted_vllm.videos import get_hosted_vllm_video_config
-from litellm.llms.hosted_vllm.videos.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.url_utils import SSRFError
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.hosted_vllm.videos import get_hosted_vllm_video_config
+from token_iq.gateway.llms.hosted_vllm.videos.transformation import (
     HostedVLLMVideoConfig,
     _serialize_form_value,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
-from litellm.types.videos.main import VideoObject
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.types.videos.main import VideoObject
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_provider_config_registration():

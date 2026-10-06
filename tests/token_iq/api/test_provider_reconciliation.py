@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
@@ -30,7 +30,7 @@ def _row(request_id: str, ours: str, theirs: str | None, evidence: str = "reconc
 async def _call(rows: list[dict], caller: UserAPIKeyAuth = ADMIN):
     from token_iq.api.provider_reconciliation import provider_reconciliation
 
-    with patch("litellm.proxy.proxy_server.prisma_client", _prisma(rows)):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(rows)):
         return await provider_reconciliation(provider="openrouter", days=7, user_api_key_dict=caller)
 
 
@@ -83,7 +83,7 @@ async def test_the_window_is_bounded_so_one_call_cannot_scan_all_history():
     from token_iq.api.provider_reconciliation import provider_reconciliation
 
     client = _prisma([])
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         await provider_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
 
     sql = client.db.query_raw.await_args.args[0]
@@ -131,7 +131,7 @@ async def test_the_total_keeps_every_digit_the_provider_billed():
     from token_iq.api.provider_reconciliation import provider_reconciliation
 
     client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         result = await provider_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
 
     assert result.rows[0].our_cost == "0.123456789012345678"

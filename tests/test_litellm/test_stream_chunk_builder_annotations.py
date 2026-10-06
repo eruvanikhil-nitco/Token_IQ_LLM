@@ -6,8 +6,8 @@ annotation chunk, losing any annotations that arrived in later chunks.
 This fix merges annotations from ALL chunks.
 """
 
-from litellm import stream_chunk_builder
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+from token_iq.gateway import stream_chunk_builder
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
 
 def test_stream_chunk_builder_merges_annotations_from_multiple_chunks():

@@ -1,6 +1,6 @@
 """Unit tests for litellm.setup_wizard — pure functions only, no network calls."""
 
-from litellm.setup_wizard import SetupWizard, _yaml_escape
+from token_iq.gateway.setup_wizard import SetupWizard, _yaml_escape
 
 # ---------------------------------------------------------------------------
 # _yaml_escape

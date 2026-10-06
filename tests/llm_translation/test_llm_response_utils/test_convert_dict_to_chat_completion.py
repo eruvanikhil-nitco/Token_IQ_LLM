@@ -2,11 +2,11 @@ import json
 from datetime import datetime
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from datetime import timedelta
 
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ModelResponse,
     Message,
     Choices,
@@ -15,7 +15,7 @@ from litellm.types.utils import (
     Usage,
 )
 
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     convert_to_model_response_object,
 )
 
@@ -323,7 +323,7 @@ def test_convert_to_model_response_object_json_mode():
     This test is verifying that when convert_tool_call_to_json_mode is True, a single tool call's arguments are correctly converted into the message content of the response.
     """
     model_response_object = ModelResponse(model="gpt-3.5-turbo")
-    from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+    from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
     response_object = {
         "choices": [
@@ -713,7 +713,7 @@ def test_convert_to_model_response_object_error():
 def test_image_generation_openai_with_pydantic_warning(caplog):
     try:
         import logging
-        from litellm.types.utils import ImageResponse, ImageObject
+        from token_iq.gateway.types.utils import ImageResponse, ImageObject
 
         convert_response_args = {
             "response_object": {
@@ -1607,7 +1607,7 @@ class TestMissingChoicesGuard:
 
     def test_convert_to_model_response_object_no_choices_raises_api_error(self):
         """Missing choices in non-streaming path raises APIError, not IndexError."""
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         response_object = {
             "id": "msg_123",
@@ -1630,7 +1630,7 @@ class TestMissingChoicesGuard:
         Anthropic-native responses) happens before this guard, in the provider
         config; the core utility keeps treating empty choices as an error.
         """
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         response_object = {
             "id": "msg_123",
@@ -1649,7 +1649,7 @@ class TestMissingChoicesGuard:
 
     def test_convert_to_model_response_object_null_choices_raises_api_error(self):
         """choices=None raises APIError."""
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         response_object = {
             "id": "msg_123",
@@ -1668,8 +1668,8 @@ class TestMissingChoicesGuard:
 
     def test_convert_to_streaming_response_no_choices_raises_api_error(self):
         """Missing choices in streaming cache-hit path raises APIError."""
-        from litellm.exceptions import APIError
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.exceptions import APIError
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response,
         )
 
@@ -1689,7 +1689,7 @@ class TestMissingChoicesGuard:
         self,
     ):
         """Missing choices via stream=True path raises APIError when generator is consumed."""
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         response_object = {
             "id": "msg_123",
@@ -1712,8 +1712,8 @@ class TestMissingChoicesGuard:
         """Missing choices in async streaming path raises APIError."""
         import asyncio
 
-        from litellm.exceptions import APIError
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.exceptions import APIError
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response_async,
         )
 
@@ -1738,7 +1738,7 @@ class TestMissingChoicesGuard:
 
     def test_error_message_includes_response_keys(self):
         """The error message should include the keys present in the response for debugging."""
-        from litellm.exceptions import APIError
+        from token_iq.gateway.exceptions import APIError
 
         response_object = {
             "id": "msg_123",
@@ -1758,21 +1758,21 @@ class TestMissingChoicesGuard:
 
 class TestNormalizeImagesForMessage:
     def test_none_returns_none(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _normalize_images_for_message,
         )
 
         assert _normalize_images_for_message(None) is None
 
     def test_empty_list_returns_empty(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _normalize_images_for_message,
         )
 
         assert _normalize_images_for_message([]) == []
 
     def test_adds_index_when_missing(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _normalize_images_for_message,
         )
 
@@ -1783,7 +1783,7 @@ class TestNormalizeImagesForMessage:
         assert result[0]["url"] == "http://a.png"
 
     def test_preserves_existing_index(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _normalize_images_for_message,
         )
 
@@ -1796,7 +1796,7 @@ class TestSafeConvertCreatedField:
     def test_none_returns_current_time(self):
         import time
 
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _safe_convert_created_field,
         )
 
@@ -1804,21 +1804,21 @@ class TestSafeConvertCreatedField:
         assert abs(result - int(time.time())) <= 1
 
     def test_int_passthrough(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _safe_convert_created_field,
         )
 
         assert _safe_convert_created_field(1700000000) == 1700000000
 
     def test_float_truncated(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _safe_convert_created_field,
         )
 
         assert _safe_convert_created_field(1700000000.999) == 1700000000
 
     def test_string_converted(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _safe_convert_created_field,
         )
 
@@ -1827,7 +1827,7 @@ class TestSafeConvertCreatedField:
     def test_invalid_string_returns_current_time(self):
         import time
 
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _safe_convert_created_field,
         )
 
@@ -1837,7 +1837,7 @@ class TestSafeConvertCreatedField:
 
 class TestConvertToStreamingResponse:
     def test_none_raises(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response,
         )
 
@@ -1845,7 +1845,7 @@ class TestConvertToStreamingResponse:
             list(convert_to_streaming_response(response_object=None))
 
     def test_happy_path_basic(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response,
         )
 
@@ -1882,7 +1882,7 @@ class TestConvertToStreamingResponse:
         assert chunk.usage.completion_tokens == 2
 
     def test_finish_details_fallback(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response,
         )
 
@@ -1900,7 +1900,7 @@ class TestConvertToStreamingResponse:
         assert chunks[0].choices[0].finish_reason == "length"
 
     def test_tool_calls_in_streaming(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response_async,
         )
         import asyncio
@@ -1946,7 +1946,7 @@ class TestConvertToStreamingResponseAsync:
     def test_none_raises(self):
         import asyncio
 
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response_async,
         )
 
@@ -1960,7 +1960,7 @@ class TestConvertToStreamingResponseAsync:
     def test_happy_path(self):
         import asyncio
 
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_to_streaming_response_async,
         )
 
@@ -2005,17 +2005,17 @@ class TestConvertToStreamingResponseAsync:
 
 class TestHandleInvalidParallelToolCalls:
     def test_none_input(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _handle_invalid_parallel_tool_calls,
         )
 
         assert _handle_invalid_parallel_tool_calls(None) is None
 
     def test_normal_tool_calls_unchanged(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _handle_invalid_parallel_tool_calls,
         )
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tool_calls = [
             ChatCompletionMessageToolCall(
@@ -2029,10 +2029,10 @@ class TestHandleInvalidParallelToolCalls:
         assert result[0].function.name == "get_weather"
 
     def test_multi_tool_use_parallel_expanded(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _handle_invalid_parallel_tool_calls,
         )
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tool_calls = [
             ChatCompletionMessageToolCall(
@@ -2066,10 +2066,10 @@ class TestHandleInvalidParallelToolCalls:
         assert result[1].id == "call_1_1"
 
     def test_invalid_json_returns_original(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _handle_invalid_parallel_tool_calls,
         )
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tool_calls = [
             ChatCompletionMessageToolCall(
@@ -2085,10 +2085,10 @@ class TestHandleInvalidParallelToolCalls:
 
 class TestShouldConvertToolCallToJsonMode:
     def test_returns_true_when_conditions_met(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _should_convert_tool_call_to_json_mode,
         )
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
         tool_calls = [{"function": {"name": RESPONSE_FORMAT_TOOL_NAME}}]
         assert (
@@ -2099,10 +2099,10 @@ class TestShouldConvertToolCallToJsonMode:
         )
 
     def test_returns_false_when_flag_off(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _should_convert_tool_call_to_json_mode,
         )
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
         tool_calls = [{"function": {"name": RESPONSE_FORMAT_TOOL_NAME}}]
         assert (
@@ -2113,7 +2113,7 @@ class TestShouldConvertToolCallToJsonMode:
         )
 
     def test_returns_false_when_wrong_tool_name(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _should_convert_tool_call_to_json_mode,
         )
 
@@ -2126,10 +2126,10 @@ class TestShouldConvertToolCallToJsonMode:
         )
 
     def test_returns_false_when_multiple_tool_calls(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _should_convert_tool_call_to_json_mode,
         )
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
         tool_calls = [
             {"function": {"name": RESPONSE_FORMAT_TOOL_NAME}},
@@ -2143,7 +2143,7 @@ class TestShouldConvertToolCallToJsonMode:
         )
 
     def test_returns_false_when_none(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             _should_convert_tool_call_to_json_mode,
         )
 
@@ -2157,11 +2157,11 @@ class TestShouldConvertToolCallToJsonMode:
 
 class TestConvertToolCallToJsonMode:
     def test_converts_when_should(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_tool_call_to_json_mode as convert_fn,
         )
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tool_calls = [
             ChatCompletionMessageToolCall(
@@ -2181,11 +2181,11 @@ class TestConvertToolCallToJsonMode:
         assert finish_reason == "stop"
 
     def test_no_conversion_when_flag_false(self):
-        from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+        from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
             convert_tool_call_to_json_mode as convert_fn,
         )
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tool_calls = [
             ChatCompletionMessageToolCall(
@@ -2206,7 +2206,7 @@ class TestConvertToolCallToJsonMode:
 
 class TestConvertToModelResponseObjectEmbedding:
     def test_basic_embedding_response(self):
-        from litellm.types.utils import EmbeddingResponse
+        from token_iq.gateway.types.utils import EmbeddingResponse
 
         response_object = {
             "model": "text-embedding-ada-002",
@@ -2232,7 +2232,7 @@ class TestConvertToModelResponseObjectEmbedding:
 
 class TestConvertToModelResponseObjectAudioTranscription:
     def test_basic_transcription(self):
-        from litellm.types.utils import TranscriptionResponse
+        from token_iq.gateway.types.utils import TranscriptionResponse
 
         response_object = {
             "text": "Hello world",
@@ -2250,7 +2250,7 @@ class TestConvertToModelResponseObjectAudioTranscription:
         assert result.duration == 1.5
 
     def test_transcription_with_duration_usage(self):
-        from litellm.types.utils import TranscriptionResponse
+        from token_iq.gateway.types.utils import TranscriptionResponse
 
         response_object = {
             "text": "Hello",
@@ -2266,7 +2266,7 @@ class TestConvertToModelResponseObjectAudioTranscription:
         assert result.usage.seconds == 3.0
 
     def test_transcription_with_token_usage(self):
-        from litellm.types.utils import TranscriptionResponse
+        from token_iq.gateway.types.utils import TranscriptionResponse
 
         response_object = {
             "text": "Hi",
@@ -2292,7 +2292,7 @@ class TestConvertToModelResponseObjectAudioTranscription:
 
 class TestConvertToModelResponseObjectRerank:
     def test_basic_rerank(self):
-        from litellm.types.utils import RerankResponse
+        from token_iq.gateway.types.utils import RerankResponse
 
         response_object = {
             "id": "rerank-123",
@@ -2372,7 +2372,7 @@ class TestConvertToModelResponseObjectCompletion:
         assert result.choices[1].index == 1
 
     def test_json_mode_conversion(self):
-        from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+        from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
         response_object = {
             "id": "chatcmpl-3",

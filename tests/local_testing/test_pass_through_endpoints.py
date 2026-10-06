@@ -1,5 +1,5 @@
 import os
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from functools import partial
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
@@ -14,7 +14,7 @@ from unittest.mock import Mock
 
 import httpx
 
-from litellm.proxy.proxy_server import initialize_pass_through_endpoints
+from token_iq.gateway.proxy.proxy_server import initialize_pass_through_endpoints
 
 
 # Mock the async_client used in the pass_through_request function
@@ -33,7 +33,7 @@ def remove_rerank_route(app):
 
 @pytest.fixture
 def client():
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     remove_rerank_route(
         app=app
@@ -45,7 +45,7 @@ def client():
 async def test_pass_through_endpoint_no_headers(client, monkeypatch):
     # Mock the httpx.AsyncClient.send method
     monkeypatch.setattr("httpx.AsyncClient.send", mock_request)
-    import litellm
+    from token_iq import gateway as litellm
 
     # Define a pass-through endpoint
     pass_through_endpoints = [
@@ -75,7 +75,7 @@ async def test_pass_through_endpoint_no_headers(client, monkeypatch):
 async def test_pass_through_endpoint(client, monkeypatch):
     # Mock the httpx.AsyncClient.send method
     monkeypatch.setattr("httpx.AsyncClient.send", mock_request)
-    import litellm
+    from token_iq import gateway as litellm
 
     # Define a pass-through endpoint
     pass_through_endpoints = [
@@ -105,7 +105,7 @@ async def test_pass_through_endpoint(client, monkeypatch):
 @pytest.mark.asyncio
 async def test_pass_through_endpoint_rerank(client):
     _cohere_api_key = os.environ.get("COHERE_API_KEY")
-    import litellm
+    from token_iq import gateway as litellm
 
     # Define a pass-through endpoint
     pass_through_endpoints = [
@@ -176,9 +176,9 @@ async def test_pass_through_endpoint_rpm_limit(
     num_users,
 ):
     monkeypatch.setattr("httpx.AsyncClient.send", mock_request)
-    import litellm
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
 
     proxy_logging_obj = ProxyLogging(user_api_key_cache=user_api_key_cache)
     proxy_logging_obj._init_litellm_callbacks()
@@ -280,9 +280,9 @@ async def test_pass_through_endpoint_sequential_rpm_limit(
     client, monkeypatch, auth, rpm_limit, requests_to_make, expected_status_codes
 ):
     monkeypatch.setattr("httpx.AsyncClient.send", mock_request)
-    import litellm
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
 
     proxy_logging_obj = ProxyLogging(user_api_key_cache=user_api_key_cache)
     proxy_logging_obj._init_litellm_callbacks()
@@ -374,13 +374,13 @@ async def test_pass_through_endpoint_sequential_rpm_limit(
 async def test_aaapass_through_endpoint_pass_through_keys_langfuse(
     auth, expected_error_code, rpm_limit
 ):
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     client = TestClient(app)
-    import litellm
+    from token_iq import gateway as litellm
 
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.proxy_server import ProxyLogging, hash_token, user_api_key_cache
 
     # Store original values
     original_user_api_key_cache = getattr(
@@ -494,7 +494,7 @@ async def test_aaapass_through_endpoint_pass_through_keys_langfuse(
 
 @pytest.mark.asyncio
 async def test_pass_through_endpoint_bing(client, monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     captured_requests = []
 

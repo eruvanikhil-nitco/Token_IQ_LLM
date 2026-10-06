@@ -52,7 +52,7 @@ class TestPrismaWrapperTokenRefresh:
     @pytest.mark.asyncio
     async def test_is_token_expired_fresh(self, setup_env):
         """Test that fresh token is not detected as expired."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -65,7 +65,7 @@ class TestPrismaWrapperTokenRefresh:
     @pytest.mark.asyncio
     async def test_is_token_expired_old(self, setup_env):
         """Test that old token is detected as expired."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -84,7 +84,7 @@ class TestPrismaWrapperTokenRefresh:
     @pytest.mark.asyncio
     async def test_start_stop_token_refresh_task(self, setup_env):
         """Test that token refresh task starts and stops correctly."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -104,7 +104,7 @@ class TestPrismaWrapperTokenRefresh:
     @pytest.mark.asyncio
     async def test_start_task_not_enabled(self, setup_env):
         """Test that task doesn't start when IAM auth is not enabled."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         # IAM auth disabled
@@ -116,7 +116,7 @@ class TestPrismaWrapperTokenRefresh:
     @pytest.mark.asyncio
     async def test_is_token_expired_null(self, setup_env):
         """Test that None token is treated as expired."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -129,7 +129,7 @@ class TestTokenExpirationParsing:
 
     def test_parse_token_expiration_valid(self):
         """Test parsing expiration from a valid token."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -145,7 +145,7 @@ class TestTokenExpirationParsing:
 
     def test_parse_token_expiration_invalid(self):
         """Test that invalid token returns None."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -170,7 +170,7 @@ class TestBackgroundRefreshLoop:
     @pytest.mark.asyncio
     async def test_calculate_seconds_fallback_when_no_url(self, setup_env):
         """Test that fallback is used when DATABASE_URL is not set."""
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
         mock_prisma = MagicMock()
         wrapper = PrismaWrapper(original_prisma=mock_prisma, iam_token_db_auth=True)
@@ -195,7 +195,7 @@ async def demonstrate_fix():
     """
     # Import the actual implementation
     try:
-        from litellm.proxy.db.prisma_client import PrismaWrapper
+        from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
     except ImportError:
         return
 

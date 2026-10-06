@@ -8,15 +8,15 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.exceptions import RejectedRequestError
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.utils import CallTypesLiteral
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import RejectedRequestError
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.utils import CallTypesLiteral
 
 
 def _load(module: str, name: str):
@@ -252,7 +252,7 @@ async def test_guardrails_only_skips_prompt_template_rewriting(proxy_logging, ma
 )
 def test_has_pre_call_guardrails_follows_the_guardrail_event_hook(proxy_logging, monkeypatch, event_hook, expected):
     """A post-call-only guardrail must not make callers pay for pre-call work."""
-    from litellm.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
     guardrail = CustomGuardrail(guardrail_name="g", event_hook=event_hook, default_on=True)
     monkeypatch.setattr(litellm, "callbacks", [guardrail])
@@ -428,7 +428,7 @@ def test_every_pre_call_customlogger_is_deliberately_classified():
         "_PROXY_LiteLLMManagedVectorStores",
     }
 
-    from litellm.proxy.hooks import PROXY_HOOKS
+    from token_iq.gateway.proxy.hooks import PROXY_HOOKS
 
     registered = dict(PROXY_HOOKS)
     for name, cls in (
@@ -724,7 +724,7 @@ async def test_scan_raw_request_warns_when_guardrail_mutation_discarded(
                 msg["content"] = msg["content"].replace("SECRET", "[REDACTED]")
             return data
 
-    from litellm.proxy import utils as proxy_utils_module
+    from token_iq.gateway.proxy import utils as proxy_utils_module
 
     mock_logger = MagicMock()
     monkeypatch.setattr(proxy_utils_module, "verbose_proxy_logger", mock_logger)
@@ -831,7 +831,7 @@ async def test_scan_raw_request_does_not_warn_when_guardrail_only_blocks(
     blocker (like _BlockOnSecretGuardrail here) would warn on every call, not just
     when it actually mutates something.
     """
-    from litellm.proxy import utils as proxy_utils_module
+    from token_iq.gateway.proxy import utils as proxy_utils_module
 
     mock_logger = MagicMock()
     monkeypatch.setattr(proxy_utils_module, "verbose_proxy_logger", mock_logger)
@@ -857,7 +857,7 @@ async def test_scan_raw_request_warns_on_in_place_mutation_returning_none(
     given, so an identity check (`result is input_data`) would wrongly say
     nothing changed.
     """
-    from litellm.proxy import utils as proxy_utils_module
+    from token_iq.gateway.proxy import utils as proxy_utils_module
 
     class _ScanningRedactor(_RedactingGuardrail):
         def __init__(self, **kwargs):

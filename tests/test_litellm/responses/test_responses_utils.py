@@ -4,11 +4,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.responses.utils import ResponseAPILoggingUtils, ResponsesAPIRequestUtils
-from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIOptionalRequestParams
-from litellm.types.utils import Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.responses.utils import ResponseAPILoggingUtils, ResponsesAPIRequestUtils
+from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.utils import Usage
 
 
 class TestResponsesAPIRequestUtils:
@@ -581,11 +581,11 @@ def test_responses_extra_body_forwarded_to_completion_transformation_handler():
     """
     with (
         patch(
-            "litellm.responses.main.ProviderConfigManager.get_provider_responses_api_config",
+            "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config",
             return_value=None,
         ),
         patch(
-            "litellm.responses.main.litellm_completion_transformation_handler.response_api_handler",
+            "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler",
         ) as mock_handler,
     ):
         mock_handler.return_value = MagicMock()
@@ -612,11 +612,11 @@ def test_responses_maps_reasoning_effort_from_litellm_params_to_reasoning():
     """
     with (
         patch(
-            "litellm.responses.main.ProviderConfigManager.get_provider_responses_api_config",
+            "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config",
             return_value=None,
         ),
         patch(
-            "litellm.responses.main.litellm_completion_transformation_handler.response_api_handler",
+            "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler",
         ) as mock_handler,
     ):
         mock_handler.return_value = MagicMock()
@@ -643,7 +643,7 @@ class TestMergePromptManagementInputReshape:
     EXPLICIT = {"mode": "explicit"}
 
     def _run_cache_hook(self, client_input, points, model="openai/gpt-5.6"):
-        from litellm.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
+        from token_iq.gateway.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
 
         _, merged, _ = AnthropicCacheControlHook().get_chat_completion_prompt(
             model=model,

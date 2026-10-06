@@ -9,8 +9,8 @@ import respx
 from httpx import Response
 
 
-import litellm
-from litellm import text_completion
+from token_iq import gateway as litellm
+from token_iq.gateway import text_completion
 
 
 @pytest.fixture(autouse=True)

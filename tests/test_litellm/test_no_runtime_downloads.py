@@ -35,19 +35,19 @@ class TestNothingFetchesAtRuntime:
     def test_importing_litellm_opens_no_socket(self, no_sockets: None) -> None:
         import importlib
 
-        import litellm
+        from token_iq import gateway as litellm
 
         importlib.reload(litellm)
 
     def test_the_anthropic_beta_headers_load_without_a_network(self, no_sockets: None) -> None:
-        from litellm.anthropic_beta_headers_manager import get_beta_headers_config
+        from token_iq.gateway.anthropic_beta_headers_manager import get_beta_headers_config
 
         assert get_beta_headers_config()
 
     def test_no_upstream_url_is_configured_in_the_package_root(self) -> None:
         source: Final = (REPO / "litellm" / "__init__.py").read_text(encoding="utf-8")
         for forbidden in ("raw.githubusercontent.com", "docs.litellm.ai", "BerriAI"):
-            assert forbidden not in source, f"{forbidden} is still reachable from litellm/__init__.py"
+            assert forbidden not in source, f"{forbidden} is still reachable from token_iq/gateway/__init__.py"
 
 
 class TestOnlyTheUpdateJobNamesUpstream:

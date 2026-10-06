@@ -17,10 +17,10 @@ import json
 
 import pytest
 
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.utils import Message
+from token_iq.gateway.types.utils import Message
 
 
 def _transform_item(item):

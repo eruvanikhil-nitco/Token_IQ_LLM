@@ -5,8 +5,8 @@ from typing import Final, cast
 import pytest
 from fastapi.responses import StreamingResponse
 
-from litellm.proxy.common_request_processing import create_response
-from litellm.proxy.common_utils.sse_keepalive import (
+from token_iq.gateway.proxy.common_request_processing import create_response
+from token_iq.gateway.proxy.common_utils.sse_keepalive import (
     ANTHROPIC_PING_SSE_CHUNK,
     SSE_COMMENT_PING_BYTES,
     resolve_ttft_keepalive_interval,

@@ -7,8 +7,8 @@ import sys, os
 from dotenv import load_dotenv
 
 
-from litellm.proxy.google_endpoints.endpoints import google_count_tokens
-from litellm.types.llms.vertex_ai import TokenCountDetailsResponse
+from token_iq.gateway.proxy.google_endpoints.endpoints import google_count_tokens
+from token_iq.gateway.types.llms.vertex_ai import TokenCountDetailsResponse
 from starlette.requests import Request
 
 load_dotenv()

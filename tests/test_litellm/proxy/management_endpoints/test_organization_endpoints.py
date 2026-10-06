@@ -1,6 +1,6 @@
 import asyncio
 import json
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from typing import Optional, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -23,17 +23,17 @@ async def test_organization_update_object_permissions_existing_permission(monkey
 
     import pytest
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionBase,
         LiteLLM_OrganizationTable,
     )
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         handle_update_object_permission,
     )
 
     # Mock prisma client
     mock_prisma_client = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Mock existing organization with object_permission_id
     existing_organization_row = LiteLLM_OrganizationTable(
@@ -90,20 +90,20 @@ async def test_get_organization_daily_activity_admin_param_passing(monkeypatch):
     """
     As admin, ensure parsed params are forwarded to get_daily_activity with correct values.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
     )
 
     # Mock prisma client
     mock_prisma_client = AsyncMock()
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Admin view -> skip membership restriction
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
+        "token_iq.gateway.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
         lambda _: True,
     )
 
@@ -151,9 +151,9 @@ async def test_get_organization_daily_activity_non_admin_defaults_to_admin_orgs(
     """
     from types import SimpleNamespace
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
     )
 
@@ -166,11 +166,11 @@ async def test_get_organization_daily_activity_non_admin_defaults_to_admin_orgs(
             SimpleNamespace(organization_id="orgB", user_role=LitellmUserRoles.ORG_ADMIN.value),
         ]
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Non-admin view
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
+        "token_iq.gateway.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
         lambda _: False,
     )
 
@@ -207,8 +207,8 @@ async def test_get_organization_daily_activity_non_admin_unauthorized_org_raises
     """
     from types import SimpleNamespace
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
     )
 
@@ -218,11 +218,11 @@ async def test_get_organization_daily_activity_non_admin_unauthorized_org_raises
         return_value=[SimpleNamespace(organization_id="orgA", user_role=LitellmUserRoles.ORG_ADMIN.value)]
     )
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Non-admin view
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
+        "token_iq.gateway.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
         lambda _: False,
     )
 
@@ -258,17 +258,17 @@ async def test_organization_update_object_permissions_no_existing_permission(
 
     import pytest
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionBase,
         LiteLLM_OrganizationTable,
     )
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         handle_update_object_permission,
     )
 
     # Mock prisma client
     mock_prisma_client = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     existing_organization_row_no_perm = LiteLLM_OrganizationTable(
         organization_id="test_org_id_2",
@@ -323,17 +323,17 @@ async def test_organization_update_object_permissions_missing_permission_record(
 
     import pytest
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionBase,
         LiteLLM_OrganizationTable,
     )
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         handle_update_object_permission,
     )
 
     # Mock prisma client
     mock_prisma_client = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     existing_organization_row_missing_perm = LiteLLM_OrganizationTable(
         organization_id="test_org_id_3",
@@ -388,8 +388,8 @@ async def test_list_organization_filter_by_org_id(monkeypatch):
     """
     from types import SimpleNamespace
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         list_organization,
     )
 
@@ -409,7 +409,7 @@ async def test_list_organization_filter_by_org_id(monkeypatch):
     # Mock find_many to return filtered results
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[mock_org1])
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Test as proxy admin
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
@@ -442,8 +442,8 @@ async def test_list_organization_filter_by_org_alias(monkeypatch):
     """
     from types import SimpleNamespace
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         list_organization,
     )
 
@@ -471,7 +471,7 @@ async def test_list_organization_filter_by_org_alias(monkeypatch):
     # Mock find_many to return filtered results
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[mock_org1, mock_org2])
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Test as proxy admin with org_alias filter
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
@@ -498,7 +498,7 @@ async def test_organization_info_includes_user_email(monkeypatch):
     """
     Test that GET /organization/info returns user_email in members list.
     """
-    from litellm.proxy._types import LiteLLM_OrganizationMembershipTable
+    from token_iq.gateway.proxy._types import LiteLLM_OrganizationMembershipTable
     from datetime import datetime
 
     # Simulate a membership row with a nested user object that has user_email
@@ -529,7 +529,7 @@ async def test_organization_info_includes_user_email(monkeypatch):
 
 @pytest.fixture
 def unauthorized_caller():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(
         user_role=LitellmUserRoles.INTERNAL_USER,
@@ -552,16 +552,16 @@ def patched_org_prisma():
     caller_user.organization_memberships = []  # no admin role anywhere
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         patch(
-            "litellm.proxy.management_endpoints.organization_endpoints.get_user_object",
+            "token_iq.gateway.proxy.management_endpoints.organization_endpoints.get_user_object",
             new_callable=AsyncMock,
             return_value=caller_user,
         ),
         patch(
-            "litellm.proxy.proxy_server.user_api_key_cache",
+            "token_iq.gateway.proxy.proxy_server.user_api_key_cache",
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj"),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj"),
     ):
         mock_prisma.db.litellm_organizationtable.find_unique = AsyncMock(return_value=victim_row)
         yield mock_prisma
@@ -572,12 +572,12 @@ async def test_organization_member_add_rejects_unauthorized_caller(patched_org_p
     # ``organization_member_add`` catches HTTPException in its
     # catch-all and re-wraps as ProxyException with the original status
     # code preserved.
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         OrganizationMemberAddRequest,
         OrgMember,
         ProxyException,
     )
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         organization_member_add,
     )
     from unittest.mock import Mock
@@ -601,8 +601,8 @@ async def test_organization_member_add_rejects_unauthorized_caller(patched_org_p
 
 @pytest.mark.asyncio
 async def test_organization_member_update_rejects_unauthorized_caller(patched_org_prisma, unauthorized_caller):
-    from litellm.proxy._types import OrganizationMemberUpdateRequest
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import OrganizationMemberUpdateRequest
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         organization_member_update,
     )
 
@@ -622,8 +622,8 @@ async def test_organization_member_update_rejects_unauthorized_caller(patched_or
 
 @pytest.mark.asyncio
 async def test_organization_member_delete_rejects_unauthorized_caller(patched_org_prisma, unauthorized_caller):
-    from litellm.proxy._types import OrganizationMemberDeleteRequest
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import OrganizationMemberDeleteRequest
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         organization_member_delete,
     )
 
@@ -649,7 +649,7 @@ def test_v2_model_rejects_invalid_body(body):
     """A non-numeric limit and an unknown/misspelled key are both rejected at model validation (422 at the route)."""
     from pydantic import ValidationError
 
-    from litellm.proxy._types import OrganizationUpdateRequestV2
+    from token_iq.gateway.proxy._types import OrganizationUpdateRequestV2
 
     with pytest.raises(ValidationError):
         OrganizationUpdateRequestV2.model_validate(body)
@@ -675,16 +675,16 @@ async def _run_update_organization_v2(
     existing_object_permission_id=None,
     existing_object_permission_row=None,
 ):
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LitellmUserRoles,
         OrganizationUpdateRequestV2,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         update_organization_v2,
     )
-    from litellm.proxy.utils import jsonify_object
+    from token_iq.gateway.proxy.utils import jsonify_object
 
     mock_prisma_client = AsyncMock()
     mock_prisma_client.jsonify_object = jsonify_object
@@ -714,7 +714,7 @@ async def _run_update_organization_v2(
     call_order.attach_mock(mock_prisma_client.db.litellm_organizationtable.update, "org_update")
     mock_prisma_client.call_order = call_order
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr(organization_endpoints, "_verify_org_access", AsyncMock())
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
@@ -779,10 +779,10 @@ async def test_v2_update_metadata_replaces_not_merges(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_null_clear_of_non_nullable_fields(monkeypatch):
     """organization_alias and models are non-nullable columns, so a null clear is a 422, not a 500."""
-    from litellm.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.organization_endpoints import update_organization_v2
+    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", AsyncMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", AsyncMock())
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
 
     for body in ({"organization_alias": None}, {"models": None}):
@@ -798,10 +798,10 @@ async def test_v2_rejects_null_clear_of_non_nullable_fields(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_negative_max_budget(monkeypatch):
     """v2 rejects a negative max_budget with a 422 before touching the DB."""
-    from litellm.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.organization_endpoints import update_organization_v2
+    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", AsyncMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", AsyncMock())
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
     with pytest.raises(HTTPException) as exc:
@@ -817,12 +817,12 @@ async def test_v2_rejects_negative_max_budget(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_caller_without_org_access(monkeypatch):
     """v2 runs the real _verify_org_access guard: a non-admin without ORG_ADMIN on the org gets 403 and no write."""
-    from litellm.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import update_organization_v2
+    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
     mock_prisma_client = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr(organization_endpoints, "_user_has_admin_view", lambda _: False)
 
     caller = MagicMock()
@@ -908,12 +908,12 @@ async def test_v2_clears_object_permission_when_sent_null(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_empty_object_permission(monkeypatch):
     """object_permission: {} merges nothing, so it is rejected (send null to clear) rather than silently leaving grants."""
-    from litellm.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import update_organization_v2
+    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
     mock_prisma_client = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr(organization_endpoints, "_verify_org_access", AsyncMock())
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
@@ -947,7 +947,7 @@ async def test_v2_writes_budget_and_org_in_one_transaction(monkeypatch):
 async def test_v2_serializes_model_max_budget_on_budget_write(monkeypatch):
     """model_max_budget is a Json column, so it is JSON-serialized on the budget-row write like new_budget/metadata."""
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints.validate_model_max_budget",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.validate_model_max_budget",
         lambda _: None,
     )
 
@@ -965,7 +965,7 @@ async def test_v2_serializes_model_max_budget_on_budget_write(monkeypatch):
 
 def test_build_budget_write_data_recomputes_reset_at_on_duration():
     """A sent budget_duration recomputes budget_reset_at so the reset window follows the new duration."""
-    from litellm.proxy.management_endpoints.organization_endpoints import build_budget_write_data
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import build_budget_write_data
 
     data = build_budget_write_data({"budget_duration": "30d"}, "admin-1")
     assert data["budget_duration"] == "30d"
@@ -975,7 +975,7 @@ def test_build_budget_write_data_recomputes_reset_at_on_duration():
 
 def test_build_budget_write_data_no_reset_at_without_duration():
     """Clearing a limit writes it through untouched and does not recompute budget_reset_at."""
-    from litellm.proxy.management_endpoints.organization_endpoints import build_budget_write_data
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import build_budget_write_data
 
     data = build_budget_write_data({"tpm_limit": None}, "admin-1")
     assert data["tpm_limit"] is None
@@ -984,7 +984,7 @@ def test_build_budget_write_data_no_reset_at_without_duration():
 
 def test_build_budget_write_data_clears_reset_at_with_null_duration():
     """Clearing budget_duration also nulls budget_reset_at so no stale reset timestamp survives."""
-    from litellm.proxy.management_endpoints.organization_endpoints import build_budget_write_data
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import build_budget_write_data
 
     data = build_budget_write_data({"budget_duration": None}, "admin-1")
     assert data["budget_duration"] is None
@@ -1002,9 +1002,9 @@ async def test_get_organization_daily_activity_non_admin_without_org_admin_role_
     organization-alias lookup must be scoped by that same empty list rather than
     reading the whole table.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import organization_endpoints
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import organization_endpoints
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
     )
 
@@ -1012,10 +1012,10 @@ async def test_get_organization_daily_activity_non_admin_without_org_admin_role_
     org_table_find_many = AsyncMock(return_value=[])
     mock_prisma_client.db.litellm_organizationtable.find_many = org_table_find_many
     mock_prisma_client.db.litellm_organizationmembership.find_many = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
+        "token_iq.gateway.proxy.management_endpoints.organization_endpoints._user_has_admin_view",
         lambda _: False,
     )
 
@@ -1046,7 +1046,7 @@ async def test_find_member_if_email_missing_row_raises_documented_400():
     None guard the next line dereferences None and /organization/member_add answers with
     an AttributeError-driven 500 rather than the documented 400.
     """
-    from litellm.proxy.management_endpoints.organization_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         find_member_if_email,
     )
 

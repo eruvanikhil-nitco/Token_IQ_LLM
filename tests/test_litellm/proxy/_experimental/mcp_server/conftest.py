@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
     global_mcp_server_manager,
 )
 

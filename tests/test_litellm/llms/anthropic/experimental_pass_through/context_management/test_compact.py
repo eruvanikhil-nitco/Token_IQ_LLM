@@ -18,12 +18,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.context_management import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management import (
     AnthropicContextManagementError,
     apply_context_management,
 )
-from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
     _augment_system_with_summary,
     _extract_summary_text,
     _select_last_user_question,
@@ -32,7 +32,7 @@ from litellm.llms.anthropic.experimental_pass_through.context_management.editors
     apply_client_compaction_block_history,
     apply_compact_20260112,
 )
-from litellm.llms.anthropic.experimental_pass_through.context_management.result import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.result import (
     PolyfillResult,
 )
 
@@ -312,7 +312,7 @@ async def test_trigger_below_minimum_raises():
 async def test_trigger_at_minimum_does_not_raise():
     """Exactly 50 000 is allowed — only strictly less than 50k is rejected."""
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_compact_20260112(
@@ -337,7 +337,7 @@ async def test_trigger_at_minimum_does_not_raise():
 async def test_opt_in_gating_no_summary_model_configured():
     messages = _simple_messages()
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_compact_20260112(
@@ -364,7 +364,7 @@ async def test_opt_in_gating_no_summary_model_keeps_post_compaction_tail():
     messages = _messages_with_compaction("prior summary text")
 
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_compact_20260112(
@@ -448,10 +448,10 @@ async def test_slice_only_path_with_existing_compaction_block():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=500),  # well under threshold
+        patch("token_iq.gateway.token_counter", return_value=500),  # well under threshold
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -485,10 +485,10 @@ async def test_slice_only_no_compaction_block_under_threshold():
     messages = _simple_messages()
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=500),
+        patch("token_iq.gateway.token_counter", return_value=500),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -518,12 +518,12 @@ async def test_full_summary_path():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),  # over 150k threshold
+        patch("token_iq.gateway.token_counter", return_value=200_000),  # over 150k threshold
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             return_value=mock_response,
         ),
@@ -572,10 +572,10 @@ async def test_full_summary_path_uses_router_when_available():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="my-summary-model",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -608,12 +608,12 @@ async def test_litellm_metadata_propagated_to_summary_call():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             return_value=mock_response,
         ) as mock_call,
@@ -645,12 +645,12 @@ async def test_summary_call_failed():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             side_effect=RuntimeError("network error"),
         ),
@@ -681,12 +681,12 @@ async def test_summary_extraction_failed_no_tags():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             return_value=mock_response,
         ),
@@ -713,7 +713,7 @@ async def test_pause_after_compaction_ignored_warning():
     """pause_after_compaction: true → warning recorded, request proceeds normally."""
     messages = _simple_messages()
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_compact_20260112(
@@ -736,7 +736,7 @@ async def test_pause_after_compaction_ignored_warning():
 async def test_unsupported_trigger_type_falls_back_to_default():
     messages = _simple_messages()
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_compact_20260112(
@@ -774,12 +774,12 @@ async def test_custom_instructions_used_verbatim():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -819,12 +819,12 @@ async def test_default_instructions_appended_with_no_tool_suffix_when_no_tools()
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -855,12 +855,12 @@ async def test_default_instructions_with_tools_appends_no_tool_suffix():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -889,12 +889,12 @@ async def test_system_prompt_forwarded_to_summary_call_as_string():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -929,12 +929,12 @@ async def test_system_prompt_forwarded_to_summary_call_as_content_blocks():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -972,12 +972,12 @@ async def test_summary_call_carries_prior_compaction_summary_into_system():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -1009,12 +1009,12 @@ async def test_summary_call_omits_system_message_when_system_is_none():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -1050,12 +1050,12 @@ async def test_summary_call_does_not_emit_consecutive_user_turns():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             side_effect=_fake_call_summary_model,
         ),
     ):
@@ -1082,10 +1082,10 @@ async def test_summary_call_sends_default_max_tokens():
     (which require it) don't reject the request and silently fall back to
     ``summary_call_failed``.
     """
-    from litellm.llms.anthropic.experimental_pass_through.context_management.constants import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
         COMPACT_SUMMARY_MAX_TOKENS,
     )
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -1109,7 +1109,7 @@ async def test_summary_call_sends_default_max_tokens():
 async def test_summary_call_honors_max_tokens_override():
     """Operators can override the default summary ``max_tokens`` via
     ``general_settings.context_management_summary_max_tokens``."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _read_summary_max_tokens_setting,
     )
 
@@ -1121,12 +1121,12 @@ async def test_summary_call_honors_max_tokens_override():
             return _make_mock_response("<summary>x</summary>")
 
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"context_management_summary_max_tokens": 8192},
     ):
         assert _read_summary_max_tokens_setting() == 8192
 
-        from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
             _call_summary_model,
         )
 
@@ -1145,16 +1145,16 @@ def test_summary_max_tokens_setting_falls_back_for_invalid_values():
     """Invalid override values (non-int, non-positive, missing) fall back to
     the compiled default so a typo in ``general_settings`` doesn't break the
     summary call."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.constants import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
         COMPACT_SUMMARY_MAX_TOKENS,
     )
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _read_summary_max_tokens_setting,
     )
 
     for bad in ("4096", 0, -1, None, {"value": 1024}):
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"context_management_summary_max_tokens": bad},
         ):
             assert (
@@ -1165,10 +1165,10 @@ def test_summary_max_tokens_setting_falls_back_for_invalid_values():
 async def test_summary_call_sends_default_timeout():
     """``timeout`` is set on the summary call so a slow or unresponsive summary
     model cannot hang the parent ``/v1/messages`` request indefinitely."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.constants import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
         COMPACT_SUMMARY_TIMEOUT_SECONDS,
     )
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -1235,12 +1235,12 @@ async def test_summary_model_denied_when_key_not_in_allowlist():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
     ):
@@ -1267,12 +1267,12 @@ async def test_summary_model_denied_when_team_not_in_allowlist():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
     ):
@@ -1298,12 +1298,12 @@ async def test_summary_model_allowed_when_in_key_allowlist():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
     ):
@@ -1331,12 +1331,12 @@ async def test_summary_model_allowed_when_no_user_api_key_auth():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
     ):
@@ -1368,27 +1368,27 @@ async def test_summary_model_denied_when_user_scope_excludes_it():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_user_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_user_object",
             AsyncMock(return_value=_User()),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_project_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_project_object",
             AsyncMock(return_value=None),
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1418,27 +1418,27 @@ async def test_summary_model_denied_when_project_scope_excludes_it():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_user_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_user_object",
             AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_project_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_project_object",
             AsyncMock(return_value=_Project()),
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1470,27 +1470,27 @@ async def test_summary_model_denied_when_team_member_scope_excludes_it():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_user_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_user_object",
             AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             AsyncMock(return_value=_Membership()),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_project_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_project_object",
             AsyncMock(return_value=None),
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1508,7 +1508,7 @@ async def test_summary_model_denied_when_team_member_scope_excludes_it():
 async def test_summary_model_denied_when_key_over_model_budget():
     """A caller whose per-model budget for the summary model is exhausted cannot
     trigger the summary call via compaction."""
-    import litellm
+    from token_iq import gateway as litellm
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1528,15 +1528,15 @@ async def test_summary_model_denied_when_key_over_model_budget():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.model_max_budget_limiter", limiter),
+        patch("token_iq.gateway.proxy.proxy_server.model_max_budget_limiter", limiter),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1560,7 +1560,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
     only the key and end-user scopes would let compaction increment a counter it
     can never be refused by, which is the asymmetry this PR exists to remove.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1581,15 +1581,15 @@ async def test_summary_model_denied_when_user_over_model_budget():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.model_max_budget_limiter", limiter),
+        patch("token_iq.gateway.proxy.proxy_server.model_max_budget_limiter", limiter),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1613,7 +1613,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
     )
     import inspect
 
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         _PROXY_VirtualKeyModelMaxBudgetLimiter,
     )
 
@@ -1626,7 +1626,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
 
 async def test_summary_model_denied_when_end_user_over_model_budget():
     """End-user per-model budget is enforced for the summary subrequest too."""
-    import litellm
+    from token_iq import gateway as litellm
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1648,15 +1648,15 @@ async def test_summary_model_denied_when_end_user_over_model_budget():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.model_max_budget_limiter", limiter),
+        patch("token_iq.gateway.proxy.proxy_server.model_max_budget_limiter", limiter),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1689,15 +1689,15 @@ async def test_summary_model_allowed_when_within_model_budget():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.model_max_budget_limiter", limiter),
+        patch("token_iq.gateway.proxy.proxy_server.model_max_budget_limiter", limiter),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1757,15 +1757,15 @@ async def test_summary_model_denied_when_over_rate_limit():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1794,15 +1794,15 @@ async def test_summary_model_allowed_when_within_rate_limit():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1836,15 +1836,15 @@ async def test_summary_model_rate_limit_skipped_for_legacy_limiter():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging),
     ):
         result = await apply_compact_20260112(
             model=MODEL,
@@ -1876,12 +1876,12 @@ async def test_scoped_budget_metadata_propagated_to_summary_call():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             return_value=mock_response,
         ) as mock_call,
@@ -1904,7 +1904,7 @@ async def test_scoped_budget_metadata_propagated_to_summary_call():
 async def test_summary_call_passes_end_user_id_as_top_level_user():
     """``_call_summary_model`` forwards the propagated end-user id as the top-level
     ``user`` kwarg that legacy limiter / prometheus end-user tracking reads."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -1927,7 +1927,7 @@ async def test_summary_call_passes_end_user_id_as_top_level_user():
 
 async def test_summary_call_omits_user_when_no_end_user_id():
     """No end-user id on the parent request means no ``user`` kwarg is sent."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -1963,12 +1963,12 @@ async def test_model_budget_metadata_propagated_to_summary_call():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             new_callable=AsyncMock,
             return_value=mock_response,
         ) as mock_call,
@@ -2004,12 +2004,12 @@ async def test_summary_call_propagates_allowed_model_region():
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._call_summary_model",
             mock_call,
         ),
     ):
@@ -2030,7 +2030,7 @@ async def test_summary_call_omits_allowed_model_region_when_unset():
     """Callers without a region restriction must not get an ``allowed_model_region=None``
     kwarg, which would otherwise force the router to evaluate region filtering.
     """
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -2053,7 +2053,7 @@ async def test_summary_call_omits_allowed_model_region_when_unset():
 
 async def test_summary_call_forwards_allowed_model_region_when_set():
     """When the caller is region-restricted, the kwarg reaches the router."""
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _call_summary_model,
     )
 
@@ -2084,7 +2084,7 @@ async def test_dispatcher_routes_compact_edit():
     """compact_20260112 in the dispatcher resolves to opt-in gate when no model set."""
     messages = _simple_messages()
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await apply_context_management(
@@ -2126,7 +2126,7 @@ async def test_dispatcher_trigger_below_minimum_raises_through():
 
 async def test_run_polyfill_skipped_when_context_management_in_additional_drop_params():
     """additional_drop_params=["context_management"] is the explicit opt-out."""
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         _run_polyfill_if_enabled,
     )
 
@@ -2147,13 +2147,13 @@ async def test_run_polyfill_runs_when_litellm_drop_params_true(monkeypatch):
     """drop_params must not disable the polyfill: context_management is a
     LiteLLM-supported param (polyfilled where not native), and drop_params only
     exists to strip genuinely unsupported params."""
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         _run_polyfill_if_enabled,
     )
 
     monkeypatch.setattr(litellm, "drop_params", True)
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
     ):
         result = await _run_polyfill_if_enabled(
@@ -2172,7 +2172,7 @@ async def test_run_polyfill_runs_when_litellm_drop_params_true(monkeypatch):
 
 async def test_run_polyfill_skipped_when_spec_empty():
     """Empty context_management_spec must also return None (no polyfill work)."""
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         _run_polyfill_if_enabled,
     )
 
@@ -2230,7 +2230,7 @@ def _tool_use_messages() -> List[Dict[str, Any]]:
 
 
 def _openai_chat_response():
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     return ModelResponse(
         id="chatcmpl-test",
@@ -2241,7 +2241,7 @@ def _openai_chat_response():
 
 
 async def _call_async_adapter_handler(**handler_kwargs: Any):
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         LiteLLMMessagesToCompletionTransformationHandler,
     )
 
@@ -2251,7 +2251,7 @@ async def _call_async_adapter_handler(**handler_kwargs: Any):
         captured.update(kwargs)
         return _openai_chat_response()
 
-    with patch("litellm.acompletion", side_effect=_capture_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=_capture_acompletion):
         response = await LiteLLMMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
             max_tokens=128,
             messages=_tool_use_messages(),
@@ -2300,7 +2300,7 @@ async def test_async_handler_additional_drop_params_strips_context_management():
 
 
 def _call_sync_adapter_handler(**handler_kwargs: Any):
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         LiteLLMMessagesToCompletionTransformationHandler,
     )
 
@@ -2310,7 +2310,7 @@ def _call_sync_adapter_handler(**handler_kwargs: Any):
         captured.update(kwargs)
         return _openai_chat_response()
 
-    with patch("litellm.completion", side_effect=_capture_completion):
+    with patch("token_iq.gateway.completion", side_effect=_capture_completion):
         response = LiteLLMMessagesToCompletionTransformationHandler.anthropic_messages_handler(
             max_tokens=128,
             messages=_tool_use_messages(),
@@ -2352,7 +2352,7 @@ async def test_prepare_context_managed_request_forwards_proxy_litellm_metadata()
     Anthropic-shape ``metadata`` arg (which only carries ``user_id``). Otherwise
     the summary subcall lands on the router with no parent attribution, and
     those tokens go unbilled to the caller's key/team."""
-    from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
         _prepare_context_managed_request,
     )
 
@@ -2365,10 +2365,10 @@ async def test_prepare_context_managed_request_forwards_proxy_litellm_metadata()
 
     with (
         patch(
-            "litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
             return_value="claude-haiku-4-5",
         ),
-        patch("litellm.token_counter", return_value=200_000),
+        patch("token_iq.gateway.token_counter", return_value=200_000),
     ):
         result = await _prepare_context_managed_request(
             model=MODEL,
@@ -2404,7 +2404,7 @@ def test_anthropic_context_management_error_format():
     """AnthropicContextManagementError must produce an Anthropic-format body via
     AnthropicExceptionMapping.transform_to_anthropic_error — the same path the
     /v1/messages endpoint takes when it catches this exception."""
-    from litellm.anthropic_interface.exceptions import AnthropicExceptionMapping
+    from token_iq.gateway.anthropic_interface.exceptions import AnthropicExceptionMapping
 
     body = AnthropicExceptionMapping.transform_to_anthropic_error(
         status_code=400,
@@ -2442,8 +2442,8 @@ def test_endpoint_returns_anthropic_400_on_context_management_error():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.anthropic_endpoints.endpoints import router
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.anthropic_endpoints.endpoints import router
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     # Stub proxy_server to avoid apscheduler/heavy proxy deps imported lazily
     # inside the route handler at request time.
@@ -2459,9 +2459,9 @@ def test_endpoint_returns_anthropic_400_on_context_management_error():
     mock_proxy_server.user_temperature = None
     mock_proxy_server.version = "test"
 
-    with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+    with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
         with patch(
-            "litellm.proxy.anthropic_endpoints.endpoints.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.anthropic_endpoints.endpoints.ProxyBaseLLMRequestProcessing"
         ) as mock_cls:
             mock_instance = MagicMock()
             mock_instance.base_process_llm_request = AsyncMock(
@@ -2503,8 +2503,8 @@ def test_endpoint_runs_failure_hook_on_500_context_management_error():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.anthropic_endpoints.endpoints import router
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.anthropic_endpoints.endpoints import router
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     failure_hook = AsyncMock()
     mock_proxy_server = MagicMock()
@@ -2520,9 +2520,9 @@ def test_endpoint_runs_failure_hook_on_500_context_management_error():
     mock_proxy_server.user_temperature = None
     mock_proxy_server.version = "test"
 
-    with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+    with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
         with patch(
-            "litellm.proxy.anthropic_endpoints.endpoints.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.anthropic_endpoints.endpoints.ProxyBaseLLMRequestProcessing"
         ) as mock_cls:
             mock_instance = MagicMock()
             mock_instance.base_process_llm_request = AsyncMock(
@@ -2554,7 +2554,7 @@ def test_endpoint_runs_failure_hook_on_500_context_management_error():
 
 
 def test_count_effective_tokens_counts_midturn_system_correction():
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _count_effective_tokens,
     )
 
@@ -2581,7 +2581,7 @@ def test_count_effective_tokens_counts_midturn_system_correction():
 
 
 def test_build_summary_messages_keeps_midturn_system_correction_in_place():
-    from litellm.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact import (
         _build_summary_messages,
     )
 

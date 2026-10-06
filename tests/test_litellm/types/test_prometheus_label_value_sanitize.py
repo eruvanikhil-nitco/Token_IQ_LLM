@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.types.integrations.prometheus import (
     _sanitize_prometheus_label_value,
 )
 

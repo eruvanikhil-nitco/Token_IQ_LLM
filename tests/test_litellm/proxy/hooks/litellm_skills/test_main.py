@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.proxy.hooks.litellm_skills.main import SkillsInjectionHook
+from token_iq.gateway.proxy.hooks.litellm_skills.main import SkillsInjectionHook
 
 SKILL_TOOL_NAME = "litellm_skill_e2b8dca8_031a_4481_b034_b9ec7d4eb7bf"
 
@@ -54,7 +54,7 @@ async def test_execute_code_loop_dispatches_litellm_skill_tool():
         patch.object(
             hook, "_execute_skill_tool", new=AsyncMock(return_value="skill ran")
         ) as mock_exec,
-        patch("litellm.anthropic.acreate", new=AsyncMock(return_value=final_response)),
+        patch("token_iq.gateway.anthropic.acreate", new=AsyncMock(return_value=final_response)),
     ):
         result = await hook._execute_code_loop_messages_api(
             data=_request_data(),

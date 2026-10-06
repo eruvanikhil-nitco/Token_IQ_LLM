@@ -11,9 +11,9 @@ import json
 
 import pytest
 
-import litellm
-from litellm.types.utils import ModelResponse
-from litellm.utils import Rules, post_call_processing
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ModelResponse
+from token_iq.gateway.utils import Rules, post_call_processing
 
 
 def _make_response(content: dict) -> ModelResponse:
@@ -131,6 +131,6 @@ class TestPerRequestJsonSchemaValidation:
 
     def test_per_request_flag_is_in_all_litellm_params(self):
         """Ensure the param is registered so it doesn't leak to provider APIs."""
-        from litellm.types.utils import all_litellm_params
+        from token_iq.gateway.types.utils import all_litellm_params
 
         assert "enable_json_schema_validation" in all_litellm_params

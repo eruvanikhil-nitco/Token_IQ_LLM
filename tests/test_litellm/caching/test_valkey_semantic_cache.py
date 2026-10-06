@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.caching.valkey_semantic_cache import ValkeySemanticCache
+from token_iq.gateway.caching.valkey_semantic_cache import ValkeySemanticCache
 
 _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 
@@ -124,8 +124,8 @@ def test_init_rejects_cluster_startup_nodes():
 
 
 def test_cache_dispatch_rejects_cluster_for_valkey_semantic():
-    from litellm.caching.caching import Cache
-    from litellm.types.caching import LiteLLMCacheType
+    from token_iq.gateway.caching.caching import Cache
+    from token_iq.gateway.types.caching import LiteLLMCacheType
 
     with pytest.raises(ValueError, match="cluster-mode-enabled"):
         Cache(
@@ -480,8 +480,8 @@ def test_init_uses_both_injected_clients_without_connection_info(monkeypatch):
 
 
 def test_cache_dispatches_valkey_semantic_type():
-    from litellm.caching.caching import Cache
-    from litellm.types.caching import LiteLLMCacheType
+    from token_iq.gateway.caching.caching import Cache
+    from token_iq.gateway.types.caching import LiteLLMCacheType
 
     cache = Cache(
         type=LiteLLMCacheType.VALKEY_SEMANTIC,
@@ -521,8 +521,9 @@ def test_importing_caching_does_not_require_redis():
         for name in ("redis", "redis.asyncio", "redis.commands",
                      "redis.commands.search"):
             sys.modules[name] = None
-        import litellm.caching.caching  # must not import redis at module top
-        from litellm.types.caching import LiteLLMCacheType
+        import token_iq.gateway.caching.caching  # must not import redis at module top
+        from token_iq import gateway as litellm
+        from token_iq.gateway.types.caching import LiteLLMCacheType
         assert LiteLLMCacheType.VALKEY_SEMANTIC == "valkey-semantic"
         print("ok")
         """)

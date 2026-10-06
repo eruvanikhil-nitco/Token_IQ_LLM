@@ -3,12 +3,12 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
-from litellm.llms.custom_httpx.container_handler import generic_container_handler
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.types.router import GenericLiteLLMParams
-from litellm.utils import ProviderConfigManager
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.llms.custom_httpx.container_handler import generic_container_handler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.utils import ProviderConfigManager
 
 FILE_NOT_FOUND_BODY = {
     "error": {

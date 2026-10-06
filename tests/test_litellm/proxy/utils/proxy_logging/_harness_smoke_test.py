@@ -20,13 +20,13 @@ def test_normalize_handles_lists(normalize_fn):
 
 
 def test_mock_dual_cache_is_dual_cache(mock_dual_cache):
-    from litellm.caching.caching import DualCache
+    from token_iq.gateway.caching.caching import DualCache
 
     assert isinstance(mock_dual_cache, DualCache)
 
 
 def test_make_user_api_key_auth_returns_correct_type(make_user_api_key_auth):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     auth = make_user_api_key_auth()
     assert isinstance(auth, UserAPIKeyAuth)
@@ -39,7 +39,7 @@ def test_make_user_api_key_auth_overrides_apply(make_user_api_key_auth):
 
 
 def test_proxy_logging_fixture_is_initialized(proxy_logging):
-    from litellm.proxy.utils import InternalUsageCache, ProxyLogging
+    from token_iq.gateway.proxy.utils import InternalUsageCache, ProxyLogging
 
     assert isinstance(proxy_logging, ProxyLogging)
     assert isinstance(proxy_logging.internal_usage_cache, InternalUsageCache)

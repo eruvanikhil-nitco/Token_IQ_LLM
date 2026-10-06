@@ -9,15 +9,15 @@ import pytest
 from pydantic import BaseModel, Field
 
 
-import litellm
-from litellm.llms.volcengine.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.volcengine.responses.transformation import (
     VolcEngineResponsesAPIConfig,
 )
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
-from litellm.types.responses.main import DeleteResponseResult
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.responses.main import DeleteResponseResult
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class TestVolcengineResponsesAPITransformation:

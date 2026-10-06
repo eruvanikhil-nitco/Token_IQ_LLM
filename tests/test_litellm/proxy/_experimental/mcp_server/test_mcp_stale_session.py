@@ -9,7 +9,7 @@ they may send a stale `mcp-session-id` header. This test verifies that:
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
-from litellm.types.mcp import MCPAuth
+from token_iq.gateway.types.mcp import MCPAuth
 import pytest
 
 
@@ -20,7 +20,7 @@ class TestHandleStaleMcpSession:
     async def test_strips_stale_session_id_for_non_delete(self):
         """Non-DELETE requests should have stale session IDs stripped."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
             )
         except ImportError:
@@ -50,7 +50,7 @@ class TestHandleStaleMcpSession:
     async def test_delete_stale_session_returns_success(self):
         """DELETE requests for non-existent sessions should return success (idempotent)."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
                 _stateful_session_active_request_counts,
                 _stateful_session_auth_context_last_seen,
@@ -106,7 +106,7 @@ class TestHandleStaleMcpSession:
     async def test_preserves_valid_session_id(self):
         """Valid session IDs should not be modified."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
             )
         except ImportError:
@@ -136,7 +136,7 @@ class TestHandleStaleMcpSession:
     async def test_no_op_when_no_session_header(self):
         """No session header should result in no-op."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
             )
         except ImportError:
@@ -162,7 +162,7 @@ class TestHandleStaleMcpSession:
     async def test_no_op_when_server_instances_missing(self):
         """If _server_instances attr doesn't exist, don't crash."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
             )
         except ImportError:
@@ -189,7 +189,7 @@ class TestHandleStaleMcpSession:
     async def test_delete_valid_session_not_handled(self):
         """DELETE requests for existing sessions should not be intercepted."""
         try:
-            from litellm.proxy._experimental.mcp_server.server import (
+            from token_iq.gateway.proxy._experimental.mcp_server.server import (
                 _handle_stale_mcp_session,
             )
         except ImportError:
@@ -222,7 +222,7 @@ async def test_stale_mcp_session_id_is_stripped():
     request to the session manager so a fresh session is created.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
             session_manager_stateless,
@@ -258,15 +258,15 @@ async def test_stale_mcp_session_id_is_stripped():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(MagicMock(), None, None, None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch.object(
@@ -307,7 +307,7 @@ async def test_delete_stale_mcp_session_returns_success():
     without forwarding to the session manager (idempotent DELETE).
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager,
         )
@@ -335,15 +335,15 @@ async def test_delete_stale_mcp_session_returns_success():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(MagicMock(), None, None, None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch.object(
@@ -373,7 +373,7 @@ async def test_failed_delete_preserves_stateful_session_tracking():
     owner/auth tracking so the session cannot be hijacked or hidden from cleanup.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _owner_fingerprint_for,
             _stateful_session_auth_context_last_seen,
             _stateful_session_auth_contexts,
@@ -414,12 +414,12 @@ async def test_failed_delete_preserves_stateful_session_tracking():
     try:
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
                 new_callable=AsyncMock,
                 return_value=(user_auth, None, None, None, None, None),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
                 True,
             ),
             patch.object(
@@ -456,7 +456,7 @@ async def test_valid_mcp_session_id_is_preserved():
     handle_streamable_http_mcp should NOT strip the header.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -489,15 +489,15 @@ async def test_valid_mcp_session_id_is_preserved():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(MagicMock(), None, None, None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch.object(
@@ -525,7 +525,7 @@ async def test_no_mcp_session_id_header_works_normally():
     handle_streamable_http_mcp should work without any issues.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager,
         )
@@ -552,15 +552,15 @@ async def test_no_mcp_session_id_header_works_normally():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(MagicMock(), None, None, None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch.object(
@@ -591,7 +591,7 @@ async def test_per_user_oauth_missing_stored_token_returns_preemptive_401():
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
@@ -622,29 +622,29 @@ async def test_per_user_oauth_missing_stored_token_returns_preemptive_401():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["repro_oauth_server"], None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
             new_callable=AsyncMock,
             return_value=False,
         ) as mock_has_token,
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=oauth_server,
         ),
         patch.object(
@@ -678,7 +678,7 @@ async def test_admitted_subject_missing_stored_token_challenged_with_resource_me
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
@@ -710,29 +710,29 @@ async def test_admitted_subject_missing_stored_token_challenged_with_resource_me
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["repro_oauth_server"], None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
             new_callable=AsyncMock,
             return_value=False,
         ) as mock_has_token,
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=oauth_server,
         ),
         patch.object(
@@ -777,12 +777,12 @@ async def test_client_credentials_server_is_not_preemptively_challenged(m2m_fiel
     never look for.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
-        from litellm.proxy._types import MCPTransport
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.proxy._types import MCPTransport
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
     except ImportError:
         pytest.skip("MCP server not available")
 
@@ -822,23 +822,23 @@ async def test_client_credentials_server_is_not_preemptively_challenged(m2m_fiel
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["m2m_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
-        patch("litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED", True),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED", True),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
             new_callable=AsyncMock,
         ) as mock_has_token,
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=m2m_server,
         ),
         patch.object(session_manager_stateless, "handle_request", new_callable=AsyncMock) as mock_handle_request,
@@ -862,10 +862,10 @@ async def test_handle_streamable_http_mcp_delegated_server_surfaces_upstream_cha
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -908,7 +908,7 @@ async def test_handle_streamable_http_mcp_delegated_server_surfaces_upstream_cha
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(
                 user_auth,
@@ -919,23 +919,23 @@ async def test_handle_streamable_http_mcp_delegated_server_surfaces_upstream_cha
                 None,
             ),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=delegated_server,
         ),
         patch.object(
@@ -964,7 +964,7 @@ async def test_per_user_oauth_with_stored_token_skips_preemptive_401():
     401 and continue to session manager request handling.
     """
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
@@ -1001,29 +1001,29 @@ async def test_per_user_oauth_with_stored_token_skips_preemptive_401():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["repro_oauth_server"], None, None, None),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
             new_callable=AsyncMock,
             return_value=True,
         ) as mock_has_token,
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=oauth_server,
         ),
         patch.object(
@@ -1059,7 +1059,7 @@ async def test_handle_streamable_http_mcp_delegated_server_without_token_returns
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -1098,7 +1098,7 @@ async def test_handle_streamable_http_mcp_delegated_server_without_token_returns
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(
                 user_auth,
@@ -1110,23 +1110,23 @@ async def test_handle_streamable_http_mcp_delegated_server_without_token_returns
             ),
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.has_user_oauth_token",
             new_callable=AsyncMock,
         ) as mock_has_token,
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=delegated_server,
         ),
         patch.object(
@@ -1159,7 +1159,7 @@ async def test_handle_streamable_http_mcp_token_exchange_without_subject_returns
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -1199,22 +1199,22 @@ async def test_handle_streamable_http_mcp_token_exchange_without_subject_returns
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["obo_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=obo_server,
         ),
         patch.object(
@@ -1258,8 +1258,8 @@ def _passthrough_mode_scope(server_name: str, extra_headers=None):
 
 
 def _build_passthrough_mode_server(server_name: str, auth_type):
-    from litellm.proxy._types import MCPTransport
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._types import MCPTransport
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     return MCPServer(
         server_id=f"{server_name}-id",
@@ -1281,7 +1281,7 @@ async def test_handle_streamable_http_mcp_oauth_delegate_without_token_returns_g
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -1303,17 +1303,17 @@ async def test_handle_streamable_http_mcp_oauth_delegate_without_token_returns_g
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["od_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=od_server,
         ),
         patch.object(
@@ -1340,7 +1340,7 @@ async def test_handle_streamable_http_mcp_oauth_delegate_with_forwarded_token_sk
     re-challenge. Guards the ``_get_forwarded_auth_from_scope(...) is None``
     condition: dropping it would 401 even a fully-authenticated request."""
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
@@ -1368,26 +1368,26 @@ async def test_handle_streamable_http_mcp_oauth_delegate_with_forwarded_token_sk
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["od_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=od_server,
         ),
         patch.object(
@@ -1413,7 +1413,7 @@ async def _run_passthrough_connect(
     challenged (raised) or forwarded to the session manager. Returns (challenged, www_authenticate)."""
     from fastapi import HTTPException
 
-    from litellm.proxy._experimental.mcp_server.server import (
+    from token_iq.gateway.proxy._experimental.mcp_server.server import (
         handle_streamable_http_mcp,
         session_manager_stateless,
     )
@@ -1433,23 +1433,23 @@ async def _run_passthrough_connect(
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, server_names, mcp_server_auth_headers, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
-        patch("litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED", True),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED", True),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=server,
         ),
         patch.object(session_manager_stateless, "handle_request", new_callable=AsyncMock) as mock_handle_request,
@@ -1469,7 +1469,7 @@ async def test_handle_streamable_http_mcp_per_server_header_skips_preemptive_cha
     connect gate must recognize it and forward instead of spuriously 401-ing, since egress already
     honors it. Without this, the mandatory multi-server binding is unusable at connect."""
     try:
-        from litellm.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
+        from token_iq.gateway.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
     except ImportError:
         pytest.skip("MCP server not available")
 
@@ -1488,7 +1488,7 @@ async def test_handle_streamable_http_mcp_sanitized_per_server_header_skips_pree
     alias 'pt-server' arrives as the header key 'pt_server'. Egress resolves that via the sanitized
     alias, so the connect gate must too, or it 401s a token egress would forward."""
     try:
-        from litellm.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
+        from token_iq.gateway.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
     except ImportError:
         pytest.skip("MCP server not available")
 
@@ -1506,7 +1506,7 @@ async def test_handle_streamable_http_mcp_aggregate_does_not_preemptively_challe
     """A multi-server aggregate must degrade gracefully: the preemptive 401 is single-server only, so
     one server missing a token cannot 401 the whole connect (the listing absorbs per-server failures)."""
     try:
-        from litellm.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
+        from token_iq.gateway.proxy._experimental.mcp_server.server import handle_streamable_http_mcp  # noqa: F401
     except ImportError:
         pytest.skip("MCP server not available")
 
@@ -1527,7 +1527,7 @@ async def test_handle_streamable_http_mcp_true_passthrough_without_token_surface
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -1556,21 +1556,21 @@ async def test_handle_streamable_http_mcp_true_passthrough_without_token_surface
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["tp_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.get_async_httpx_client",
             return_value=probe_client,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=tp_server,
         ),
         patch.object(
@@ -1597,7 +1597,7 @@ async def test_handle_streamable_http_mcp_true_passthrough_dcr_bridge_challenges
     from fastapi import HTTPException
 
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateful,
         )
@@ -1624,21 +1624,21 @@ async def test_handle_streamable_http_mcp_true_passthrough_dcr_bridge_challenges
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["tp_bridge_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.get_async_httpx_client",
             return_value=probe_client,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=bridge_server,
         ),
         patch.object(
@@ -1665,7 +1665,7 @@ async def test_handle_streamable_http_mcp_true_passthrough_with_token_skips_prob
     ``not _scope_has_authorization_header(scope)`` condition and the no-probe
     fast path."""
     try:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
             session_manager_stateless,
         )
@@ -1693,30 +1693,30 @@ async def test_handle_streamable_http_mcp_true_passthrough_with_token_skips_prob
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
             new_callable=AsyncMock,
             return_value=(user_auth, None, ["tp_server"], None, None, None),
         ),
-        patch("litellm.proxy._experimental.mcp_server.server.set_auth_context"),
+        patch("token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context"),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
             True,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
             new_callable=AsyncMock,
             return_value=False,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._check_passthrough_upstream_auth",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.get_async_httpx_client",
             return_value=probe_client,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager.get_mcp_server_by_name",
             return_value=tp_server,
         ),
         patch.object(

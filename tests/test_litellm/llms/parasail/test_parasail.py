@@ -6,8 +6,8 @@ PARASAIL_RESPONSES_GATEWAY = "https://api-webflux.saas.parasail.io/v1"
 
 
 def test_parasail_json_registry():
-    import litellm
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     assert litellm.LlmProviders.PARASAIL.value == "parasail"
     assert litellm.LlmProviders("parasail") == litellm.LlmProviders.PARASAIL
@@ -23,14 +23,14 @@ def test_parasail_json_registry():
 
 
 def test_parasail_listed_in_openai_compatible_providers():
-    from litellm.constants import openai_compatible_providers
+    from token_iq.gateway.constants import openai_compatible_providers
 
     assert "parasail" in openai_compatible_providers
 
 
 def test_parasail_dynamic_config_env_vars():
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("parasail"))()
 
@@ -48,7 +48,7 @@ def test_parasail_dynamic_config_env_vars():
 
 
 def test_parasail_provider_detection_by_prefix():
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, _, api_base = get_llm_provider(
         "parasail/parasail-llama-33-70b-fp8"
@@ -60,8 +60,8 @@ def test_parasail_provider_detection_by_prefix():
 
 
 def test_parasail_chat_complete_url():
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("parasail"))()
 
@@ -78,8 +78,8 @@ def test_parasail_chat_complete_url():
 
 
 def test_parasail_responses_api_config():
-    from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="parasail",
@@ -95,7 +95,7 @@ def test_parasail_responses_api_config():
 
 
 def test_parasail_responses_api_honors_api_base_override():
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="parasail",
@@ -112,8 +112,8 @@ def test_parasail_responses_api_honors_api_base_override():
 
 
 def test_parasail_responses_api_forces_store_false_when_caller_sets_true():
-    from litellm.types.router import GenericLiteLLMParams
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="parasail",
@@ -134,8 +134,8 @@ def test_parasail_responses_api_forces_store_false_when_caller_sets_true():
 
 
 def test_parasail_responses_api_forces_store_false_when_caller_omits_store():
-    from litellm.types.router import GenericLiteLLMParams
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="parasail",
@@ -154,8 +154,8 @@ def test_parasail_responses_api_forces_store_false_when_caller_omits_store():
 
 
 def test_parasail_responses_api_validate_environment_sets_bearer_token():
-    from litellm.types.router import GenericLiteLLMParams
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="parasail",

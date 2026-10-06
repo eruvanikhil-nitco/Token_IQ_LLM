@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.azure_ai.azure_model_router.transformation import (
+from token_iq.gateway.llms.azure_ai.azure_model_router.transformation import (
     AzureModelRouterConfig,
 )
-from litellm.llms.azure_ai.chat.transformation import AzureAIStudioConfig
+from token_iq.gateway.llms.azure_ai.chat.transformation import AzureAIStudioConfig
 
 
 @pytest.mark.asyncio
@@ -69,16 +69,16 @@ def test_azure_ai_validate_environment_with_azure_ad_token():
 
     Regression test for https://github.com/BerriAI/litellm/issues/20759
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     config = AzureAIStudioConfig()
     with (
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token",
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token",
             return_value="fake-azure-ad-token",
         ),
         patch(
-            "litellm.llms.azure.common_utils.get_secret_str",
+            "token_iq.gateway.llms.azure.common_utils.get_secret_str",
             return_value=None,
         ),
         patch.object(litellm, "api_key", None),
@@ -137,8 +137,8 @@ def test_azure_model_router_response_shows_actual_model():
     """
     from httpx import Response
 
-    from litellm.llms.base_llm.chat.transformation import LiteLLMLoggingObj
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AzureModelRouterConfig()
 
@@ -209,12 +209,12 @@ def test_azure_model_router_stamps_selected_model_on_hidden_params():
     """
     from httpx import Response
 
-    from litellm.llms.azure_ai.common_utils import (
+    from token_iq.gateway.llms.azure_ai.common_utils import (
         AZURE_MODEL_ROUTER_SELECTED_MODEL_KEY,
         AzureFoundryModelInfo,
     )
-    from litellm.llms.base_llm.chat.transformation import LiteLLMLoggingObj
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+    from token_iq.gateway.types.utils import ModelResponse
 
     raw_response_json = {
         "id": "chatcmpl-test456",
@@ -275,10 +275,10 @@ def test_azure_model_router_stamp_does_not_leak_across_responses():
     ModelResponse declares _hidden_params as a class-level dict, so the stamp has to be written
     as a fresh dict. Mutating in place would bleed the selected model into unrelated responses.
     """
-    from litellm.llms.azure_ai.common_utils import (
+    from token_iq.gateway.llms.azure_ai.common_utils import (
         AZURE_MODEL_ROUTER_SELECTED_MODEL_KEY,
     )
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     untouched = ModelResponse()
 

@@ -8,12 +8,12 @@ from urllib.parse import unquote, urlsplit
 import httpx
 import pytest
 
-from litellm.llms.valkey.vector_stores.transformation import (
+from token_iq.gateway.llms.valkey.vector_stores.transformation import (
     ValkeyVectorStoreConfig,
     _ValkeySearchParams,
 )
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class FakeSearchIndex:

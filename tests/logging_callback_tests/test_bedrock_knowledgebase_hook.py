@@ -4,8 +4,9 @@ import os
 
 
 import asyncio
-import litellm
-import litellm.vector_stores.main
+from token_iq import gateway as litellm
+import token_iq.gateway.vector_stores.main
+from token_iq import gateway as litellm
 import gzip
 import json
 import logging
@@ -15,19 +16,19 @@ from unittest.mock import AsyncMock, patch, Mock
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.vector_store_integrations.vector_store_pre_call_hook import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     VectorStorePreCallHook,
 )
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import (
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingVectorStoreRequest,
 )
-from litellm.types.vector_stores import (
+from token_iq.gateway.types.vector_stores import (
     VectorStoreSearchResponse,
     VectorStoreResultContent,
     VectorStoreSearchResult,
@@ -56,7 +57,7 @@ def add_aws_region_to_env(monkeypatch):
 
 @pytest.fixture
 def setup_vector_store_registry():
-    from litellm.vector_stores.vector_store_registry import (
+    from token_iq.gateway.vector_stores.vector_store_registry import (
         VectorStoreRegistry,
         LiteLLM_ManagedVectorStore,
     )
@@ -93,7 +94,7 @@ async def test_vector_store_hook_routes_search_through_proxy_router(
         "litellm_params": {"metadata": {"user_api_key_team_id": "team-a"}}
     }
 
-    with patch("litellm.proxy.proxy_server.llm_router", proxy_router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", proxy_router):
         _, messages, _ = await VectorStorePreCallHook().async_get_chat_completion_prompt(
             model="chat-model",
             messages=[{"role": "user", "content": "what is litellm?"}],
@@ -868,9 +869,9 @@ async def test_provider_specific_fields_in_proxy_http_response(
     provider_specific_fields from the HTTP response.
     """
     from fastapi.testclient import TestClient
-    from litellm.proxy.proxy_server import app, initialize
-    from litellm.proxy.utils import ProxyLogging
-    import litellm.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.proxy_server import app, initialize
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    import token_iq.gateway.proxy.proxy_server as proxy_server
     from unittest.mock import patch as mock_patch
 
     # Initialize proxy
@@ -933,7 +934,7 @@ async def test_provider_specific_fields_in_proxy_http_response(
     )
 
     # Patch the completion call at the proxy level
-    with mock_patch("litellm.acompletion", new=AsyncMock(return_value=mock_response)):
+    with mock_patch("token_iq.gateway.acompletion", new=AsyncMock(return_value=mock_response)):
         # Make HTTP request to proxy
         response = client.post(
             "/v1/chat/completions",

@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 MOCK_TINYFISH_RESPONSE = {
     "query": "web automation tools",
@@ -61,7 +61,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(MOCK_TINYFISH_RESPONSE)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -101,7 +101,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(MOCK_TINYFISH_RESPONSE)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -124,7 +124,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(MOCK_TINYFISH_RESPONSE)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -150,7 +150,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(MOCK_TINYFISH_RESPONSE)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -192,7 +192,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(fetched_response)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -214,7 +214,7 @@ class TestTinyfishSearch:
             assert fetch_field["text"] == "Page body text."
 
     def test_max_results_truncates_response(self):
-        from litellm.llms.tinyfish.search.transformation import TinyfishSearchConfig
+        from token_iq.gateway.llms.tinyfish.search.transformation import TinyfishSearchConfig
 
         config = TinyfishSearchConfig()
         # max_results is threaded through self by transform_search_request;
@@ -250,7 +250,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(MOCK_TINYFISH_RESPONSE)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -276,7 +276,7 @@ class TestTinyfishSearch:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -305,7 +305,7 @@ class TestTinyfishSearch:
         mock_response = _make_mock_response(empty_response)
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response
@@ -321,7 +321,7 @@ class TestTinyfishSearch:
     def test_missing_api_key(self):
         os.environ.pop("TINYFISH_API_KEY", None)
 
-        from litellm.llms.tinyfish.search.transformation import TinyfishSearchConfig
+        from token_iq.gateway.llms.tinyfish.search.transformation import TinyfishSearchConfig
 
         config = TinyfishSearchConfig()
         with pytest.raises(ValueError, match="TINYFISH_API_KEY"):

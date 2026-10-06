@@ -8,8 +8,8 @@ while preserving 3 specific None fields for OpenAI API compatibility:
   - choices[*].delta.content    (null in streaming chunks)
 """
 
-from litellm.proxy.utils import model_dump_with_preserved_fields
-from litellm.types.utils import (
+from token_iq.gateway.proxy.utils import model_dump_with_preserved_fields
+from token_iq.gateway.types.utils import (
     Choices,
     Delta,
     Message,

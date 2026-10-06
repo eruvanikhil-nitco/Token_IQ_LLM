@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.llms.azure_ai.agents.handler import AzureAIAgentsHandler
+from token_iq.gateway.llms.azure_ai.agents.handler import AzureAIAgentsHandler
 
 
 def test_should_encode_thread_id_in_azure_ai_agent_urls():

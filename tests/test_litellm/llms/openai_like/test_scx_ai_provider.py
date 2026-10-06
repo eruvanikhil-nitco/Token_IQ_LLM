@@ -2,19 +2,19 @@
 Tests for SCX.ai provider configuration and integration.
 """
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestSCXAIProviderConfig:
     def test_scx_ai_in_provider_list(self):
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         assert hasattr(LlmProviders, "SCX_AI")
         assert LlmProviders.SCX_AI.value == "scx-ai"
         assert "scx-ai" in litellm.provider_list
 
     def test_scx_ai_json_config_exists(self):
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.exists("scx-ai")
 
@@ -26,12 +26,12 @@ class TestSCXAIProviderConfig:
         assert scx.constraints.get("temperature_max") == 1.99
 
     def test_scx_ai_in_openai_compatible_providers(self):
-        from litellm.constants import openai_compatible_providers
+        from token_iq.gateway.constants import openai_compatible_providers
 
         assert "scx-ai" in openai_compatible_providers
 
     def test_scx_ai_provider_resolution(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="scx-ai/GLM-5.2",
@@ -45,7 +45,7 @@ class TestSCXAIProviderConfig:
         assert api_base == "https://api.scx.ai/v1"
 
     def test_scx_ai_api_base_override(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="scx-ai/GLM-5.2",
@@ -59,7 +59,7 @@ class TestSCXAIProviderConfig:
         assert api_key == "sk-test"
 
     def test_scx_ai_url_autodetection(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="GLM-5.2",
@@ -71,8 +71,8 @@ class TestSCXAIProviderConfig:
         assert api_base == "https://api.scx.ai/v1"
 
     def test_scx_ai_temperature_clamped_to_max(self):
-        from litellm.llms.openai_like.dynamic_config import create_config_class
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         provider = JSONProviderRegistry.get("scx-ai")
         assert provider is not None
@@ -103,8 +103,8 @@ class TestSCXAIProviderConfig:
         assert optional_params["temperature"] == 0.4
 
     def test_scx_ai_max_completion_tokens_mapped(self):
-        from litellm.llms.openai_like.dynamic_config import create_config_class
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         provider = JSONProviderRegistry.get("scx-ai")
         assert provider is not None
@@ -120,7 +120,7 @@ class TestSCXAIProviderConfig:
         assert "max_completion_tokens" not in optional_params
 
     def test_scx_ai_router_config(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[
@@ -190,7 +190,7 @@ class TestSCXAIDashboardRegistration:
         import json
         from pathlib import Path
 
-        import litellm
+        from token_iq import gateway as litellm
 
         path = Path(litellm.__file__).parent / "proxy" / "public_endpoints" / "provider_create_fields.json"
         with open(path) as f:

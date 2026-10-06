@@ -10,11 +10,11 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.perplexity.embedding.transformation import (
+from token_iq.gateway.llms.perplexity.embedding.transformation import (
     PerplexityEmbeddingConfig,
     PerplexityEmbeddingError,
 )
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 class TestPerplexityEmbeddingConfig:
@@ -278,8 +278,8 @@ class TestPerplexityEmbeddingProviderConfig:
     """Test that Perplexity is correctly registered in ProviderConfigManager."""
 
     def test_provider_config_returns_perplexity_embedding(self):
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_embedding_config(
             model="pplx-embed-v1-0.6b",
@@ -289,8 +289,8 @@ class TestPerplexityEmbeddingProviderConfig:
         assert isinstance(config, PerplexityEmbeddingConfig)
 
     def test_provider_config_returns_perplexity_embedding_4b(self):
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_embedding_config(
             model="pplx-embed-v1-4b",
@@ -304,7 +304,7 @@ class TestPerplexityEmbeddingModelInfo:
     """Test that Perplexity embedding models are in model_prices_and_context_window."""
 
     def test_model_info_available(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         info = litellm.get_model_info("perplexity/pplx-embed-v1-0.6b")
         assert info is not None
@@ -313,7 +313,7 @@ class TestPerplexityEmbeddingModelInfo:
         assert info["output_vector_size"] == 1024
 
     def test_model_info_4b_available(self):
-        import litellm
+        from token_iq import gateway as litellm
 
         info = litellm.get_model_info("perplexity/pplx-embed-v1-4b")
         assert info is not None

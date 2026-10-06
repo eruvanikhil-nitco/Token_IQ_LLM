@@ -1,17 +1,17 @@
 import io, asyncio
 import pytest
 import time
-from litellm import mock_completion
+from token_iq.gateway import mock_completion
 from unittest.mock import MagicMock, AsyncMock, patch
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.lakera_ai_v2 import LakeraAIGuardrail
-from litellm.types.guardrails import PiiEntityType, PiiAction
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
-from litellm.exceptions import BlockedPiiEntityError, GuardrailRaisedException
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai_v2 import LakeraAIGuardrail
+from token_iq.gateway.types.guardrails import PiiEntityType, PiiAction
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
 from fastapi import HTTPException
-from litellm.types.utils import CallTypes as LitellmCallTypes, ModelResponse
+from token_iq.gateway.types.utils import CallTypes as LitellmCallTypes, ModelResponse
 
 
 @pytest.mark.asyncio

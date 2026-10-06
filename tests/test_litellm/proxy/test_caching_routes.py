@@ -5,9 +5,9 @@ from fastapi.testclient import TestClient
 
 
 
-import litellm
-from litellm.caching import RedisCache
-from litellm.proxy.proxy_server import app
+from token_iq import gateway as litellm
+from token_iq.gateway.caching import RedisCache
+from token_iq.gateway.proxy.proxy_server import app
 
 client = TestClient(app)
 

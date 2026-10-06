@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.types.mcp import (
+from token_iq.gateway.types.mcp import (
     MCPDuringCallResponseObject,
     MCPPreCallRequestObject,
     MCPPreCallResponseObject,

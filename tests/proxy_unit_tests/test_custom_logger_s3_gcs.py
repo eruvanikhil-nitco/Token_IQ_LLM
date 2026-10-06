@@ -3,7 +3,7 @@ import os
 import tempfile
 import importlib.util
 from unittest.mock import patch, MagicMock
-from litellm.proxy.types_utils.utils import (
+from token_iq.gateway.proxy.types_utils.utils import (
     get_instance_fn,
     _load_instance_from_remote_storage,
 )
@@ -16,7 +16,7 @@ class TestCustomLoggerS3GCS:
     def sample_custom_logger_content(self):
         """Sample custom logger file content"""
         return """
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 class TestCustomLogger(CustomLogger):
     def __init__(self):
@@ -65,7 +65,7 @@ test_logger_instance = TestCustomLogger()
 
         # Mock the download function to avoid actual S3 calls
         with patch(
-            "litellm.proxy.common_utils.load_config_utils.download_python_file_from_s3"
+            "token_iq.gateway.proxy.common_utils.load_config_utils.download_python_file_from_s3"
         ) as mock_download:
             mock_download.return_value = (
                 False  # Will cause failure, but we just want to test parsing
@@ -86,7 +86,7 @@ test_logger_instance = TestCustomLogger()
 
         # Mock the download function
         with patch(
-            "litellm.proxy.types_utils.utils._download_gcs_file_wrapper"
+            "token_iq.gateway.proxy.types_utils.utils._download_gcs_file_wrapper"
         ) as mock_download:
             mock_download.return_value = False  # Will cause failure
 
@@ -101,7 +101,7 @@ test_logger_instance = TestCustomLogger()
             )  # bucket_name (positional for _download_gcs_file_wrapper)
             assert call_args[0][1] == "custom_logger.py"  # object_key
 
-    @patch("litellm.proxy.common_utils.load_config_utils.download_python_file_from_s3")
+    @patch("token_iq.gateway.proxy.common_utils.load_config_utils.download_python_file_from_s3")
     def test_s3_download_success(self, mock_s3_download, sample_custom_logger_content):
         """Test successful S3 download and loading"""
 
@@ -129,7 +129,7 @@ test_logger_instance = TestCustomLogger()
         assert call_args.kwargs["bucket_name"] == "test-bucket"
         assert call_args.kwargs["object_key"] == "test_custom_logger.py"
 
-    @patch("litellm.proxy.types_utils.utils._download_gcs_file_wrapper")
+    @patch("token_iq.gateway.proxy.types_utils.utils._download_gcs_file_wrapper")
     def test_gcs_download_success(
         self, mock_gcs_download, sample_custom_logger_content
     ):
@@ -156,7 +156,7 @@ test_logger_instance = TestCustomLogger()
         test_url = "s3://my-bucket/loggers/production/advanced_logger.handler_instance"
 
         with patch(
-            "litellm.proxy.common_utils.load_config_utils.download_python_file_from_s3"
+            "token_iq.gateway.proxy.common_utils.load_config_utils.download_python_file_from_s3"
         ) as mock_download:
             mock_download.return_value = False
 
@@ -203,7 +203,7 @@ test_logger_instance = TestCustomLogger()
                 "s3://bucket/custom_guardrail.py", config_file_path="/any/path"
             )
 
-    @patch("litellm.proxy.common_utils.load_config_utils.download_python_file_from_s3")
+    @patch("token_iq.gateway.proxy.common_utils.load_config_utils.download_python_file_from_s3")
     def test_download_failure_handling(self, mock_s3_download):
         """Test handling of download failures"""
         mock_s3_download.return_value = False
@@ -213,7 +213,7 @@ test_logger_instance = TestCustomLogger()
         with pytest.raises(ImportError, match="Failed to download"):
             get_instance_fn(test_url, config_file_path="/any/path")
 
-    @patch("litellm.proxy.common_utils.load_config_utils.download_python_file_from_s3")
+    @patch("token_iq.gateway.proxy.common_utils.load_config_utils.download_python_file_from_s3")
     def test_file_cleanup(self, mock_s3_download, sample_custom_logger_content):
         """Test that temporary files are cleaned up"""
         created_files = []

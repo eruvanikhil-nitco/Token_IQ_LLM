@@ -13,6 +13,7 @@ in the suite would have caught a missed one.
 from __future__ import annotations
 
 import ast
+import builtins
 import importlib
 import pathlib
 import re
@@ -31,6 +32,17 @@ OURS: Final[tuple[str, ...]] = ("token_iq.", "litellm.")
 TARGET: Final = re.compile(r"^[A-Za-z_][\w.]*$")
 
 
+def _creates(node: ast.Call) -> bool:
+    """Whether the call passes `create=True`, which says outright that the attribute is not there yet.
+
+    `mock.patch` then makes it, so asking whether it resolves is asking the wrong question.
+    """
+    return any(
+        keyword.arg == "create" and isinstance(keyword.value, ast.Constant) and keyword.value.value is True
+        for keyword in node.keywords
+    )
+
+
 def _patch_targets() -> tuple[tuple[str, str, int], ...]:
     """Every string literal passed first to a `patch`-ish call, with where it came from."""
     return tuple(
@@ -43,6 +55,7 @@ def _patch_targets() -> tuple[tuple[str, str, int], ...]:
         and isinstance(node.args[0].value, str)
         and node.args[0].value.startswith(OURS)
         and TARGET.match(node.args[0].value)
+        and not _creates(node)
     )
 
 
@@ -71,7 +84,17 @@ def _name_of(func: ast.expr) -> str:
 
 
 def _resolves(target: str) -> bool:
-    """Walk `a.b.c` as far as it imports, then as attributes, the way mock.patch does."""
+    """Walk `a.b.c` as far as it imports, then as attributes, the way mock.patch does.
+
+    Two things mock.patch accepts that a plain `hasattr` walk does not, and both are about what is true
+    at import time rather than about whether the path is right:
+
+    - An attribute that exists and holds `None`. `proxy_server.llm_router` is declared
+      `Router | None = None` and is built when the proxy starts, so `llm_router.acompletion` is a
+      correct target that cannot be walked before then. The module path is what this gate is for
+    - A builtin named as the last step. `patch("...some_module.isinstance")` patches the builtin the
+      module calls, and a module does not carry builtins as attributes, so mock reaches for `builtins`
+    """
     parts: Final = target.split(".")
     for split in range(len(parts) - 1, 0, -1):
         try:
@@ -79,10 +102,13 @@ def _resolves(target: str) -> bool:
         except ImportError:
             continue
         obj: object = module
-        for attr in parts[split:]:
+        rest = parts[split:]  # rebind-ok: one slice per candidate split of the dotted path
+        for position, attr in enumerate(rest):
+            if obj is None:
+                return True
             if not hasattr(obj, attr):
-                return False
-            obj = getattr(obj, attr)
+                return position == len(rest) - 1 and hasattr(builtins, attr)
+            obj = getattr(obj, attr)  # pyright: ignore[reportAny]  # walking an unannotated module tree
         return True
     return False
 

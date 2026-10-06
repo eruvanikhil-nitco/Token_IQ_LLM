@@ -8,10 +8,10 @@ import os
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 from base_llm_unit_tests import BaseLLMChatTest
-from litellm.router import Router
-from litellm._logging import verbose_logger, verbose_router_logger
+from token_iq.gateway.router import Router
+from token_iq.gateway._logging import verbose_logger, verbose_router_logger
 import logging
 
 

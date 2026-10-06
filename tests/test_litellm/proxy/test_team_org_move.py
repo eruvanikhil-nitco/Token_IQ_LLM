@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationTableWithMembers,
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
@@ -19,11 +19,11 @@ from litellm.proxy._types import (
     OrgMember,
     SpecialProxyStrings,
 )
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     _auto_add_team_members_to_organization,
     validate_team_org_change,
 )
-from litellm.router import Router
+from token_iq.gateway.router import Router
 
 
 def _make_org(organization_id="org-1", members=None, models=None):
@@ -148,7 +148,7 @@ class TestAutoAddTeamMembersToOrg:
         org = _make_org(members=[])
 
         mock_add = AsyncMock()
-        import litellm.proxy.management_endpoints.team_endpoints as te
+        import token_iq.gateway.proxy.management_endpoints.team_endpoints as te
         original = te.add_member_to_organization
         te.add_member_to_organization = mock_add
 
@@ -173,7 +173,7 @@ class TestAutoAddTeamMembersToOrg:
         org = _make_org(members=[_make_org_membership("u1")])
 
         mock_add = AsyncMock()
-        import litellm.proxy.management_endpoints.team_endpoints as te
+        import token_iq.gateway.proxy.management_endpoints.team_endpoints as te
         original = te.add_member_to_organization
         te.add_member_to_organization = mock_add
 
@@ -196,7 +196,7 @@ class TestAutoAddTeamMembersToOrg:
         org = _make_org(members=[])
 
         mock_add = AsyncMock()
-        import litellm.proxy.management_endpoints.team_endpoints as te
+        import token_iq.gateway.proxy.management_endpoints.team_endpoints as te
         original = te.add_member_to_organization
         te.add_member_to_organization = mock_add
 
@@ -218,7 +218,7 @@ class TestAutoAddTeamMembersToOrg:
         org = _make_org(members=[])
 
         mock_add = AsyncMock(side_effect=Exception("duplicate key"))
-        import litellm.proxy.management_endpoints.team_endpoints as te
+        import token_iq.gateway.proxy.management_endpoints.team_endpoints as te
         original = te.add_member_to_organization
         te.add_member_to_organization = mock_add
 

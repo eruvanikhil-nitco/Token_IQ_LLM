@@ -12,9 +12,9 @@ from uuid import uuid4
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 from a2a.types import MessageSendParams, SendMessageRequest
 
@@ -26,7 +26,7 @@ async def test_asend_message_with_client_decorator():
     This tests the LiteLLM logging integration.
     """
     litellm._turn_on_debug()
-    from litellm.a2a_protocol import asend_message, create_a2a_client
+    from token_iq.gateway.a2a_protocol import asend_message, create_a2a_client
 
     # Create the A2A client first
     a2a_client = await create_a2a_client(base_url="http://localhost:10001")
@@ -89,7 +89,7 @@ async def test_a2a_logging_payload():
     test_logger = TestA2ALogger()
     litellm.callbacks = [test_logger]
 
-    from litellm.a2a_protocol import asend_message, create_a2a_client
+    from token_iq.gateway.a2a_protocol import asend_message, create_a2a_client
 
     # Create the A2A client first
     a2a_client = await create_a2a_client(base_url="http://localhost:10001")
@@ -192,7 +192,7 @@ async def test_pydantic_ai_non_streaming():
     This test validates non-streaming requests work correctly.
     """
     litellm._turn_on_debug()
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     # Build the request
     send_message_payload = {
@@ -273,7 +273,7 @@ async def test_pydantic_ai_fake_streaming():
     non-streaming responses into streaming chunks.
     """
     litellm._turn_on_debug()
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Build the request
     from a2a.types import SendStreamingMessageRequest

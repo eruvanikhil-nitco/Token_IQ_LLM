@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.litellm_core_utils.ptu_pricing import (
+from token_iq.gateway.core_utils.ptu_pricing import (
     ptu_config_error,
     ptu_identity_error,
     CUSTOM_PRICING_FIELDS,
@@ -17,7 +17,7 @@ from litellm.litellm_core_utils.ptu_pricing import (
     ptu_terms,
     zeroed_ptu_pricing,
 )
-from litellm.types.router import ModelInfo
+from token_iq.gateway.types.router import ModelInfo
 
 _VALID = {
     "team_id": "team-alpha",

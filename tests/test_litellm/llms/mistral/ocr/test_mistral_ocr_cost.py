@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-import litellm
-from litellm.cost_calculator import completion_cost
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
+from token_iq import gateway as litellm
+from token_iq.gateway.cost_calculator import completion_cost
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
 
 OCR4_COST_PER_PAGE = 0.004
 

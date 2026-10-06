@@ -10,8 +10,8 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
 )
 
-from litellm import completion
-from litellm.types.utils import ModelResponse
+from token_iq.gateway import completion
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_main_azure_ai_claude_completion_passes_timeout_to_azure_anthropic_handler():
@@ -21,7 +21,7 @@ def test_main_azure_ai_claude_completion_passes_timeout_to_azure_anthropic_handl
         captured.update(kwargs)
         return ModelResponse()
 
-    with patch("litellm.main.azure_anthropic_chat_completions") as mock_azure_anthropic:
+    with patch("token_iq.gateway.main.azure_anthropic_chat_completions") as mock_azure_anthropic:
         mock_azure_anthropic.completion = MagicMock(
             side_effect=fake_azure_anthropic_completion
         )

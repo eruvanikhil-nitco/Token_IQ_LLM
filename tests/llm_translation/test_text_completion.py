@@ -2,17 +2,17 @@ import json
 from datetime import datetime
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.utils import (
+from token_iq.gateway.utils import (
     LiteLLMResponseObjectHandler,
 )
 
 
 from datetime import timedelta
 
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ModelResponse,
     TextCompletionResponse,
     TextChoices,

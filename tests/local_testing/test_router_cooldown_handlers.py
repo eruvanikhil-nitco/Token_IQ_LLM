@@ -15,14 +15,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import openai
 
-import litellm
-from litellm import Router
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.router_utils.cooldown_handlers import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.router_utils.cooldown_handlers import (
     _async_get_cooldown_deployments,
     _should_run_cooldown_logic,
 )
-from litellm.types.router import (
+from token_iq.gateway.types.router import (
     AllowedFailsPolicy,
     DeploymentTypedDict,
     LiteLLMParamsTypedDict,
@@ -835,7 +835,7 @@ async def test_router_fallbacks_with_cooldowns_and_dynamic_credentials():
     """
     Ensure cooldown on credential 1 does not affect credential 2
     """
-    from litellm.router_utils.cooldown_handlers import _async_get_cooldown_deployments
+    from token_iq.gateway.router_utils.cooldown_handlers import _async_get_cooldown_deployments
 
     litellm._turn_on_debug()
     router = Router(

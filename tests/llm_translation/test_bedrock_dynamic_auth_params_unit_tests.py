@@ -5,10 +5,10 @@ from unittest.mock import patch
 from botocore.credentials import Credentials
 
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import Mock
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
 
 

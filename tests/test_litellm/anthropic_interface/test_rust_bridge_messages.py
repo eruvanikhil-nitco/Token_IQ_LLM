@@ -6,16 +6,16 @@ from typing import cast
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.rust_bridge import configuration
-from litellm.types.llms.anthropic_messages.anthropic_response import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.rust_bridge import configuration
+from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
     AnthropicMessagesResponse,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
-rust_messages = importlib.import_module("litellm.rust_bridge.messages")
-rust_bridge_loader = importlib.import_module("litellm.rust_bridge.loader")
+rust_messages = importlib.import_module("token_iq.gateway.rust_bridge.messages")
+rust_bridge_loader = importlib.import_module("token_iq.gateway.rust_bridge.loader")
 
 FAKE_MESSAGES_RESPONSE: dict[str, object] = {
     "id": "msg_123",
@@ -126,7 +126,7 @@ def test_load_rust_messages_returns_injected_impl():
 
 
 def test_bare_use_litellm_rust_still_toggles_ocr():
-    from litellm.rust_bridge.ocr import rust_ocr_enabled
+    from token_iq.gateway.rust_bridge.ocr import rust_ocr_enabled
 
     litellm.use_litellm_rust(True)
     assert rust_ocr_enabled() is True
@@ -143,7 +143,7 @@ def test_load_rust_amessages_returns_injected_impl():
 
 def test_messages_wrapper_returns_none_when_bridge_absent(monkeypatch):
     monkeypatch.setattr(
-        importlib.import_module("litellm.rust_bridge"),
+        importlib.import_module("token_iq.gateway.rust_bridge"),
         "get_native_bridge",
         lambda: None,
     )
@@ -394,7 +394,7 @@ async def test_fake_stream_wraps_rust_response_as_anthropic_sse():
 @pytest.mark.asyncio
 async def test_gate_falls_back_when_bridge_unavailable(monkeypatch):
     monkeypatch.setattr(
-        importlib.import_module("litellm.rust_bridge"),
+        importlib.import_module("token_iq.gateway.rust_bridge"),
         "get_native_bridge",
         lambda: None,
     )

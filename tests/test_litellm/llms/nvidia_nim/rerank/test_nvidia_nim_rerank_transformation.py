@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.nvidia_nim.rerank.ranking_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.nvidia_nim.rerank.ranking_transformation import (
     NvidiaNimRankingConfig,
 )
-from litellm.llms.nvidia_nim.rerank.transformation import NvidiaNimRerankConfig
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.llms.nvidia_nim.rerank.transformation import NvidiaNimRerankConfig
+from token_iq.gateway.types.rerank import RerankResponse
 
 RANKING_MODEL = "ranking/nvidia/llama-nemotron-rerank-vl-1b-v2"
 IMAGE_DOC = {"image": "data:image/jpeg;base64,/9j/4AAQSkZJRg=="}
@@ -160,7 +160,7 @@ async def test_nvidia_nim_ranking_endpoint_image_documents_and_top_n():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.arerank(

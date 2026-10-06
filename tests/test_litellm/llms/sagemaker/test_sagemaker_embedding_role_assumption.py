@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, call, patch
 
 from botocore.credentials import Credentials
 
-from litellm.llms.sagemaker.completion.handler import SagemakerLLM
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.llms.sagemaker.completion.handler import SagemakerLLM
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 class TestSagemakerEmbeddingRoleAssumption:

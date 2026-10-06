@@ -11,13 +11,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.types.integrations.custom_logger import (
+from token_iq.gateway.types.integrations.custom_logger import (
     RESPONSES_AGENTIC_SURFACE,
 )
-from litellm.types.utils import CallTypes, LlmProviders
+from token_iq.gateway.types.utils import CallTypes, LlmProviders
 
 
 def _responses_output_with_web_search(call_id: str = "fc_1", query: str = "latest ai news"):

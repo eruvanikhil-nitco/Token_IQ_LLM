@@ -1,4 +1,4 @@
-from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
 
 def test_anthropic_compaction_usage_calculation():

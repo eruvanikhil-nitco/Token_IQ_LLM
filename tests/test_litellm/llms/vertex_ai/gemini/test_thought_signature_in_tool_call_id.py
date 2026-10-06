@@ -11,17 +11,17 @@ enable_preview_features=True to be enabled.
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     THOUGHT_SIGNATURE_SEPARATOR,
     _encode_tool_call_id_with_signature,
     _get_thought_signature_from_tool,
     convert_to_gemini_tool_call_invoke,
 )
-from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     VertexGeminiConfig,
 )
-from litellm.types.llms.vertex_ai import HttpxPartType
+from token_iq.gateway.types.llms.vertex_ai import HttpxPartType
 
 
 def test_encode_decode_tool_call_id_with_signature():

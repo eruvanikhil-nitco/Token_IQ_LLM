@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.azure_ai.anthropic.transformation import AzureAnthropicConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.azure_ai.anthropic.transformation import AzureAnthropicConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class TestAzureAnthropicConfig:
@@ -30,7 +30,7 @@ class TestAzureAnthropicConfig:
         api_key = "test-api-key"
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             result = config.validate_environment(
@@ -59,7 +59,7 @@ class TestAzureAnthropicConfig:
         api_key = "test-api-key"
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             result = config.validate_environment(
@@ -87,7 +87,7 @@ class TestAzureAnthropicConfig:
         api_key = "provided-api-key"
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "provided-api-key"}
             config.validate_environment(
@@ -113,7 +113,7 @@ class TestAzureAnthropicConfig:
         litellm_params = {"api_key": "test-api-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             with patch.object(config, "get_anthropic_headers", return_value={}):
@@ -139,7 +139,7 @@ class TestAzureAnthropicConfig:
         litellm_params = {"api_key": "test-api-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             with patch.object(config, "get_anthropic_headers", return_value={}):
@@ -163,7 +163,7 @@ class TestAzureAnthropicConfig:
         litellm_params = {"api_key": "test-api-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {
                 "api-key": "test-api-key",
@@ -255,7 +255,7 @@ class TestAzureAnthropicConfig:
         headers = {"api-key": "test-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-key"}
             result = config.transform_request(
@@ -316,7 +316,7 @@ class TestAzureAnthropicConfig:
 
     def test_invalid_output_config_effort_raises_via_extra_body(self):
         """Invalid ``effort`` via ``extra_body`` raises BadRequestError."""
-        import litellm
+        from token_iq import gateway as litellm
 
         config = AzureAnthropicConfig()
 
@@ -340,7 +340,7 @@ class TestAzureAnthropicConfig:
 
     def test_unsupported_effort_xhigh_raises_via_extra_body(self):
         """Unsupported ``effort='xhigh'`` via ``extra_body`` raises BadRequestError."""
-        import litellm
+        from token_iq import gateway as litellm
 
         config = AzureAnthropicConfig()
 

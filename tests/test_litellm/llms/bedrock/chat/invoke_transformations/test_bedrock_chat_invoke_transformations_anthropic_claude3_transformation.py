@@ -7,7 +7,7 @@ import pytest
 # Ensure the project root is on the import path so `litellm` can be imported when
 # tests are executed from any working directory.
 
-from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeConfig,
 )
 
@@ -138,7 +138,7 @@ def test_output_format_conversion_to_inline_schema():
     Bedrock Invoke doesn't support the output_format parameter, so LiteLLM converts it by
     embedding the schema directly into the user message content.
     """
-    from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeMessagesConfig,
     )
 
@@ -217,7 +217,7 @@ def test_output_format_conversion_with_string_content():
     """
     Test that output_format conversion works when message content is a string (not a list).
     """
-    from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeMessagesConfig,
     )
 
@@ -265,7 +265,7 @@ def test_output_format_with_no_schema():
     """
     Test that if output_format has no schema, the conversion is skipped gracefully.
     """
-    from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeMessagesConfig,
     )
 
@@ -304,7 +304,7 @@ def test_opus_4_5_model_detection():
     Test that the _is_claude_opus_4_5 method correctly identifies Opus 4.5 models
     with various naming conventions.
     """
-    from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeMessagesConfig,
     )
 
@@ -437,7 +437,7 @@ def test_output_config_format_converted_for_bedrock_chat_invoke_request():
     }
 
     with patch(  # test-quality-ok: pin non-native path
-        "litellm.llms.bedrock.common_utils._bedrock_model_supports",
+        "token_iq.gateway.llms.bedrock.common_utils._bedrock_model_supports",
         side_effect=lambda _model, key: key == "supports_output_config",
     ):
         result = config.transform_request(
@@ -516,7 +516,7 @@ def test_bedrock_chat_invoke_checks_output_config_support_with_bedrock_provider(
     optional_params = {"max_tokens": 100, "output_config": {"effort": "high"}}
 
     with patch(
-        "litellm.llms.bedrock.common_utils._bedrock_model_supports",
+        "token_iq.gateway.llms.bedrock.common_utils._bedrock_model_supports",
         return_value=True,
     ) as mock_supports_factory:
         result = config.transform_request(
@@ -602,7 +602,7 @@ def test_bedrock_chat_invoke_forwards_output_config_format_natively(local_model_
 def test_bedrock_chat_invoke_drop_params_keeps_native_output_config_format(local_model_cost_map, monkeypatch):
     """``drop_params=True`` must not eat ``output_config.format`` before the
     native-forwarding router runs (Sonnet 4.5 has no effort flags)."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "drop_params", True)
     schema_format = {
@@ -624,7 +624,7 @@ def test_bedrock_chat_invoke_drop_params_keeps_native_output_config_format(local
 def test_bedrock_chat_invoke_drop_params_still_inlines_for_non_native(local_model_cost_map, monkeypatch):
     """``drop_params=True`` on a model without native structured-output support
     still reaches the inline-schema fallback instead of losing the schema."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "drop_params", True)
     schema = {"type": "object", "properties": {"zebra_count": {"type": "integer"}}}

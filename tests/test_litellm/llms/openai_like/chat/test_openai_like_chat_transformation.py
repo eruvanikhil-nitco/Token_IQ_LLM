@@ -1,5 +1,5 @@
 import pytest
-from litellm.llms.openai_like.chat.transformation import OpenAILikeChatConfig
+from token_iq.gateway.llms.openai_like.chat.transformation import OpenAILikeChatConfig
 
 
 def test_sanitize_usage_obj_handles_null_tokens():

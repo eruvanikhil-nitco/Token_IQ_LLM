@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretStr, ValidationError
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.session_token import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_token import (
     MAX_SESSION_TOKEN_BYTES,
     SESSION_ISSUER,
     SESSION_REFRESH_PREFIX,

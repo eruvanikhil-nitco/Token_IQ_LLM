@@ -25,7 +25,7 @@ from typing import Final
 
 from pydantic import BaseModel, Field
 
-import litellm
+from token_iq import gateway as litellm
 
 # The catalogue keys these off the same names it prices by, so a row that carries neither
 # is present for its metadata (context window, capabilities) rather than for billing.

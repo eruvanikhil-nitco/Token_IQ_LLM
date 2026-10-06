@@ -38,9 +38,9 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import litellm  # noqa: E402
-from litellm.compression import compress as litellm_compress  # noqa: E402
-from litellm.types.utils import CallTypes  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
+from token_iq.gateway.compression import compress as litellm_compress  # noqa: E402
+from token_iq.gateway.types.utils import CallTypes  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Prompts

@@ -1,4 +1,4 @@
-from litellm.proxy.common_utils.callback_config_validation import (
+from token_iq.gateway.proxy.common_utils.callback_config_validation import (
     callback_config_error,
 )
 

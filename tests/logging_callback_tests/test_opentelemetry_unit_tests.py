@@ -11,17 +11,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import patch, MagicMock, AsyncMock
 from base_test import BaseLoggingCallbackTest
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 class TestOpentelemetryUnitTests(BaseLoggingCallbackTest):
     def test_parallel_tool_calls(self, mock_response_obj: ModelResponse):
         tool_calls = mock_response_obj.choices[0].message.tool_calls
-        from litellm.integrations.opentelemetry import OpenTelemetry
-        from litellm.proxy._types import SpanAttributes
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
+        from token_iq.gateway.proxy._types import SpanAttributes
 
         kv_pair_dict = OpenTelemetry._tool_calls_kv_pair(tool_calls)
 
@@ -68,7 +68,7 @@ class TestOpentelemetryUnitTests(BaseLoggingCallbackTest):
         """
         from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
-        from litellm.integrations.opentelemetry import OpenTelemetry
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
         # Setup: Create TracerProvider and tracer
         tracer_provider = TracerProvider()
@@ -111,8 +111,8 @@ class TestOpentelemetryUnitTests(BaseLoggingCallbackTest):
         """
         from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
-        from litellm.integrations.opentelemetry import OpenTelemetry
-        from litellm.integrations._types.open_inference import ErrorAttributes
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
+        from token_iq.gateway.integrations._types.open_inference import ErrorAttributes
 
         # Setup: Create TracerProvider and tracer
         tracer_provider = TracerProvider()
@@ -172,8 +172,8 @@ class TestOpentelemetryUnitTests(BaseLoggingCallbackTest):
         """
         from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
-        from litellm.integrations.opentelemetry import OpenTelemetry
-        from litellm.integrations._types.open_inference import ErrorAttributes
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
+        from token_iq.gateway.integrations._types.open_inference import ErrorAttributes
 
         # Setup: Create TracerProvider and tracer
         tracer_provider = TracerProvider()

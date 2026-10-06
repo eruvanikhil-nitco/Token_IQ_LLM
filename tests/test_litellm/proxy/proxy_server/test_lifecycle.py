@@ -31,8 +31,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy.proxy_server import (
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy.proxy_server import (
     ProxyStartupEvent,
     _initialize_shared_aiohttp_session,
     _resolve_pydantic_type,
@@ -105,7 +105,7 @@ async def test_proxy_shutdown_event_disconnects_prisma_and_resets(monkeypatch):
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "cache", None, raising=False)
     monkeypatch.setattr(litellm, "success_callback", [], raising=False)
@@ -154,7 +154,7 @@ async def test_proxy_shutdown_drains_gateway_requests_before_disconnecting(monke
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "cache", None, raising=False)
     monkeypatch.setattr(litellm, "success_callback", [], raising=False)
@@ -176,7 +176,7 @@ async def test_proxy_shutdown_skips_gateway_flush_without_a_database(monkeypatch
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "cache", None, raising=False)
     monkeypatch.setattr(litellm, "success_callback", [], raising=False)
@@ -196,7 +196,7 @@ async def test_proxy_shutdown_event_prisma_disconnect_raises_error(monkeypatch):
     fake_jwt.close = AsyncMock()
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "cache", None, raising=False)
     monkeypatch.setattr(litellm, "success_callback", [], raising=False)
@@ -217,7 +217,7 @@ async def test_flush_spend_logs_queue_on_shutdown_drains_before_disconnect(monke
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
     drain = AsyncMock()
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     monkeypatch.setattr(utils_mod, "drain_spend_logs_queue", drain)
 
@@ -238,7 +238,7 @@ async def test_flush_spend_logs_queue_on_shutdown_swallows_drain_errors(monkeypa
     monkeypatch.setattr(ps, "prisma_client", MagicMock(), raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     monkeypatch.setattr(
         utils_mod,
@@ -349,7 +349,7 @@ def test__redact_worker_config_for_logging_dict_masks_all_secret_shapes():
     URL-with-credentials field (`database_url`), which the segment masker
     misses because neither segment matches its sensitive-pattern set.
     """
-    from litellm.proxy.proxy_server import _redact_worker_config_for_logging
+    from token_iq.gateway.proxy.proxy_server import _redact_worker_config_for_logging
 
     redacted = _redact_worker_config_for_logging(_lit4152_worker_config_dict())
     rendered = repr(redacted)
@@ -365,7 +365,7 @@ def test__redact_worker_config_for_logging_json_string_round_trips_masked():
     Confirm the string path also masks and that the returned value re-parses
     into a dict with the sensitive fields masked.
     """
-    from litellm.proxy.proxy_server import _redact_worker_config_for_logging
+    from token_iq.gateway.proxy.proxy_server import _redact_worker_config_for_logging
 
     payload = json.dumps(_lit4152_worker_config_dict())
     redacted = _redact_worker_config_for_logging(payload)
@@ -380,7 +380,7 @@ def test__redact_worker_config_for_logging_passthrough_for_none_and_non_json_str
     """Non-dict, non-JSON-parseable string is passed through verbatim (nothing
     to mask) and ``None`` returns ``None``.
     """
-    from litellm.proxy.proxy_server import _redact_worker_config_for_logging
+    from token_iq.gateway.proxy.proxy_server import _redact_worker_config_for_logging
 
     assert _redact_worker_config_for_logging(None) is None
     assert _redact_worker_config_for_logging("/tmp/some_config.yaml") == "/tmp/some_config.yaml"
@@ -395,7 +395,7 @@ def test__redact_worker_config_for_logging_masks_non_string_url_webhook_values()
     the whole value is replaced regardless of shape so a nested webhook or
     Bearer token under a non-segment-matched key does not slip through.
     """
-    from litellm.proxy.proxy_server import _redact_worker_config_for_logging
+    from token_iq.gateway.proxy.proxy_server import _redact_worker_config_for_logging
 
     nested_webhook_secret = "https://hooks.slack.com/services/T0/B0/nested-webhook-secret-xyz"
     data = {
@@ -430,7 +430,7 @@ def test__redact_worker_config_for_logging_masks_nested_secret_fields():
     must not leak a nested ``database_url`` or webhook secret; the earlier
     top-level-only redaction would have passed these through raw.
     """
-    from litellm.proxy.proxy_server import _redact_worker_config_for_logging
+    from token_iq.gateway.proxy.proxy_server import _redact_worker_config_for_logging
 
     nested_db_url = "postgresql://nested_user:nested_pw_4152@nested-host:5432/db"
     nested_webhook = "https://hooks.slack.com/services/T0/B0/nested-4152-webhook"
@@ -491,7 +491,7 @@ async def test_initialize_invalid_unexpected_kwarg_raises_type_error():
 
 
 def test_load_from_azure_key_vault_disabled_no_side_effect(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     sentinel_secret_mgr = object()
     monkeypatch.setattr(litellm, "secret_manager_client", sentinel_secret_mgr, raising=False)
@@ -525,8 +525,8 @@ def test_load_from_azure_key_vault_missing_uri_failure_is_swallowed(monkeypatch)
 
 
 def test_cost_tracking_adds_db_and_shadow_eval_callbacks_when_prisma_set(monkeypatch):
-    import litellm
-    from litellm.integrations.shadow_eval_logger import ShadowEvalLogger
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.shadow_eval_logger import ShadowEvalLogger
 
     fake_prisma = MagicMock()
     monkeypatch.setattr(ps, "prisma_client", fake_prisma, raising=False)
@@ -555,7 +555,7 @@ def test_cost_tracking_adds_db_and_shadow_eval_callbacks_when_prisma_set(monkeyp
 
 def test_cost_tracking_no_op_when_prisma_missing(monkeypatch):
     """Without a prisma_client cost_tracking is a no-op — not an error."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(ps, "prisma_client", None, raising=False)
     monkeypatch.setattr(litellm, "callbacks", [], raising=False)
@@ -644,7 +644,7 @@ def test_resolve_pydantic_type_invalid_non_union_non_model_returns_empty():
 
 
 def test_get_litellm_model_info_uses_base_model_for_lookup(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     expected_info = {"max_tokens": 8192, "input_cost_per_token": 0.00003}
     fake_get = MagicMock(return_value=expected_info)

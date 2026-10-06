@@ -1,10 +1,10 @@
 
 import pytest
 
-from litellm.anthropic_beta_headers_manager import (
+from token_iq.gateway.anthropic_beta_headers_manager import (
     update_headers_with_filtered_beta,
 )
-from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
     VertexAIAnthropicConfig,
 )
 
@@ -36,7 +36,7 @@ def test_vertex_ai_anthropic_web_search_header_in_completion():
     """Test that web search tool adds the required beta header for Vertex AI completion requests"""
     from unittest.mock import MagicMock, patch
 
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     # Create the config instance
     model_info = AnthropicModelInfo()
@@ -147,7 +147,7 @@ def test_vertex_ai_anthropic_context_management_mixed_edits():
 
 def test_vertex_ai_anthropic_structured_output_header_not_added():
     """Test that structured output beta headers are NOT added for Vertex AI requests"""
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
     config = AnthropicConfig()
 
@@ -463,7 +463,7 @@ def test_vertex_ai_partner_models_anthropic_remove_prompt_caching_scope_beta_hea
     Test that remove_unsupported_beta correctly filters out prompt-caching-scope-2026-01-05
     from the anthropic-beta headers.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation import (
         VertexAIPartnerModelsAnthropicMessagesConfig,
     )
 
@@ -666,7 +666,7 @@ def test_sanitize_vertex_anthropic_output_params_unit():
     """Direct unit coverage for the helper itself (used by both Vertex
     Anthropic transformation paths). Mirrors the integration assertions
     above without going through the full ``transform_request`` stack."""
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.output_params_utils import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.output_params_utils import (
         sanitize_vertex_anthropic_output_params,
     )
 
@@ -705,7 +705,7 @@ def test_sanitize_strips_effort_for_haiku_45():
     ``effort`` into every Messages payload, so the helper must strip it for
     models that don't advertise output_config support while leaving it intact
     for Opus/Sonnet 4.6+."""
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.output_params_utils import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.output_params_utils import (
         sanitize_vertex_anthropic_output_params,
     )
 

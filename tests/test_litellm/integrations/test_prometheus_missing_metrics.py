@@ -8,7 +8,7 @@ Tests for:
 """
 
 from typing import get_args
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.types.integrations.prometheus import (
     DEFINED_PROMETHEUS_METRICS,
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,

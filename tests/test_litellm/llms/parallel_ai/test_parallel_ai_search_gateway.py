@@ -10,16 +10,16 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm import Router
-from litellm.integrations.websearch_interception.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.proxy import proxy_server
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.types.utils import LlmProviders
 
 PARALLEL_SEARCH_URL: Final = "https://api.parallel.ai/v1/search"
 

@@ -35,7 +35,7 @@ import pytest
 
 class TestCredentialLiteLLMParamsAzureAdToken:
     def test_azure_ad_token_round_trips_through_model_dump(self):
-        from litellm.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialLiteLLMParams
 
         params = CredentialLiteLLMParams(
             api_base="https://my.openai.azure.com",
@@ -53,7 +53,7 @@ class TestCredentialLiteLLMParamsAzureAdToken:
         """Adding the field must not break deployments that don't use it
         — confirm the default is None and it's excluded by
         ``exclude_none``."""
-        from litellm.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialLiteLLMParams
 
         params = CredentialLiteLLMParams(api_key="sk-static")
         dumped = params.model_dump(exclude_none=True)
@@ -65,7 +65,7 @@ class TestCredentialLiteLLMParamsAzureAdToken:
         construct from a dict that has azure_ad_token alongside other
         fields, dump, expect azure_ad_token to ride through alongside
         the other declared fields."""
-        from litellm.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialLiteLLMParams
 
         source = {
             "api_base": "https://my.openai.azure.com",
@@ -87,7 +87,7 @@ class TestRouterCredentialResolution:
     files endpoint can forward it to the Azure files client."""
 
     def test_credentials_preserve_azure_ad_token(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         deployment_id = "azure-m2m-deployment-fixed-uuid"
         router = Router(
@@ -119,7 +119,7 @@ class TestRouterCredentialResolution:
         """Don't break the pre-fix happy path: a deployment with a
         static api_key (no azure_ad_token) keeps its api_key and
         azure_ad_token doesn't appear in the dump."""
-        from litellm import Router
+        from token_iq.gateway import Router
 
         deployment_id = "azure-static-key-deployment-fixed-uuid"
         router = Router(
@@ -156,7 +156,7 @@ class TestRouterCredentialResolutionS3OutputBucket:
     retrieval and output-bucket file ids are rejected as foreign."""
 
     def test_credentials_preserve_s3_output_bucket_name(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         deployment_id = "bedrock-batch-output-bucket-fixed-uuid"
         router = Router(
@@ -188,7 +188,7 @@ class TestRouterCredentialResolutionS3OutputBucket:
     def test_credentials_without_output_bucket_unaffected(self):
         """A deployment that configures only the input bucket keeps it and does
         not gain a phantom output bucket in the resolved credentials."""
-        from litellm import Router
+        from token_iq.gateway import Router
 
         deployment_id = "bedrock-batch-input-only-fixed-uuid"
         router = Router(

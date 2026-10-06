@@ -16,13 +16,13 @@ import httpx
 import pytest
 
 
-from litellm.llms.black_forest_labs.image_edit.transformation import (
+from token_iq.gateway.llms.black_forest_labs.image_edit.transformation import (
     BlackForestLabsImageEditConfig,
 )
-from litellm.llms.black_forest_labs.common_utils import BlackForestLabsError
-from litellm.types.images.main import ImageEditOptionalRequestParams
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.llms.black_forest_labs.common_utils import BlackForestLabsError
+from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 class TestBlackForestLabsImageEditTransformation:
@@ -100,7 +100,7 @@ class TestBlackForestLabsImageEditTransformation:
         headers = {}
 
         with patch(
-            "litellm.llms.black_forest_labs.image_edit.transformation.get_secret_str"
+            "token_iq.gateway.llms.black_forest_labs.image_edit.transformation.get_secret_str"
         ) as mock_get_secret:
             mock_get_secret.return_value = None
 

@@ -23,26 +23,26 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
 from opentelemetry.trace import SpanKind  # noqa: E402
 from opentelemetry.trace.status import StatusCode  # noqa: E402
 
-from litellm.integrations.otel import (  # noqa: E402
+from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
     LiteLLM,
     OpenTelemetryV2Config,
 )
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.plumbing.context import (  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing.context import (  # noqa: E402
     reset_mcp_message_trace_carrier,
     reset_mcp_message_transport_span,
     set_mcp_message_trace_carrier,
     set_mcp_message_transport_span,
     set_request_root_span,
 )
-from litellm.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
-from litellm.integrations.otel.model.config import ExporterSpec  # noqa: E402
-from litellm.integrations.otel.model.spans import (  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import ExporterSpec  # noqa: E402
+from token_iq.gateway.integrations.otel.model.spans import (  # noqa: E402
     LITELLM_PROXY_REQUEST_SPAN_NAME,
     SpanRole,
 )
-from litellm.integrations.otel.model.utils import to_ns, to_seconds  # noqa: E402
+from token_iq.gateway.integrations.otel.model.utils import to_ns, to_seconds  # noqa: E402
 
 # --------------------------------------------------------------------------- #
 #  Fixtures
@@ -57,7 +57,7 @@ def _reset_request_root_span():
     fresh copy, so the anchor never leaks between requests. The test process
     shares one context, so reset it explicitly to keep tests order-independent.
     """
-    from litellm.integrations.otel.plumbing import context as _otel_context
+    from token_iq.gateway.integrations.otel.plumbing import context as _otel_context
 
     _otel_context._request_root_span.set(None)
     _otel_context._mcp_message_trace_carrier.set(None)
@@ -240,7 +240,7 @@ def test_enable_events_records_operation_exception_through_failure_callback():
     """With ``enable_events`` on, a real failure callback records the GenAI
     ``gen_ai.client.operation.exception`` log event, carrying the traceback from
     the standard logging payload and correlated to the LLM-call span."""
-    from litellm.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
 
     logger, span_exporter, log_exporter = _logger_with_events(enable_events=True)
     payload = _payload(
@@ -334,8 +334,8 @@ def test_provider_auth_failure_span_carries_stack_trace():
     """Regression for LIT-6163: a 401 the provider returned is not an expected
     client error, so the error span built from the real failure payload keeps
     ``litellm.provider.error.stack_trace`` alongside code and llm_provider."""
-    from litellm.exceptions import AuthenticationError
-    from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
+    from token_iq.gateway.exceptions import AuthenticationError
+    from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     try:
         raise AuthenticationError(
@@ -357,8 +357,8 @@ def test_provider_auth_failure_span_carries_stack_trace():
 def test_unmapped_provider_auth_failure_span_carries_stack_trace():
     """Regression for LIT-6163 on /v1/messages: that route logs the provider's
     raw exception (no llm_provider), and its error span keeps the stack trace."""
-    from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
-    from litellm.llms.anthropic.common_utils import AnthropicError
+    from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
 
     try:
         raise AnthropicError(status_code=401, message='{"type":"authentication_error","message":"API key is invalid."}')
@@ -443,7 +443,7 @@ def _mcp_payload(**overrides):
 
 
 def _logger_capturing():
-    from litellm.integrations.otel.model.config import CaptureMessageContent
+    from token_iq.gateway.integrations.otel.model.config import CaptureMessageContent
 
     cfg = OpenTelemetryV2Config(
         exporter="in_memory",
@@ -1109,7 +1109,7 @@ def test_synthetic_error_log_produces_no_llm_span():
     for a request that never reached a provider. Tagged with
     ``LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL``, it must open no carrier and emit no
     LLM-call span — even though the failure callback also fires."""
-    from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+    from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
 
     logger, exporter = _logger()
     server = logger._emitter.start_span(
@@ -1136,7 +1136,7 @@ def test_synthetic_error_log_produces_no_llm_span():
 def test_create_request_started_span_captures_anchor():
     """``create_litellm_proxy_request_started_span`` doubles as the anchor capture
     point: the active server span becomes the request root for later spans."""
-    from litellm.integrations.otel.plumbing.context import request_root_span
+    from token_iq.gateway.integrations.otel.plumbing.context import request_root_span
 
     logger, _ = _logger()
     server = logger._emitter.start_span(
@@ -1183,7 +1183,7 @@ def test_guardrail_span_anchors_to_root_inside_active_phase_span():
 
 
 def _proxy_exc(message, code):
-    from litellm.proxy._types import ProxyException
+    from token_iq.gateway.proxy._types import ProxyException
 
     return ProxyException(message=message, type="bad_request_error", param=None, code=code)
 
@@ -1192,7 +1192,7 @@ def test_async_post_call_failure_hook_stamps_error_on_root_span():
     """PATH B: an endpoint-level failure (empty body rejected before dispatch)
     reaches ``async_post_call_failure_hook``; it must stamp error.* + an exception
     event on the anchored request root span."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger, exporter = _logger()
     server = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
@@ -1216,7 +1216,7 @@ def test_async_post_call_failure_hook_stamps_error_on_root_span():
 def test_async_post_call_failure_hook_falls_back_to_user_api_key_parent_span():
     """With no anchor set (a path that never captured the root), the hook must fall
     back to ``user_api_key_dict.parent_otel_span`` rather than dropping the error."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger, exporter = _logger()
     server = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
@@ -1238,7 +1238,7 @@ def test_async_post_call_failure_hook_stamps_the_mcp_messages_own_transport():
     root anchor is still the request that opened the session — an ended span, so the
     SDK dropped the write and the POST that actually failed carried no error at all.
     The hook must stamp the transport the gateway published for this message."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger, exporter = _logger()
     session_opener = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
@@ -1304,7 +1304,7 @@ def test_async_post_call_failure_hook_skips_a_transport_that_already_answered():
     notification POST answers before the session task is done with the message, and
     writing to the finished span is a no-op the SDK logs and discards, so the hook
     must fall through to the anchor instead of aiming at it."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger, exporter = _logger()
     anchor = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
@@ -1355,7 +1355,7 @@ def test_record_error_attributes_on_span_does_not_duplicate_an_already_stamped_e
     """A failure that already went through ``async_post_call_failure_hook`` reaches
     the exception handler too; the second stamp must keep one exception event while
     still repinning error.code to the real response status."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger, exporter = _logger()
     server = logger._emitter.start_span(SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME)
@@ -1418,8 +1418,8 @@ def test_real_logging_pre_call_opens_span_end_to_end():
     ``log_pre_api_call`` on the V2 logger (via ``litellm.input_callback``), so the
     boundary span is opened and then closed by the success callback. If the logger
     is not wired into ``input_callback``, no span is produced at all."""
-    import litellm
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     logger, exporter = _logger()
     # Register exactly this logger as the (only) input callback pre_call iterates.
@@ -1907,7 +1907,7 @@ def test_default_config_reads_env(monkeypatch):
 
 def test_proxy_global_first_registered_wins(monkeypatch):
     """``_init_otel_logger_on_litellm_proxy`` claims the global only when empty."""
-    proxy_server = pytest.importorskip("litellm.proxy.proxy_server")
+    proxy_server = pytest.importorskip("token_iq.gateway.proxy.proxy_server")
     monkeypatch.setattr(proxy_server, "open_telemetry_logger", None, raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
@@ -1934,7 +1934,7 @@ def test_select_global_otel_v2_logger_reuses_existing_preset_logger():
     so on that backend the LLM span had no parent. Selecting from the loggers the
     factory registered keeps one logger, one provider, one connected trace.
     """
-    from litellm.integrations.otel.logger import select_global_otel_v2_logger
+    from token_iq.gateway.integrations.otel.logger import select_global_otel_v2_logger
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
@@ -1958,7 +1958,7 @@ def test_select_global_otel_v2_logger_prefers_registered_owner_over_list_scan():
     the v2 code emits through another. Passing the registered owner pins the global
     provider to the same logger the rest of the code already uses.
     """
-    from litellm.integrations.otel.logger import select_global_otel_v2_logger
+    from token_iq.gateway.integrations.otel.logger import select_global_otel_v2_logger
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     owner = OpenTelemetryV2(
@@ -1979,7 +1979,7 @@ def test_select_global_otel_v2_logger_prefers_registered_owner_over_list_scan():
 def test_select_global_otel_v2_logger_builds_one_when_none_registered():
     """With no logger registered, selection builds exactly one generic logger so
     the proxy still publishes a provider; it must not return ``None``."""
-    from litellm.integrations.otel.logger import select_global_otel_v2_logger
+    from token_iq.gateway.integrations.otel.logger import select_global_otel_v2_logger
 
     chosen = select_global_otel_v2_logger([])
     assert isinstance(chosen, OpenTelemetryV2)
@@ -1995,7 +1995,7 @@ def test_publish_global_otel_v2_provider_sets_selected_logger_provider():
     test would otherwise miss: that the published provider is the selected logger's,
     not some other.
     """
-    from litellm.integrations.otel.logger import publish_global_otel_v2_provider
+    from token_iq.gateway.integrations.otel.logger import publish_global_otel_v2_provider
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
@@ -2017,9 +2017,9 @@ def test_registers_into_litellm_service_callback(monkeypatch):
     list is falsy, so a ``getattr(..) or []`` would append to a throwaway local
     and service spans (Redis, …) would silently never fire on this logger.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
-    pytest.importorskip("litellm.proxy.proxy_server")
+    pytest.importorskip("token_iq.gateway.proxy.proxy_server")
     monkeypatch.setattr(litellm, "service_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
@@ -2043,9 +2043,9 @@ def test_registers_into_litellm_input_callback(monkeypatch):
     boundary hook never runs and the gen-AI span is never opened (the span goes
     completely missing). Deduped like ``service_callback``.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
-    pytest.importorskip("litellm.proxy.proxy_server")
+    pytest.importorskip("token_iq.gateway.proxy.proxy_server")
     monkeypatch.setattr(litellm, "input_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
@@ -2076,9 +2076,9 @@ def test_registers_into_async_success_and_failure_callbacks(monkeypatch):
     never ended — the gen-AI span leaks and never exports, while DB/service spans
     still show up. Self-registration here guarantees every open has a close.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
-    pytest.importorskip("litellm.proxy.proxy_server")
+    pytest.importorskip("token_iq.gateway.proxy.proxy_server")
     monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
     monkeypatch.setattr(litellm, "_async_failure_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
@@ -2112,10 +2112,10 @@ def test_boundary_span_closes_without_proxy_fanout(monkeypatch):
     close hook (``_async_success_callback``). If only the open end were wired the span
     would leak — opened but never closed, never exported.
     """
-    import litellm
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    pytest.importorskip("litellm.proxy.proxy_server")
+    pytest.importorskip("token_iq.gateway.proxy.proxy_server")
     monkeypatch.setattr(litellm, "input_callback", [], raising=False)
     monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
     monkeypatch.setattr(litellm, "_async_failure_callback", [], raising=False)
@@ -2237,7 +2237,7 @@ def test_emit_guardrail_span_anchors_to_root_not_ambient_phase_span():
 def test_module_level_emit_guardrail_span_routes_to_registered_logger(monkeypatch):
     """The module-level entry point custom_guardrail calls routes the entry to the
     single registered v2 logger and emits exactly one span."""
-    import litellm.integrations.otel.logger as otel_logger
+    import token_iq.gateway.integrations.otel.logger as otel_logger
 
     logger, exporter = _logger()
     monkeypatch.setattr(otel_logger, "_registered_v2_logger", lambda: logger)
@@ -2251,7 +2251,7 @@ def test_module_level_emit_guardrail_span_routes_to_registered_logger(monkeypatc
 def test_module_level_emit_guardrail_span_noop_without_registered_logger(monkeypatch):
     """No registered v2 logger (SDK path / OTel not configured) → emitting is a
     no-op rather than an error."""
-    import litellm.integrations.otel.logger as otel_logger
+    import token_iq.gateway.integrations.otel.logger as otel_logger
 
     monkeypatch.setattr(otel_logger, "_registered_v2_logger", lambda: None)
     otel_logger.emit_guardrail_span(_guardrail_entry(start=1.0, end=2.0))
@@ -2260,7 +2260,7 @@ def test_module_level_emit_guardrail_span_noop_without_registered_logger(monkeyp
 def test_module_level_emit_guardrail_span_swallows_emit_errors(monkeypatch):
     """Span emission is best-effort: a logger that raises must never propagate out
     of the guardrail-recording path and break guardrail evaluation."""
-    import litellm.integrations.otel.logger as otel_logger
+    import token_iq.gateway.integrations.otel.logger as otel_logger
 
     class _Boom:
         def emit_guardrail_span(self, entry):
@@ -2310,7 +2310,7 @@ def test_invalid_metric_filter_logged_once_records_nothing(caplog, monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -2367,7 +2367,7 @@ def test_valid_metric_filter_records_six_metrics(monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callback_settings", {}, raising=False)
 
@@ -2418,7 +2418,7 @@ def test_metrics_disabled_by_default_records_nothing(monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callback_settings", {}, raising=False)
 
@@ -2563,7 +2563,7 @@ def test_evicted_provider_still_exports_span_opened_before_eviction(monkeypatch)
     """LRU eviction while a routed span is still open must defer the provider
     shutdown: the span opened at ``pre_call`` closes at the later success
     callback and would otherwise be silently dropped instead of exported."""
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     monkeypatch.setattr(routing_mod, "_MAX_CACHED_PROVIDERS", 1)
     logger, _default_exporter, captured = _phoenix_routing_logger("capture_evict")
@@ -2614,7 +2614,7 @@ def test_deferred_pre_call_does_not_churn_tenant_cache(monkeypatch):
     provider and could evict an idle one. Close re-routes when the span
     actually opens.
     """
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     monkeypatch.setattr(routing_mod, "_MAX_CACHED_PROVIDERS", 1)
     shut_down = []
@@ -2665,7 +2665,7 @@ def test_no_span_when_request_never_reached_upstream():
     blocked by a pre-call guardrail — carries the ``no upstream call`` marker
     (stamped in ``proxy/utils.py`` before its handlers fire), so the failure log
     produces no phantom CLIENT span even though a payload exists."""
-    from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+    from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
 
     logger, exporter = _logger()
     payload = _payload(

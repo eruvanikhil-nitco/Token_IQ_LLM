@@ -7,9 +7,9 @@ from unittest import mock
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.llms.lambda_ai.chat.transformation import LambdaAIChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.lambda_ai.chat.transformation import LambdaAIChatConfig
 
 
 def test_lambda_ai_config_initialization():
@@ -54,7 +54,7 @@ def test_lambda_ai_get_openai_compatible_provider_info():
 
 def test_get_llm_provider_lambda_ai():
     """Test that get_llm_provider correctly identifies Lambda AI"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     # Test with lambda_ai/model-name format
     model, provider, api_key, api_base = get_llm_provider(
@@ -105,7 +105,7 @@ async def test_lambda_ai_completion_call():
 
 def test_lambda_ai_models_configuration():
     """Test that Lambda AI models are configured correctly"""
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"

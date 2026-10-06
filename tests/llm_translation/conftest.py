@@ -11,7 +11,7 @@ import importlib
 import pytest
 
 
-import litellm  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -123,7 +123,7 @@ def event_loop():
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown(event_loop):  # Add event_loop as a dependency
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # ---- Save current state (for teardown restore) ----
     original_state = {}
@@ -143,7 +143,7 @@ def setup_and_teardown(event_loop):  # Add event_loop as a dependency
             original_state[attr] = getattr(litellm, attr)
 
     # ---- Reset to true defaults before the test ----
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     asyncio.run(GLOBAL_LOGGING_WORKER.clear_queue())
     importlib.reload(litellm)

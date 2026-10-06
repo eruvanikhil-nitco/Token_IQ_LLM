@@ -21,14 +21,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -98,25 +98,25 @@ class AllEventsGuardrail(CustomGuardrail):
 
 class TestHasPostCallGuardrails:
     def test_returns_true_for_post_call_guardrail(self):
-        with patch("litellm.callbacks", [PostCallGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [PostCallGuardrail()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is True
 
     def test_returns_false_for_event_hook_none(self):
         """event_hook=None is not an explicit post_call registration for deferral."""
-        with patch("litellm.callbacks", [AllEventsGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [AllEventsGuardrail()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is False
 
     def test_returns_false_for_pre_call_only(self):
-        with patch("litellm.callbacks", [PreCallGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [PreCallGuardrail()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is False
 
     def test_returns_false_for_no_callbacks(self):
-        with patch("litellm.callbacks", []):
+        with patch("token_iq.gateway.callbacks", []):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is False
 
     def test_ignores_non_guardrail_callbacks(self):
         """String callbacks and CustomLogger instances are not guardrails."""
-        with patch("litellm.callbacks", ["langfuse", CustomLogger()]):
+        with patch("token_iq.gateway.callbacks", ["langfuse", CustomLogger()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is False
 
     def test_returns_true_for_list_with_post_call(self):
@@ -133,7 +133,7 @@ class TestHasPostCallGuardrails:
                     ],
                 )
 
-        with patch("litellm.callbacks", [ListGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [ListGuardrail()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is True
 
     def test_returns_false_for_list_without_post_call(self):
@@ -147,7 +147,7 @@ class TestHasPostCallGuardrails:
                     event_hook=[GuardrailEventHooks.pre_call],
                 )
 
-        with patch("litellm.callbacks", [ListGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [ListGuardrail()]):
             assert ProxyBaseLLMRequestProcessing._has_post_call_guardrails() is False
 
 
@@ -168,23 +168,23 @@ class TestHasPostCallGuardrailsForPassthrough:
         )._has_post_call_guardrails_for_passthrough()
 
     def test_returns_true_for_event_hook_none(self):
-        with patch("litellm.callbacks", [AllEventsGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [AllEventsGuardrail()]):
             assert self._has({}) is True
 
     def test_returns_true_for_post_call_guardrail(self):
-        with patch("litellm.callbacks", [PostCallGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [PostCallGuardrail()]):
             assert self._has({}) is True
 
     def test_returns_false_for_pre_call_only(self):
-        with patch("litellm.callbacks", [PreCallGuardrail()]):
+        with patch("token_iq.gateway.callbacks", [PreCallGuardrail()]):
             assert self._has({}) is False
 
     def test_returns_false_for_no_callbacks(self):
-        with patch("litellm.callbacks", []):
+        with patch("token_iq.gateway.callbacks", []):
             assert self._has({}) is False
 
     def test_ignores_non_guardrail_callbacks(self):
-        with patch("litellm.callbacks", ["langfuse", CustomLogger()]):
+        with patch("token_iq.gateway.callbacks", ["langfuse", CustomLogger()]):
             assert self._has({}) is False
 
     def test_request_scoped_guardrail_not_configured_for_key(self):
@@ -199,7 +199,7 @@ class TestHasPostCallGuardrailsForPassthrough:
                     event_hook=GuardrailEventHooks.post_call,
                 )
 
-        with patch("litellm.callbacks", [OptInPostCall()]):
+        with patch("token_iq.gateway.callbacks", [OptInPostCall()]):
             assert self._has({"metadata": {"guardrails": []}}) is False
             assert self._has({"metadata": {"guardrails": ["opt-in-post"]}}) is True
 
@@ -547,7 +547,7 @@ class TestDeferredStreamingClosure:
 
         mock_logging_obj._on_deferred_stream_complete = _on_deferred_stream_complete
 
-        with patch("litellm.callbacks", [tracking_guardrail, tracking_logger]):
+        with patch("token_iq.gateway.callbacks", [tracking_guardrail, tracking_logger]):
             resp = await litellm.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
@@ -601,7 +601,7 @@ class TestDeferredStreamingClosure:
 
         guardrail = ModifyingGuardrail()
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4", "metadata": {}},
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -650,7 +650,7 @@ class TestDeferredStreamingClosure:
 
         guardrail = BlockingGuardrail()
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4", "metadata": {}},
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -698,7 +698,7 @@ class TestDeferredStreamingClosure:
 
         guardrail = TransientErrorGuardrail()
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4", "metadata": {}},
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -759,7 +759,7 @@ class TestDeferredStreamingClosure:
 
         mock_logging_obj._on_deferred_stream_complete = _on_deferred_stream_complete
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             resp = await litellm.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
@@ -787,7 +787,7 @@ class TestDeferredStreamingClosure:
         """Guardrails that define apply_guardrail should be SKIPPED in
         _run_deferred_stream_guardrails (they already ran via unified_guardrail's
         streaming end-of-stream block)."""
-        from litellm.types.utils import GenericGuardrailAPIInputs
+        from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
         apply_guardrail_called = False
 
@@ -816,7 +816,7 @@ class TestDeferredStreamingClosure:
 
         guardrail = ApplyGuardrailType()
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4", "metadata": {}},
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -869,7 +869,7 @@ class TestDeferredStreamingClosure:
 
         guardrail = IteratorHookGuardrail()
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4", "metadata": {}},
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -937,9 +937,9 @@ class TestDeferredStreamingClosure:
             return merged
 
         with (
-            patch("litellm.callbacks", [guardrail]),
+            patch("token_iq.gateway.callbacks", [guardrail]),
             patch(
-                "litellm.proxy.utils._check_and_merge_model_level_guardrails",
+                "token_iq.gateway.proxy.utils._check_and_merge_model_level_guardrails",
                 side_effect=mock_merge,
             ),
         ):
@@ -1001,9 +1001,9 @@ class TestDeferredStreamingClosure:
             return merged
 
         with (
-            patch("litellm.callbacks", [guardrail_a, guardrail_b]),
+            patch("token_iq.gateway.callbacks", [guardrail_a, guardrail_b]),
             patch(
-                "litellm.proxy.utils._check_and_merge_model_level_guardrails",
+                "token_iq.gateway.proxy.utils._check_and_merge_model_level_guardrails",
                 side_effect=mock_merge,
             ),
         ):
@@ -1041,7 +1041,7 @@ class TestDeferredStreamingClosure:
             raise RuntimeError("Simulated init failure")
 
         with patch(
-            "litellm.proxy.utils._check_and_merge_model_level_guardrails",
+            "token_iq.gateway.proxy.utils._check_and_merge_model_level_guardrails",
             side_effect=exploding_merge,
         ):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
@@ -1075,7 +1075,7 @@ class TestDeferredStreamingClosure:
         """
         import time
 
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -1104,7 +1104,7 @@ class TestDeferredStreamingClosure:
                 "_should_run_sync_callbacks_for_async_calls",
                 return_value=False,
             ),
-            patch("litellm.callbacks", [PostCallGuardrail()]),
+            patch("token_iq.gateway.callbacks", [PostCallGuardrail()]),
         ):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data={"model": "gpt-4o-mini", "metadata": {}},
@@ -1212,7 +1212,7 @@ class TestFireDeferredStreamLogging:
         guardrail = InfoWritingGuardrail()
         captured_data = {"model": "gpt-4", "metadata": {}}
 
-        with patch("litellm.callbacks", [guardrail]):
+        with patch("token_iq.gateway.callbacks", [guardrail]):
             await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
                 captured_data=captured_data,
                 captured_user_api_key_dict=UserAPIKeyAuth(api_key="test"),
@@ -1238,7 +1238,7 @@ class TestResponsesIteratorDeferredLogging:
     instead of dispatching immediately with a premature metadata snapshot."""
 
     def _iterator(self, logging_obj):
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             BaseResponsesAPIStreamingIterator,
         )
 
@@ -1329,7 +1329,7 @@ class TestArmDeferredStreamDispatch:
 
     @pytest.mark.asyncio
     async def test_bridged_responses_iterator_gets_csw_arg_shape(self):
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -1360,10 +1360,10 @@ class TestArmDeferredStreamDispatch:
         sniffing the wrapper instead of the inner iterator armed the 1-arg
         native closure against the CSW's 2-arg stored shape and leaked a
         TypeError 500 frame into the stream."""
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
-        from litellm.router_utils.add_retry_fallback_headers import (
+        from token_iq.gateway.router_utils.add_retry_fallback_headers import (
             HiddenParamsAsyncIteratorWrapper,
         )
 
@@ -1388,7 +1388,7 @@ class TestArmDeferredStreamDispatch:
 
     @pytest.mark.asyncio
     async def test_native_stream_closure_enqueues_single_coroutine(self):
-        from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+        from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
         logging_obj, _ = self._dispatch_recording_logging_obj()
 
@@ -1417,7 +1417,7 @@ class TestArmDeferredStreamDispatch:
 
     @pytest.mark.asyncio
     async def test_csw_closure_routes_through_deferred_stream_guardrails(self, monkeypatch):
-        from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
+        from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
         logging_obj, recorded = self._dispatch_recording_logging_obj()
         csw = object.__new__(CustomStreamWrapper)

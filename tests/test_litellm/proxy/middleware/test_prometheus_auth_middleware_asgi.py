@@ -7,7 +7,7 @@ which blocks the event loop and causes severe throughput degradation.
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from litellm.proxy.middleware.prometheus_auth_middleware import PrometheusAuthMiddleware
+from token_iq.gateway.proxy.middleware.prometheus_auth_middleware import PrometheusAuthMiddleware
 
 
 def test_is_not_base_http_middleware():

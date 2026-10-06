@@ -7,9 +7,11 @@ import traceback
 
 from dotenv import load_dotenv
 
-import litellm.types
-import litellm.types.utils
-from litellm.llms.anthropic.chat import ModelResponseIterator
+import token_iq.gateway.types
+from token_iq import gateway as litellm
+import token_iq.gateway.types.utils
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 
 load_dotenv()
 import io
@@ -19,17 +21,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     AnthropicConfig,
     Router,
     adapter_completion,
 )
-from litellm.types.llms.anthropic import AnthropicResponse
-from litellm.types.utils import GenericStreamingChunk, ChatCompletionToolCallChunk
-from litellm.types.llms.openai import ChatCompletionToolCallFunctionChunk
-from litellm.llms.anthropic.common_utils import process_anthropic_headers
-from litellm.llms.anthropic.chat.handler import AnthropicChatCompletion
+from token_iq.gateway.types.llms.anthropic import AnthropicResponse
+from token_iq.gateway.types.utils import GenericStreamingChunk, ChatCompletionToolCallChunk
+from token_iq.gateway.types.llms.openai import ChatCompletionToolCallFunctionChunk
+from token_iq.gateway.llms.anthropic.common_utils import process_anthropic_headers
+from token_iq.gateway.llms.anthropic.chat.handler import AnthropicChatCompletion
 from httpx import Headers
 from base_llm_unit_tests import BaseLLMChatTest, BaseAnthropicChatTest
 
@@ -407,7 +409,7 @@ def test_anthropic_beta_header(
     ],
 )
 def test_anthropic_tool_helper(cache_control_location):
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
     tool = {
         "type": "function",
@@ -474,7 +476,7 @@ def test_create_json_tool_call_for_response_format():
     assert "additionalProperties" not in _input_schema
 
 
-from litellm import completion
+from token_iq.gateway import completion
 
 
 class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
@@ -489,7 +491,7 @@ class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
 
     def test_tool_call_no_arguments(self, tool_call_no_arguments):
         """Test that tool calls with no arguments is translated correctly. Relevant issue: https://github.com/BerriAI/litellm/issues/6833"""
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             convert_to_anthropic_tool_invoke,
         )
 
@@ -502,7 +504,7 @@ class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
         """
         litellm.set_verbose = True
         from pydantic import BaseModel
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -639,7 +641,7 @@ def test_convert_tool_response_to_message_no_arguments():
 
 
 def test_anthropic_tool_with_image():
-    from litellm.litellm_core_utils.prompt_templates.factory import prompt_factory
+    from token_iq.gateway.core_utils.prompt_templates.factory import prompt_factory
     import json
 
     b64_data = "iVBORw0KGgoAAAANSUhEu6U3//C9t/fKv5wDgpP1r5796XwC4zyH1D565bHGDqbY85AMb0nIQe+u3J390Xbtb9XgXxcK0/aqRXpdYcwgARbCN03FJk"
@@ -808,7 +810,7 @@ def test_anthropic_map_openai_params_tools_with_defs():
     )
 
 
-from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
+from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 
 
 @pytest.mark.parametrize(
@@ -917,7 +919,7 @@ async def test_anthropic_structured_output():
 
     Relevant Issue: https://github.com/BerriAI/litellm/issues/8291
     """
-    from litellm import acompletion
+    from token_iq.gateway import acompletion
 
     args = {
         "model": "claude-sonnet-4-5-20250929",
@@ -1102,7 +1104,7 @@ def test_anthropic_thinking_output_stream(model):
 
 
 def test_anthropic_custom_headers():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -1236,7 +1238,7 @@ async def test_anthropic_api_max_completion_tokens(model: str):
     - max_completion_tokens is passed as max_tokens to anthropic models
     """
     litellm.set_verbose = True
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     mock_response = {
         "content": [{"text": "Hi! My name is Claude.", "type": "text"}],
@@ -1388,7 +1390,7 @@ def test_anthropic_mcp_server_tool_use(spec: str):
     os.getenv("ZAPIER_CI_CD_MCP_TOKEN") is None, reason="ZAPIER_CI_CD_MCP_TOKEN not set"
 )
 def test_anthropic_mcp_server_responses_api(model: str):
-    from litellm import responses
+    from token_iq.gateway import responses
 
     litellm._turn_on_debug()
     tools = [
@@ -1454,8 +1456,8 @@ async def test_claude_tool_use_with_anthropic_acreate():
 
 
 def test_anthropic_tool_cache_control():
-    from litellm.utils import return_raw_request
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
     import json
 
     tool_content = "Result: 4. " * 1000  # ~10k chars
@@ -1573,7 +1575,7 @@ def test_anthropic_streaming():
 
 
 def test_anthropic_via_responses_api():
-    from litellm.types.llms.openai import ResponsesAPIStreamEvents
+    from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
 
     response = litellm.responses(
         model="anthropic/claude-sonnet-4-5",
@@ -1799,7 +1801,7 @@ def test_anthropic_structured_output_chat_completion_api():
 
 
 def _make_transform_request(optional_params: dict, litellm_params: dict) -> dict:
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
     return AnthropicConfig().transform_request(
         model="claude-3-5-sonnet-20241022",
@@ -1848,7 +1850,7 @@ def test_metadata_user_id_from_litellm_params_strips_extras():
 
 def test_metadata_filter_applies_to_vertex_anthropic():
     """VertexAIAnthropicConfig inherits the metadata filter."""
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
         VertexAIAnthropicConfig,
     )
 
@@ -1864,7 +1866,7 @@ def test_metadata_filter_applies_to_vertex_anthropic():
 
 def test_metadata_filter_applies_to_azure_anthropic():
     """AzureAnthropicConfig inherits the metadata filter."""
-    from litellm.llms.azure_ai.anthropic.transformation import AzureAnthropicConfig
+    from token_iq.gateway.llms.azure_ai.anthropic.transformation import AzureAnthropicConfig
 
     data = AzureAnthropicConfig().transform_request(
         model="claude-3-5-sonnet-20241022",

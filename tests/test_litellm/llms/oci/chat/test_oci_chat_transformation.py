@@ -3,13 +3,13 @@ import httpx
 import pytest
 import json
 
-import litellm
+from token_iq import gateway as litellm
 
 # Adds the parent directory to the system path
 
-from litellm import ModelResponse
-from litellm.constants import DEFAULT_OCI_CHAT_MAX_TOKENS
-from litellm.llms.oci.chat.transformation import (
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.constants import DEFAULT_OCI_CHAT_MAX_TOKENS
+from token_iq.gateway.llms.oci.chat.transformation import (
     OCIChatConfig,
     OCIRequestWrapper,
     version,
@@ -498,7 +498,7 @@ class TestOCIChatConfig:
     def test_transform_request_json_schema_without_body_raises_generic(self):
         """A GENERIC json_schema with no ``json_schema`` body must raise an early
         400, not silently emit {"type": "JSON_SCHEMA"} (which OCI rejects)."""
-        from litellm.llms.oci.common_utils import OCIError
+        from token_iq.gateway.llms.oci.common_utils import OCIError
 
         config = OCIChatConfig()
         optional_params = {
@@ -866,7 +866,7 @@ class TestOCISignerSupport:
             "oci_signer": FailingSigner(),
         }
 
-        from litellm.llms.oci.common_utils import OCIError
+        from token_iq.gateway.llms.oci.common_utils import OCIError
 
         with pytest.raises(OCIError) as excinfo:
             config.sign_request(
@@ -1016,9 +1016,9 @@ class TestOCIProviderEmbeddingConfig:
     """
 
     def test_returns_oci_embed_config(self):
-        from litellm.llms.oci.embed.transformation import OCIEmbedConfig
-        from litellm.utils import ProviderConfigManager
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.llms.oci.embed.transformation import OCIEmbedConfig
+        from token_iq.gateway.utils import ProviderConfigManager
+        from token_iq.gateway.types.utils import LlmProviders
 
         config = ProviderConfigManager.get_provider_embedding_config(
             model="cohere.embed-english-v3.0",
@@ -1033,7 +1033,7 @@ class TestOCIProviderEmbeddingConfig:
         regression (e.g. a future merge re-introducing it).
         """
         import inspect
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         source = inspect.getsource(ProviderConfigManager.get_provider_embedding_config)
         oci_count = source.count("LlmProviders.OCI")
@@ -1159,7 +1159,7 @@ class TestOCIReasoningEffort:
     def _build_chat_request(self, model: str, optional_params: dict) -> dict:
         """Drive optional params through map → _get_optional_params and read
         the resulting chatRequest body via transform_request."""
-        from litellm.llms.oci.chat.transformation import OCIChatConfig
+        from token_iq.gateway.llms.oci.chat.transformation import OCIChatConfig
 
         config = OCIChatConfig()
         mapped = config.map_openai_params(
@@ -1200,7 +1200,7 @@ class TestOCIReasoningEffort:
 
     def test_reasoning_effort_unsupported_on_cohere_dropped(self):
         """drop_params=True → silently drop reasoning_effort for Cohere."""
-        from litellm.llms.oci.chat.transformation import OCIChatConfig
+        from token_iq.gateway.llms.oci.chat.transformation import OCIChatConfig
 
         config = OCIChatConfig()
         result = config.map_openai_params(
@@ -1214,8 +1214,8 @@ class TestOCIReasoningEffort:
 
     def test_reasoning_effort_unsupported_on_cohere_raises(self):
         """drop_params=False → raise rather than ship a payload Cohere will reject."""
-        from litellm.llms.oci.chat.transformation import OCIChatConfig
-        from litellm.llms.oci.common_utils import OCIError
+        from token_iq.gateway.llms.oci.chat.transformation import OCIChatConfig
+        from token_iq.gateway.llms.oci.common_utils import OCIError
 
         config = OCIChatConfig()
         with pytest.raises(OCIError):
@@ -1229,7 +1229,7 @@ class TestOCIReasoningEffort:
     def test_reasoning_tokens_extracted_from_usage(self):
         """OCI's completionTokensDetails.reasoningTokens flows into
         Usage.completion_tokens_details.reasoning_tokens."""
-        from litellm.llms.oci.chat.generic import handle_generic_response
+        from token_iq.gateway.llms.oci.chat.generic import handle_generic_response
 
         created_time = (
             datetime.datetime.now(datetime.timezone.utc)
@@ -1273,7 +1273,7 @@ class TestOCIReasoningEffort:
 
     def test_reasoning_tokens_absent_when_no_details(self):
         """When OCI omits completionTokensDetails, Usage has no reasoning_tokens."""
-        from litellm.llms.oci.chat.generic import handle_generic_response
+        from token_iq.gateway.llms.oci.chat.generic import handle_generic_response
 
         created_time = (
             datetime.datetime.now(datetime.timezone.utc)
@@ -1573,7 +1573,7 @@ class TestOCIChatConfigErrorPaths:
 
 import pytest
 from unittest.mock import MagicMock
-from litellm.llms.oci.common_utils import OCIError, sign_with_manual_credentials
+from token_iq.gateway.llms.oci.common_utils import OCIError, sign_with_manual_credentials
 
 
 
@@ -1772,7 +1772,7 @@ class TestOCIImageUrlTransformation:
 
     def test_image_url_as_string(self):
         """Test that image_url as a plain string works."""
-        from litellm.llms.oci.chat.transformation import (
+        from token_iq.gateway.llms.oci.chat.transformation import (
             adapt_messages_to_generic_oci_standard,
         )
 
@@ -1796,7 +1796,7 @@ class TestOCIImageUrlTransformation:
 
     def test_image_url_as_openai_object(self):
         """Test that image_url as OpenAI-style object {"url": "..."} works."""
-        from litellm.llms.oci.chat.transformation import (
+        from token_iq.gateway.llms.oci.chat.transformation import (
             adapt_messages_to_generic_oci_standard,
         )
 
@@ -1827,7 +1827,7 @@ class TestOCIImageUrlTransformation:
         Fixes: https://github.com/BerriAI/litellm/issues/19589
         OCI expects imageUrl to be an object with a 'url' property, not a plain string.
         """
-        from litellm.llms.oci.chat.transformation import (
+        from token_iq.gateway.llms.oci.chat.transformation import (
             adapt_messages_to_generic_oci_standard,
         )
 
@@ -1858,7 +1858,7 @@ class TestOCIImageUrlTransformation:
 
     def test_image_url_invalid_type_raises_error(self):
         """Test that invalid image_url type raises an error."""
-        from litellm.llms.oci.chat.transformation import (
+        from token_iq.gateway.llms.oci.chat.transformation import (
             adapt_messages_to_generic_oci_standard,
         )
 
@@ -1879,7 +1879,7 @@ class TestOCIImageUrlTransformation:
 
     def test_image_url_object_missing_url_raises_error(self):
         """Test that object without 'url' property raises an error."""
-        from litellm.llms.oci.chat.transformation import (
+        from token_iq.gateway.llms.oci.chat.transformation import (
             adapt_messages_to_generic_oci_standard,
         )
 

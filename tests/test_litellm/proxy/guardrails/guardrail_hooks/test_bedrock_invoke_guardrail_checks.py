@@ -12,15 +12,15 @@ import pytest
 from fastapi import HTTPException
 
 
-from litellm.exceptions import ModifyResponseException
-from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+from token_iq.gateway.exceptions import ModifyResponseException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     _BEDROCK_INVOKE_GUARDRAIL_CHECKS_PATH,
     BedrockGuardrail,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     BedrockGuardrailResponse,
 )
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 CONTENT_FILTER_CHECKS = {"contentFilter": {"categories": [{"category": "VIOLENCE"}]}}
 
@@ -720,7 +720,7 @@ async def test_dispatcher_routes_to_apply_mode_when_no_checks():
 
 def test_normalize_checks_accepts_pydantic_model():
     """The proxy initializer passes a BedrockChecksConfigModel, not a raw dict."""
-    from litellm.types.guardrails import (
+    from token_iq.gateway.types.guardrails import (
         BedrockChecksConfigModel,
         BedrockChecksContentFilterModel,
     )
@@ -736,7 +736,7 @@ def test_normalize_checks_accepts_pydantic_model():
 
 def test_init_warns_when_masking_set_with_checks():
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.warning"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.warning"
     ) as mock_warning:
         BedrockGuardrail(checks=CONTENT_FILTER_CHECKS, mask_request_content=True)
     assert any("detect-only" in str(call) for call in mock_warning.call_args_list)
@@ -784,7 +784,7 @@ def test_checks_config_model_rejects_empty():
     """BedrockChecksConfigModel must require at least one check (fail closed)."""
     import pydantic
 
-    from litellm.types.guardrails import BedrockChecksConfigModel
+    from token_iq.gateway.types.guardrails import BedrockChecksConfigModel
 
     with pytest.raises(pydantic.ValidationError):
         BedrockChecksConfigModel()

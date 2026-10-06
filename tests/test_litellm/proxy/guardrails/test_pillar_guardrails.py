@@ -21,19 +21,19 @@ from fastapi.exceptions import HTTPException
 from httpx import Request, Response
 
 # LiteLLM imports
-import litellm
-from litellm import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_utils.callback_utils import get_logging_caching_headers
-from litellm.proxy.guardrails.guardrail_hooks.pillar import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_utils.callback_utils import get_logging_caching_headers
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.pillar import (
     PillarGuardrail,
     PillarGuardrailAPIError,
     PillarGuardrailMissingSecrets,
 )
-from litellm.proxy.guardrails.guardrail_hooks.pillar.pillar import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.pillar.pillar import (
     build_pillar_response_headers,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 # ============================================================================
 # FIXTURES
@@ -54,7 +54,7 @@ def setup_and_teardown():
     # This handles both cases uniformly:
     # 1. litellm not in sys.modules (parallel worker removed it)
     # 2. litellm already imported (normal case)
-    _module = importlib.import_module("litellm")
+    _module = importlib.import_module("token_iq.gateway")
     litellm = importlib.reload(_module)
 
     # Set up async loop
@@ -352,7 +352,7 @@ async def test_pre_call_hook_clean_content(
 ):
     """Test pre-call hook with clean content that should pass."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_pre_call_hook(
@@ -376,7 +376,7 @@ async def test_pre_call_hook_flagged_content_block(
     """Test pre-call hook blocks flagged content when action is 'block'."""
     with pytest.raises(HTTPException) as excinfo:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=pillar_flagged_response,
         ):
             await pillar_guardrail_instance.async_pre_call_hook(
@@ -400,7 +400,7 @@ async def test_pre_call_hook_flagged_content_monitor(
 ):
     """Test pre-call hook allows flagged content when action is 'monitor'."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_flagged_response,
     ):
         result = await pillar_monitor_guardrail.async_pre_call_hook(
@@ -440,7 +440,7 @@ async def test_pre_call_hook_clean_content_returns_scanners_and_evidence(
 ):
     """Test that scanners and evidence are returned even when content is not flagged."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_monitor_guardrail.async_pre_call_hook(
@@ -571,7 +571,7 @@ async def test_post_call_hook_flagged_content_monitor_updates_metadata_and_heade
     request_data["metadata"] = {}
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_flagged_response,
     ):
         response = await pillar_monitor_guardrail.async_post_call_success_hook(
@@ -613,7 +613,7 @@ async def test_moderation_hook(
 ):
     """Test moderation hook (during call)."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_moderation_hook(
@@ -635,7 +635,7 @@ async def test_post_call_hook_clean_response(
 ):
     """Test post-call hook with clean response."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_post_call_success_hook(
@@ -657,7 +657,7 @@ async def test_post_call_hook_with_tool_calls(
 ):
     """Test post-call hook with response containing tool calls."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_post_call_success_hook(
@@ -701,7 +701,7 @@ async def test_pre_call_hook_custom_header_overrides(
         return pillar_async_response
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=_mock_post,
     ):
         result = await guardrail.async_pre_call_hook(
@@ -744,7 +744,7 @@ async def test_litellm_context_headers_automatically_added(
         return pillar_clean_response
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=_mock_post,
     ):
         await guardrail.async_pre_call_hook(
@@ -801,7 +801,7 @@ async def test_litellm_context_with_partial_fields(
         return pillar_clean_response
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=_mock_post,
     ):
         await guardrail.async_pre_call_hook(
@@ -866,7 +866,7 @@ async def test_multimodal_image_url_support(
         return pillar_clean_response
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=_mock_post,
     ):
         result = await guardrail.async_pre_call_hook(
@@ -914,7 +914,7 @@ async def test_multimodal_with_attachments(
     )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await guardrail.async_pre_call_hook(
@@ -960,7 +960,7 @@ async def test_api_error_handling(
 
     with pytest.raises(HTTPException) as excinfo:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=Exception("Connection error"),
         ):
             await pillar_guardrail_instance.async_pre_call_hook(
@@ -990,7 +990,7 @@ async def test_api_error_fallback_allow(env_setup):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=Exception("Connection timeout"),
     ):
         result = await guardrail.async_pre_call_hook(
@@ -1021,7 +1021,7 @@ async def test_api_error_fallback_block(env_setup):
 
     with pytest.raises(HTTPException) as excinfo:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=Exception("Connection timeout"),
         ):
             await guardrail.async_pre_call_hook(
@@ -1266,7 +1266,7 @@ async def test_pre_call_hook_masking_mode(
     original_messages = sample_request_data["messages"].copy()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_masked_response,
     ):
         result = await pillar_mask_guardrail.async_pre_call_hook(
@@ -1306,7 +1306,7 @@ async def test_pre_call_hook_masking_no_masked_messages(
     original_messages = sample_request_data["messages"].copy()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response_no_mask,
     ):
         result = await pillar_mask_guardrail.async_pre_call_hook(
@@ -1334,7 +1334,7 @@ async def test_exception_without_scanners(
 ):
     """Test exception excludes scanners when include_scanners is False."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_flagged_response,
     ):
         guardrail = PillarGuardrail(
@@ -1369,7 +1369,7 @@ async def test_exception_without_evidence(
 ):
     """Test exception excludes evidence when include_evidence is False."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_flagged_response,
     ):
         guardrail = PillarGuardrail(
@@ -1404,7 +1404,7 @@ async def test_exception_without_scanners_or_evidence(
 ):
     """Test exception excludes both scanners and evidence when both are False."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_flagged_response,
     ):
         guardrail = PillarGuardrail(
@@ -1447,7 +1447,7 @@ async def test_pre_call_hook_mcp_call(
 ):
     """Test pre-call hook works with MCP call type."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_pre_call_hook(
@@ -1469,7 +1469,7 @@ async def test_moderation_hook_mcp_call(
 ):
     """Test moderation hook works with MCP call type."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_clean_response,
     ):
         result = await pillar_guardrail_instance.async_moderation_hook(
@@ -1493,7 +1493,7 @@ async def test_mcp_call_masking(
     original_messages = sample_request_data["messages"].copy()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=pillar_masked_response,
     ):
         result = await pillar_mask_guardrail.async_pre_call_hook(

@@ -14,13 +14,13 @@ Covers three bugs:
 import asyncio
 from unittest.mock import MagicMock
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     ConfigGeneralSettings,
     LitellmUserRoles,
     PluginConfig,
     UserAPIKeyAuth,
 )
-from litellm.proxy.plugin_routes import list_plugins, register_plugins_from_config
+from token_iq.gateway.proxy.plugin_routes import list_plugins, register_plugins_from_config
 
 
 def _admin() -> UserAPIKeyAuth:
@@ -134,7 +134,7 @@ def test_plugin_key_is_never_returned_to_the_browser() -> None:
 def test_db_persisted_plugins_load_on_startup() -> None:
     """Plugins saved to DB general_settings must register when the DB config is
     merged at startup, not just when present in the YAML file."""
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     register_plugins_from_config({})  # start empty (as if YAML had no plugins)
 
@@ -162,7 +162,7 @@ def test_db_persisted_plugins_load_on_startup() -> None:
 
 def test_safe_response_headers_sandbox_and_strips_wire_headers() -> None:
     """Proxied plugin responses must be inert and shed wire/cookie headers."""
-    from litellm.proxy.plugin_routes import _safe_response_headers
+    from token_iq.gateway.proxy.plugin_routes import _safe_response_headers
 
     out = _safe_response_headers(
         {
@@ -184,7 +184,7 @@ def test_safe_response_headers_sandbox_and_strips_wire_headers() -> None:
 def test_litellm_credential_header_names_covers_every_auth_header() -> None:
     """The canonical strip set must list every header user_api_key_auth accepts
     as a litellm key, so a new auth header can't silently start leaking."""
-    from litellm.proxy._types import SpecialHeaders
+    from token_iq.gateway.proxy._types import SpecialHeaders
 
     assert SpecialHeaders.litellm_credential_header_names() == {
         "authorization",
@@ -199,7 +199,7 @@ def test_litellm_credential_header_names_covers_every_auth_header() -> None:
 def test_every_litellm_auth_header_is_stripped_before_forwarding() -> None:
     """A plugin must never receive any header that authenticates against litellm,
     only the hop-by-hop set and benign headers are forwarded."""
-    from litellm.proxy.plugin_routes import _request_strip_headers
+    from token_iq.gateway.proxy.plugin_routes import _request_strip_headers
 
     strip = _request_strip_headers()
     incoming = {
@@ -221,8 +221,8 @@ def test_every_litellm_auth_header_is_stripped_before_forwarding() -> None:
 def test_configured_custom_key_header_is_stripped() -> None:
     """A custom general_settings.litellm_key_header_name must also be stripped,
     read live so config changes are honoured without a restart."""
-    from litellm.proxy import proxy_server
-    from litellm.proxy.plugin_routes import _request_strip_headers
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy.plugin_routes import _request_strip_headers
 
     original = getattr(proxy_server, "general_settings", None)
     proxy_server.general_settings = {"litellm_key_header_name": "X-My-Tenant-Key"}

@@ -19,8 +19,8 @@ from fastapi import Request
 from starlette.datastructures import Headers
 
 
-from litellm.proxy._types import LitellmUserRoles
-from litellm.proxy.auth.oauth2_proxy_hook import (
+from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy.auth.oauth2_proxy_hook import (
     ALLOWED_OAUTH2_PROXY_FIELDS,
     handle_oauth2_proxy_request,
 )
@@ -45,7 +45,7 @@ def configure_proxy(monkeypatch):
     of one test. Defaults to a single identity mapping and localhost as
     a trusted proxy.
     """
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     def _configure(*, mappings=None, trusted_proxy_ranges=("127.0.0.1/32",)):
         if mappings is None:

@@ -9,11 +9,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.policy_engine.attachment_registry import (
+from token_iq.gateway.proxy.policy_engine.attachment_registry import (
     AttachmentRegistry,
     get_attachment_registry,
 )
-from litellm.types.proxy.policy_engine import PolicyMatchContext
+from token_iq.gateway.types.proxy.policy_engine import PolicyMatchContext
 
 
 class TestGetAttachedPolicies:

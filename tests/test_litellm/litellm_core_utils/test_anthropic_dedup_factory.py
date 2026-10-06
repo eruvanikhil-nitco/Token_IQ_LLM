@@ -1,7 +1,7 @@
 import pytest
 
 
-from litellm.litellm_core_utils.prompt_templates.factory import anthropic_messages_pt
+from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
 
 
 def test_anthropic_deduplication_logic():

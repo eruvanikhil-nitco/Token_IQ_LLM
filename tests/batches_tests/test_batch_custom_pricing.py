@@ -8,15 +8,15 @@ are ignored by the batch cost pipeline because they are never threaded
 through to `batch_cost_calculator`.
 """
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.batches.batch_utils import (
+from token_iq.gateway.batches.batch_utils import (
     _aggregate_batch_cost_usage_models,
     calculate_batch_cost_and_usage,
 )
-from litellm.cost_calculator import batch_cost_calculator
-from litellm.types.utils import Usage
+from token_iq.gateway.cost_calculator import batch_cost_calculator
+from token_iq.gateway.types.utils import Usage
 
 
 # --- helpers ---

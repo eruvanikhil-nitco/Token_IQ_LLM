@@ -4,21 +4,21 @@ Tests for GitHub Copilot Responses API transformation
 Tests the GithubCopilotResponsesAPIConfig class that handles GitHub Copilot-specific
 transformations for the Responses API.
 
-Source: litellm/llms/github_copilot/responses/transformation.py
+Source: token_iq/gateway/llms/github_copilot/responses/transformation.py
 """
 
 from unittest.mock import patch, MagicMock
 
 
 import pytest
-import litellm
-from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
-from litellm.llms.github_copilot.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
+from token_iq.gateway.llms.github_copilot.responses.transformation import (
     GithubCopilotResponsesAPIConfig,
 )
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +54,7 @@ class TestGithubCopilotResponsesAPITransformation:
             config.custom_llm_provider == LlmProviders.GITHUB_COPILOT
         ), "custom_llm_provider should be GITHUB_COPILOT"
 
-    @patch("litellm.llms.github_copilot.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator")
     def test_github_copilot_responses_endpoint_url(self, mock_authenticator_class):
         """Test that get_complete_url returns correct GitHub Copilot endpoint"""
         # Mock authenticator to return default base
@@ -88,7 +88,7 @@ class TestGithubCopilotResponsesAPITransformation:
             url_with_slash == "https://api.githubcopilot.com/responses"
         ), "Should handle trailing slash"
 
-    @patch("litellm.llms.github_copilot.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator")
     def test_validate_environment_default_headers(self, mock_authenticator_class):
         """Test that validate_environment generates correct default headers"""
         # Mock the authenticator
@@ -113,7 +113,7 @@ class TestGithubCopilotResponsesAPITransformation:
         assert headers["x-github-api-version"] == "2025-04-01"
         assert "x-request-id" in headers
 
-    @patch("litellm.llms.github_copilot.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator")
     def test_validate_environment_user_headers_override(self, mock_authenticator_class):
         """Test that user-provided headers override default headers"""
         mock_auth_instance = MagicMock()
@@ -228,7 +228,7 @@ class TestGithubCopilotResponsesAPITransformation:
         has_vision = config._has_vision_input("Just a text message")
         assert has_vision is False, "Should return False for string input"
 
-    @patch("litellm.llms.github_copilot.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator")
     def test_validate_environment_with_vision_header(self, mock_authenticator_class):
         """Test that copilot-vision-request header is added for vision input"""
         mock_auth_instance = MagicMock()
@@ -254,7 +254,7 @@ class TestGithubCopilotResponsesAPITransformation:
             headers.get("copilot-vision-request") == "true"
         ), "Should add copilot-vision-request header for vision input"
 
-    @patch("litellm.llms.github_copilot.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator")
     def test_validate_environment_with_x_initiator(self, mock_authenticator_class):
         """Test that X-Initiator header is set based on input"""
         mock_auth_instance = MagicMock()
@@ -394,7 +394,7 @@ class TestGithubCopilotResponsesAPIRouting:
     routes through the chat-completions translation bridge."""
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_returns_config_when_mode_is_responses(self, mock_get_info):
         """``mode=responses`` returns native config."""
@@ -406,7 +406,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert isinstance(config, GithubCopilotResponsesAPIConfig)
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_returns_none_when_mode_is_chat(self, mock_get_info):
         """``mode=chat`` returns None so dispatcher uses bridge."""
@@ -418,7 +418,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert config is None
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_returns_none_when_mode_is_unset_and_no_endpoints(self, mock_get_info):
         """Entry without ``mode`` and without ``supported_endpoints`` returns None
@@ -500,7 +500,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert isinstance(config, GithubCopilotResponsesAPIConfig)
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_returns_none_when_get_model_info_raises(self, mock_get_info):
         """Catalog lookup failure (model not registered) returns None
@@ -513,7 +513,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert config is None
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_user_override_via_register_model(self, mock_get_info):
         """User-supplied per-deployment ``model_info`` flows through
@@ -529,7 +529,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert isinstance(config, GithubCopilotResponsesAPIConfig)
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_realistic_chat_only_entry_returns_none(self, mock_get_info):
         """Realistic ``model_prices_and_context_window.json`` shape for a
@@ -555,7 +555,7 @@ class TestGithubCopilotResponsesAPIRouting:
         assert config is None
 
     @patch(
-        "litellm.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
+        "token_iq.gateway.llms.github_copilot.responses.transformation._cached_get_model_info_helper"
     )
     def test_realistic_responses_only_entry_returns_config(self, mock_get_info):
         """Realistic catalog entry for a Responses-only Copilot model
@@ -593,7 +593,7 @@ class TestGithubCopilotReasoningStreamItemIdNormalization:
 
     def _config(self):
         with patch(
-            "litellm.llms.github_copilot.responses.transformation.Authenticator"
+            "token_iq.gateway.llms.github_copilot.responses.transformation.Authenticator"
         ):
             return GithubCopilotResponsesAPIConfig()
 

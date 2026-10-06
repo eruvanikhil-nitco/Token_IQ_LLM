@@ -8,7 +8,7 @@ import pytest
 import concurrent
 
 from dotenv import load_dotenv
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio

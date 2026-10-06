@@ -13,7 +13,7 @@ def test_check_migration_out_of_sync(mocker):
     # then patch the logger reference in that module directly (not the source
     # module) so the patch works regardless of import order or xdist worker
     # assignment.
-    from litellm.proxy.db import check_migration
+    from token_iq.gateway.proxy.db import check_migration
 
     # Mock the helper function to simulate out-of-sync state
     mock_logger = mocker.patch.object(

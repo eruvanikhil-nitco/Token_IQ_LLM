@@ -10,8 +10,8 @@ from base_llm_unit_tests import BaseLLMChatTest
 
 import pytest
 
-import litellm
-from litellm.types.utils import ModelResponse, ModelResponseStream
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ModelResponse, ModelResponseStream
 
 MOCK_COMPLETION_RESPONSE = {
     "id": "9115d3daeab10608",
@@ -149,7 +149,7 @@ PROVIDER_MAPPING_RESPONSE = {
 @pytest.fixture
 def mock_provider_mapping():
     with patch(
-        "litellm.llms.huggingface.chat.transformation._fetch_inference_provider_mapping"
+        "token_iq.gateway.llms.huggingface.chat.transformation._fetch_inference_provider_mapping"
     ) as mock:
         mock.return_value = PROVIDER_MAPPING_RESPONSE
         yield mock
@@ -157,7 +157,7 @@ def mock_provider_mapping():
 
 @pytest.fixture(autouse=True)
 def clear_lru_cache():
-    from litellm.llms.huggingface.common_utils import _fetch_inference_provider_mapping
+    from token_iq.gateway.llms.huggingface.common_utils import _fetch_inference_provider_mapping
 
     _fetch_inference_provider_mapping.cache_clear()
     yield
@@ -167,7 +167,7 @@ def clear_lru_cache():
 @pytest.fixture
 def mock_http_handler():
     """Fixture to mock the HTTP handler"""
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock:
         print(f"Creating mock HTTP handler: {mock}")  # noqa: T201
 
         mock_response = MagicMock()
@@ -195,7 +195,7 @@ def mock_http_handler():
 def mock_http_async_handler():
     """Fixture to mock the async HTTP handler"""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock:
         print(f"Creating mock async HTTP handler: {mock}")  # noqa: T201
@@ -380,7 +380,7 @@ class TestHuggingFace(BaseLLMChatTest):
     )
     def test_get_complete_url(self, model, expected_url):
         """Test that the complete URL is constructed correctly for different providers"""
-        from litellm.llms.huggingface.chat.transformation import HuggingFaceChatConfig
+        from token_iq.gateway.llms.huggingface.chat.transformation import HuggingFaceChatConfig
 
         config = HuggingFaceChatConfig()
         url = config.get_complete_url(
@@ -429,7 +429,7 @@ class TestHuggingFace(BaseLLMChatTest):
         ],
     )
     def test_get_complete_url_inference_endpoints(self, api_base, model, expected_url):
-        from litellm.llms.huggingface.chat.transformation import HuggingFaceChatConfig
+        from token_iq.gateway.llms.huggingface.chat.transformation import HuggingFaceChatConfig
 
         config = HuggingFaceChatConfig()
         url = config.get_complete_url(
@@ -508,7 +508,7 @@ class TestHuggingFace(BaseLLMChatTest):
 
     def test_build_chat_completion_url_function(self):
         """Test the _build_chat_completion_url helper function"""
-        from litellm.llms.huggingface.chat.transformation import (
+        from token_iq.gateway.llms.huggingface.chat.transformation import (
             _build_chat_completion_url,
         )
 
@@ -539,7 +539,7 @@ class TestHuggingFace(BaseLLMChatTest):
 
     def test_validate_environment(self):
         """Test that the environment is validated correctly"""
-        from litellm.llms.huggingface.chat.transformation import HuggingFaceChatConfig
+        from token_iq.gateway.llms.huggingface.chat.transformation import HuggingFaceChatConfig
 
         config = HuggingFaceChatConfig()
 
@@ -569,7 +569,7 @@ class TestHuggingFace(BaseLLMChatTest):
         ],
     )
     def test_transform_request(self, model, expected_model):
-        from litellm.llms.huggingface.chat.transformation import HuggingFaceChatConfig
+        from token_iq.gateway.llms.huggingface.chat.transformation import HuggingFaceChatConfig
 
         config = HuggingFaceChatConfig()
         messages = [{"role": "user", "content": "Hello"}]

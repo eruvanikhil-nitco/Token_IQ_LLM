@@ -9,28 +9,28 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 import httpx
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from typing import AsyncGenerator
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
 
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     pass_through_request,
 )
 from fastapi import Request
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     _update_metadata_with_tags_in_header,
     HttpPassThroughEndpointHelpers,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
 
@@ -303,7 +303,7 @@ async def test_pass_through_request_logging_failure(
     # Patch both the logging handler and the httpx client
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughEndpointLogging.pass_through_async_success_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints.PassThroughEndpointLogging.pass_through_async_success_handler",
             new=mock_logging_failure,
         ),
         patch(
@@ -370,7 +370,7 @@ async def test_pass_through_request_logging_failure_with_stream(
     # Patch both the logging handler and the httpx client
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.streaming_handler.PassThroughStreamingHandler._route_streaming_logging_to_handler",
+            "token_iq.gateway.proxy.pass_through_endpoints.streaming_handler.PassThroughStreamingHandler._route_streaming_logging_to_handler",
             new=mock_logging_failure,
         ),
         patch(
@@ -422,7 +422,7 @@ def test_pass_through_routes_support_all_methods():
     Comprehend Medical speaks AWS JSON 1.1, which is POST-only, so there is no
     other method to forward.
     """
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         router as llm_router,
     )
 
@@ -447,7 +447,7 @@ def test_protocol_constrained_pass_through_exemptions_are_not_stale():
     outlive the routes it covers: a renamed or deleted route has to fail here
     rather than sit in the list silently exempting nothing.
     """
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         router as llm_router,
     )
 
@@ -460,7 +460,7 @@ def test_is_bedrock_agent_runtime_route():
     """
     Test that _is_bedrock_agent_runtime_route correctly identifies bedrock agent runtime endpoints
     """
-    from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
         _is_bedrock_agent_runtime_route,
     )
 
@@ -592,8 +592,8 @@ def test_custom_pricing_used_in_cost_calculation():
 
     Regression test for: LIT-1221
     """
-    from litellm import completion_cost, Choices, Message, ModelResponse
-    from litellm.utils import Usage
+    from token_iq.gateway import completion_cost, Choices, Message, ModelResponse
+    from token_iq.gateway.utils import Usage
 
     # Create a mock response with usage
     resp = ModelResponse(

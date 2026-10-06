@@ -10,19 +10,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from dotenv import load_dotenv
 from openai.types.image import Image
-from litellm.caching import InMemoryCache
+from token_iq.gateway.caching import InMemoryCache
 
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 import asyncio
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 import json
 import tempfile
 from base_image_generation_test import BaseImageGenTest, TestCustomLogger
 import logging
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 
 verbose_logger.setLevel(logging.DEBUG)
 
@@ -177,11 +177,11 @@ class TestAimlImageGeneration(BaseImageGenTest):
 
         with (
             patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 new_callable=AsyncMock,
             ) as mock_async_post,
             patch(
-                "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             ) as mock_sync_post,
         ):
             mock_async_post.return_value = mock_response
@@ -335,7 +335,7 @@ async def test_aiml_image_generation_with_dynamic_api_key():
         return mock_response
 
     # Mock the HTTP client that actually makes the request (sync version for image generation)
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.side_effect = capture_post_call
 
         # Test with dynamic api_key
@@ -394,7 +394,7 @@ async def test_aiml_openai_gpt_image_2_request_uses_openai_param_shape():
         mock_response.text = _json.dumps(mock_aiml_response)
         return mock_response
 
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.side_effect = capture_post_call
 
         await litellm.aimage_generation(
@@ -426,7 +426,7 @@ async def test_aiml_openai_gpt_image_2_request_uses_openai_param_shape():
 @pytest.mark.asyncio
 async def test_azure_image_generation_request_body():
     """Azure deployment URL selects the model; JSON body omits ``model`` (#26316)."""
-    from litellm import aimage_generation
+    from token_iq.gateway import aimage_generation
 
     test_dir = os.path.dirname(__file__)
     expected_path = os.path.join(test_dir, "request_payloads", "azure_gpt_image_1.json")
@@ -434,7 +434,7 @@ async def test_azure_image_generation_request_body():
         expected_body = json.load(f)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.side_effect = Exception("test")

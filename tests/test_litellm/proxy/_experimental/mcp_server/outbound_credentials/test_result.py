@@ -6,7 +6,7 @@ the runtime contract consumers rely on: each arm carries its payload and discrim
 type. The union is exercised for real where it is used (see PR2's parse_auth_spec_kind).
 """
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import (
     Error,
     Ok,
     Result,

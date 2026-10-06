@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from unittest.mock import AsyncMock, MagicMock, patch
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 # Set up environment variables for testing
 os.environ["CYBERARK_API_KEY"] = "test-cyberark-api-key-909"
@@ -18,7 +18,7 @@ os.environ["CYBERARK_API_BASE"] = "http://0.0.0.0:8080"
 os.environ["CYBERARK_ACCOUNT"] = "default"
 os.environ["CYBERARK_USERNAME"] = "admin"
 
-from litellm.secret_managers.cyberark_secret_manager import CyberArkSecretManager
+from token_iq.gateway.secret_managers.cyberark_secret_manager import CyberArkSecretManager
 
 
 def create_mock_response(status_code: int, text: str = ""):
@@ -47,7 +47,7 @@ async def test_cyberark_write_secret_rejects_yaml_injection():
     Regression test: async_write_secret must reject a secret_name that is not
     safe to embed in the Conjur policy body, before any HTTP call is made.
     """
-    with patch("litellm.proxy.proxy_server.premium_user", True):
+    with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
         malicious_secret_name = "foo\n- !grant\n  role: !!admin\n  member: attacker"
 
         mock_sync_client = MagicMock()
@@ -55,11 +55,11 @@ async def test_cyberark_write_secret_rejects_yaml_injection():
 
         with (
             patch(
-                "litellm.secret_managers.cyberark_secret_manager._get_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager._get_httpx_client",
                 return_value=mock_sync_client,
             ),
             patch(
-                "litellm.secret_managers.cyberark_secret_manager.get_async_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager.get_async_httpx_client",
                 return_value=mock_async_client,
             ),
         ):
@@ -92,7 +92,7 @@ def test_cyberark_ensure_variable_exists_escapes_yaml_metacharacters(secret_name
     denylist-check it) so the policy body always parses back to exactly one
     '!variable' scalar node holding the untouched secret_name.
     """
-    with patch("litellm.proxy.proxy_server.premium_user", True):
+    with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
         captured = {}
 
         def _capture_post(url, headers=None, content=None):
@@ -103,7 +103,7 @@ def test_cyberark_ensure_variable_exists_escapes_yaml_metacharacters(secret_name
         mock_sync_client.client.post.side_effect = _capture_post
 
         with patch(
-            "litellm.secret_managers.cyberark_secret_manager._get_httpx_client",
+            "token_iq.gateway.secret_managers.cyberark_secret_manager._get_httpx_client",
             return_value=mock_sync_client,
         ):
             cyberark_manager = CyberArkSecretManager()
@@ -122,7 +122,7 @@ async def test_cyberark_write_and_read_secret():
     """
     Test writing a secret to CyberArk Conjur and reading it back using mocked HTTP requests.
     """
-    with patch("litellm.proxy.proxy_server.premium_user", True):
+    with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
         # Generate unique secret name and value
         secret_name = f"test-secret-{uuid.uuid4()}"
         secret_value = f"test-value-{uuid.uuid4()}"
@@ -147,11 +147,11 @@ async def test_cyberark_write_and_read_secret():
 
         with (
             patch(
-                "litellm.secret_managers.cyberark_secret_manager._get_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager._get_httpx_client",
                 return_value=mock_sync_client,
             ),
             patch(
-                "litellm.secret_managers.cyberark_secret_manager.get_async_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager.get_async_httpx_client",
                 return_value=mock_async_client,
             ),
         ):
@@ -187,7 +187,7 @@ async def test_cyberark_rotate_secret():
     2. Rotate to new value (like sk-12359)
     3. Verify reading the secret returns the NEW value
     """
-    with patch("litellm.proxy.proxy_server.premium_user", True):
+    with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
         # Simulate initial virtual key creation
         secret_alias = f"test-rotation-key-{uuid.uuid4()}"
         initial_key_value = f"sk-initial-{uuid.uuid4()}"
@@ -235,11 +235,11 @@ async def test_cyberark_rotate_secret():
 
         with (
             patch(
-                "litellm.secret_managers.cyberark_secret_manager._get_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager._get_httpx_client",
                 return_value=mock_sync_client,
             ),
             patch(
-                "litellm.secret_managers.cyberark_secret_manager.get_async_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager.get_async_httpx_client",
                 return_value=mock_async_client,
             ),
         ):
@@ -297,7 +297,7 @@ async def test_cyberark_rotate_secret_with_new_alias():
     3. Verify alias-v2 has the new value
     4. Verify alias-v1 still exists with old value (CyberArk doesn't delete)
     """
-    with patch("litellm.proxy.proxy_server.premium_user", True):
+    with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
         # Simulate key rotation with alias change
         base_alias = f"test-alias-change-{uuid.uuid4()}"
         old_alias = f"{base_alias}-v1"
@@ -362,11 +362,11 @@ async def test_cyberark_rotate_secret_with_new_alias():
 
         with (
             patch(
-                "litellm.secret_managers.cyberark_secret_manager._get_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager._get_httpx_client",
                 return_value=mock_sync_client,
             ),
             patch(
-                "litellm.secret_managers.cyberark_secret_manager.get_async_httpx_client",
+                "token_iq.gateway.secret_managers.cyberark_secret_manager.get_async_httpx_client",
                 return_value=mock_async_client,
             ),
         ):

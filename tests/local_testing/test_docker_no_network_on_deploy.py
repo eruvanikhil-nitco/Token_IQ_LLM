@@ -279,9 +279,9 @@ environment_variables: {}
         """
         # Directories to check for startup code
         startup_dirs = [
-            "litellm/proxy",
-            "litellm/__init__.py",
-            "litellm/main.py",
+            "token_iq/gateway/proxy",
+            "token_iq/gateway/__init__.py",
+            "token_iq/gateway/main.py",
         ]
 
         # Patterns that indicate external URL calls during startup (not in functions)

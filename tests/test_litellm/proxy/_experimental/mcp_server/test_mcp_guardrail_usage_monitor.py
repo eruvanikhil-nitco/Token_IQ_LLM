@@ -20,8 +20,8 @@ from unittest import mock
 
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy._experimental.mcp_server import mcp_server_manager as MOD
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as MOD
 
 
 class _FakeLoggingObj:

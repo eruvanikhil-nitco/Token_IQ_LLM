@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.integrations.agentops.agentops import AgentOps, AgentOpsConfig
+from token_iq.gateway.integrations.agentops.agentops import AgentOps, AgentOpsConfig
 
 
 @pytest.fixture
@@ -51,7 +51,7 @@ def test_agentops_config_defaults():
     assert config.auth_endpoint == "https://api.agentops.ai/v3/auth/token"
 
 
-@patch("litellm.integrations.agentops.agentops.AgentOps._fetch_auth_token")
+@patch("token_iq.gateway.integrations.agentops.agentops.AgentOps._fetch_auth_token")
 def test_fetch_auth_token_success(mock_fetch_auth_token, mock_auth_response):
     """Test successful JWT token fetch"""
     mock_fetch_auth_token.return_value = mock_auth_response
@@ -67,7 +67,7 @@ def test_fetch_auth_token_success(mock_fetch_auth_token, mock_auth_response):
     )
 
 
-@patch("litellm.integrations.agentops.agentops.AgentOps._fetch_auth_token")
+@patch("token_iq.gateway.integrations.agentops.agentops.AgentOps._fetch_auth_token")
 def test_fetch_auth_token_failure(mock_fetch_auth_token):
     """Test failed JWT token fetch"""
     mock_fetch_auth_token.side_effect = Exception(
@@ -81,7 +81,7 @@ def test_fetch_auth_token_failure(mock_fetch_auth_token):
     assert "project.id" not in agentops.resource_attributes
 
 
-@patch("litellm.integrations.agentops.agentops.AgentOps._fetch_auth_token")
+@patch("token_iq.gateway.integrations.agentops.agentops.AgentOps._fetch_auth_token")
 def test_agentops_initialization(
     mock_fetch_auth_token, agentops_config, mock_auth_response
 ):

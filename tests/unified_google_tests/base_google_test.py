@@ -6,17 +6,17 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 import pytest
 
 
-import litellm
-from litellm.google_genai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.google_genai import (
     generate_content,
     agenerate_content,
     generate_content_stream,
     agenerate_content_stream,
 )
 from google.genai.types import ContentDict, PartDict
-from litellm.types.google_genai.main import GenerateContentResponse
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.google_genai.main import GenerateContentResponse
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 def load_vertex_ai_credentials(model: str):

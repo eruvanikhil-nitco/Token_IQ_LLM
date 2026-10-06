@@ -1,9 +1,9 @@
 import pytest
 
-from litellm.llms.openai_like import dynamic_config
-from litellm.llms.openai_like.dynamic_config import create_responses_config_class
-from litellm.llms.openai_like.json_loader import SimpleProviderConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.openai_like import dynamic_config
+from token_iq.gateway.llms.openai_like.dynamic_config import create_responses_config_class
+from token_iq.gateway.llms.openai_like.json_loader import SimpleProviderConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 _BASE = {"base_url": "https://api.example.com/v1", "api_key_env": "EXAMPLE_API_KEY"}
 

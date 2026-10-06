@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
-from litellm.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
+from token_iq.gateway.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
     SERVER_FULFILLED_TOOL_LEAK_ERROR_SSE_BYTES,
     AgenticAnthropicStreamingIterator,
     _handle_content_block_delta,

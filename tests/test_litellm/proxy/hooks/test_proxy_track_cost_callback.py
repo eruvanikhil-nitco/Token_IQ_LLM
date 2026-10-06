@@ -4,15 +4,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.litellm_core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.proxy_track_cost_callback import (
+from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import (
     _get_budget_reservation_from_metadata,
     _ProxyDBLogger,
     _should_track_cost_callback,
     _update_database_and_spend_counters,
 )
-from litellm.types.utils import CallTypes, Usage
+from token_iq.gateway.types.utils import CallTypes, Usage
 
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_async_post_call_failure_hook():
 
     # Mock update_database function
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         # Call the method
@@ -107,7 +107,7 @@ async def test_async_post_call_failure_hook_carries_guardrail_info_from_litellm_
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -134,7 +134,7 @@ async def test_async_post_call_failure_hook_does_not_clobber_guardrail_info_in_m
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -170,7 +170,7 @@ async def test_async_post_call_failure_hook_bills_guardrail_cost_on_blocked_requ
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -199,7 +199,7 @@ async def test_async_post_call_failure_hook_adds_guardrail_cost_to_recovered_str
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -242,7 +242,7 @@ async def test_async_post_call_failure_hook_non_llm_route():
 
     # Mock update_database function
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         # Call the method
@@ -268,11 +268,11 @@ async def test_async_post_call_failure_hook_releases_budget_reservation_before_r
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
             new_callable=AsyncMock,
         ) as mock_release_budget_reservation,
         patch(
-            "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+            "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
             new_callable=AsyncMock,
         ) as mock_update_database,
     ):
@@ -304,20 +304,20 @@ async def test_should_continue_failure_tracking_when_budget_release_fails():
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
             new_callable=AsyncMock,
             side_effect=RuntimeError("redis unavailable"),
         ) as mock_release_budget_reservation,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback._invalidate_budget_reservation_counters",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback._invalidate_budget_reservation_counters",
             new_callable=AsyncMock,
         ) as mock_invalidate_budget_reservation_counters,
         patch(
-            "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+            "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
             new_callable=AsyncMock,
         ) as mock_update_database,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
         ) as mock_log_exception,
     ):
         await logger.async_post_call_failure_hook(
@@ -367,7 +367,7 @@ async def test_track_cost_callback_releases_budget_reservation_when_spend_tracki
     }
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
         new_callable=AsyncMock,
     ) as mock_release_budget_reservation:
         await logger._PROXY_track_cost_callback(
@@ -406,10 +406,10 @@ async def test_track_cost_callback_releases_budget_reservation_when_response_cos
 
     with (
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
         ) as mock_proxy_logging,
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
             new_callable=AsyncMock,
         ) as mock_release_budget_reservation,
     ):
@@ -477,7 +477,7 @@ async def test_update_database_and_spend_counters_releases_reservation_when_db_u
     budget_reservation = {"reserved_cost": 0.5, "entries": []}
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
         new_callable=AsyncMock,
     ) as mock_release_budget_reservation:
         with pytest.raises(Exception, match="db unavailable"):
@@ -517,15 +517,15 @@ async def test_update_database_and_spend_counters_preserves_db_exception_when_re
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.release_budget_reservation",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.release_budget_reservation",
             new_callable=AsyncMock,
             side_effect=RuntimeError("release unavailable"),
         ) as mock_release_budget_reservation,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
         ) as mock_log_exception,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback._invalidate_budget_reservation_counters",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback._invalidate_budget_reservation_counters",
             new_callable=AsyncMock,
             side_effect=RuntimeError("invalidate unavailable"),
         ) as mock_invalidate_budget_reservation_counters,
@@ -619,7 +619,7 @@ async def test_update_database_and_spend_counters_invalidates_reservation_when_c
     }
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.invalidate_budget_reservation_counters",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.invalidate_budget_reservation_counters",
         new_callable=AsyncMock,
     ) as mock_invalidate_budget_reservation_counters:
         with pytest.raises(Exception, match="counter unavailable"):
@@ -661,12 +661,12 @@ async def test_update_database_and_spend_counters_preserves_counter_exception_wh
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.invalidate_budget_reservation_counters",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.invalidate_budget_reservation_counters",
             new_callable=AsyncMock,
             side_effect=RuntimeError("invalidate unavailable"),
         ) as mock_invalidate_budget_reservation_counters,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.verbose_proxy_logger.exception",
         ) as mock_log_exception,
     ):
         with pytest.raises(RuntimeError) as exc_info:
@@ -720,7 +720,7 @@ async def test_track_cost_callback_skips_when_no_standard_logging_object():
     }
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -748,7 +748,7 @@ async def test_track_cost_callback_defers_in_progress_background_interaction(): 
     The callback must skip quietly (billing happens later via the background
     poll task) instead of raising 'Cost tracking failed' and alerting.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     logger = _ProxyDBLogger()
 
@@ -766,7 +766,7 @@ async def test_track_cost_callback_defers_in_progress_background_interaction(): 
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -806,7 +806,7 @@ async def test_track_cost_callback_keeps_reservation_open_for_in_progress_backgr
     estimate off the spend counters while the interaction is still going to run
     and still going to cost money.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     logger = _ProxyDBLogger()
     reservation = {"reserved_cost": 0.05, "entries": [], "finalized": False}
@@ -817,7 +817,7 @@ async def test_track_cost_callback_keeps_reservation_open_for_in_progress_backgr
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -843,8 +843,8 @@ async def test_track_cost_callback_releases_reservation_for_in_progress_interact
     reservation, so the callback must release it or the spend counters stay
     pinned at the estimated cost forever.
     """
-    import litellm.proxy.hooks.proxy_track_cost_callback as callback_module
-    from litellm.types.interactions import InteractionsAPIResponse
+    import token_iq.gateway.proxy.hooks.proxy_track_cost_callback as callback_module
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     monkeypatch.setattr(callback_module, "BACKGROUND_INTERACTION_COST_POLLING_ENABLED", False)
 
@@ -857,7 +857,7 @@ async def test_track_cost_callback_releases_reservation_for_in_progress_interact
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -892,7 +892,7 @@ async def test_track_cost_callback_releases_reservation_for_unpollable_interacti
     ``failed_tracking_alert``: doing so would flood operators with false alerts
     and mask real cost-tracking failures.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     logger = _ProxyDBLogger()
     reservation = {"reserved_cost": 0.05, "entries": [], "finalized": False}
@@ -903,7 +903,7 @@ async def test_track_cost_callback_releases_reservation_for_unpollable_interacti
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -933,7 +933,7 @@ async def test_track_cost_callback_alerts_when_an_interaction_that_produced_outp
     The reservation still has to be released, since suppressing the alert was
     never what freed it.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     logger = _ProxyDBLogger()
     reservation = {"reserved_cost": 0.05, "entries": [], "finalized": False}
@@ -944,7 +944,7 @@ async def test_track_cost_callback_alerts_when_an_interaction_that_produced_outp
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -969,7 +969,7 @@ async def test_track_cost_callback_releases_reservation_for_interaction_without_
     exist, and it must not fire ``failed_tracking_alert`` for what is a
     legitimate no-usage response rather than a cost-tracking failure.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
     logger = _ProxyDBLogger()
     reservation = {"reserved_cost": 0.05, "entries": [], "finalized": False}
@@ -980,7 +980,7 @@ async def test_track_cost_callback_releases_reservation_for_interaction_without_
     )
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -1010,8 +1010,8 @@ async def test_callback_handles_every_status_the_interactions_api_can_return():
     Driven off the generated spec enum so a status Google adds later fails here
     instead of quietly leaking reservations in production.
     """
-    from litellm.types.interactions import InteractionsAPIResponse
-    from litellm.types.interactions.generated import Status1
+    from token_iq.gateway.types.interactions import InteractionsAPIResponse
+    from token_iq.gateway.types.interactions.generated import Status1
 
     deferred = set()
     released = set()
@@ -1026,7 +1026,7 @@ async def test_callback_handles_every_status_the_interactions_api_can_return():
         )
 
         with patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
         ) as mock_proxy_logging:
             mock_proxy_logging.failed_tracking_alert = AsyncMock()
             mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -1092,7 +1092,7 @@ async def test_async_post_call_failure_hook_propagates_trace_id_from_logging_obj
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -1125,7 +1125,7 @@ async def test_enrich_failure_metadata_with_team_alias():
     mock_team_obj.team_alias = "my-team-alias"
 
     with patch(
-        "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+        "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
         new_callable=AsyncMock,
         return_value=mock_team_obj,
     ):
@@ -1157,12 +1157,12 @@ async def test_enrich_failure_metadata_with_full_key_lookup():
 
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
             return_value=mock_key_obj,
         ),
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=mock_team_obj,
         ),
@@ -1191,11 +1191,11 @@ async def test_enrich_failure_metadata_skips_when_team_alias_present():
     """
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
         ) as mock_get_team,
     ):
@@ -1218,7 +1218,7 @@ async def test_enrich_failure_metadata_skips_when_no_api_key():
     not perform any lookups.
     """
     with patch(
-        "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+        "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
         new_callable=AsyncMock,
     ) as mock_get_key:
         metadata = {
@@ -1249,12 +1249,12 @@ async def test_enrich_failure_metadata_keeps_captured_identity_when_not_resolvin
 
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
             return_value=mock_key_obj,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=mock_team_obj,
         ),
@@ -1290,11 +1290,11 @@ async def test_enrich_failure_metadata_ignores_flag_when_alias_present():
 
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=mock_team_obj,
         ),
@@ -1357,16 +1357,16 @@ async def test_track_cost_callback_reads_key_only_for_in_request_logs(call_type,
 
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
             return_value=mock_key_obj,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=MagicMock(team_alias=None),
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging,
     ):
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -1424,16 +1424,16 @@ async def test_async_post_call_failure_hook_enriches_auth_error_metadata():
 
     with (
         patch(
-            "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+            "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
             new_callable=AsyncMock,
         ) as mock_update_database,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
             return_value=mock_key_obj,
         ),
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=mock_team_obj,
         ),
@@ -1482,11 +1482,11 @@ async def test_async_post_call_failure_hook_enriches_missing_team_alias():
 
     with (
         patch(
-            "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+            "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
             new_callable=AsyncMock,
         ) as mock_update_database,
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_team_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_team_object",
             new_callable=AsyncMock,
             return_value=mock_team_obj,
         ),
@@ -1521,7 +1521,7 @@ async def test_track_cost_callback_skips_for_falsy_model_and_no_slo(model_value)
     }
 
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
     ) as mock_proxy_logging:
         mock_proxy_logging.failed_tracking_alert = AsyncMock()
         mock_proxy_logging.db_spend_update_writer = MagicMock()
@@ -1577,7 +1577,7 @@ async def test_async_post_call_failure_hook_uses_actual_start_time():
     original_exception = Exception("Timeout error")
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -1626,7 +1626,7 @@ async def _invoke_failure_hook_with_raised_exception():
         original_exception = exc
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -1662,7 +1662,7 @@ async def test_failure_hook_drops_error_information_traceback_when_env_set(
     error_code) are preserved."""
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     monkeypatch.setenv("LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS", "true")
     original_level = verbose_proxy_logger.level
@@ -1685,7 +1685,7 @@ async def test_async_post_call_failure_hook_records_recovered_partial_spend():
     hook must pass it through to update_database so the failure row records the
     real partial spend instead of the hardcoded zero.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     logger = _ProxyDBLogger()
     user_api_key_dict = UserAPIKeyAuth(api_key="test_api_key", user_id="u", team_id="t")
@@ -1702,7 +1702,7 @@ async def test_async_post_call_failure_hook_records_recovered_partial_spend():
     }
 
     with patch(
-        "litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter.update_database",
         new_callable=AsyncMock,
     ) as mock_update_database:
         await logger.async_post_call_failure_hook(
@@ -1718,7 +1718,7 @@ async def test_async_post_call_failure_hook_records_recovered_partial_spend():
 @pytest.mark.asyncio
 async def test_track_cost_callback_enriches_user_id_for_mcp_style_metadata():
     """MCP tool calls may only carry user_api_key; user/team rollups still need user_id."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     logger = _ProxyDBLogger()
     key_obj = UserAPIKeyAuth(
@@ -1746,20 +1746,20 @@ async def test_track_cost_callback_enriches_user_id_for_mcp_style_metadata():
 
     with (
         patch(
-            "litellm.proxy.hooks.proxy_track_cost_callback.get_key_object",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback.get_key_object",
             new_callable=AsyncMock,
             return_value=key_obj,
         ),
         patch(
-            "litellm.proxy.proxy_server.increment_spend_counters",
+            "token_iq.gateway.proxy.proxy_server.increment_spend_counters",
             new_callable=AsyncMock,
         ) as mock_increment,
         patch(
-            "litellm.proxy.proxy_server.update_cache",
+            "token_iq.gateway.proxy.proxy_server.update_cache",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
         ) as mock_proxy_logging,
     ):
         mock_proxy_logging.db_spend_update_writer.update_database = AsyncMock()
@@ -1860,15 +1860,15 @@ async def test_track_cost_callback_logs_unauthenticated_pass_through_request(
 
     with (
         patch(
-            "litellm.proxy.proxy_server.increment_spend_counters",
+            "token_iq.gateway.proxy.proxy_server.increment_spend_counters",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy.proxy_server.update_cache",
+            "token_iq.gateway.proxy.proxy_server.update_cache",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
         ) as mock_proxy_logging,
     ):
         mock_proxy_logging.db_spend_update_writer.update_database = AsyncMock()
@@ -1921,14 +1921,14 @@ async def _groups_charged_by_the_callback(kwargs, deployments=None):
     logger = _ProxyDBLogger()
     with (
         patch(  # test-quality-ok: callback imports proxy_logging_obj off proxy_server in its body, no seam
-            "litellm.proxy.proxy_server.proxy_logging_obj"
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj"
         ) as mock_proxy_logging,
         patch(  # test-quality-ok: the arguments to this call are the boundary under test
-            "litellm.proxy.hooks.proxy_track_cost_callback._update_database_and_spend_counters",
+            "token_iq.gateway.proxy.hooks.proxy_track_cost_callback._update_database_and_spend_counters",
             new=AsyncMock(),
         ) as mock_update,
         patch(  # test-quality-ok: llm_router is a proxy_server global the callback reads lazily, no seam
-            "litellm.proxy.proxy_server.llm_router", new=_FakeDeploymentLookup(deployments or {})
+            "token_iq.gateway.proxy.proxy_server.llm_router", new=_FakeDeploymentLookup(deployments or {})
         ),
     ):
         mock_proxy_logging.failed_tracking_alert = AsyncMock()

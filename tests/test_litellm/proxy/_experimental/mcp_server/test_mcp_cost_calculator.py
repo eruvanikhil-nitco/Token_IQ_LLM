@@ -7,7 +7,7 @@ from fastapi import Request
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._experimental.mcp_server.cost_calculator import MCPCostCalculator
+from token_iq.gateway.proxy._experimental.mcp_server.cost_calculator import MCPCostCalculator
 
 
 class TestMCPCostCalculator:

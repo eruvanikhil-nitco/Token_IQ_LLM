@@ -7,13 +7,13 @@ import importlib
 
 import pytest
 
-import litellm
-from litellm.compression.scoring.bm25 import bm25_score_messages
-from litellm.compression.scoring.embedding_scorer import embedding_score_messages
-from litellm.compression.content_detection import detect_content_type
-from litellm.compression.message_stubbing import extract_key, stub_message
-from litellm.compression.retrieval_tool import build_retrieval_tool
-from litellm.types.utils import CallTypes
+from token_iq import gateway as litellm
+from token_iq.gateway.compression.scoring.bm25 import bm25_score_messages
+from token_iq.gateway.compression.scoring.embedding_scorer import embedding_score_messages
+from token_iq.gateway.compression.content_detection import detect_content_type
+from token_iq.gateway.compression.message_stubbing import extract_key, stub_message
+from token_iq.gateway.compression.retrieval_tool import build_retrieval_tool
+from token_iq.gateway.types.utils import CallTypes
 
 CALL_TYPE = CallTypes.completion
 ANTHROPIC_CALL_TYPE = CallTypes.anthropic_messages
@@ -384,7 +384,7 @@ def test_compress_forwards_embedding_model_params(monkeypatch):
         return [0.0] * len(messages)
 
     monkeypatch.setattr(
-        "litellm.compression.scoring.embedding_scorer.embedding_score_messages",
+        "token_iq.gateway.compression.scoring.embedding_scorer.embedding_score_messages",
         fake_embedding_score_messages,
     )
 
@@ -487,7 +487,7 @@ def test_simple_compression(final_user_message, expected_content):
 
 
 def test_compress_anthropic_drops_irrelevant_tool_exchange_span(monkeypatch):
-    compress_module = importlib.import_module("litellm.compression.compress")
+    compress_module = importlib.import_module("token_iq.gateway.compression.compress")
 
     def fake_bm25_score_messages(query, messages):
         assert "final query" in query
@@ -562,7 +562,7 @@ def test_compress_anthropic_drops_irrelevant_tool_exchange_span(monkeypatch):
 
 
 def test_compress_anthropic_keeps_relevant_tool_exchange_span(monkeypatch):
-    compress_module = importlib.import_module("litellm.compression.compress")
+    compress_module = importlib.import_module("token_iq.gateway.compression.compress")
 
     def fake_bm25_score_messages(query, messages):
         assert "final query" in query

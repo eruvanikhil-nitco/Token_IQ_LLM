@@ -27,7 +27,7 @@ def _mock_mcp_client_ip():
     from unittest.mock import patch
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.discoverable_endpoints.IPAddressUtils.get_mcp_client_ip",
+        "token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints.IPAddressUtils.get_mcp_client_ip",
         return_value=None,
     ):
         yield
@@ -45,7 +45,7 @@ def callback_test_client(monkeypatch):
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "sk-test-salt-for-LIT-2750")
 
-    from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
         router,
     )
 
@@ -100,7 +100,7 @@ class TestCallbackOAuthErrorResponses:
         """When state decodes to a trusted (loopback) redirect_uri, propagate
         the error back so the MCP client's OAuth library can surface it
         instead of timing out waiting on the loopback."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             encode_state_with_base_url,
         )
 
@@ -136,7 +136,7 @@ class TestCallbackOAuthErrorResponses:
         """If the state minted earlier carries a redirect_uri that the proxy
         no longer trusts, we must surface the error inline rather than
         302-ing to an attacker-controlled URL (open-redirect)."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             encode_state_with_base_url,
         )
 
@@ -188,7 +188,7 @@ class TestCallbackOAuthErrorResponses:
         """Regression: the successful (``code``+``state``) flow must still
         redirect back to the trusted client redirect_uri with the original
         state preserved."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             encode_state_with_base_url,
         )
 

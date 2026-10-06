@@ -51,7 +51,7 @@ def _make_prisma_with_config(
 
 
 def _install_prisma(monkeypatch, prisma):
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", prisma)
 
@@ -66,7 +66,7 @@ def _stub_reload_beta_headers(monkeypatch, return_value=None):
             "provider_aliases": {"a": "b"},
             "description": "test",
         }
-    import litellm.anthropic_beta_headers_manager as mgr
+    import token_iq.gateway.anthropic_beta_headers_manager as mgr
 
     stub = MagicMock(return_value=return_value)
     monkeypatch.setattr(mgr, "reload_beta_headers_config", stub)
@@ -81,7 +81,7 @@ def _stub_reload_beta_headers(monkeypatch, return_value=None):
 def test_reload_anthropic_beta_headers_admin_success(client, auth_as, monkeypatch):
     """Admin can trigger immediate reload — handler returns providers count and
     a success status. Pins the response dict shape."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _stub_reload_beta_headers(monkeypatch)
     prisma = _make_prisma_with_config(config_record=None)
@@ -109,7 +109,7 @@ def test_reload_anthropic_beta_headers_preserves_existing_interval(
     """When an existing reload config has an interval set, the force-reload
     write must preserve that interval (the route reads it back then upserts
     with the same number). This pins the read-then-write behaviour."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _stub_reload_beta_headers(monkeypatch)
     existing = SimpleNamespace(
@@ -137,7 +137,7 @@ def test_reload_anthropic_beta_headers_preserves_existing_interval(
 
 
 def test_reload_anthropic_beta_headers_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.post("/reload/anthropic_beta_headers")
@@ -148,7 +148,7 @@ def test_reload_anthropic_beta_headers_not_admin_forbidden(client, auth_as):
 
 def test_reload_anthropic_beta_headers_no_db_returns_500(client, auth_as, monkeypatch):
     """When prisma_client is None the handler raises 500 with a clear message."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _install_prisma(monkeypatch, None)
 
@@ -168,7 +168,7 @@ def test_schedule_anthropic_beta_headers_reload_admin_success(
     client, auth_as, monkeypatch
 ):
     """Happy path: admin schedules every N hours — response echoes interval."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     prisma = _make_prisma_with_config()
     _install_prisma(monkeypatch, prisma)
@@ -192,7 +192,7 @@ def test_schedule_anthropic_beta_headers_reload_zero_hours_400(
     client, auth_as, monkeypatch
 ):
     """``hours <= 0`` is rejected with 400 and a descriptive message."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     prisma = _make_prisma_with_config()
     _install_prisma(monkeypatch, prisma)
@@ -207,7 +207,7 @@ def test_schedule_anthropic_beta_headers_reload_zero_hours_400(
 
 
 def test_schedule_anthropic_beta_headers_reload_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.post(
@@ -220,7 +220,7 @@ def test_schedule_anthropic_beta_headers_reload_not_admin_forbidden(client, auth
 
 def test_schedule_anthropic_beta_headers_reload_missing_hours_422(client, auth_as):
     """``hours`` is a required query param — omitting it is a FastAPI 422."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.PROXY_ADMIN):
         response = client.post("/schedule/anthropic_beta_headers_reload")
@@ -238,7 +238,7 @@ def test_cancel_anthropic_beta_headers_reload_admin_success(
     client, auth_as, monkeypatch
 ):
     """Admin cancel: deletes the LiteLLM_Config row and returns success dict."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     prisma = _make_prisma_with_config()
     _install_prisma(monkeypatch, prisma)
@@ -258,7 +258,7 @@ def test_cancel_anthropic_beta_headers_reload_admin_success(
 
 
 def test_cancel_anthropic_beta_headers_reload_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.delete("/schedule/anthropic_beta_headers_reload")
@@ -270,7 +270,7 @@ def test_cancel_anthropic_beta_headers_reload_not_admin_forbidden(client, auth_a
 def test_cancel_anthropic_beta_headers_reload_no_db_returns_500(
     client, auth_as, monkeypatch
 ):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _install_prisma(monkeypatch, None)
 
@@ -291,8 +291,8 @@ def test_get_anthropic_beta_headers_reload_status_scheduled(
 ):
     """When a config row with ``interval_hours`` is present, ``scheduled`` is True
     and ``interval_hours`` echoes the DB value. Pins the full response shape."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     record = SimpleNamespace(
         param_name="anthropic_beta_headers_reload_config",
@@ -319,7 +319,7 @@ def test_get_anthropic_beta_headers_reload_status_not_scheduled_no_db(
     client, auth_as, monkeypatch
 ):
     """No DB connection: handler returns the unscheduled-status dict (not 500)."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _install_prisma(monkeypatch, None)
 
@@ -339,7 +339,7 @@ def test_get_anthropic_beta_headers_reload_status_no_interval_unscheduled(
     client, auth_as, monkeypatch
 ):
     """Config row present but ``interval_hours`` is None → unscheduled response."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     record = SimpleNamespace(
         param_name="anthropic_beta_headers_reload_config",
@@ -361,7 +361,7 @@ def test_get_anthropic_beta_headers_reload_status_no_interval_unscheduled(
 
 
 def test_get_anthropic_beta_headers_reload_status_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.get("/schedule/anthropic_beta_headers_reload/status")

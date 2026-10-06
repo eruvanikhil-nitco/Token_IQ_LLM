@@ -7,8 +7,8 @@ entries, creating shared dict references for alias entries at load time.
 
 from unittest.mock import patch
 
-from litellm import verbose_logger
-from litellm.litellm_core_utils.get_model_cost_map import _expand_model_aliases
+from token_iq.gateway import verbose_logger
+from token_iq.gateway.core_utils.get_model_cost_map import _expand_model_aliases
 
 
 # ---------------------------------------------------------------------------

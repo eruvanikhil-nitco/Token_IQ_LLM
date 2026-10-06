@@ -13,19 +13,19 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.interactions.litellm_responses_transformation.streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.interactions.litellm_responses_transformation.streaming_iterator import (
     LiteLLMResponsesInteractionsStreamingIterator,
 )
-from litellm.llms.gemini.interactions.transformation import (
+from token_iq.gateway.llms.gemini.interactions.transformation import (
     GoogleAIStudioInteractionsConfig,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     OutputTextDeltaEvent,
     ResponseCompletedEvent,
     ResponseCreatedEvent,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 _PATCH_GET_API_KEY = "litellm.llms.gemini.common_utils.GeminiModelInfo.get_api_key"
 

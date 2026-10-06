@@ -13,8 +13,8 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from dotenv import load_dotenv
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 load_dotenv()
 
@@ -91,7 +91,7 @@ def test_router_timeouts():
 
 @pytest.mark.asyncio
 async def test_router_timeouts_bedrock():
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     import openai
 
@@ -144,7 +144,7 @@ def test_router_timeout_with_retries_anthropic_model(num_retries, expected_call_
     """
     If request hits custom timeout, ensure it's retried.
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     litellm.num_retries = num_retries
     litellm.request_timeout = 0.000001
@@ -192,8 +192,8 @@ def test_router_timeout_with_retries_anthropic_model(num_retries, expected_call_
 def test_router_stream_timeout(model):
     import os
     from dotenv import load_dotenv
-    import litellm
-    from litellm.router import Router, RetryPolicy, AllowedFailsPolicy
+    from token_iq import gateway as litellm
+    from token_iq.gateway.router import Router, RetryPolicy, AllowedFailsPolicy
 
     litellm.set_verbose = True
 
@@ -280,8 +280,8 @@ def test_router_stream_timeout(model):
 def test_unit_test_streaming_timeout(stream):
     import os
     from dotenv import load_dotenv
-    import litellm
-    from litellm.router import Router, RetryPolicy, AllowedFailsPolicy
+    from token_iq import gateway as litellm
+    from token_iq.gateway.router import Router, RetryPolicy, AllowedFailsPolicy
 
     litellm.set_verbose = True
 

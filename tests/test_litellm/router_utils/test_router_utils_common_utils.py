@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from litellm import Router
-from litellm.constants import ROUTER_FALLBACK_ERROR_DETAIL_MAX_CHARS
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.router_utils.common_utils import (
+from token_iq.gateway import Router
+from token_iq.gateway.constants import ROUTER_FALLBACK_ERROR_DETAIL_MAX_CHARS
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.router_utils.common_utils import (
     _deployment_supports_web_search,
     add_model_file_id_mappings,
     filter_team_based_models,
@@ -649,7 +649,7 @@ class TestWarnOnProviderCredentialMismatch:
     def test_every_aws_family_provider_is_covered(self):
         """Pins the derivation itself: a newly added bedrock_*/sagemaker_* provider
         must join the set automatically, or it starts drawing false warnings."""
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         aws_family = {p.value for p in LlmProviders if p.value.startswith(("bedrock", "sagemaker"))}
         assert aws_family <= PROVIDER_SCOPED_CREDENTIAL_PARAMS["aws_region_name"]

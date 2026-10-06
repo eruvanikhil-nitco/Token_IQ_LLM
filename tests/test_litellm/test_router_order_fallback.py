@@ -13,12 +13,12 @@ import httpx
 import pytest
 from openai import AsyncOpenAI
 
-import litellm
-from litellm import Router
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.router_utils.prompt_caching_cache import PromptCachingCache
-from litellm.types.router import RouterRateLimitError
-from litellm.utils import _get_deployment_order, _get_order_filtered_deployments
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
+from token_iq.gateway.types.router import RouterRateLimitError
+from token_iq.gateway.utils import _get_deployment_order, _get_order_filtered_deployments
 
 # ---------------------------------------------------------------------------
 # Unit tests for _get_order_filtered_deployments
@@ -152,7 +152,7 @@ async def test_generic_api_call_strips_target_order_from_provider_kwargs():
 
 
 def test_check_non_standard_fallback_format():
-    from litellm.router_utils.fallback_event_handlers import (
+    from token_iq.gateway.router_utils.fallback_event_handlers import (
         _check_non_standard_fallback_format,
     )
 

@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import MagicMock, Mock, patch
 import pytest
 import httpx
@@ -72,7 +72,7 @@ def test_bedrock_agentcore_with_custom_params():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -140,7 +140,7 @@ def test_bedrock_agentcore_with_runtime_user_id():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -179,7 +179,7 @@ def test_bedrock_agentcore_with_session_and_user():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -223,7 +223,7 @@ def test_bedrock_agentcore_with_api_key_bearer_token():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     test_jwt_token = "test-jwt-token-header.payload.signature"
@@ -271,7 +271,7 @@ def test_bedrock_agentcore_with_all_parameters():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     test_jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature"
@@ -340,7 +340,7 @@ def test_bedrock_agentcore_without_api_key_uses_sigv4():
     import json
 
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -389,7 +389,7 @@ def test_agentcore_parse_json_response():
     Unit test for JSON response parsing (non-streaming)
     Verifies that content-type: application/json responses are parsed correctly
     """
-    from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+    from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
 
     config = AmazonAgentCoreConfig()
 
@@ -419,7 +419,7 @@ def test_agentcore_parse_sse_response():
     Unit test for SSE response parsing (streaming response consumed as text)
     Verifies that text/event-stream responses are parsed correctly
     """
-    from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+    from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
 
     config = AmazonAgentCoreConfig()
 
@@ -456,7 +456,7 @@ def test_agentcore_parse_sse_response_without_final_message():
     """
     Unit test for SSE response parsing when only deltas are present (no final message)
     """
-    from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+    from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
 
     config = AmazonAgentCoreConfig()
 
@@ -486,8 +486,8 @@ def test_agentcore_transform_response_json():
     Integration test for transform_response with JSON response
     Verifies end-to-end transformation of JSON responses to ModelResponse
     """
-    from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonAgentCoreConfig()
 
@@ -534,8 +534,8 @@ def test_agentcore_transform_response_sse():
     Integration test for transform_response with SSE response
     Verifies end-to-end transformation of SSE responses to ModelResponse
     """
-    from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonAgentCoreConfig()
 
@@ -600,7 +600,7 @@ def test_agentcore_synchronous_non_streaming_response():
     This is a regression test for the streaming simplification changes
     to ensure we didn't break the non-streaming code path.
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     litellm._turn_on_debug()
     client = HTTPHandler()

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat import (
+from token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat import (
     TOOL_HANDLERS,
     TOOLS_ADMIN,
     TOOLS_BASE,
@@ -215,10 +215,10 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
             ) as mock_litellm,
             patch(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_usage_data",
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_usage_data",
                 new_callable=AsyncMock,
             ) as mock_fetch,
         ):
@@ -290,10 +290,10 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
             ) as mock_litellm,
             patch(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_team_usage_data",
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_team_usage_data",
                 new_callable=AsyncMock,
             ) as mock_fetch,
         ):
@@ -320,7 +320,7 @@ class TestStreamUsageAiChat:
     @pytest.mark.asyncio
     async def test_stream_handles_error(self):
         with patch(
-            "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+            "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
         ) as mock_litellm:
             mock_litellm.acompletion = AsyncMock(side_effect=Exception("LLM error"))
 
@@ -375,10 +375,10 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
             ) as mock_litellm,
             patch.dict(
-                "litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat.TOOL_HANDLERS",
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.TOOL_HANDLERS",
                 {
                     "get_usage_data": {
                         "fetch": mock_fetch,
@@ -421,8 +421,8 @@ class TestUsageAiChatServiceAccountGuard:
     async def test_non_admin_with_user_id_none_is_rejected(self):
         from fastapi import HTTPException
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.management_endpoints.usage_endpoints.endpoints import (
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.management_endpoints.usage_endpoints.endpoints import (
             ChatMessage,
             UsageAIChatRequest,
             usage_ai_chat,
@@ -454,7 +454,7 @@ class TestUsageAiChatServiceAccountGuard:
         a non-admin caller with user_id=None reaches _resolve_fetch_kwargs,
         the tripwire must fire rather than issuing an unscoped query.
         """
-        from litellm.proxy.management_endpoints.usage_endpoints.ai_usage_chat import (
+        from token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat import (
             _resolve_fetch_kwargs,
         )
 

@@ -9,8 +9,8 @@ import time
 
 import pytest
 
-from litellm.constants import CLI_JWT_EXPIRATION_HOURS
-from litellm.litellm_core_utils.cli_keyring import (
+from token_iq.gateway.constants import CLI_JWT_EXPIRATION_HOURS
+from token_iq.gateway.core_utils.cli_keyring import (
     DISABLE_KEYRING_ENV_VAR,
     KEYRING_ACCOUNT,
     KEYRING_PREFLIGHT_ACCOUNT,
@@ -26,7 +26,7 @@ from litellm.litellm_core_utils.cli_keyring import (
     SecretStored,
     SecretStranded,
 )
-from litellm.litellm_core_utils.cli_token_utils import (
+from token_iq.gateway.core_utils.cli_token_utils import (
     CliTokenRecord,
     CredentialNotCleared,
     CredentialNotRecorded,
@@ -498,7 +498,7 @@ class TestSaveCliToken:
         def _explode(*args, **kwargs):
             raise OSError("read-only file system")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _explode)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _explode)
 
         outcome = save_cli_token(CliTokenRecord(base_url=SERVER, key="sk-new"), vault=secret_vault_factory())
 
@@ -516,7 +516,7 @@ class TestSaveCliToken:
         def _explode(*args, **kwargs):
             raise OSError("read-only file system")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _explode)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _explode)
 
         save_cli_token(CliTokenRecord(base_url=SERVER, key="sk-new"), vault=vault)
 
@@ -580,7 +580,7 @@ class TestSaveCliToken:
         def _explode(*args, **kwargs):
             raise TypeError("not serialisable")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _explode)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _explode)
 
         with pytest.raises(TypeError):
             save_cli_token(CliTokenRecord(base_url=SERVER, key="sk-new"), vault=secret_vault_factory(available=False))
@@ -676,7 +676,7 @@ class TestScrubFailure:
         def _explode(*args, **kwargs):
             raise OSError("no space left on device")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _explode)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _explode)
 
         record = load_cli_token(vault=vault)
 
@@ -694,7 +694,7 @@ class TestScrubFailure:
         back and leaving the cleartext where it was."""
         path = _write_legacy_file(isolated_home)
         vault = secret_vault_factory()
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.os.replace", _refuse_replace)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.os.replace", _refuse_replace)
 
         record = load_cli_token(vault=vault)
 
@@ -714,7 +714,7 @@ class TestScrubFailure:
         path = _write_legacy_file(isolated_home)
         vault = secret_vault_factory(erasable=False)
         replace = _ReplaceThatStartsRefusing()
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.os.replace", replace)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.os.replace", replace)
         path.chmod(0o400)
 
         assert load_cli_token(vault=vault).key == "sk-legacy"
@@ -737,7 +737,7 @@ class TestScrubFailure:
         rewritten. The duplicate refresh token stays until a later read can finish the move."""
         path = _write_key_only_keychain_file(isolated_home)
         vault = secret_vault_factory(blob=_blob(key="sk-live", timestamp=2000.0))
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.os.replace", _refuse_replace)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.os.replace", _refuse_replace)
         path.chmod(0o400)
 
         record = load_cli_token(vault=vault)
@@ -949,7 +949,7 @@ class TestClearCliToken:
         path = _write_legacy_file(isolated_home)
         path.chmod(0o400)
         monkeypatch.setattr(
-            "litellm.litellm_core_utils.private_json.tempfile.mkstemp",
+            "token_iq.gateway.core_utils.private_json.tempfile.mkstemp",
             _MkstempThatNeedsTheOldFileGone(path),
         )
         vault = secret_vault_factory(available=False, failure=KeyringUnreachable())
@@ -1238,22 +1238,22 @@ class TestIsCliTokenFreshWithExpiresAt:
     over the age-based guess made from ``timestamp``."""
 
     def test_future_expiry_is_fresh(self):
-        from litellm.litellm_core_utils.cli_token_utils import is_cli_token_fresh
+        from token_iq.gateway.core_utils.cli_token_utils import is_cli_token_fresh
 
         assert is_cli_token_fresh({"expires_at": time.time() + 3600, "timestamp": 0}) is True
 
     def test_expiry_inside_the_buffer_is_stale(self):
-        from litellm.litellm_core_utils.cli_token_utils import is_cli_token_fresh
+        from token_iq.gateway.core_utils.cli_token_utils import is_cli_token_fresh
 
         assert is_cli_token_fresh({"expires_at": time.time() + 100}) is False
         assert is_cli_token_fresh({"expires_at": time.time() + 100}, buffer_hours=0) is True
 
     def test_past_expiry_is_stale_even_with_a_fresh_timestamp(self):
-        from litellm.litellm_core_utils.cli_token_utils import is_cli_token_fresh
+        from token_iq.gateway.core_utils.cli_token_utils import is_cli_token_fresh
 
         assert is_cli_token_fresh({"expires_at": time.time() - 1, "timestamp": time.time()}) is False
 
     def test_non_numeric_expiry_falls_back_to_the_timestamp(self):
-        from litellm.litellm_core_utils.cli_token_utils import is_cli_token_fresh
+        from token_iq.gateway.core_utils.cli_token_utils import is_cli_token_fresh
 
         assert is_cli_token_fresh({"expires_at": "soon", "timestamp": time.time()}) is True

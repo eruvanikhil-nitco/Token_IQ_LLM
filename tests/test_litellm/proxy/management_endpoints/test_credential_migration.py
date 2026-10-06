@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy import proxy_server
-from litellm.proxy.common_utils.encrypt_decrypt_utils import (
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     _V2_GCM_PREFIX,
     encrypt_value_helper,
 )
-from litellm.proxy.management_endpoints import credential_migration as cm
+from token_iq.gateway.proxy.management_endpoints import credential_migration as cm
 
 
 @pytest.fixture
@@ -302,7 +302,7 @@ async def test_check_reports_zero_after_migration(salt_key, monkeypatch):
 @pytest.mark.asyncio
 async def test_callback_vars_walker_migrates_team_metadata(salt_key, monkeypatch):
     """A team row with a legacy-encrypted callback var is rewritten to v2."""
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     # Legacy-encrypt a callback var via the real callback path (gate off).
     monkeypatch.setattr(proxy_server, "general_settings", {})
@@ -331,7 +331,7 @@ async def test_callback_vars_walker_migrates_team_metadata(salt_key, monkeypatch
 @pytest.mark.asyncio
 async def test_callback_vars_walker_dry_run_reports_legacy(salt_key, monkeypatch):
     """In --check (dry-run) mode, a legacy callback var counts as residual legacy."""
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     monkeypatch.setattr(proxy_server, "general_settings", {})
     legacy_meta = encrypt_callback_vars(
@@ -363,7 +363,7 @@ async def test_callback_vars_walker_migrates_callback_settings_shape(
     this credential shape (which ``encrypt_callback_vars`` does encrypt) was left
     in legacy format at rest while the migration still reported success.
     """
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     monkeypatch.setattr(proxy_server, "general_settings", {})
     legacy_meta = encrypt_callback_vars(
@@ -403,7 +403,7 @@ async def test_check_reports_callback_var_legacy_with_gate_off(salt_key, monkeyp
     read zero here (gate off -> no v2 produced) and emit a false-clean
     attestation -- exactly the compliance trap this guards against.
     """
-    from litellm.proxy.common_utils.callback_utils import encrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import encrypt_callback_vars
 
     # Legacy-encrypt a callback var, and leave the gate OFF for the check itself.
     monkeypatch.setattr(proxy_server, "general_settings", {})
@@ -503,7 +503,7 @@ async def test_migrate_covered_tables_reports_real_counts(salt_key, monkeypatch)
         row.litellm_params["api_key"] = v2
 
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.key_management_endpoints._rotate_master_key",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints._rotate_master_key",
         fake_rotate,
     )
 

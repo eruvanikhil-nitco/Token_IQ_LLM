@@ -11,19 +11,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.llms.base_llm.guardrail_translation.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
     filter_messages_by_skip_flags,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.lakera_ai_v2 import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai_v2 import (
     LakeraAIGuardrail,
     _build_lakera_inspection_messages,
     humanize_lakera_block_reasons,
 )
-from litellm.types.guardrails import LitellmParams, Mode
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.guardrails import LitellmParams, Mode
+from token_iq.gateway.types.utils import ModelResponse
 
 
 @pytest.mark.asyncio
@@ -151,7 +151,7 @@ class TestFilterSkippedMessages:
 
 class TestSharedFilterMessagesBySkipFlagsUtil:
     def test_importable_directly_from_shared_utils_module(self):
-        from litellm.llms.base_llm.guardrail_translation import utils as guardrail_utils
+        from token_iq.gateway.llms.base_llm.guardrail_translation import utils as guardrail_utils
 
         assert guardrail_utils.filter_messages_by_skip_flags is filter_messages_by_skip_flags
 
@@ -159,7 +159,7 @@ class TestSharedFilterMessagesBySkipFlagsUtil:
         guardrail = LakeraAIGuardrail(api_key="test_key", skip_system_message_in_guardrail=True)
         sentinel = ([USER_MSG], True)
         with patch(  # test-quality-ok: asserts delegation to the specific shared collaborator, not an HTTP boundary
-            "litellm.proxy.guardrails.guardrail_hooks.lakera_ai_v2.filter_messages_by_skip_flags",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai_v2.filter_messages_by_skip_flags",
             return_value=sentinel,
         ) as mock_shared:
             result = guardrail._filter_skipped_messages([SYSTEM_MSG, USER_MSG])
@@ -419,7 +419,7 @@ class TestPiiMaskingSafetyGuard:
         with (
             patch.object(guardrail, "call_v2_guard", new_callable=AsyncMock) as mock_call,
             patch(  # test-quality-ok: asserts the wholesale write-back path is never reached for this unsafe case
-                "litellm.proxy.guardrails.guardrail_hooks.lakera_ai_v2.apply_redacted_messages_back"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai_v2.apply_redacted_messages_back"
             ) as mock_apply_redacted,
         ):
             mock_call.return_value = (PII_ONLY_LAKERA_RESPONSE, {})
@@ -451,7 +451,7 @@ class TestPiiMaskingSafetyGuard:
         with (
             patch.object(guardrail, "call_v2_guard", new_callable=AsyncMock) as mock_call,
             patch(  # test-quality-ok: asserts the wholesale write-back path is never reached for this unsafe case
-                "litellm.proxy.guardrails.guardrail_hooks.lakera_ai_v2.apply_redacted_messages_back"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai_v2.apply_redacted_messages_back"
             ) as mock_apply_redacted,
         ):
             mock_call.return_value = (PII_ONLY_LAKERA_RESPONSE, {})

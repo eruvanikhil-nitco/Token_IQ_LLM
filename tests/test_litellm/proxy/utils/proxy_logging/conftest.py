@@ -51,7 +51,7 @@ def normalize(data: Any, volatile: frozenset = VOLATILE_KEYS) -> Any:
 
 @pytest.fixture
 def mock_dual_cache():
-    from litellm.caching.caching import DualCache
+    from token_iq.gateway.caching.caching import DualCache
 
     cache = DualCache(default_in_memory_ttl=1)
     return cache
@@ -68,7 +68,7 @@ def mock_router():
 @pytest.fixture
 def mock_callbacks_disabled(monkeypatch):
     """Disable all litellm callbacks for the duration of a test."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callbacks", [])
     monkeypatch.setattr(litellm, "success_callback", [])
@@ -80,7 +80,7 @@ def mock_callbacks_disabled(monkeypatch):
 
 @pytest.fixture
 def make_user_api_key_auth():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     def _make(**overrides) -> UserAPIKeyAuth:
         defaults: Dict[str, Any] = {
@@ -104,8 +104,8 @@ def proxy_logging(mock_callbacks_disabled):
     The fixture leaves it un-started; tests that need ``startup_event``
     should call it explicitly with the deps they want to control.
     """
-    from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     return ProxyLogging(user_api_key_cache=UserApiKeyCache())
 
@@ -117,8 +117,8 @@ def normalize_fn():
 
 @pytest.fixture
 def make_mcp_request_obj():
-    from litellm.types.llms.base import HiddenParams
-    from litellm.types.mcp import MCPPreCallRequestObject
+    from token_iq.gateway.types.llms.base import HiddenParams
+    from token_iq.gateway.types.mcp import MCPPreCallRequestObject
 
     def _make(
         tool_name: str = "calculator",

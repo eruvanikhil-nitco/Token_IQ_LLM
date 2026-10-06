@@ -20,7 +20,7 @@ from collections.abc import Mapping
 from typing import Final
 
 EXCLUDED_PARTS: Final[frozenset[str]] = frozenset({"node_modules", ".git", "__pycache__", ".venv", ".next"})
-EXCLUDED_PREFIXES: Final[tuple[str, ...]] = ("litellm/proxy/_experimental/out/",)
+EXCLUDED_PREFIXES: Final[tuple[str, ...]] = ("token_iq/gateway/proxy/_experimental/out/",)
 
 # Phase 10 of the rename permits the name to survive in legal text and in history. Counting
 # those keeps the target above zero forever, and a measure that cannot be satisfied stops

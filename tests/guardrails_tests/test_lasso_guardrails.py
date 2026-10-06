@@ -5,16 +5,16 @@ from httpx import Response, Request
 
 import pytest
 
-from litellm import DualCache
-from litellm.proxy.proxy_server import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.lasso.lasso import (
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy.proxy_server import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.lasso.lasso import (
     LassoGuardrailMissingSecrets,
     LassoGuardrail,
     LassoGuardrailAPIError,
 )
 
-import litellm
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_lasso_guard_config():

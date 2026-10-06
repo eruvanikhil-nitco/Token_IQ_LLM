@@ -12,10 +12,10 @@ discarded by ``get_model_info``.
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.responses.utils import ResponseAPILoggingUtils
-from litellm.types.utils import Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
+from token_iq.gateway.types.utils import Usage
 
 MODEL = "gpt-5.6"
 

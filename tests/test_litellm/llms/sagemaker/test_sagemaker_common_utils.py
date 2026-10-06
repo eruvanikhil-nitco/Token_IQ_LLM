@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.sagemaker.common_utils import AWSEventStreamDecoder
-from litellm.llms.sagemaker.completion.transformation import SagemakerConfig
+from token_iq.gateway.llms.sagemaker.common_utils import AWSEventStreamDecoder
+from token_iq.gateway.llms.sagemaker.completion.transformation import SagemakerConfig
 
 
 # --------------------------------------------------------------------------- #
@@ -16,7 +16,7 @@ from litellm.llms.sagemaker.completion.transformation import SagemakerConfig
 @pytest.fixture(autouse=True)
 def _reset_sagemaker_response_stream_shape_cache():
     """Prevent lru_cache leakage between tests in this module."""
-    import litellm.llms.sagemaker.common_utils as mod
+    import token_iq.gateway.llms.sagemaker.common_utils as mod
 
     mod.get_sagemaker_response_stream_shape.cache_clear()
     yield
@@ -29,7 +29,7 @@ def test_sagemaker_response_stream_shape_lazy_loads_once():
     """
     from unittest.mock import MagicMock, patch
 
-    import litellm.llms.sagemaker.common_utils as mod
+    import token_iq.gateway.llms.sagemaker.common_utils as mod
 
     sentinel = MagicMock()
     with patch.object(
@@ -46,7 +46,7 @@ def test_sagemaker_response_stream_shape_loaded_on_first_access():
     In a standard environment with botocore installed it must be non-None.
     """
     pytest.importorskip("botocore")
-    from litellm.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
+    from token_iq.gateway.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
 
     assert get_sagemaker_response_stream_shape() is not None
 
@@ -59,7 +59,7 @@ def test_sagemaker_response_stream_shape_load_failure_returns_none():
     """
     from unittest.mock import patch
 
-    import litellm.llms.sagemaker.common_utils as mod
+    import token_iq.gateway.llms.sagemaker.common_utils as mod
 
     pytest.importorskip("botocore")
     with patch(
@@ -78,7 +78,7 @@ def test_sagemaker_response_stream_shape_is_structure_shape():
     pytest.importorskip("botocore")
     from botocore.model import StructureShape
 
-    from litellm.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
+    from token_iq.gateway.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
 
     shape = get_sagemaker_response_stream_shape()
     assert (
@@ -93,7 +93,7 @@ def test_sagemaker_response_stream_shape_not_reloaded_on_new_decoder():
     Creating multiple AWSEventStreamDecoder instances must not trigger
     additional botocore Loader calls — the shape is cached after first access.
     """
-    from litellm.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
+    from token_iq.gateway.llms.sagemaker.common_utils import get_sagemaker_response_stream_shape
 
     decoder_a = AWSEventStreamDecoder.__new__(AWSEventStreamDecoder)
     decoder_b = AWSEventStreamDecoder.__new__(AWSEventStreamDecoder)
@@ -114,8 +114,8 @@ def test_sagemaker_parse_message_from_event_raises_on_none_shape():
     """
     from unittest.mock import MagicMock, patch
 
-    import litellm.llms.sagemaker.common_utils as mod
-    from litellm.llms.sagemaker.common_utils import SagemakerError
+    import token_iq.gateway.llms.sagemaker.common_utils as mod
+    from token_iq.gateway.llms.sagemaker.common_utils import SagemakerError
 
     decoder = AWSEventStreamDecoder.__new__(AWSEventStreamDecoder)
     decoder.model = "test-model"

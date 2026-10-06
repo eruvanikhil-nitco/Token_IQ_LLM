@@ -7,10 +7,10 @@ etc.) so the correct config, supported params, and param mapping are used.
 
 import pytest
 
-import litellm
-from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
-from litellm.llms.azure.chat.o_series_transformation import AzureOpenAIO1Config
-from litellm.utils import ProviderConfigManager, get_optional_params
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
+from token_iq.gateway.llms.azure.chat.o_series_transformation import AzureOpenAIO1Config
+from token_iq.gateway.utils import ProviderConfigManager, get_optional_params
 
 
 # ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ class TestGetProviderChatConfigWithBaseModel:
     """get_provider_chat_config should pass base_model to Azure config selection."""
 
     def test_should_return_gpt5_config_for_custom_deployment_with_base_model(self):
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         config = ProviderConfigManager.get_provider_chat_config(
             model="my-deployment-id",
@@ -67,7 +67,7 @@ class TestGetProviderChatConfigWithBaseModel:
         assert isinstance(config, AzureOpenAIGPT5Config)
 
     def test_should_return_o_series_config_for_custom_deployment_with_base_model(self):
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         config = ProviderConfigManager.get_provider_chat_config(
             model="my-other-deployment",

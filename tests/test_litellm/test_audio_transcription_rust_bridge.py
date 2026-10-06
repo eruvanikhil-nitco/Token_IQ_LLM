@@ -2,10 +2,10 @@ import importlib
 
 import pytest
 
-import litellm
-from litellm.llms.bedrock.audio_transcription import BedrockAudioTranscriptionRustDispatch
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.audio_transcription import BedrockAudioTranscriptionRustDispatch
 
-rust_bridge = importlib.import_module("litellm.rust_bridge.transcription")
+rust_bridge = importlib.import_module("token_iq.gateway.rust_bridge.transcription")
 
 
 class SyncBridge:
@@ -77,7 +77,7 @@ async def test_enabled_async_bridge() -> None:
 
 def test_loader_returns_none_without_native_extension(monkeypatch: pytest.MonkeyPatch) -> None:
     rust_bridge.configure_rust_transcription(transcription=None, atranscription=None)
-    monkeypatch.setattr("litellm.rust_bridge.get_native_bridge", lambda: None)
+    monkeypatch.setattr("token_iq.gateway.rust_bridge.get_native_bridge", lambda: None)
     assert rust_bridge.load_rust_transcription() is None
     assert rust_bridge.load_rust_atranscription() is None
 

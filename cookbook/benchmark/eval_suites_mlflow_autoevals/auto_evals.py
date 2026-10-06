@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import litellm
+from token_iq import gateway as litellm
 
 from autoevals.llm import *
 

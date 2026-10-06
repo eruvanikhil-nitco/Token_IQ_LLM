@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from litellm.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli import cli
 
 SAMPLE_MODEL_GROUPS: List[Dict[str, Any]] = [
     {
@@ -26,7 +26,7 @@ SAMPLE_MODEL_GROUPS: List[Dict[str, Any]] = [
 
 @pytest.fixture
 def mock_client():
-    with patch("litellm.proxy.client.cli.commands.model_groups.Client") as MockClient:
+    with patch("token_iq.gateway.proxy.client.cli.commands.model_groups.Client") as MockClient:
         yield MockClient
 
 

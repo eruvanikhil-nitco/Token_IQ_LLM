@@ -13,12 +13,12 @@ import pytest
 
 # Add the project root to Python path
 
-import litellm
-from litellm import ModelResponse
-from litellm.cost_calculator import completion_cost, cost_per_token
-from litellm.llms.perplexity.chat.transformation import PerplexityChatConfig
-from litellm.types.utils import PromptTokensDetailsWrapper, Usage
-from litellm.utils import get_model_info
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.cost_calculator import completion_cost, cost_per_token
+from token_iq.gateway.llms.perplexity.chat.transformation import PerplexityChatConfig
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
+from token_iq.gateway.utils import get_model_info
 
 
 class TestPerplexityIntegration:

@@ -8,10 +8,10 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
+from token_iq.gateway.llms.vertex_ai.image_edit.vertex_gemini_transformation import (
     VertexAIGeminiImageEditConfig,
 )
-from litellm.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
+from token_iq.gateway.llms.vertex_ai.image_edit.vertex_imagen_transformation import (
     VertexAIImagenImageEditConfig,
 )
 

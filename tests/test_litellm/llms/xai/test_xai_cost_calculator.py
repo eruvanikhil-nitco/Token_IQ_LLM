@@ -5,8 +5,8 @@ Test suite for XAI cost calculation functionality.
 import math
 import os
 
-import litellm
-from litellm.types.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import (
     Choices,
     CompletionTokensDetailsWrapper,
     Message,
@@ -16,10 +16,10 @@ from litellm.types.utils import (
 )
 
 
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.llms.xai.cost_calculator import (
+from token_iq.gateway.llms.xai.cost_calculator import (
     _DEFAULT_WEB_SEARCH_COST_PER_CALL,
     _web_search_cost_per_call_from_model_info,
     apply_server_side_tool_usage_details_to_usage,
@@ -406,7 +406,7 @@ class TestXAICostCalculator:
 
         Legacy behaviour stays intact when xAI reports no cost.
         """
-        from litellm.llms import get_cost_for_web_search_request
+        from token_iq.gateway.llms import get_cost_for_web_search_request
 
         usage = Usage(prompt_tokens=100, completion_tokens=50, total_tokens=150)
         setattr(usage, "server_side_tool_usage_details", {"web_search_calls": 3})

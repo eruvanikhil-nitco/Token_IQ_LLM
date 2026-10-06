@@ -1,17 +1,17 @@
 import pytest
 
-import litellm
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ModelResponse
 
 
 @pytest.mark.asyncio
 async def test_acompletion_mcp_auto_exec(monkeypatch):
     from types import SimpleNamespace
 
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     dummy_tool = SimpleNamespace(
         name="local_search",
@@ -84,10 +84,10 @@ async def test_acompletion_mcp_auto_exec(monkeypatch):
 async def test_acompletion_mcp_respects_manual_approval(monkeypatch):
     from types import SimpleNamespace
 
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     dummy_tool = SimpleNamespace(
         name="local_search",
@@ -158,11 +158,11 @@ async def test_completion_mcp_with_streaming_no_timeout_error(monkeypatch):
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
-    from litellm.responses.utils import ResponsesAPIRequestUtils
-    from litellm.utils import CustomStreamWrapper
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.utils import CustomStreamWrapper
 
     dummy_tool = SimpleNamespace(
         name="local_search",
@@ -287,7 +287,7 @@ async def test_completion_mcp_with_streaming_no_timeout_error(monkeypatch):
     logging_obj.model_call_details = {}
     logging_obj.async_failure_handler = AsyncMock()
 
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
@@ -404,7 +404,7 @@ async def test_completion_mcp_with_streaming_no_timeout_error(monkeypatch):
             object="chat.completion",
         )
 
-    with patch("litellm.acompletion", side_effect=mock_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
         # This should not raise RuntimeError: Timeout context manager should be used inside a task
         # completion() returns a coroutine when MCP tools are present, which acompletion() awaits
         response = litellm.completion(
@@ -471,19 +471,19 @@ async def test_mcp_metadata_in_streaming_final_chunk(monkeypatch):
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
-    from litellm.responses.utils import ResponsesAPIRequestUtils
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import (
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
         ChatCompletionDeltaToolCall,
         Function,
     )
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     dummy_tool = SimpleNamespace(
         name="local_search",
@@ -694,7 +694,7 @@ async def test_mcp_metadata_in_streaming_final_chunk(monkeypatch):
             object="chat.completion",
         )
 
-    with patch("litellm.acompletion", side_effect=mock_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
         response = litellm.completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
@@ -827,12 +827,12 @@ async def test_mcp_streaming_metadata_ordering(monkeypatch):
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
-    from litellm.responses.utils import ResponsesAPIRequestUtils
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import (
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
@@ -1029,7 +1029,7 @@ async def test_mcp_streaming_metadata_ordering(monkeypatch):
         # Non-streaming call should not happen with new implementation
         pytest.fail("Non-streaming call should not happen with new implementation")
 
-    with patch("litellm.acompletion", side_effect=mock_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
         response = litellm.completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],

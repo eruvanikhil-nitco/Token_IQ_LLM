@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 def test_initialize_shared_aiohttp_session_sets_enable_cleanup_closed_when_needed(
     monkeypatch,
 ):
-    from litellm.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
 
     connector_mock = MagicMock(name="connector")
     session_mock = MagicMock(name="session")
@@ -23,7 +23,7 @@ def test_initialize_shared_aiohttp_session_sets_enable_cleanup_closed_when_neede
 def test_initialize_shared_aiohttp_session_omits_enable_cleanup_closed_when_not_needed(
     monkeypatch,
 ):
-    from litellm.proxy import proxy_server as proxy_server_module
+    from token_iq.gateway.proxy import proxy_server as proxy_server_module
 
     connector_mock = MagicMock(name="connector")
     session_mock = MagicMock(name="session")

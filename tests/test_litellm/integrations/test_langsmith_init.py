@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.integrations.langsmith import LangsmithLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.langsmith import LangsmithLogger
 
 
 @pytest.fixture

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.tinyfish.search.transformation import (
+from token_iq.gateway.llms.tinyfish.search.transformation import (
     TinyfishSearchConfig,
     _append_domain_filters,
     _default_missing_result_fields,
@@ -297,7 +297,7 @@ class TestGetCompleteUrl:
     def test_default_api_base(self):
         config = TinyfishSearchConfig()
         with patch(
-            "litellm.llms.tinyfish.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.tinyfish.search.transformation.get_secret_str",
             return_value=None,
         ):
             url = config.get_complete_url(api_base=None, optional_params={})
@@ -313,7 +313,7 @@ class TestGetCompleteUrl:
     def test_env_api_base(self):
         config = TinyfishSearchConfig()
         with patch(
-            "litellm.llms.tinyfish.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.tinyfish.search.transformation.get_secret_str",
             return_value="https://env.tinyfish.ai",
         ):
             url = config.get_complete_url(api_base=None, optional_params={})
@@ -322,7 +322,7 @@ class TestGetCompleteUrl:
     def test_with_tinyfish_params(self):
         config = TinyfishSearchConfig()
         with patch(
-            "litellm.llms.tinyfish.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.tinyfish.search.transformation.get_secret_str",
             return_value=None,
         ):
             url = config.get_complete_url(
@@ -337,7 +337,7 @@ class TestGetCompleteUrl:
     def test_without_tinyfish_params_key(self):
         config = TinyfishSearchConfig()
         with patch(
-            "litellm.llms.tinyfish.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.tinyfish.search.transformation.get_secret_str",
             return_value=None,
         ):
             url = config.get_complete_url(
@@ -348,7 +348,7 @@ class TestGetCompleteUrl:
     def test_data_none(self):
         config = TinyfishSearchConfig()
         with patch(
-            "litellm.llms.tinyfish.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.tinyfish.search.transformation.get_secret_str",
             return_value=None,
         ):
             url = config.get_complete_url(api_base=None, optional_params={}, data=None)

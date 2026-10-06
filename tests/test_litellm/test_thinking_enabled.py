@@ -5,7 +5,7 @@ Tests the fix for issue #28576: handle None thinking param without crashing.
 """
 
 import pytest
-from litellm.llms.base_llm.chat.transformation import BaseConfig
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig
 
 
 class TestIsThinkingEnabled:
@@ -38,7 +38,7 @@ class TestIsThinkingEnabled:
                 return {}
 
             def get_error_class(self, *args, **kwargs):
-                from litellm.llms.base_llm.chat.transformation import BaseLLMException
+                from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
                 return BaseLLMException(500, "test error")
 
         return ConcreteConfig()

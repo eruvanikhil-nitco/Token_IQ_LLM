@@ -5,7 +5,7 @@ Tests for MCPDebug — MCP OAuth2 debug response headers.
 import asyncio
 from unittest.mock import MagicMock
 
-from litellm.proxy._experimental.mcp_server.mcp_debug import (
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_debug import (
     MCP_DEBUG_REQUEST_HEADER,
     MCPDebug,
 )

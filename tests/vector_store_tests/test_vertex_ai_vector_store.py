@@ -2,8 +2,8 @@ import os
 import pytest
 from unittest.mock import Mock, patch
 
-from litellm.llms.vertex_ai.vector_stores.transformation import VertexVectorStoreConfig
-from litellm.types.vector_stores import (
+from token_iq.gateway.llms.vertex_ai.vector_stores.transformation import VertexVectorStoreConfig
+from token_iq.gateway.types.vector_stores import (
     VectorStoreCreateResponse,
     VectorStoreSearchResponse,
     VectorStoreSearchResult,

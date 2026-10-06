@@ -2,7 +2,7 @@
 Tests for litellm.llms.gigachat.chat.streaming
 """
 
-from litellm.llms.gigachat.chat.streaming import GigaChatModelResponseIterator
+from token_iq.gateway.llms.gigachat.chat.streaming import GigaChatModelResponseIterator
 
 
 def _parse(chunk: dict) -> dict:

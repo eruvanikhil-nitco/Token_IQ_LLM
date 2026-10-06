@@ -6,11 +6,11 @@ import pytest
 
 import datetime
 
-import litellm
-from litellm.caching.caching import Cache, LiteLLMCacheType
-from litellm.caching.caching_handler import LLMCachingHandler
-from litellm.llms.anthropic.experimental_pass_through.messages import handler
-from litellm.llms.anthropic.experimental_pass_through.messages.response_cache import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import Cache, LiteLLMCacheType
+from token_iq.gateway.caching.caching_handler import LLMCachingHandler
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import handler
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.response_cache import (
     AnthropicMessagesStreamCacheWriter,
 )
 
@@ -241,10 +241,10 @@ async def test_abandoned_stream_is_not_cached(local_cache, request_kwargs, monke
 async def test_cached_stream_replay_logs_once_when_polled_after_exhaustion():
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from litellm.llms.anthropic.experimental_pass_through.messages.response_cache import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.response_cache import (
         CachedAnthropicMessagesStreamIterator,
     )
-    from litellm.proxy.pass_through_endpoints.streaming_handler import (
+    from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
         PassThroughStreamingHandler,
     )
 

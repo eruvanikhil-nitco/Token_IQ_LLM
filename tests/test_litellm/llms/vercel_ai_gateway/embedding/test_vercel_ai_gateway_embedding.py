@@ -5,11 +5,11 @@ import httpx
 import pytest
 
 
-from litellm.llms.vercel_ai_gateway.embedding.transformation import (
+from token_iq.gateway.llms.vercel_ai_gateway.embedding.transformation import (
     VercelAIGatewayEmbeddingConfig,
 )
-from litellm.llms.vercel_ai_gateway.common_utils import VercelAIGatewayException
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.llms.vercel_ai_gateway.common_utils import VercelAIGatewayException
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 def test_vercel_ai_gateway_embedding_get_complete_url():

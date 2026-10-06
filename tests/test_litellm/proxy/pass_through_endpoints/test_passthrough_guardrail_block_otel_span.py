@@ -26,20 +26,20 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
     InMemorySpanExporter,
 )
 
-import litellm  # noqa: E402
-from litellm.caching.dual_cache import DualCache  # noqa: E402
-from litellm.integrations.custom_guardrail import (  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
+from token_iq.gateway.caching.dual_cache import DualCache  # noqa: E402
+from token_iq.gateway.integrations.custom_guardrail import (  # noqa: E402
     CustomGuardrail,
     log_guardrail_information,
 )
-from litellm.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
-from litellm.integrations.otel.model.config import OpenTelemetryV2Config  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache  # noqa: E402
-from litellm.proxy.utils import ProxyLogging  # noqa: E402
-from litellm.types.guardrails import GuardrailEventHooks  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache  # noqa: E402
+from token_iq.gateway.proxy.utils import ProxyLogging  # noqa: E402
+from token_iq.gateway.types.guardrails import GuardrailEventHooks  # noqa: E402
 
-_PT_MOD = "litellm.proxy.pass_through_endpoints.pass_through_endpoints"
+_PT_MOD = "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints"
 _COLLECT = (
     "litellm.proxy.pass_through_endpoints.passthrough_guardrails."
     "PassthroughGuardrailHandler.collect_guardrails"
@@ -50,7 +50,7 @@ _TRIGGER = "BLOCKME"
 # pass_through_endpoints imports proxy_server lazily (inside the request
 # function), so importing this at module scope does not require the real
 # proxy_server and does not mutate sys.modules.
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (  # noqa: E402
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (  # noqa: E402
     pass_through_request,
 )
 
@@ -141,9 +141,9 @@ async def _drive(response_text: str):
             return_value=_httpx_response(response_text),
         ),
         patch(f"{_PT_MOD}._is_streaming_response", return_value=False),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging),
-        patch("litellm.proxy.proxy_server.open_telemetry_logger", otel),
-        patch("litellm.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.open_telemetry_logger", otel),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
         patch(f"{_PT_MOD}.pass_through_endpoint_logging", mock_pt_logging),
         patch(f"{_PT_MOD}.get_async_httpx_client", return_value=mock_async_client_obj),
         patch(f"{_PT_MOD}._read_request_body", new_callable=AsyncMock, return_value={}),

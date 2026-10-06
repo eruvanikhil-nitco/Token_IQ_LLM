@@ -8,7 +8,7 @@ import os
 import pytest
 
 
-from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
     PATTERN_CATEGORIES,
     PATTERN_DESCRIPTIONS,
     PATTERN_DISPLAY_NAMES,

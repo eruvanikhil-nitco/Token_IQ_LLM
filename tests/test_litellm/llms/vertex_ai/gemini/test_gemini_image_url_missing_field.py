@@ -1,11 +1,11 @@
 import pytest
 from typing import List, cast
 
-import litellm
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
-from litellm.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.llms.openai import AllMessageValues
 
 
 def test_missing_image_url_field_raises_bad_request_error():

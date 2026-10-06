@@ -3,7 +3,7 @@ from typing import Final
 
 import pytest
 
-from litellm.rust_bridge import bindings
+from token_iq.gateway.rust_bridge import bindings
 
 
 def test_binding_distinguishes_disable_from_reset(monkeypatch) -> None:

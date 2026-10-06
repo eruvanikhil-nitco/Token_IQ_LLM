@@ -49,22 +49,22 @@ def _attach_litellm_config(mock_prisma):
 
 def test_reload_model_cost_map_happy(client, auth_as, monkeypatch, mock_prisma):
     """Admin can trigger a manual reload; handler returns model count + status."""
-    from litellm.litellm_core_utils.get_model_cost_map import ModelCostMapReloaded
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.core_utils.get_model_cost_map import ModelCostMapReloaded
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     fake_cost_map = {"gpt-4": {"input_cost": 0.03}, "gpt-3.5": {"input_cost": 0.002}}
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.get_model_cost_map.refetch_model_cost_map",
+        "token_iq.gateway.core_utils.get_model_cost_map.refetch_model_cost_map",
         AsyncMock(return_value=ModelCostMapReloaded(model_cost_map=fake_cost_map)),
     )
-    monkeypatch.setattr("litellm.add_known_models", lambda model_cost_map=None: None)
-    monkeypatch.setattr("litellm.model_cost", {}, raising=False)
+    monkeypatch.setattr("token_iq.gateway.add_known_models", lambda model_cost_map=None: None)
+    monkeypatch.setattr("token_iq.gateway.model_cost", {}, raising=False)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server._invalidate_model_cost_lowercase_map",
+        "token_iq.gateway.proxy.proxy_server._invalidate_model_cost_lowercase_map",
         lambda: None,
         raising=False,
     )
@@ -98,19 +98,19 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
     Regression: the endpoint used to report success after silently swapping in
     the stale packaged backup.
     """
-    from litellm.litellm_core_utils.get_model_cost_map import (
+    from token_iq.gateway.core_utils.get_model_cost_map import (
         ModelCostMapReloadUnavailable,
     )
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     sentinel_map = {"existing-model": {"input_cost": 0.01}}
-    monkeypatch.setattr("litellm.model_cost", sentinel_map, raising=False)
+    monkeypatch.setattr("token_iq.gateway.model_cost", sentinel_map, raising=False)
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.get_model_cost_map.refetch_model_cost_map",
+        "token_iq.gateway.core_utils.get_model_cost_map.refetch_model_cost_map",
         AsyncMock(
             return_value=ModelCostMapReloadUnavailable(
                 reason="HTTP 429 from upstream (after 3 attempts)"
@@ -124,7 +124,7 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
     detail = response.json().get("detail", "")
     assert "HTTP 429 from upstream" in detail
     assert "Current pricing data was kept" in detail
-    import litellm as litellm_module
+    from token_iq import gateway as litellm_module
 
     assert litellm_module.model_cost is sentinel_map
     assert table.upsert.await_count == 0
@@ -132,7 +132,7 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
 
 def test_reload_model_cost_map_not_admin_forbidden(client, auth_as):
     """Non-admin caller gets 403 with a role-specific detail."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.post("/reload/model_cost_map")
@@ -142,8 +142,8 @@ def test_reload_model_cost_map_not_admin_forbidden(client, auth_as):
 
 def test_reload_model_cost_map_no_db_500(client, auth_as, monkeypatch):
     """Admin path but prisma_client is None — handler raises 500."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
     with auth_as(LitellmUserRoles.PROXY_ADMIN):
@@ -161,8 +161,8 @@ def test_schedule_model_cost_map_reload_happy(
     client, auth_as, monkeypatch, mock_prisma
 ):
     """Admin schedules a reload — handler upserts config and echoes interval."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -192,8 +192,8 @@ def test_schedule_model_cost_map_reload_invalid_hours(
     client, auth_as, monkeypatch, mock_prisma
 ):
     """hours <= 0 is rejected with 400."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     _attach_litellm_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -206,7 +206,7 @@ def test_schedule_model_cost_map_reload_invalid_hours(
 
 def test_schedule_model_cost_map_reload_not_admin_forbidden(client, auth_as):
     """Non-admin caller blocked with 403."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.post("/schedule/model_cost_map_reload?hours=6")
@@ -223,8 +223,8 @@ def test_cancel_model_cost_map_reload_happy(client, auth_as, monkeypatch, mock_p
     """Admin cancellation clears the interval and returns success body. The row itself stays:
     it also holds the reload revision, and a counter restarted by a delete reissues a number
     pods already applied, silently skipping their next manual reload."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -243,7 +243,7 @@ def test_cancel_model_cost_map_reload_happy(client, auth_as, monkeypatch, mock_p
 
 
 def test_cancel_model_cost_map_reload_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.delete("/schedule/model_cost_map_reload")
@@ -252,8 +252,8 @@ def test_cancel_model_cost_map_reload_not_admin_forbidden(client, auth_as):
 
 
 def test_cancel_model_cost_map_reload_no_db_500(client, auth_as, monkeypatch):
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
     with auth_as(LitellmUserRoles.PROXY_ADMIN):
@@ -271,8 +271,8 @@ def test_get_model_cost_map_reload_status_no_db_not_scheduled(
     client, auth_as, monkeypatch
 ):
     """No prisma client → returns the not-scheduled shape (4 keys, all-null)."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
     with auth_as(LitellmUserRoles.PROXY_ADMIN):
@@ -290,8 +290,8 @@ def test_get_model_cost_map_reload_status_scheduled(
     client, auth_as, monkeypatch, mock_prisma
 ):
     """A valid config row → scheduled=True and the interval is echoed."""
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     config_row = MagicMock()
@@ -318,8 +318,8 @@ def test_get_model_cost_map_reload_status_reports_persisted_last_run(
     """last_run/next_run come from the DB row, so status survives pod restarts."""
     from datetime import datetime, timezone
 
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     config_row = MagicMock()
@@ -346,8 +346,8 @@ def test_get_model_cost_map_reload_status_no_config_not_scheduled(
     """A row left behind by a manual reload (interval_hours=None) → not scheduled."""
     from datetime import datetime, timezone
 
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     table = _attach_litellm_config(mock_prisma)
     config_row = MagicMock()
@@ -369,7 +369,7 @@ def test_get_model_cost_map_reload_status_no_config_not_scheduled(
 
 
 def test_get_model_cost_map_reload_status_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.get("/schedule/model_cost_map_reload/status")
@@ -384,7 +384,7 @@ def test_get_model_cost_map_reload_status_not_admin_forbidden(client, auth_as):
 
 def test_get_model_cost_map_source_happy(client, auth_as, monkeypatch):
     """Admin gets the source-info dict, augmented with the current model_count."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     fake_info = {
         "source": "remote",
@@ -393,10 +393,10 @@ def test_get_model_cost_map_source_happy(client, auth_as, monkeypatch):
         "fallback_reason": None,
     }
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.get_model_cost_map.get_model_cost_map_source_info",
+        "token_iq.gateway.core_utils.get_model_cost_map.get_model_cost_map_source_info",
         lambda: fake_info,
     )
-    monkeypatch.setattr("litellm.model_cost", {"a": 1, "b": 2, "c": 3}, raising=False)
+    monkeypatch.setattr("token_iq.gateway.model_cost", {"a": 1, "b": 2, "c": 3}, raising=False)
 
     with auth_as(LitellmUserRoles.PROXY_ADMIN):
         response = client.get("/model/cost_map/source")
@@ -414,7 +414,7 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
     client, auth_as, monkeypatch
 ):
     """PROXY_ADMIN_VIEW_ONLY can read source info — pins the read-only ACL."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     fake_info = {
         "source": "local",
@@ -423,10 +423,10 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
         "fallback_reason": None,
     }
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.get_model_cost_map.get_model_cost_map_source_info",
+        "token_iq.gateway.core_utils.get_model_cost_map.get_model_cost_map_source_info",
         lambda: fake_info,
     )
-    monkeypatch.setattr("litellm.model_cost", {"a": 1}, raising=False)
+    monkeypatch.setattr("token_iq.gateway.model_cost", {"a": 1}, raising=False)
 
     with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
         response = client.get("/model/cost_map/source")
@@ -441,7 +441,7 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
 
 
 def test_get_model_cost_map_source_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.get("/model/cost_map/source")

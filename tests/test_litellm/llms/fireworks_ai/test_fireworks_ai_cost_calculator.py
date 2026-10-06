@@ -2,9 +2,9 @@
 import pytest
 
 
-import litellm
-from litellm.llms.fireworks_ai.cost_calculator import cost_per_token
-from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.fireworks_ai.cost_calculator import cost_per_token
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
 MODEL = "accounts/fireworks/models/glm-5p2"
 INPUT_COST = 1.4e-06

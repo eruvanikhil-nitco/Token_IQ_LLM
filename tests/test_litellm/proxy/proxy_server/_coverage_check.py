@@ -3,7 +3,7 @@
 
 Reads a coverage XML report (produced by ``pytest --cov-branch
 --cov-report=xml:<path>``) and asserts that line + branch coverage on
-``litellm/proxy/proxy_server.py`` meets the per-PR target.
+``token_iq/gateway/proxy/proxy_server.py`` meets the per-PR target.
 
 Target selection:
     --pr-target {1|2|3}   explicit target
@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 HERE = Path(__file__).resolve().parent
-SOURCE_FILE = "litellm/proxy/proxy_server.py"
+SOURCE_FILE = "token_iq/gateway/proxy/proxy_server.py"
 
 # PR target gates: (line%, branch%)
 TARGETS: Dict[str, Tuple[float, float]] = {

@@ -10,16 +10,16 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
 )
-from litellm.exceptions import GuardrailRaisedException
-from litellm.types.guardrails import LitellmParams, PiiAction, PiiEntityType
-from litellm.types.utils import Choices, Message, ModelResponse
-from litellm.exceptions import BlockedPiiEntityError
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.types.guardrails import LitellmParams, PiiAction, PiiEntityType
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.exceptions import BlockedPiiEntityError
 
 
 def _make_mock_session_iterator(json_response, status=200, content_type="application/json", text_response=""):
@@ -830,15 +830,15 @@ async def test_presidio_filter_scope_initializer(monkeypatch):
 
     mgr = DummyManager()
     monkeypatch.setattr(litellm, "logging_callback_manager", mgr, raising=False)
-    import litellm.proxy.guardrails.guardrail_hooks.presidio as presidio_mod
-    import litellm.proxy.guardrails.guardrail_initializers as gi
+    import token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio as presidio_mod
+    import token_iq.gateway.proxy.guardrails.guardrail_initializers as gi
 
     monkeypatch.setattr(presidio_mod, "_OPTIONAL_PresidioPIIMasking", DummyGuardrail, raising=False)
     monkeypatch.setattr(gi, "_OPTIONAL_PresidioPIIMasking", DummyGuardrail, raising=False)
 
     # input-only
     created.clear()
-    from litellm.proxy.guardrails.guardrail_initializers import initialize_presidio
+    from token_iq.gateway.proxy.guardrails.guardrail_initializers import initialize_presidio
 
     params_input = LitellmParams(guardrail="presidio", mode="pre_call", presidio_filter_scope="input")
     guardrail_dict = {"guardrail_name": "g1"}
@@ -1439,7 +1439,7 @@ async def test_get_session_iterator_thread_safety(presidio_guardrail):
     print("✓ Session iterator thread safety test passed")
 
 
-from litellm.types.utils import ModelResponseStream
+from token_iq.gateway.types.utils import ModelResponseStream
 
 
 @pytest.mark.asyncio
@@ -1849,7 +1849,7 @@ def test_unmask_exact_match_with_sequential_tokens():
     """
     Normal unmasking: LLM echoes numbered tokens verbatim → original PII restored.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
         _OPTIONAL_PresidioPIIMasking,
     )
 
@@ -1866,7 +1866,7 @@ def test_unmask_multiple_same_entity_type():
     """
     Two phone numbers get distinct numbered tokens and unmask correctly.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
         _OPTIONAL_PresidioPIIMasking,
     )
 
@@ -1884,7 +1884,7 @@ def test_unmask_graceful_degradation():
     If the LLM doesn't echo the token back, the numbered label stays
     in the output — clean and readable, not garbage hex.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
         _OPTIONAL_PresidioPIIMasking,
     )
 
@@ -2243,7 +2243,7 @@ async def test_apply_to_output_streaming_mixed_chunks_flushes_and_warns():
 
     mock_user_api_key = UserAPIKeyAuth(api_key="test-key")
     received = []
-    with patch("litellm.proxy.guardrails.guardrail_hooks.presidio.verbose_proxy_logger") as mock_logger:
+    with patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio.verbose_proxy_logger") as mock_logger:
         async for chunk in guardrail.async_post_call_streaming_iterator_hook(
             user_api_key_dict=mock_user_api_key,
             response=mock_stream(),
@@ -2355,7 +2355,7 @@ async def test_apply_to_output_streaming_bytes_only_logs_warning():
     mock_user_api_key = UserAPIKeyAuth(api_key="test-key")
 
     collected = []
-    with patch("litellm.proxy.guardrails.guardrail_hooks.presidio.verbose_proxy_logger") as mock_logger:
+    with patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio.verbose_proxy_logger") as mock_logger:
         async for chunk in guardrail.async_post_call_streaming_iterator_hook(
             user_api_key_dict=mock_user_api_key,
             response=mock_stream(),
@@ -2424,12 +2424,12 @@ async def test_output_parse_pii_streaming_responses_completed_event_unmasked(
     (a Pydantic ResponseCompletedEvent, as produced in production) must have its
     output text unmasked in-place before being forwarded to the client.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ResponseCompletedEvent,
         ResponsesAPIResponse,
         ResponsesAPIStreamEvents,
     )
-    from litellm.types.responses.main import GenericResponseOutputItem, OutputText
+    from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
 
     guardrail = _OPTIONAL_PresidioPIIMasking(
         mock_testing=True,
@@ -3106,7 +3106,7 @@ async def test_analyze_text_chunked_failure_stays_fail_closed():
 
 
 def test_presidio_analyze_chunk_size_default_and_validation():
-    from litellm.constants import DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
+    from token_iq.gateway.constants import DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
 
     guardrail = _OPTIONAL_PresidioPIIMasking(mock_testing=True)
     assert guardrail.presidio_analyze_chunk_size_bytes == DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
@@ -3180,7 +3180,7 @@ def test_merge_preserves_cross_type_overlap():
 
 
 def test_update_in_memory_coerces_invalid_chunk_size():
-    from litellm.constants import DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
+    from token_iq.gateway.constants import DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
 
     guardrail = _OPTIONAL_PresidioPIIMasking(mock_testing=True, presidio_analyze_chunk_size_bytes=99_000)
     params = LitellmParams(
@@ -3217,7 +3217,7 @@ async def test_tiny_chunk_size_with_multibyte_text_terminates():
 
 @pytest.mark.asyncio
 async def test_chunked_analyze_concurrency_is_bounded():
-    from litellm.constants import PRESIDIO_ANALYZE_CHUNK_CONCURRENCY
+    from token_iq.gateway.constants import PRESIDIO_ANALYZE_CHUNK_CONCURRENCY
 
     guardrail = _chunking_guardrail(chunk_size_bytes=10)
     state = {"active": 0, "peak": 0}
@@ -3359,7 +3359,7 @@ async def test_chunked_analyze_applies_score_threshold_before_merge():
 async def test_chunk_fanout_bound_is_shared_across_concurrent_calls():
     """The chunk semaphore is per event loop and instance, so several oversized
     blocks analyzed concurrently share ONE bound instead of getting 8 each."""
-    from litellm.constants import PRESIDIO_ANALYZE_CHUNK_CONCURRENCY
+    from token_iq.gateway.constants import PRESIDIO_ANALYZE_CHUNK_CONCURRENCY
 
     guardrail = _chunking_guardrail(chunk_size_bytes=10)
     state = {"active": 0, "peak": 0}

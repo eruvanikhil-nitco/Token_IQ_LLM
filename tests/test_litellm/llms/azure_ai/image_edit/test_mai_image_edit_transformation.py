@@ -5,12 +5,12 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.azure_ai.image_edit import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure_ai.image_edit import (
     AzureFoundryMAIImageEditConfig,
     get_azure_ai_image_edit_config,
 )
-from litellm.llms.azure_ai.image_generation.mai_transformation import (
+from token_iq.gateway.llms.azure_ai.image_generation.mai_transformation import (
     AzureFoundryMAIImageGenerationConfig,
 )
 

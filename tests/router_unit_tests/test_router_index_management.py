@@ -2,7 +2,7 @@ import os
 import pytest
 import ast
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 class TestRouterIndexManagement:

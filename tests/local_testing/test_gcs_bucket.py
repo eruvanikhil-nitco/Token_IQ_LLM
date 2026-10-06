@@ -6,20 +6,20 @@ import asyncio
 import json
 import logging
 import tempfile
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.gcs_bucket.gcs_bucket import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.gcs_bucket.gcs_bucket import (
     GCSBucketLogger,
     StandardLoggingPayload,
 )
-from litellm.types.utils import StandardCallbackDynamicParams
-from litellm.types.integrations.gcs_bucket import GCSLoggingConfig
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.types.integrations.gcs_bucket import GCSLoggingConfig
 from unittest.mock import patch, AsyncMock, MagicMock
 
 verbose_logger.setLevel(logging.DEBUG)
@@ -54,7 +54,7 @@ async def test_aaabasic_gcs_logger():
         return {"kind": "storage#object", "name": object_name}
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             GCSBucketLogger,
             "construct_request_headers",
@@ -175,7 +175,7 @@ async def test_basic_gcs_logger_failure():
     gcs_log_id = f"failure-test-{uuid.uuid4().hex}"
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             GCSBucketLogger,
             "construct_request_headers",

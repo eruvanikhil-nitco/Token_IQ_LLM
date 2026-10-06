@@ -1,10 +1,10 @@
 """
-Tests for AnthropicExceptionMapping class in litellm/anthropic_interface/exceptions/exception_mapping_utils.py
+Tests for AnthropicExceptionMapping class in token_iq/gateway/anthropic_interface/exceptions/exception_mapping_utils.py
 """
 
 import json
 
-from litellm.anthropic_interface.exceptions import AnthropicExceptionMapping
+from token_iq.gateway.anthropic_interface.exceptions import AnthropicExceptionMapping
 
 
 class TestCreateErrorResponse:

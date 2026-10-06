@@ -6,15 +6,15 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.openai.containers.transformation import OpenAIContainerConfig
-from litellm.llms.base_llm.containers.transformation import BaseContainerConfig
-from litellm.types.containers.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
+from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
+from token_iq.gateway.types.containers.main import (
     ContainerObject,
     ContainerListResponse,
     DeleteContainerResult,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
 
 class TestOpenAIContainerTransformation:
@@ -44,7 +44,7 @@ class TestOpenAIContainerTransformation:
 
     def test_map_openai_params_basic(self):
         """Test basic parameter mapping for OpenAI."""
-        from litellm.types.containers.main import ContainerCreateOptionalRequestParams
+        from token_iq.gateway.types.containers.main import ContainerCreateOptionalRequestParams
 
         optional_params = ContainerCreateOptionalRequestParams(
             {
@@ -97,7 +97,7 @@ class TestOpenAIContainerTransformation:
 
     def test_transform_container_create_request(self):
         """Test container create request transformation."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         litellm_params = GenericLiteLLMParams()
         headers = {"Authorization": "Bearer sk-test123"}
@@ -304,7 +304,7 @@ class TestOpenAIContainerTransformation:
     def test_get_error_class(self):
         """Test error class handling."""
         import httpx
-        from litellm.llms.base_llm.chat.transformation import BaseLLMException
+        from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
         with pytest.raises(BaseLLMException) as exc_info:
             self.config.get_error_class(
@@ -315,7 +315,7 @@ class TestOpenAIContainerTransformation:
 
     def test_transform_with_none_optional_params(self):
         """Test transformation handles None optional parameters correctly."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         litellm_params = GenericLiteLLMParams()
         headers = {"Authorization": "Bearer sk-test123"}
@@ -343,7 +343,7 @@ class TestOpenAIContainerTransformation:
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
         litellm.model_cost = litellm.get_model_cost_map()
 
-        from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+        from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
             StandardBuiltInToolCostTracking,
         )
 

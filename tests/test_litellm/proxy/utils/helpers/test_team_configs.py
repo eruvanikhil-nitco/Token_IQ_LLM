@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.proxy.utils import _is_valid_team_configs
+from token_iq.gateway.proxy.utils import _is_valid_team_configs
 
 
 def normalize(value):

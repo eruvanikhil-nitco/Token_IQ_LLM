@@ -8,9 +8,9 @@ from unittest.mock import patch
 from typing import Union
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching import RedisCache, RedisClusterCache
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching import RedisCache, RedisClusterCache
 
 
 ## Scenarios

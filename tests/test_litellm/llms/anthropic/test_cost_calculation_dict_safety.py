@@ -8,9 +8,9 @@ See https://github.com/BerriAI/litellm/issues/26153.
 
 import pytest
 
-from litellm.litellm_core_utils.llm_cost_calc.utils import get_web_search_requests
-from litellm.llms.anthropic.cost_calculation import get_cost_for_anthropic_web_search
-from litellm.types.utils import ModelInfo, ServerToolUse
+from token_iq.gateway.core_utils.llm_cost_calc.utils import get_web_search_requests
+from token_iq.gateway.llms.anthropic.cost_calculation import get_cost_for_anthropic_web_search
+from token_iq.gateway.types.utils import ModelInfo, ServerToolUse
 
 
 class _UsageWithServerToolUse:

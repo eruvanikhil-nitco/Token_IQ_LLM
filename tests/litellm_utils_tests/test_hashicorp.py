@@ -7,17 +7,18 @@ import httpx
 
 from unittest.mock import patch, MagicMock
 import logging
-from litellm._logging import verbose_logger
-from litellm._uuid import uuid
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway._uuid import uuid
 
 verbose_logger.setLevel(logging.DEBUG)
 
 # Minimal setup for module-level instantiation
-import litellm.proxy.proxy_server
+import token_iq.gateway.proxy.proxy_server
+from token_iq import gateway as litellm
 
 litellm.proxy.proxy_server.premium_user = True
 
-from litellm.secret_managers.hashicorp_secret_manager import HashicorpSecretManager
+from token_iq.gateway.secret_managers.hashicorp_secret_manager import HashicorpSecretManager
 
 
 @pytest.fixture
@@ -88,7 +89,7 @@ mock_write_response = {
 
 
 def test_hashicorp_secret_manager_get_secret(hashicorp_secret_manager):
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.get") as mock_get:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.get") as mock_get:
         # Configure the mock response using MagicMock
         mock_response = MagicMock()
         mock_response.json.return_value = mock_vault_response
@@ -114,7 +115,7 @@ def test_hashicorp_secret_manager_get_secret(hashicorp_secret_manager):
 @pytest.mark.asyncio
 async def test_hashicorp_secret_manager_write_secret(hashicorp_secret_manager):
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         # Configure the mock response
         mock_response = MagicMock()
@@ -160,7 +161,7 @@ async def test_hashicorp_secret_manager_write_secret_with_team_overrides(
     hashicorp_secret_manager,
 ):
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_response = MagicMock()
         mock_response.json.return_value = mock_write_response
@@ -198,7 +199,7 @@ async def test_hashicorp_secret_manager_write_secret_with_team_overrides(
 @pytest.mark.asyncio
 async def test_hashicorp_secret_manager_delete_secret(hashicorp_secret_manager):
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
     ) as mock_delete:
         # Configure the mock response
         mock_response = MagicMock()
@@ -234,7 +235,7 @@ async def test_hashicorp_secret_manager_delete_secret_with_team_overrides(
     hashicorp_secret_manager,
 ):
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
     ) as mock_delete:
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
@@ -320,7 +321,7 @@ def test_hashicorp_secret_manager_approle_auth(monkeypatch):
     """
     monkeypatch.setenv("HCP_VAULT_TOKEN", "test-token-12345")
 
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_response = MagicMock()
         mock_response.json.return_value = {
             "auth": {

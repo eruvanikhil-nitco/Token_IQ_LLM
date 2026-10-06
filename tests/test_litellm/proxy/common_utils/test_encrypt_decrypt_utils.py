@@ -8,8 +8,8 @@ gate, and the backward-compatibility guarantees that let legacy XSalsa20-Poly130
 
 import pytest
 
-from litellm.proxy import proxy_server
-from litellm.proxy.common_utils.encrypt_decrypt_utils import (
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     _V2_GCM_PREFIX,
     decrypt_value_helper,
     encrypt_value_helper,
@@ -113,7 +113,7 @@ def test_callback_prefix_composes_with_v2(monkeypatch):
     strips ``litellm_enc::`` then calls the helper, so the value handed to the
     helper is ``v2:gcm:...``. Ordering must work end to end.
     """
-    from litellm.proxy.common_utils.callback_utils import (
+    from token_iq.gateway.proxy.common_utils.callback_utils import (
         _CALLBACK_VAR_ENCRYPTED_PREFIX,
         _decrypt_or_passthrough,
         _encrypt_if_plaintext,
@@ -152,8 +152,8 @@ def test_decrypt_failure_debug_log_omits_raw_value(monkeypatch):
     """
     import logging
 
-    import litellm._logging as _logging_module
-    from litellm._logging import verbose_proxy_logger
+    import token_iq.gateway._logging as _logging_module
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     monkeypatch.setattr(_logging_module, "_ENABLE_SECRET_REDACTION", False)
 

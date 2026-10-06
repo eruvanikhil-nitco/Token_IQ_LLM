@@ -8,7 +8,7 @@ rather than passed explicitly.
 import json
 from unittest.mock import MagicMock, patch
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def _make_responses_api_response_body() -> dict:
@@ -74,7 +74,7 @@ def test_responses_eu_api_base_sets_data_residency():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+            "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
         patch.object(litellm.Logging, "__init__", init_spy),
@@ -96,7 +96,7 @@ def test_responses_us_api_base_sets_data_residency():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+            "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
         patch.object(litellm.Logging, "__init__", init_spy),
@@ -118,7 +118,7 @@ def test_responses_global_api_base_leaves_data_residency_none():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+            "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
         patch.object(litellm.Logging, "__init__", init_spy),

@@ -4,14 +4,14 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.guardrails.guardrail_hooks.pangea import initialize_guardrail
-from litellm.proxy.guardrails.guardrail_hooks.pangea.pangea import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.pangea import initialize_guardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.pangea.pangea import (
     PangeaGuardrailMissingSecrets,
     PangeaHandler,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.guardrails import GuardrailEventHooks, LitellmParams
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.guardrails import GuardrailEventHooks, LitellmParams
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ def test_initialize_guardrail_sets_event_hook():
     guardrail = {"guardrail_name": "pangea-ai-guard"}
 
     with patch(
-        "litellm.logging_callback_manager.add_litellm_callback"
+        "token_iq.gateway.logging_callback_manager.add_litellm_callback"
     ) as mock_add_callback:
         callback = initialize_guardrail(
             litellm_params=litellm_params, guardrail=guardrail
@@ -103,7 +103,7 @@ async def test_pangea_ai_guard_request_blocked(pangea_guardrail):
 
     with pytest.raises(HTTPException, match="Violated Pangea guardrail policy"):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 # Mock only tested part of response
@@ -137,7 +137,7 @@ async def test_pangea_ai_guard_request_transformed(pangea_guardrail):
     guardrail_endpoint = f"{pangea_guardrail.api_base}/v1beta/guard"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             # Mock only tested part of response
@@ -190,7 +190,7 @@ async def test_pangea_ai_guard_request_ok(pangea_guardrail):
     guardrail_endpoint = f"{pangea_guardrail.api_base}/v1beta/guard"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             # Mock only tested part of response
@@ -223,7 +223,7 @@ async def test_pangea_ai_guard_response_blocked(pangea_guardrail):
 
     with pytest.raises(HTTPException, match="Violated Pangea guardrail policy"):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 # Mock only tested part of response
@@ -274,7 +274,7 @@ async def test_pangea_ai_guard_response_ok(pangea_guardrail):
     guardrail_endpoint = f"{pangea_guardrail.api_base}/v1beta/guard"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             # Mock only tested part of response
@@ -325,7 +325,7 @@ async def test_pangea_ai_guard_response_transformed(pangea_guardrail):
     guardrail_endpoint = f"{pangea_guardrail.api_base}/v1beta/guard"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             # Mock only tested part of response

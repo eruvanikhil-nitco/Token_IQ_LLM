@@ -3,10 +3,10 @@ import traceback, asyncio
 import pytest
 from typing import List
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ async def test_send_llm_exception_alert_success():
     error_traceback = 'Traceback (most recent call last):\n  File "test.py", line 10, in <module>\n    raise Exception("Test exception")\nException: Test exception'
 
     # Call the function
-    from litellm.router_utils.handle_error import send_llm_exception_alert
+    from token_iq.gateway.router_utils.handle_error import send_llm_exception_alert
 
     await send_llm_exception_alert(
         mock_router, request_kwargs, error_traceback, mock_exception
@@ -70,7 +70,7 @@ async def test_send_llm_exception_alert_no_logger():
     error_traceback = 'Traceback (most recent call last):\n  File "test.py", line 10, in <module>\n    raise Exception("Test exception")\nException: Test exception'
 
     # Call the function
-    from litellm.router_utils.handle_error import send_llm_exception_alert
+    from token_iq.gateway.router_utils.handle_error import send_llm_exception_alert
 
     await send_llm_exception_alert(
         mock_router, request_kwargs, error_traceback, mock_exception
@@ -100,7 +100,7 @@ async def test_send_llm_exception_alert_when_proxy_server_request_in_kwargs():
     error_traceback = 'Traceback (most recent call last):\n  File "test.py", line 10, in <module>\n    raise Exception("Test exception")\nException: Test exception'
 
     # Call the function
-    from litellm.router_utils.handle_error import send_llm_exception_alert
+    from token_iq.gateway.router_utils.handle_error import send_llm_exception_alert
 
     await send_llm_exception_alert(
         mock_router, request_kwargs, error_traceback, mock_exception
@@ -117,8 +117,8 @@ async def test_async_raise_no_deployment_exception():
     Test that async_raise_no_deployment_exception returns a RouterRateLimitError
     with cooldown_list containing just IDs (not tuples with debug info).
     """
-    from litellm.router_utils.handle_error import async_raise_no_deployment_exception
-    from litellm.types.router import RouterRateLimitError
+    from token_iq.gateway.router_utils.handle_error import async_raise_no_deployment_exception
+    from token_iq.gateway.types.router import RouterRateLimitError
     from unittest.mock import patch
 
     # Create a mock LitellmRouter instance
@@ -136,7 +136,7 @@ async def test_async_raise_no_deployment_exception():
     ]
 
     with patch(
-        "litellm.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
+        "token_iq.gateway.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
         return_value=mock_cooldown_list,
     ):
         # Call the function
@@ -174,8 +174,8 @@ async def test_async_raise_no_deployment_exception_empty_cooldown_list():
     """
     Test that async_raise_no_deployment_exception handles empty cooldown list correctly.
     """
-    from litellm.router_utils.handle_error import async_raise_no_deployment_exception
-    from litellm.types.router import RouterRateLimitError
+    from token_iq.gateway.router_utils.handle_error import async_raise_no_deployment_exception
+    from token_iq.gateway.types.router import RouterRateLimitError
     from unittest.mock import patch
 
     # Create a mock LitellmRouter instance
@@ -188,7 +188,7 @@ async def test_async_raise_no_deployment_exception_empty_cooldown_list():
     mock_cooldown_list: List = []
 
     with patch(
-        "litellm.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
+        "token_iq.gateway.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
         return_value=mock_cooldown_list,
     ):
         # Call the function
@@ -218,8 +218,8 @@ async def test_async_raise_no_deployment_exception_none_cooldown_list():
     Note: In practice, _async_get_cooldown_deployments_with_debug_info should never return None
     based on the implementation, but this tests defensive programming.
     """
-    from litellm.router_utils.handle_error import async_raise_no_deployment_exception
-    from litellm.types.router import RouterRateLimitError
+    from token_iq.gateway.router_utils.handle_error import async_raise_no_deployment_exception
+    from token_iq.gateway.types.router import RouterRateLimitError
     from unittest.mock import patch
 
     # Create a mock LitellmRouter instance
@@ -232,7 +232,7 @@ async def test_async_raise_no_deployment_exception_none_cooldown_list():
     mock_cooldown_list = None
 
     with patch(
-        "litellm.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
+        "token_iq.gateway.router_utils.handle_error._async_get_cooldown_deployments_with_debug_info",
         return_value=mock_cooldown_list,
     ):
         # After the defensive fix, this should handle None gracefully and return empty list

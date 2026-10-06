@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.router_utils.cooldown_handlers import mark_advisor_orchestration_failure
-from litellm.router_utils.fallback_event_handlers import (
+from token_iq import gateway as litellm
+from token_iq.gateway.router_utils.cooldown_handlers import mark_advisor_orchestration_failure
+from token_iq.gateway.router_utils.fallback_event_handlers import (
     AttemptedFallbackTargets,
     _trigger_cooldown_for_failed_deployment,
     fallback_attempt_key,
@@ -784,7 +784,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             mock_set_cooldown.assert_called_once()
@@ -809,7 +809,7 @@ class TestTriggerCooldownForFailedDeployment:
             }
         }
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs=kwargs, exception=exc)
 
             mock_set_cooldown.assert_not_called()
@@ -826,9 +826,9 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
-            patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
+            patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
             patch(
-                "litellm.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
+                "token_iq.gateway.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
             ) as mock_increment,
         ):
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
@@ -841,7 +841,7 @@ class TestTriggerCooldownForFailedDeployment:
     def test_no_op_when_deployment_id_missing(self):
         mock_router = MagicMock()
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router, kwargs={}, exception=RuntimeError("no metadata")
             )
@@ -857,7 +857,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
         mark_advisor_orchestration_failure(exc)
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             mock_set_cooldown.assert_not_called()
@@ -870,7 +870,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             call_kwargs = mock_set_cooldown.call_args[1]
@@ -888,7 +888,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
         exc.litellm_response_headers = httpx.Headers({"retry-after": "45"})
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             call_kwargs = mock_set_cooldown.call_args[1]
@@ -903,7 +903,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch(
-            "litellm.router_utils.fallback_event_handlers._set_cooldown_deployments",
+            "token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments",
             side_effect=RuntimeError("cooldown error"),
         ):
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
@@ -921,9 +921,9 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
-            patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
+            patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
             patch(
-                "litellm.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
+                "token_iq.gateway.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
             ) as mock_increment,
         ):
             _trigger_cooldown_for_failed_deployment(
@@ -946,7 +946,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc = litellm.NotFoundError("not found", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             mock_set_cooldown.assert_called_once()
@@ -964,9 +964,9 @@ class TestTriggerCooldownForFailedDeployment:
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
-            patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
+            patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
             patch(
-                "litellm.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
+                "token_iq.gateway.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
             ) as mock_increment,
         ):
             _trigger_cooldown_for_failed_deployment(
@@ -989,7 +989,7 @@ class TestTriggerCooldownForFailedDeployment:
         exc = litellm.Timeout(message="timeout", model="gpt-4", llm_provider="openai")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
 
             mock_set_cooldown.assert_called_once()
@@ -1019,7 +1019,7 @@ class TestRunAsyncFallbackTriggersCooldown:
     @pytest.mark.asyncio
     async def test_triggers_cooldown_when_has_logged_async_failure_is_true(self):
         with patch(
-            "litellm.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
+            "token_iq.gateway.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
         ) as mock_trigger:
             with pytest.raises(RuntimeError, match="fallback model also failed"):
                 await run_async_fallback(
@@ -1041,7 +1041,7 @@ class TestRunAsyncFallbackTriggersCooldown:
         (has_logged_async_failure is still False at that point), so no explicit
         trigger is needed there."""
         with patch(
-            "litellm.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
+            "token_iq.gateway.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
         ) as mock_trigger:
             with pytest.raises(RuntimeError, match="fallback model also failed"):
                 await run_async_fallback(
@@ -1059,7 +1059,7 @@ class TestRunAsyncFallbackTriggersCooldown:
     @pytest.mark.asyncio
     async def test_does_not_trigger_cooldown_when_no_logging_obj_present(self):
         with patch(
-            "litellm.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
+            "token_iq.gateway.router_utils.fallback_event_handlers._trigger_cooldown_for_failed_deployment"
         ) as mock_trigger:
             with pytest.raises(RuntimeError, match="fallback model also failed"):
                 await run_async_fallback(
@@ -1209,7 +1209,7 @@ class TestPreRoutingSelectionIsPerHop:
 
 class TestOrderedFallbackLookupGroups:
     def test_tier_first_then_requested_group_deduped(self):
-        from litellm.router_utils.fallback_event_handlers import (
+        from token_iq.gateway.router_utils.fallback_event_handlers import (
             PRE_ROUTING_SELECTED_MODEL_KEY,
             fallback_lookup_groups,
         )
@@ -1221,7 +1221,7 @@ class TestOrderedFallbackLookupGroups:
         assert fallback_lookup_groups({}, None) == ()
 
     def test_session_remap_keeps_the_bound_router_between_tier_and_requested_group(self):
-        from litellm.router_utils.fallback_event_handlers import (
+        from token_iq.gateway.router_utils.fallback_event_handlers import (
             PRE_ROUTING_SELECTED_MODEL_KEY,
             fallback_lookup_groups,
         )
@@ -1243,7 +1243,7 @@ class TestOrderedFallbackLookupGroups:
         )
 
     def test_first_resolving_group_wins_and_generic_idx_survives_a_miss(self):
-        from litellm.router_utils.fallback_event_handlers import (
+        from token_iq.gateway.router_utils.fallback_event_handlers import (
             get_fallback_model_group_for_lookup_groups,
         )
 

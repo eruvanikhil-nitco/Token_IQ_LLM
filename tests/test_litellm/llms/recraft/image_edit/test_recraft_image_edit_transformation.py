@@ -7,10 +7,10 @@ import httpx
 import pytest
 
 
-from litellm.llms.recraft.image_edit.transformation import RecraftImageEditConfig
-from litellm.types.images.main import ImageEditOptionalRequestParams
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.llms.recraft.image_edit.transformation import RecraftImageEditConfig
+from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 class TestRecraftImageEditTransformation:

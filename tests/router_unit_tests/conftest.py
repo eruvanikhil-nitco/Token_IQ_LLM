@@ -5,7 +5,7 @@ import importlib
 
 import pytest
 
-import litellm  # noqa: E402,F401
+from token_iq import gateway as litellm  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -41,7 +41,7 @@ def setup_and_teardown():
     """
 
 
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     # flush all logs
     asyncio.run(GLOBAL_LOGGING_WORKER.clear_queue())

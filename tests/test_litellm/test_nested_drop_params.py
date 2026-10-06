@@ -11,7 +11,7 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from litellm.litellm_core_utils.dot_notation_indexing import (
+from token_iq.gateway.core_utils.dot_notation_indexing import (
     delete_nested_value,
     is_nested_path,
 )

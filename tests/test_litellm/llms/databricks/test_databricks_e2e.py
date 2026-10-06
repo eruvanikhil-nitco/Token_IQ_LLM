@@ -181,7 +181,7 @@ def test_user_agent_building():
     print("TEST: User-Agent Building")
     print("=" * 60)
 
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     # Test 1: Default
     ua = DatabricksBase._build_user_agent(None)
@@ -210,7 +210,7 @@ def test_token_redaction():
     print("TEST: Token Redaction")
     print("=" * 60)
 
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     # Test header redaction
     headers = {
@@ -246,7 +246,7 @@ def test_chat_completion(config: dict):
     print("TEST: Chat Completion")
     print("=" * 60)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     model = config.get("TEST_CHAT_MODEL", "databricks-gpt-oss-120b")
     full_model = f"databricks/{model}"
@@ -285,14 +285,14 @@ def test_chat_completion_default_user_agent(config: dict):
     print("TEST: Chat Completion with DEFAULT User-Agent")
     print("=" * 60)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Clear any custom user agent from environment
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
     saved_litellm_ua = os.environ.pop("LITELLM_USER_AGENT", None)
 
     try:
-        from litellm._version import version
+        from token_iq.gateway._version import version
     except Exception:
         version = "unknown"
 
@@ -336,14 +336,14 @@ def test_chat_completion_with_custom_user_agent(config: dict):
     print("TEST: Chat Completion with Custom User-Agent (parameter)")
     print("=" * 60)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Clear any env user agent to ensure parameter takes precedence
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
     saved_litellm_ua = os.environ.pop("LITELLM_USER_AGENT", None)
 
     try:
-        from litellm._version import version
+        from token_iq.gateway._version import version
     except Exception:
         version = "unknown"
 
@@ -387,14 +387,14 @@ def test_chat_completion_with_env_user_agent(config: dict):
     print("TEST: Chat Completion with User-Agent from ENV VAR")
     print("=" * 60)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Set a specific user agent via environment
     test_partner = "envpartner"
     os.environ["DATABRICKS_USER_AGENT"] = test_partner
 
     try:
-        from litellm._version import version
+        from token_iq.gateway._version import version
     except Exception:
         version = "unknown"
 
@@ -435,7 +435,7 @@ def test_embedding(config: dict):
     print("TEST: Embeddings")
     print("=" * 60)
 
-    import litellm
+    from token_iq import gateway as litellm
 
     model = config.get("TEST_EMBEDDING_MODEL", "databricks-bge-large-en")
     full_model = f"databricks/{model}"
@@ -485,7 +485,7 @@ def test_oauth_token_retrieval(config: dict):
         print("  Skipped: OAuth credentials not configured")
         return None
 
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     try:
         db = DatabricksBase()
@@ -524,8 +524,8 @@ def test_litellm_sdk_with_config_user_agent(config: dict):
     print("TEST: LiteLLM SDK with Config User-Agent")
     print("=" * 60)
 
-    import litellm
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
     if not custom_ua:
@@ -533,7 +533,7 @@ def test_litellm_sdk_with_config_user_agent(config: dict):
         return None
 
     try:
-        from litellm._version import version
+        from token_iq.gateway._version import version
     except Exception:
         version = "unknown"
 
@@ -580,7 +580,7 @@ def test_langchain_litellm_with_user_agent(config: dict):
     print("TEST: LangChain + LiteLLM with Config User-Agent")
     print("=" * 60)
 
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
     if not custom_ua:
@@ -665,8 +665,8 @@ def test_litellm_async_completion(config: dict):
     print("=" * 60)
 
     import asyncio
-    import litellm
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
     if not custom_ua:
@@ -720,8 +720,8 @@ def test_litellm_streaming_completion(config: dict):
     print("TEST: LiteLLM Streaming Completion with Config User-Agent")
     print("=" * 60)
 
-    import litellm
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
     if not custom_ua:
@@ -780,8 +780,8 @@ def test_litellm_embedding_with_user_agent(config: dict):
     print("TEST: LiteLLM Embedding with Config User-Agent")
     print("=" * 60)
 
-    import litellm
-    from litellm.llms.databricks.common_utils import DatabricksBase
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
     if not custom_ua:

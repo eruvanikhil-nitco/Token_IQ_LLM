@@ -3,9 +3,9 @@ import threading
 import time
 from typing import Final
 
-from litellm._logging import verbose_logger
-from litellm.constants import LOGGING_EXECUTOR_MAX_PENDING_TASKS
-from litellm.litellm_core_utils.thread_pool_executor import (
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.constants import LOGGING_EXECUTOR_MAX_PENDING_TASKS
+from token_iq.gateway.core_utils.thread_pool_executor import (
     BoundedLoggingThreadPoolExecutor,
     executor,
 )

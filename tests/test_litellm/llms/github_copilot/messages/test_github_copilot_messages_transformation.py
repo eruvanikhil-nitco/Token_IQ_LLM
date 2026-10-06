@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from litellm.exceptions import AuthenticationError
-from litellm.llms.github_copilot.common_utils import GetAPIKeyError
-from litellm.llms.github_copilot.messages.transformation import (
+from token_iq.gateway.exceptions import AuthenticationError
+from token_iq.gateway.llms.github_copilot.common_utils import GetAPIKeyError
+from token_iq.gateway.llms.github_copilot.messages.transformation import (
     GithubCopilotAnthropicMessagesConfig,
 )
 
@@ -226,8 +226,8 @@ def test_github_copilot_anthropic_messages_supported_params():
 def test_provider_config_manager_dispatches_claude_to_copilot_messages_config():
     """ProviderConfigManager must return the Copilot Anthropic Messages config
     for Claude models served via github_copilot."""
-    from litellm.types.utils import LlmProviders
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_anthropic_messages_config(
         model="github_copilot/claude-haiku-4.5",
@@ -240,8 +240,8 @@ def test_provider_config_manager_dispatches_claude_to_copilot_messages_config():
 def test_provider_config_manager_skips_non_claude_copilot_models():
     """Non-Claude github_copilot models (e.g. gpt-*) must not be routed through
     the Anthropic Messages dispatch."""
-    from litellm.types.utils import LlmProviders
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_anthropic_messages_config(
         model="github_copilot/gpt-5-mini",
@@ -278,8 +278,8 @@ def test_github_copilot_config_disables_anthropic_beta_filtering():
     forwarded verbatim. The default provider-scoped filter would drop them
     because github_copilot has no entry in the beta headers config; a regression
     here would silently disable header-gated Anthropic features for Copilot."""
-    from litellm.anthropic_beta_headers_manager import update_headers_with_filtered_beta
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.anthropic_beta_headers_manager import update_headers_with_filtered_beta
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 
@@ -317,7 +317,7 @@ def test_github_copilot_config_does_not_handle_web_search_natively():
     interception handler short-circuiting Copilot instead of routing to it, even
     though Copilot now has a BaseAnthropicMessagesConfig. The base Anthropic
     config (bedrock/vertex/anthropic path) must report True."""
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 

@@ -13,20 +13,20 @@ from unittest.mock import MagicMock, AsyncMock, patch
 
 # Add the project root to the path
 
-import litellm
-from litellm.exceptions import BlockedPiiEntityError, GuardrailRaisedException
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
-from litellm.types.mcp import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.types.mcp import (
     MCPPreCallRequestObject,
     MCPPreCallResponseObject,
     MCPDuringCallRequestObject,
     MCPDuringCallResponseObject,
 )
-from litellm.types.llms.base import HiddenParams
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.llms.base import HiddenParams
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from fastapi import HTTPException
 
 

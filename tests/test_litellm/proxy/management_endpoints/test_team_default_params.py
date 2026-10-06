@@ -9,8 +9,8 @@ import pytest
 from fastapi import HTTPException
 
 
-import litellm
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_OrganizationTable,
     NewTeamRequest,
@@ -18,10 +18,10 @@ from litellm.proxy._types import (
     UserAPIKeyAuth,
     LitellmUserRoles,
 )
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     _get_default_team_param,
 )
-from litellm.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
 
 # ---------------------------------------------------------------------------
@@ -157,7 +157,7 @@ class TestNewTeamDefaultParamsApplied:
         mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_teamtable.count = AsyncMock(return_value=0)
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Reset default_team_settings to avoid legacy fallback interference
         monkeypatch.setattr(litellm, "default_team_settings", None)
@@ -178,7 +178,7 @@ class TestNewTeamDefaultParamsApplied:
         )
 
     def _patch_org_lookup(self, monkeypatch, **mock_kwargs) -> AsyncMock:
-        from litellm.proxy.management_endpoints import team_endpoints
+        from token_iq.gateway.proxy.management_endpoints import team_endpoints
 
         lookup = AsyncMock(**mock_kwargs)
         monkeypatch.setattr(team_endpoints, "get_org_object", lookup)
@@ -187,7 +187,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_all_defaults_applied_when_not_provided(self, monkeypatch):
         """When no budget/rate/permission fields are in the request, all defaults apply."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -223,7 +223,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_explicit_values_not_overridden(self, monkeypatch):
         """When request provides explicit values, defaults do not override them."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -266,7 +266,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_partial_defaults_applied(self, monkeypatch):
         """Only missing fields get defaults; provided fields are untouched."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -303,7 +303,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_no_defaults_when_config_is_none(self, monkeypatch):
         """When default_team_params is None, no defaults applied."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", None)
 
@@ -329,7 +329,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_legacy_default_team_settings_fallback(self, monkeypatch):
         """Legacy default_team_settings YAML config applies max_budget as fallback."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", None)
         monkeypatch.setattr(
@@ -355,7 +355,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_default_team_params_takes_priority_over_legacy(self, monkeypatch):
         """default_team_params max_budget takes priority over legacy default_team_settings."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -387,7 +387,7 @@ class TestNewTeamDefaultParamsApplied:
     async def test_default_organization_applied_and_validated(self, monkeypatch):
         """The default org must land before the org-validation block, so a defaulted
         org goes through the same existence + org-limit checks as an explicit one."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "default-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("default-org"))
@@ -410,7 +410,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_explicit_organization_wins_over_default(self, monkeypatch):
         """An organization_id in the request must not be replaced by the default."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "default-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("explicit-org"))
@@ -433,8 +433,8 @@ class TestNewTeamDefaultParamsApplied:
     async def test_nonexistent_default_organization_returns_400(self, monkeypatch):
         """get_org_object raises instead of returning None, so an org that no longer
         exists surfaced as a 500; team creation must report a 400 instead."""
-        from litellm.proxy.auth.auth_checks import OrganizationNotFoundError
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.auth.auth_checks import OrganizationNotFoundError
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "deleted-org"})
         self._patch_org_lookup(
@@ -456,7 +456,7 @@ class TestNewTeamDefaultParamsApplied:
     async def test_defaulted_max_budget_validated_against_org_budget(self, monkeypatch):
         """Defaults must be applied BEFORE _check_org_team_limits runs, or a default
         max_budget above the org's cap is persisted unchecked."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -479,7 +479,7 @@ class TestNewTeamDefaultParamsApplied:
     async def test_explicit_budget_validated_against_default_org_budget(self, monkeypatch):
         """The org lookup must load the budget table (include_budget_table=True);
         without it litellm_budget_table is None and every budget comparison is skipped."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "capped-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("capped-org", max_budget=100.0))
@@ -498,7 +498,7 @@ class TestNewTeamDefaultParamsApplied:
     @pytest.mark.asyncio
     async def test_defaults_within_org_budget_still_created(self, monkeypatch):
         """A default budget under the org cap must not be rejected by the reordered check."""
-        from litellm.proxy.management_endpoints.team_endpoints import new_team
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
             litellm,
@@ -534,10 +534,10 @@ class TestUpdateLitellmSettingOrdering:
     @pytest.mark.asyncio
     async def test_setattr_not_overwritten_by_get_config(self, monkeypatch):
         """The new in-memory value survives get_config() which may load stale DB values."""
-        from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+        from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
             _update_litellm_setting,
         )
-        from litellm.types.proxy.management_endpoints.ui_sso import (
+        from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
         )
 
@@ -560,11 +560,11 @@ class TestUpdateLitellmSettingOrdering:
         async def mock_save_config(new_config=None):
             saved_configs.append(new_config)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(proxy_config, "get_config", mock_get_config)
         monkeypatch.setattr(proxy_config, "save_config", mock_save_config)
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # New settings to save
         new_settings = DefaultTeamSSOParams(
@@ -597,14 +597,14 @@ class TestUpdateLitellmSettingOrdering:
         """Raises HTTPException when store_model_in_db is not True."""
         from fastapi import HTTPException
 
-        from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+        from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
             _update_litellm_setting,
         )
-        from litellm.types.proxy.management_endpoints.ui_sso import (
+        from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
         )
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
 
         with pytest.raises(HTTPException) as exc_info:
             await _update_litellm_setting(
@@ -626,13 +626,13 @@ class TestSafeDbOverrides:
     """Verify default_team_params is in the safe overrides list."""
 
     def test_default_team_params_in_safe_overrides(self):
-        from litellm.constants import LITELLM_SETTINGS_SAFE_DB_OVERRIDES
+        from token_iq.gateway.constants import LITELLM_SETTINGS_SAFE_DB_OVERRIDES
 
         assert "default_team_params" in LITELLM_SETTINGS_SAFE_DB_OVERRIDES
 
     def test_default_internal_user_params_in_safe_overrides(self):
         """Sanity: default_internal_user_params was already in the list."""
-        from litellm.constants import LITELLM_SETTINGS_SAFE_DB_OVERRIDES
+        from token_iq.gateway.constants import LITELLM_SETTINGS_SAFE_DB_OVERRIDES
 
         assert "default_internal_user_params" in LITELLM_SETTINGS_SAFE_DB_OVERRIDES
 
@@ -653,7 +653,7 @@ class TestBulkUpdateTeamMemberPermissions:
         return team
 
     def _admin_key_dict(self):
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
         return UserAPIKeyAuth(
             user_role=LitellmUserRoles.PROXY_ADMIN.value,
@@ -661,7 +661,7 @@ class TestBulkUpdateTeamMemberPermissions:
         )
 
     def _non_admin_key_dict(self):
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
         return UserAPIKeyAuth(
             user_role=LitellmUserRoles.INTERNAL_USER.value,
@@ -673,10 +673,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_all_teams_appends_preserving_existing(self, monkeypatch):
         """apply_to_all_teams: permissions are merged, not overwritten."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -689,7 +689,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_a, team_b])
         mock_prisma.db.batch_ = MagicMock(return_value=mock_batcher)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=["/team/daily/activity"], apply_to_all_teams=True)
         result = await bulk_update_team_member_permissions(data=data, user_api_key_dict=self._admin_key_dict())
@@ -709,10 +709,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_all_teams_skips_teams_that_already_have_permission(self, monkeypatch):
         """apply_to_all_teams: teams that already have the permission are skipped."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -725,7 +725,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_has, team_missing])
         mock_prisma.db.batch_ = MagicMock(return_value=mock_batcher)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=["/team/daily/activity"], apply_to_all_teams=True)
         result = await bulk_update_team_member_permissions(data=data, user_api_key_dict=self._admin_key_dict())
@@ -738,10 +738,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_all_teams_pagination(self, monkeypatch):
         """apply_to_all_teams: cursor-based pagination processes multiple pages."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -754,7 +754,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(side_effect=[page1, page2])
         mock_prisma.db.batch_ = MagicMock(return_value=mock_batcher)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=["/team/daily/activity"], apply_to_all_teams=True)
         result = await bulk_update_team_member_permissions(data=data, user_api_key_dict=self._admin_key_dict())
@@ -770,10 +770,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_team_ids_updates_only_specified_teams(self, monkeypatch):
         """team_ids: only the specified teams are fetched and updated."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -786,7 +786,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_a, team_b])
         mock_prisma.db.batch_ = MagicMock(return_value=mock_batcher)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(
             permissions=["/team/daily/activity"], team_ids=["team-a", "team-b"]
@@ -802,10 +802,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_team_ids_skips_teams_that_already_have_permission(self, monkeypatch):
         """team_ids: teams that already have the permission are skipped."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -818,7 +818,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_has, team_missing])
         mock_prisma.db.batch_ = MagicMock(return_value=mock_batcher)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(
             permissions=["/team/daily/activity"], team_ids=["team-has", "team-missing"]
@@ -832,10 +832,10 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_team_ids_returns_404_for_missing_teams(self, monkeypatch):
         """If any provided team_ids don't exist, return 404."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
@@ -844,7 +844,7 @@ class TestBulkUpdateTeamMemberPermissions:
         mock_prisma = MagicMock()
         # Only team-a exists, team-b does not
         mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_a])
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(
             permissions=["/team/daily/activity"], team_ids=["team-a", "team-b"]
@@ -861,15 +861,15 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_rejects_when_no_team_ids_and_no_apply_all(self, monkeypatch):
         """Must provide team_ids or set apply_to_all_teams=True."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
         mock_prisma = MagicMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=["/team/daily/activity"])
 
@@ -881,15 +881,15 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_rejects_when_both_team_ids_and_apply_all(self, monkeypatch):
         """Cannot set both team_ids and apply_to_all_teams."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
         mock_prisma = MagicMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(
             permissions=["/team/daily/activity"],
@@ -905,15 +905,15 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_empty_permissions_list_is_noop(self, monkeypatch):
         """Passing an empty permissions list returns immediately with 0 updated."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
         mock_prisma = MagicMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=[])
         result = await bulk_update_team_member_permissions(data=data, user_api_key_dict=self._admin_key_dict())
@@ -924,15 +924,15 @@ class TestBulkUpdateTeamMemberPermissions:
     @pytest.mark.asyncio
     async def test_non_admin_gets_403(self, monkeypatch):
         """Non-admin users are rejected with 403."""
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             bulk_update_team_member_permissions,
         )
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 
         mock_prisma = MagicMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         data = BulkUpdateTeamMemberPermissionsRequest(permissions=["/team/daily/activity"], apply_to_all_teams=True)
 
@@ -945,7 +945,7 @@ class TestBulkUpdateTeamMemberPermissions:
         """Invalid permission strings are rejected at the type level by Pydantic."""
         from pydantic import ValidationError
 
-        from litellm.types.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
             BulkUpdateTeamMemberPermissionsRequest,
         )
 

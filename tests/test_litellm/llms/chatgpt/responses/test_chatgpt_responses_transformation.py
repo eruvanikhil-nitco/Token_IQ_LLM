@@ -1,7 +1,7 @@
 """
 Tests for ChatGPT subscription Responses API transformation
 
-Source: litellm/llms/chatgpt/responses/transformation.py
+Source: token_iq/gateway/llms/chatgpt/responses/transformation.py
 """
 
 import json
@@ -11,11 +11,11 @@ import httpx
 import pytest
 
 
-from litellm.llms.openai.common_utils import OpenAIError
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
-from litellm.llms.chatgpt.responses.transformation import ChatGPTResponsesAPIConfig
+from token_iq.gateway.llms.openai.common_utils import OpenAIError
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
+from token_iq.gateway.llms.chatgpt.responses.transformation import ChatGPTResponsesAPIConfig
 
 
 class TestChatGPTResponsesAPITransformation:
@@ -40,7 +40,7 @@ class TestChatGPTResponsesAPITransformation:
         assert isinstance(config, ChatGPTResponsesAPIConfig)
         assert config.custom_llm_provider == LlmProviders.CHATGPT
 
-    @patch("litellm.llms.chatgpt.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.chatgpt.responses.transformation.Authenticator")
     def test_chatgpt_responses_endpoint_url(self, mock_authenticator_class):
         mock_auth_instance = MagicMock()
         mock_auth_instance.get_api_base.return_value = "https://chatgpt.example.com"
@@ -61,7 +61,7 @@ class TestChatGPTResponsesAPITransformation:
         )
         assert url_with_slash == "https://chatgpt.example.com/responses"
 
-    @patch("litellm.llms.chatgpt.responses.transformation.Authenticator")
+    @patch("token_iq.gateway.llms.chatgpt.responses.transformation.Authenticator")
     def test_validate_environment_headers(self, mock_authenticator_class):
         mock_auth_instance = MagicMock()
         mock_auth_instance.get_access_token.return_value = "access-123"

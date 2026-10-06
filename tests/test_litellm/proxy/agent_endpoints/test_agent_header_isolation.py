@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.constants import DEFAULT_A2A_AGENT_TIMEOUT
+from token_iq.gateway.constants import DEFAULT_A2A_AGENT_TIMEOUT
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ def _a2a_types_module():
 
 
 async def _invoke_agent(agent, request):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     user_api_key_dict = UserAPIKeyAuth(api_key="sk-test", user_id="u1")
     fastapi_response = MagicMock()
@@ -111,37 +111,37 @@ async def _invoke_agent(agent, request):
 
     with (
         patch(
-            "litellm.proxy.agent_endpoints.a2a_endpoints._get_agent",
+            "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._get_agent",
             return_value=agent,
         ),
         patch(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
             new_callable=AsyncMock,
             return_value=True,
         ),
         patch(
-            "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
             side_effect=lambda data, **kw: data,
         ),
         patch(
-            "litellm.a2a_protocol.asend_message",
+            "token_iq.gateway.a2a_protocol.asend_message",
             new_callable=AsyncMock,
             return_value=mock_response,
         ) as mock_asend,
         patch(
-            "litellm.a2a_protocol.create_a2a_client",
+            "token_iq.gateway.a2a_protocol.create_a2a_client",
             new_callable=AsyncMock,
         ),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.proxy_config", MagicMock()),
-        patch("litellm.proxy.proxy_server.version", "1.0.0"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.version", "1.0.0"),
         patch.dict(
             sys.modules,
             {"a2a": MagicMock(), "a2a.types": _a2a_types_module()},
         ),
-        patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
+        patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
     ):
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         await invoke_agent_a2a(
             agent_id=agent.agent_id,
@@ -270,22 +270,22 @@ async def test_create_a2a_client_leaves_the_shared_client_untouched():
     tests/test_litellm/a2a_protocol/test_main.py.
     """
     pytest.importorskip("a2a.client")
-    from litellm.a2a_protocol.main import create_a2a_client
+    from token_iq.gateway.a2a_protocol.main import create_a2a_client
 
     captured_calls: list = []
 
     with (
-        patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
+        patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
         patch(
-            "litellm.a2a_protocol.main.get_async_httpx_client",
+            "token_iq.gateway.a2a_protocol.main.get_async_httpx_client",
             side_effect=_fake_get_async_httpx_client_factory(captured_calls),
         ),
         patch(
-            "litellm.a2a_protocol.main.create_client",
+            "token_iq.gateway.a2a_protocol.main.create_client",
             new=AsyncMock(side_effect=_fake_create_client),
         ),
         patch(
-            "litellm.a2a_protocol.main.A2ACardResolver",
+            "token_iq.gateway.a2a_protocol.main.A2ACardResolver",
             side_effect=_fake_card_resolver,
         ),
     ):
@@ -312,7 +312,7 @@ async def test_create_a2a_client_leaves_the_shared_client_untouched():
 async def test_create_a2a_client_default_timeout_matches_constant():
     """When timeout is omitted, httpx client params must use DEFAULT_A2A_AGENT_TIMEOUT."""
     pytest.importorskip("a2a.client")
-    from litellm.a2a_protocol.main import create_a2a_client
+    from token_iq.gateway.a2a_protocol.main import create_a2a_client
 
     captured: dict = {}
 
@@ -324,17 +324,17 @@ async def test_create_a2a_client_default_timeout_matches_constant():
         return handler
 
     with (
-        patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
+        patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
         patch(
-            "litellm.a2a_protocol.main.get_async_httpx_client",
+            "token_iq.gateway.a2a_protocol.main.get_async_httpx_client",
             side_effect=_capture_get_async_httpx_client,
         ),
         patch(
-            "litellm.a2a_protocol.main.create_client",
+            "token_iq.gateway.a2a_protocol.main.create_client",
             new=AsyncMock(side_effect=_fake_create_client),
         ),
         patch(
-            "litellm.a2a_protocol.main.A2ACardResolver",
+            "token_iq.gateway.a2a_protocol.main.A2ACardResolver",
             side_effect=_fake_card_resolver,
         ),
     ):
@@ -347,7 +347,7 @@ async def test_create_a2a_client_default_timeout_matches_constant():
 async def test_create_a2a_client_explicit_timeout_overrides_default():
     """Explicit timeout= must be passed through to the httpx client params."""
     pytest.importorskip("a2a.client")
-    from litellm.a2a_protocol.main import create_a2a_client
+    from token_iq.gateway.a2a_protocol.main import create_a2a_client
 
     captured: dict = {}
 
@@ -359,17 +359,17 @@ async def test_create_a2a_client_explicit_timeout_overrides_default():
         return handler
 
     with (
-        patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
+        patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
         patch(
-            "litellm.a2a_protocol.main.get_async_httpx_client",
+            "token_iq.gateway.a2a_protocol.main.get_async_httpx_client",
             side_effect=_capture_get_async_httpx_client,
         ),
         patch(
-            "litellm.a2a_protocol.main.create_client",
+            "token_iq.gateway.a2a_protocol.main.create_client",
             new=AsyncMock(side_effect=_fake_create_client),
         ),
         patch(
-            "litellm.a2a_protocol.main.A2ACardResolver",
+            "token_iq.gateway.a2a_protocol.main.A2ACardResolver",
             side_effect=_fake_card_resolver,
         ),
     ):

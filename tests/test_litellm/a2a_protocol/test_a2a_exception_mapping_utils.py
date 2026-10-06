@@ -1,12 +1,12 @@
-"""Tests for litellm/a2a_protocol/exception_mapping_utils.py."""
+"""Tests for token_iq/gateway/a2a_protocol/exception_mapping_utils.py."""
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.a2a_protocol import exception_mapping_utils as emu
-from litellm.a2a_protocol.exceptions import A2ALocalhostURLError
+from token_iq.gateway.a2a_protocol import exception_mapping_utils as emu
+from token_iq.gateway.a2a_protocol.exceptions import A2ALocalhostURLError
 
 
 def _localhost_error() -> A2ALocalhostURLError:
@@ -131,7 +131,7 @@ async def test_localhost_retry_raises_when_agent_card_is_none():
 
 
 def test_get_a2a_client_agent_card_reads_sdk_private_card():
-    from litellm.a2a_protocol.main import _get_a2a_client_agent_card
+    from token_iq.gateway.a2a_protocol.main import _get_a2a_client_agent_card
 
     sdk_card = SimpleNamespace(name="Test Agent", url="http://localhost:10001/")
     a2a_client = SimpleNamespace(_card=sdk_card)
@@ -142,7 +142,7 @@ def test_get_a2a_client_agent_card_reads_sdk_private_card():
 @pytest.mark.asyncio
 async def test_stream_with_retry_raises_after_localhost_retries_exhausted():
     """Exhausted localhost retries must not return a silent empty stream."""
-    from litellm.a2a_protocol.main import _execute_a2a_stream_with_retry
+    from token_iq.gateway.a2a_protocol.main import _execute_a2a_stream_with_retry
 
     localhost_err = _localhost_error()
     mock_request = MagicMock()
@@ -155,11 +155,11 @@ async def test_stream_with_retry_raises_after_localhost_retries_exhausted():
 
     with (
         patch(
-            "litellm.a2a_protocol.main._stream_messages",
+            "token_iq.gateway.a2a_protocol.main._stream_messages",
             new=_always_fail_stream,
         ),
         patch(
-            "litellm.a2a_protocol.main.handle_a2a_localhost_retry",
+            "token_iq.gateway.a2a_protocol.main.handle_a2a_localhost_retry",
             new=AsyncMock(return_value=mock_a2a_client),
         ),
     ):

@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.llms.novita.chat.transformation import NovitaConfig
+from token_iq.gateway.llms.novita.chat.transformation import NovitaConfig
 
 
 class TestNovitaConfig:
@@ -59,7 +59,7 @@ class TestNovitaConfig:
         """Test proper inheritance from OpenAIGPTConfig"""
         config = NovitaConfig()
 
-        from litellm.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
+        from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 
         assert isinstance(config, OpenAIGPTConfig)
         assert hasattr(config, "get_supported_openai_params")

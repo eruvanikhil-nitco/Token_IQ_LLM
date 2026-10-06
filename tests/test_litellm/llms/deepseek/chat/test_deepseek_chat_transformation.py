@@ -1,5 +1,5 @@
-import litellm
-from litellm.llms.deepseek.chat.transformation import DeepSeekChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.deepseek.chat.transformation import DeepSeekChatConfig
 
 
 def _function_tool(name: str) -> dict:

@@ -6,8 +6,8 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app, initialize
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app, initialize
 
 
 def _mock_user_api_key_auth():
@@ -40,7 +40,7 @@ def _make_mock_tts_response():
 
 @pytest.fixture
 def client_no_auth():
-    from litellm.proxy.proxy_server import cleanup_router_config_variables
+    from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
     cleanup_router_config_variables()
     filepath = os.path.dirname(os.path.abspath(__file__))
@@ -80,9 +80,9 @@ async def test_audio_speech_success_does_not_call_post_call_success_hook(
     app.dependency_overrides[user_api_key_auth] = _mock_user_api_key_auth
     try:
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_logging),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_logging),
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_mock_route_request,
             ),
         ):
@@ -121,9 +121,9 @@ async def test_audio_speech_failure_calls_post_call_failure_hook(client_no_auth)
     client = TestClient(app, raise_server_exceptions=False)
     try:
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_logging),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_logging),
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_mock_route_request_raise,
             ),
         ):

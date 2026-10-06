@@ -14,12 +14,12 @@ from typing import Any, Dict, List, Optional
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm import Router
-from litellm.caching.caching import DualCache
-from litellm.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     PARALLEL_REQUEST_SLOT_TTL_SECONDS,
     ParallelSlotAcquisition,
     RequestRateLimiterStash,
@@ -27,12 +27,12 @@ from litellm.proxy.hooks.parallel_request_limiter_v3 import (
     get_or_create_request_stash,
     get_request_stash,
 )
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     _PROXY_MaxParallelRequestsHandler_v3 as _PROXY_MaxParallelRequestsHandler,
 )
-from litellm.proxy.utils import InternalUsageCache, ProxyLogging, hash_token
-from litellm.types.caching import RedisPipelineIncrementOperation
-from litellm.types.utils import (
+from token_iq.gateway.proxy.utils import InternalUsageCache, ProxyLogging, hash_token
+from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
+from token_iq.gateway.types.utils import (
     EmbeddingResponse,
     ModelResponse,
     TextCompletionResponse,
@@ -1069,7 +1069,7 @@ async def test_model_specific_rate_limits_only_called_when_configured_v3():
     """
     Test that model-specific rate limits only trigger should_rate_limit when actually configured for the requested model.
     """
-    from litellm.proxy.auth.auth_utils import (
+    from token_iq.gateway.proxy.auth.auth_utils import (
         get_key_model_rpm_limit,
         get_key_model_tpm_limit,
     )
@@ -1577,8 +1577,8 @@ async def test_async_increment_tokens_with_ttl_preservation():
     """
     import time
 
-    from litellm.caching.redis_cache import RedisCache
-    from litellm.types.caching import RedisPipelineIncrementOperation
+    from token_iq.gateway.caching.redis_cache import RedisCache
+    from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
 
     # Skip test if Redis environment variables are not set
     redis_host = os.getenv("REDIS_HOST")
@@ -1752,7 +1752,7 @@ async def test_async_increment_tokens_fallback_behavior():
     """
     Test fallback behavior when Lua script is not available.
     """
-    from litellm.types.caching import RedisPipelineIncrementOperation
+    from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
 
     local_cache = DualCache()
     parallel_request_handler = _PROXY_MaxParallelRequestsHandler(
@@ -2123,7 +2123,7 @@ async def test_get_rate_limit_type_default_is_total(monkeypatch):
     )
 
     # Mock general_settings to return empty dict (no token_rate_limit_type set)
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     original_settings = getattr(proxy_server, "general_settings", {})
     monkeypatch.setattr(proxy_server, "general_settings", {})
@@ -2148,7 +2148,7 @@ async def test_get_rate_limit_type_invalid_falls_back_to_total(monkeypatch):
     )
 
     # Mock general_settings to return an invalid token_rate_limit_type
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     original_settings = getattr(proxy_server, "general_settings", {})
     monkeypatch.setattr(
@@ -2200,7 +2200,7 @@ async def test_async_log_success_event_with_dict_usage(
     )
 
     # Create a mock response object with usage as a dict (Responses API format)
-    from litellm.types.utils import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.utils import BaseLiteLLMOpenAIResponseObject
 
     # Use spec to make isinstance checks work correctly with MagicMock
     mock_response = MagicMock(spec=BaseLiteLLMOpenAIResponseObject)
@@ -2296,7 +2296,7 @@ async def test_async_log_success_event_with_dict_usage_missing_fields(monkeypatc
         # completion_tokens is missing
         # total_tokens is missing
     }
-    from litellm.types.utils import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.utils import BaseLiteLLMOpenAIResponseObject
 
     mock_response.__class__ = type(
         "MockResponse", (BaseLiteLLMOpenAIResponseObject,), {}
@@ -2353,7 +2353,7 @@ async def test_execute_token_increment_script_cluster_compatibility():
     from typing import List
     from unittest.mock import AsyncMock, patch
 
-    from litellm.types.caching import RedisPipelineIncrementOperation
+    from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
 
     local_cache = DualCache()
     handler = _PROXY_MaxParallelRequestsHandler(
@@ -2418,7 +2418,7 @@ async def test_agent_level_rate_limit_descriptors():
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     _api_key = "sk-12345"
     _api_key = hash_token(_api_key)
@@ -2452,7 +2452,7 @@ async def test_agent_level_rate_limit_descriptors():
     parallel_request_handler.should_rate_limit = mock_should_rate_limit
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2484,7 +2484,7 @@ async def test_agent_session_rate_limit_descriptors():
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     _api_key = "sk-12345"
     _api_key = hash_token(_api_key)
@@ -2519,7 +2519,7 @@ async def test_agent_session_rate_limit_descriptors():
     parallel_request_handler.should_rate_limit = mock_should_rate_limit
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2554,7 +2554,7 @@ async def test_agent_session_rate_limit_skipped_without_session_id():
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     _api_key = "sk-12345"
     _api_key = hash_token(_api_key)
@@ -2588,7 +2588,7 @@ async def test_agent_session_rate_limit_skipped_without_session_id():
     parallel_request_handler.should_rate_limit = mock_should_rate_limit
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2614,7 +2614,7 @@ async def test_agent_rate_limit_from_metadata_agent_id():
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     _api_key = "sk-12345"
     _api_key = hash_token(_api_key)
@@ -2647,7 +2647,7 @@ async def test_agent_rate_limit_from_metadata_agent_id():
     parallel_request_handler.should_rate_limit = mock_should_rate_limit
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2683,7 +2683,7 @@ async def test_agent_both_agent_and_session_rate_limits():
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     _api_key = "sk-12345"
     _api_key = hash_token(_api_key)
@@ -2720,7 +2720,7 @@ async def test_agent_both_agent_and_session_rate_limits():
     parallel_request_handler.should_rate_limit = mock_should_rate_limit
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2842,7 +2842,7 @@ async def test_agent_rate_limit_429_on_over_limit(monkeypatch, time_controller):
     """
     from unittest.mock import patch
 
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     monkeypatch.setenv("LITELLM_RATE_LIMIT_WINDOW_SIZE", "2")
     _api_key = "sk-12345"
@@ -2904,7 +2904,7 @@ async def test_agent_rate_limit_429_on_over_limit(monkeypatch, time_controller):
     parallel_request_handler.batch_rate_limiter_script = mock_batch_rate_limiter
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry.get_agent_by_id",
         return_value=mock_agent,
     ):
         await parallel_request_handler.async_pre_call_hook(
@@ -2951,7 +2951,7 @@ class TestGetTotalTokensFromUsageCacheExclusion:
 
     def test_excludes_cached_tokens_from_total(self, handler):
         """Cached tokens should be excluded from total token count."""
-        from litellm.types.utils import PromptTokensDetailsWrapper
+        from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
         usage = Usage(
             prompt_tokens=1000,
@@ -2966,7 +2966,7 @@ class TestGetTotalTokensFromUsageCacheExclusion:
 
     def test_excludes_cached_tokens_from_input(self, handler):
         """Cached tokens should be excluded from input token count."""
-        from litellm.types.utils import PromptTokensDetailsWrapper
+        from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
         usage = Usage(
             prompt_tokens=1000,
@@ -2981,7 +2981,7 @@ class TestGetTotalTokensFromUsageCacheExclusion:
 
     def test_does_not_exclude_cached_tokens_from_output(self, handler):
         """Cached tokens should NOT affect output token count."""
-        from litellm.types.utils import PromptTokensDetailsWrapper
+        from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
         usage = Usage(
             prompt_tokens=1000,
@@ -3847,7 +3847,7 @@ async def test_mcp_per_key_rpm_enforced_v3(monkeypatch):
 
 
 def test_get_key_mcp_rpm_limit_precedence():
-    from litellm.proxy.auth.auth_utils import (
+    from token_iq.gateway.proxy.auth.auth_utils import (
         get_key_mcp_rpm_limit,
         get_team_mcp_rpm_limit,
     )
@@ -4325,7 +4325,7 @@ async def test_async_streaming_data_generator_releases_counter_on_disconnect_v3(
     Releasing inside the nested iterator hook does not work because that
     generator is only closed on garbage collection, which is non-deterministic.
     """
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
     limiter, cache, counter_key, user_api_key_dict = await _build_seeded_limiter()
     assert limiter._gauge_in_flight_from_cache_value(
@@ -4377,7 +4377,7 @@ async def test_async_data_generator_releases_counter_on_disconnect_v3(disconnect
     gap that let a disconnect leak the slot in the default limiter-only config.
     A mid-stream disconnect must still refund the pre-call +1.
     """
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     limiter, cache, counter_key, user_api_key_dict = await _build_seeded_limiter()
     proxy_logging_obj = proxy_server.proxy_logging_obj
@@ -4431,8 +4431,8 @@ async def test_async_data_generator_releases_counter_when_wrapped_v3():
     from the outer generator: the counter returns to 0 (not -1), proving the
     nested hook does not also refund and there is no double decrement.
     """
-    from litellm.integrations.custom_logger import CustomLogger
-    import litellm.proxy.proxy_server as proxy_server
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     class _PassthroughIteratorOverride(CustomLogger):
         async def async_post_call_streaming_iterator_hook(
@@ -5197,7 +5197,7 @@ async def test_atomic_check_with_zero_increment_still_enforces_token_limit():
     TPM-only descriptor produced zero counters to evaluate and the call
     returned OK with empty statuses; TPM limits were never enforced at all.
     """
-    from litellm.proxy.hooks.parallel_request_limiter_v3 import RateLimitDescriptor
+    from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import RateLimitDescriptor
 
     handler = _PROXY_MaxParallelRequestsHandler(
         internal_usage_cache=InternalUsageCache(DualCache())
@@ -5267,7 +5267,7 @@ async def test_reserve_tpm_tokens_never_evaluates_the_requests_dimension():
     should_rate_limit pass. Now that zero-increment counters are checked
     instead of skipped, reserve_tpm_tokens must strip requests_per_unit from
     its descriptors or an exhausted RPM budget would double-enforce here."""
-    from litellm.proxy.hooks.parallel_request_limiter_v3 import RateLimitDescriptor
+    from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import RateLimitDescriptor
 
     handler = _PROXY_MaxParallelRequestsHandler(
         internal_usage_cache=InternalUsageCache(DualCache())
@@ -5876,7 +5876,7 @@ def _batch_response(batch_id: str, status: str):
 
 @pytest.mark.asyncio
 async def test_success_hook_persists_batch_enqueued_reservation_and_refunds_on_completion():
-    from litellm.proxy.hooks.batch_enqueued_tokens import (
+    from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
         BatchEnqueuedTokenOverLimit,
         BatchEnqueuedTokenReservation,
         BatchEnqueuedTokenScope,
@@ -5911,7 +5911,7 @@ async def test_success_hook_persists_batch_enqueued_reservation_and_refunds_on_c
 
 @pytest.mark.asyncio
 async def test_success_hook_refunds_batch_enqueued_reservation_on_cancellation():
-    from litellm.proxy.hooks.batch_enqueued_tokens import (
+    from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
         BatchEnqueuedTokenReservation,
         BatchEnqueuedTokenScope,
     )
@@ -5936,7 +5936,7 @@ async def test_success_hook_refunds_batch_enqueued_reservation_on_cancellation()
 
 @pytest.mark.asyncio
 async def test_success_hook_refunds_on_provider_cased_terminal_status():
-    from litellm.proxy.hooks.batch_enqueued_tokens import (
+    from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
         BatchEnqueuedTokenOverLimit,
         BatchEnqueuedTokenReservation,
         BatchEnqueuedTokenScope,
@@ -5963,7 +5963,7 @@ async def test_success_hook_refunds_on_provider_cased_terminal_status():
 
 @pytest.mark.asyncio
 async def test_failure_hook_refunds_stashed_batch_enqueued_reservation():
-    from litellm.proxy.hooks.batch_enqueued_tokens import (
+    from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
         BatchEnqueuedTokenReservation,
         BatchEnqueuedTokenScope,
     )
@@ -5986,7 +5986,7 @@ async def test_failure_hook_refunds_stashed_batch_enqueued_reservation():
 
 @pytest.mark.asyncio
 async def test_success_hook_leaves_stash_untouched_for_non_batch_responses():
-    from litellm.proxy.hooks.batch_enqueued_tokens import (
+    from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
         BatchEnqueuedTokenReservation,
         BatchEnqueuedTokenScope,
     )

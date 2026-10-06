@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 logging.basicConfig(level=logging.DEBUG)
 
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 litellm.num_retries = 3
 litellm.success_callback = ["helicone"]
@@ -95,7 +95,7 @@ def create_async_task(**completion_kwargs):
     reason="Authentication missing for openai",
 )
 async def test_helicone_logging_metadata():
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     litellm.success_callback = ["helicone"]
 
@@ -128,7 +128,7 @@ def test_helicone_removes_otel_span_from_metadata():
     Test that HeliconeLogger removes litellm_parent_otel_span from metadata
     to prevent JSON serialization errors.
     """
-    from litellm.integrations.helicone import HeliconeLogger
+    from token_iq.gateway.integrations.helicone import HeliconeLogger
 
     # Create a mock span object (similar to what OpenTelemetry would create)
     mock_span = MagicMock()

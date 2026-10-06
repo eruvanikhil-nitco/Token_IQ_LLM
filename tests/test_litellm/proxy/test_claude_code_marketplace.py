@@ -11,8 +11,8 @@ async def test_claude_code_plugin_table_schema_exists():
         "this causes AttributeError on all /claude-code/plugins endpoints"
     )
 
-    with open("litellm/proxy/schema.prisma", "r") as f:
+    with open("token_iq/gateway/proxy/schema.prisma", "r") as f:
         proxy_schema = f.read()
     assert (
         "LiteLLM_ClaudeCodePluginTable" in proxy_schema
-    ), "LiteLLM_ClaudeCodePluginTable model missing from litellm/proxy/schema.prisma"
+    ), "LiteLLM_ClaudeCodePluginTable model missing from token_iq/gateway/proxy/schema.prisma"

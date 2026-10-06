@@ -16,11 +16,11 @@ from unittest.mock import patch
 import pytest
 
 
-import litellm
-from litellm import Router
-from litellm.litellm_core_utils.ptu_pricing import ptu_config_error
-from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
-from litellm.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.core_utils.ptu_pricing import ptu_config_error
+from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
+from token_iq.gateway.utils import (
     _invalidate_model_cost_lowercase_map,
     reapply_runtime_model_cost_registrations,
 )
@@ -347,7 +347,7 @@ def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
     ChatGPT aliases that share the same backend model should not be able to
     downgrade the shared backend key from responses -> chat during router setup.
     """
-    from litellm.main import responses_api_bridge_check
+    from token_iq.gateway.main import responses_api_bridge_check
 
     backend_model = "chatgpt/gpt-5.4"
     model_keys = {
@@ -699,7 +699,7 @@ def test_custom_pricing_field_denylist_covers_all_builtin_pricing_fields():
     """
     import typing
 
-    from litellm.types.utils import CustomPricingLiteLLMParams, ModelInfoBase
+    from token_iq.gateway.types.utils import CustomPricingLiteLLMParams, ModelInfoBase
 
     pricing_markers = ("cost", "price", "uplift", "vector_size", "tiered_pricing")
     builtin_pricing_fields = {
@@ -777,7 +777,7 @@ def test_custom_pricing_isolated_from_sibling_via_proxy_model_info_path():
     canonical gemini rate when /model/info resolves each deployment. Mirrors the
     ticket config where the override is set on litellm_params.
     """
-    from litellm.proxy.proxy_server import _get_proxy_model_info
+    from token_iq.gateway.proxy.proxy_server import _get_proxy_model_info
 
     backend_model = "gemini/gemini-2.5-flash"
     override_input = 5e-05
@@ -929,7 +929,7 @@ def test_shared_backend_model_info_keeps_schema_fields_and_drops_the_rest():
     """Unit test of the whitelist helper: cost-map schema fields survive,
     custom pricing overrides and per-deployment metadata do not.
     """
-    from litellm.types.utils import shared_backend_model_info
+    from token_iq.gateway.types.utils import shared_backend_model_info
 
     filtered = shared_backend_model_info(
         {
@@ -966,7 +966,7 @@ def test_capability_flags_propagate_from_deployment_model_info_to_shared_key():
     litellm.model_cost and document proxy model_info as an override path for
     models missing from the built-in cost map.
     """
-    from litellm.llms.bedrock_mantle.common_utils import (
+    from token_iq.gateway.llms.bedrock_mantle.common_utils import (
         mantle_base_segment,
         mantle_supports_responses,
     )
@@ -1075,7 +1075,7 @@ def test_price_data_reload_preserves_router_registered_model_info(monkeypatch):
     max_input_tokens / max_output_tokens from every custom model group and
     /model_group/info starts reporting nulls.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,
@@ -1123,7 +1123,7 @@ def test_price_data_reload_preserves_custom_override_of_a_catalog_model(monkeypa
     the same bug: the reload does not blank the metadata, it reverts the
     operator's model_info override to the upstream catalog values.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,
@@ -1175,7 +1175,7 @@ def test_deleted_deployments_are_not_replayed_onto_later_reloads(monkeypatch):
     key that another live deployment still points at must survive the same
     deletion.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,
@@ -1229,7 +1229,7 @@ def test_deleting_a_deployment_leaves_catalog_pricing_for_its_backend_model(monk
     A backend key is shared with the fetched catalog, so withdrawing the entries
     a deleted deployment owns must not take real upstream pricing down with it.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,
@@ -1274,7 +1274,7 @@ def test_repointing_a_deployment_drops_its_previous_backend_key(monkeypatch):
     old backend key behind, and a replayed registry would re-assert it onto every
     later catalog for the life of the process.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,
@@ -1543,7 +1543,7 @@ def test_replay_live_router_model_cost_rebuilds_every_live_router():
     A process can hold more than one Router, so the rebuild has to fan out across
     all of them rather than restoring whichever one happens to be reachable.
     """
-    from litellm.router import _replay_live_router_model_cost
+    from token_iq.gateway.router import _replay_live_router_model_cost
 
     saved_model_cost = litellm.model_cost
     try:
@@ -1587,7 +1587,7 @@ def test_strategy_router_alias_pricing_never_enters_model_cost(monkeypatch):
     strip must also survive a price-data reload, which rebuilds entries by
     walking the live routers.
     """
-    from litellm import utils as litellm_utils
+    from token_iq.gateway import utils as litellm_utils
 
     monkeypatch.setattr(
         litellm_utils,

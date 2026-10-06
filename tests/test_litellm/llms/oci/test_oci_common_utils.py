@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/llms/oci/common_utils.py.
+Unit tests for token_iq/gateway/llms/oci/common_utils.py.
 
 Covers schema utilities, signing helpers, and credential resolution paths
 that require no real OCI credentials or network calls.
@@ -8,7 +8,7 @@ that require no real OCI credentials or network calls.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from litellm.llms.oci.common_utils import (
+from token_iq.gateway.llms.oci.common_utils import (
     OCI_API_VERSION,
     OCIError,
     OCIRequestWrapper,
@@ -287,14 +287,14 @@ def test_sign_oci_request_routes_to_manual_missing_creds():
 
 
 def test_load_private_key_from_file_not_found():
-    from litellm.llms.oci.common_utils import load_private_key_from_file
+    from token_iq.gateway.llms.oci.common_utils import load_private_key_from_file
 
     with pytest.raises(FileNotFoundError, match="Private key file not found"):
         load_private_key_from_file("/nonexistent/path/key.pem")
 
 
 def test_load_private_key_from_file_empty(tmp_path):
-    from litellm.llms.oci.common_utils import load_private_key_from_file
+    from token_iq.gateway.llms.oci.common_utils import load_private_key_from_file
 
     empty = tmp_path / "empty.pem"
     empty.write_text("")
@@ -303,7 +303,7 @@ def test_load_private_key_from_file_empty(tmp_path):
 
 
 def test_load_private_key_from_file_os_error():
-    from litellm.llms.oci.common_utils import load_private_key_from_file
+    from token_iq.gateway.llms.oci.common_utils import load_private_key_from_file
 
     with patch("builtins.open", side_effect=OSError("permission denied")):
         with pytest.raises(OSError, match="Failed to read private key file"):

@@ -16,18 +16,18 @@ import pytest
 from fastapi import HTTPException
 from openai.types.responses import ResponseFunctionToolCall
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.llms import get_guardrail_translation_mapping
-from litellm.llms.openai.responses.guardrail_translation.handler import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.llms import get_guardrail_translation_mapping
+from token_iq.gateway.llms.openai.responses.guardrail_translation.handler import (
     OpenAIResponsesHandler,
 )
-from litellm.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.llms.openai import ResponsesAPIResponse
-from litellm.types.responses.main import GenericResponseOutputItem, OutputText
-from litellm.types.utils import CallTypes, GenericGuardrailAPIInputs
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
+from token_iq.gateway.types.utils import CallTypes, GenericGuardrailAPIInputs
 
 
 class MockGuardrail(CustomGuardrail):
@@ -1521,7 +1521,7 @@ class TestBuildBlockSseChunks:
     """build_block_sse_chunks turns a streaming ModifyResponseException into 200 SSE events"""
 
     def _exc(self, original_response=None):
-        from litellm.exceptions import ModifyResponseException
+        from token_iq.gateway.exceptions import ModifyResponseException
 
         return ModifyResponseException(
             message="Blocked by policy.",
@@ -1584,7 +1584,7 @@ class TestBuildBlockSseChunks:
         assert completed["usage"] == {"input_tokens": 7, "output_tokens": 21, "total_tokens": 28}
 
     def test_continuation_reads_usage_from_typed_completed_event(self):
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             ResponseCompletedEvent,
             ResponsesAPIResponse,
             ResponsesAPIStreamEvents,
@@ -1616,7 +1616,7 @@ class TestBuildBlockSseChunks:
         assert completed["usage"]["total_tokens"] == 28
 
     def test_continuation_closes_open_item_given_pydantic_events_with_enum_types(self):
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             BaseLiteLLMOpenAIResponseObject,
             ContentPartAddedEvent,
             OutputItemAddedEvent,
@@ -1751,13 +1751,13 @@ class TestOpenAIResponsesHandlerStreamingScanKey:
         assert OpenAIResponsesHandler().get_streaming_scan_key([]) is None
 
     def test_key_accumulates_deltas_while_the_stream_is_open(self):
-        from litellm.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
+        from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
 
         key = OpenAIResponsesHandler().get_streaming_scan_key([self._delta(0, "hel"), self._delta(1, "lo")])
         assert key == StreamingScanKey(texts=("hello",))
 
     def test_typed_delta_events_accumulate_like_dicts(self):
-        from litellm.types.llms.openai import OutputTextDeltaEvent
+        from token_iq.gateway.types.llms.openai import OutputTextDeltaEvent
 
         events = [
             OutputTextDeltaEvent(
@@ -1803,7 +1803,7 @@ class TestOpenAIResponsesHandlerStreamingScanKey:
         assert ended_key != open_key
 
     def test_completed_event_reads_every_output_text_part(self):
-        from litellm.types.responses.main import GenericResponseOutputItem, OutputText
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
 
         item = GenericResponseOutputItem(
             type="message",

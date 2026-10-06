@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
@@ -25,7 +25,7 @@ async def _call(rows: list[dict], caller: UserAPIKeyAuth = ADMIN):
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=rows)
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         return await daily_reconciliation(provider="anthropic", days=7, user_api_key_dict=caller)
 
 
@@ -115,7 +115,7 @@ async def test_daily_totals_keep_every_digit_the_provider_billed():
     from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         result = await daily_reconciliation(provider="openai", days=7, user_api_key_dict=ADMIN)
 
     assert result.rows[0].our_cost == "0.123456789012345678"
@@ -171,7 +171,7 @@ async def test_a_request_grain_fact_counts_toward_the_daily_provider_total():
     from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00")])
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         result = await daily_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
 
     assert result.rows[0].their_cost == "5.00"
@@ -185,7 +185,7 @@ async def test_mixed_grain_facts_for_the_same_day_are_summed_not_dropped():
     from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00"), _fact("2026-09-19", "day", "2.00")])
-    with patch("litellm.proxy.proxy_server.prisma_client", client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
         result = await daily_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
 
     assert result.rows[0].their_cost == "7.00"

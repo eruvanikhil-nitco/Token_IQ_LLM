@@ -16,8 +16,8 @@ import httpx
 import pytest
 
 
-from litellm.llms.searchapi.search.transformation import SearchAPIConfig
-from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+from token_iq.gateway.llms.searchapi.search.transformation import SearchAPIConfig
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
 
 class TestSearchAPIConfig:
@@ -33,7 +33,7 @@ class TestSearchAPIConfig:
         config = SearchAPIConfig()
         assert config.get_http_method() == "GET"
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         """Test environment validation with API key."""
         mock_get_secret.return_value = "test_api_key"
@@ -53,7 +53,7 @@ class TestSearchAPIConfig:
         with pytest.raises(ValueError, match="SEARCHAPI_API_KEY is not set"):
             config.validate_environment(headers)
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_transform_search_request_basic(self, mock_get_secret):
         """Test basic search request transformation."""
         mock_get_secret.return_value = "test_api_key"
@@ -69,7 +69,7 @@ class TestSearchAPIConfig:
         assert params["q"] == "test query"
         assert params["api_key"] == "test_api_key"
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_transform_search_request_with_max_results(self, mock_get_secret):
         """Test search request transformation with max_results parameter."""
         mock_get_secret.return_value = "test_api_key"
@@ -84,7 +84,7 @@ class TestSearchAPIConfig:
         params = result["_searchapi_params"]
         assert params["num"] == 5
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_transform_search_request_with_country(self, mock_get_secret):
         """Test search request transformation with country parameter."""
         mock_get_secret.return_value = "test_api_key"
@@ -99,7 +99,7 @@ class TestSearchAPIConfig:
         params = result["_searchapi_params"]
         assert params["gl"] == "us"
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_transform_search_request_with_domain_filter(self, mock_get_secret):
         """Test search request transformation with domain filter."""
         mock_get_secret.return_value = "test_api_key"
@@ -115,7 +115,7 @@ class TestSearchAPIConfig:
         assert "site:example.com" in params["q"]
         assert "site:test.com" in params["q"]
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_transform_search_request_with_list_query(self, mock_get_secret):
         """Test search request transformation with list query."""
         mock_get_secret.return_value = "test_api_key"
@@ -128,7 +128,7 @@ class TestSearchAPIConfig:
         params = result["_searchapi_params"]
         assert params["q"] == "test query"
 
-    @patch("litellm.llms.searchapi.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.searchapi.search.transformation.get_secret_str")
     def test_get_complete_url(self, mock_get_secret):
         """Test URL construction with query parameters."""
         mock_get_secret.return_value = None
@@ -234,7 +234,7 @@ class TestSearchAPIIntegration:
         Test a real search request to SearchAPI.io.
         This test is skipped if SEARCHAPI_API_KEY is not set.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         response = litellm.search(
             query="Python programming", search_provider="searchapi", max_results=5

@@ -7,10 +7,10 @@ import requests
 
 import responses
 
-from litellm.proxy.client.credentials import CredentialsManagementClient
-from litellm.proxy.client.exceptions import UnauthorizedError
-from litellm.proxy.credential_endpoints.endpoints import CredentialHelperUtils
-from litellm.types.utils import CredentialItem
+from token_iq.gateway.proxy.client.credentials import CredentialsManagementClient
+from token_iq.gateway.proxy.client.exceptions import UnauthorizedError
+from token_iq.gateway.proxy.credential_endpoints.endpoints import CredentialHelperUtils
+from token_iq.gateway.types.utils import CredentialItem
 
 
 @pytest.fixture

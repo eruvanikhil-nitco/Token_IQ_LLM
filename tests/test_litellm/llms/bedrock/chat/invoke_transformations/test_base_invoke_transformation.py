@@ -3,13 +3,13 @@ import json
 import pytest
 
 
-from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeConfig,
 )
-from litellm.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
     AmazonInvokeConfig,
 )
-from litellm.llms.bedrock.common_utils import BedrockError
+from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 
 
 @pytest.mark.parametrize(

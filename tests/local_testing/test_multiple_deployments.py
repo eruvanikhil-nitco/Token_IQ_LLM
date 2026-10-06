@@ -5,8 +5,8 @@ import sys, os
 import traceback
 
 import pytest
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 messages = [{"role": "user", "content": "Hey, how's it going?"}]
 

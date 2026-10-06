@@ -17,7 +17,7 @@ Critical Requirement:
 
 import copy
 import pytest
-from litellm import Router
+from token_iq.gateway import Router
 
 
 class TestPreCallChecksOptimization:

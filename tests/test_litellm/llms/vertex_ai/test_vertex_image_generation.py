@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 
 
-import litellm
-from litellm.llms.vertex_ai.image_generation.image_generation_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.image_generation.image_generation_handler import (
     VertexImageGeneration,
 )
 

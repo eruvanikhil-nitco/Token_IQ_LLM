@@ -3,13 +3,13 @@ from unittest.mock import MagicMock
 
 from fastapi import HTTPException, Request
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
     LiteLLMRoutes,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
 
 def test_info_route_identification():

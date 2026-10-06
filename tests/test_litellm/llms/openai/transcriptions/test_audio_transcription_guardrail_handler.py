@@ -7,13 +7,13 @@ from typing import List, Optional, Tuple
 import pytest
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.llms import get_guardrail_translation_mapping
-from litellm.llms.openai.transcriptions.guardrail_translation.handler import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.llms import get_guardrail_translation_mapping
+from token_iq.gateway.llms.openai.transcriptions.guardrail_translation.handler import (
     OpenAIAudioTranscriptionHandler,
 )
-from litellm.types.utils import CallTypes
-from litellm.utils import TranscriptionResponse
+from token_iq.gateway.types.utils import CallTypes
+from token_iq.gateway.utils import TranscriptionResponse
 
 
 class MockGuardrail(CustomGuardrail):

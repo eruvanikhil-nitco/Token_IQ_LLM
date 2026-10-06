@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.routing import APIRoute
 
-import litellm
-from litellm.proxy._types import SpendCalculateRequest
-from litellm.proxy.spend_tracking.spend_management_endpoints import calculate_spend
-from litellm.router import Router
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import SpendCalculateRequest
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import calculate_spend
+from token_iq.gateway.router import Router
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 
 
@@ -31,7 +31,7 @@ async def test_spend_calc_model_messages():
 
 @pytest.mark.asyncio
 async def test_spend_calc_model_on_router_messages():
-    from litellm.proxy.proxy_server import llm_router as init_llm_router
+    from token_iq.gateway.proxy.proxy_server import llm_router as init_llm_router
 
     temp_llm_router = Router(
         model_list=[
@@ -100,7 +100,7 @@ async def test_spend_calc_using_response():
 
 @pytest.mark.asyncio
 async def test_spend_calc_model_alias_on_router_messages():
-    from litellm.proxy.proxy_server import llm_router as init_llm_router
+    from token_iq.gateway.proxy.proxy_server import llm_router as init_llm_router
 
     temp_llm_router = Router(
         model_list=[

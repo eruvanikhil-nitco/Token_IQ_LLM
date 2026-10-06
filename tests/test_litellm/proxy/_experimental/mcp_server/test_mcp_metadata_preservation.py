@@ -12,9 +12,9 @@ import pytest
 
 from mcp.types import Tool as MCPTool
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.proxy._types import MCPTransport
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.proxy._types import MCPTransport
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 class TestMCPMetadataPreservation:

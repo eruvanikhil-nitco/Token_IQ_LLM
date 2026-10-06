@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.llms.base_llm.files.azure_blob_storage_backend import (
+from token_iq.gateway.llms.base_llm.files.azure_blob_storage_backend import (
     AzureBlobStorageBackend,
 )
 
@@ -62,7 +62,7 @@ async def test_upload_file_with_credential_chain(credential_chain_env_vars):
     build_provider = MagicMock(return_value=lambda: "workload-identity-token")
 
     with patch(  # test-quality-ok: the backend creates its REST client internally; assert the emitted authorization header
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client", return_value=client
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client", return_value=client
     ):
         backend = AzureBlobStorageBackend(build_credential_chain_token_provider=build_provider)
         storage_url = await backend.upload_file(
@@ -93,7 +93,7 @@ async def test_upload_file_with_azure_ad_honors_endpoint_suffix(request, env_fix
     client = _mock_upload_client()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=client,
     ):
         backend = _make_backend()
@@ -130,7 +130,7 @@ async def test_download_file_honors_endpoint_suffix(request, env_fixture, expect
     storage_url = f"https://test-account.blob.{expected_suffix}/test-container/logs/report.json"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=client,
     ):
         backend = _make_backend()
@@ -153,7 +153,7 @@ async def test_download_file_accepts_url_persisted_before_the_suffix_was_set(moc
     client.get = AsyncMock(return_value=response)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=client,
     ):
         backend = _make_backend()
@@ -184,7 +184,7 @@ async def test_download_file_rejects_url_whose_host_is_not_an_azure_blob_host(mo
     client = AsyncMock()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=client,
     ):
         backend = _make_backend()
@@ -204,7 +204,7 @@ async def test_download_file_drops_query_string_from_the_stored_url(mock_env_var
     client.get = AsyncMock(return_value=response)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=client,
     ):
         backend = _make_backend()

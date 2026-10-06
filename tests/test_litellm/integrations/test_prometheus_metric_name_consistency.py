@@ -20,7 +20,7 @@ def test_remaining_requests_metric_name_in_defined_metrics():
     The metric name should include the _metric suffix to be consistent with the
     configuration format users specify in prometheus_metrics_config.
     """
-    from litellm.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
+    from token_iq.gateway.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
 
     defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
     assert (
@@ -35,7 +35,7 @@ def test_remaining_tokens_metric_name_in_defined_metrics():
     The metric name should include the _metric suffix to be consistent with the
     configuration format users specify in prometheus_metrics_config.
     """
-    from litellm.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
+    from token_iq.gateway.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
 
     defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
     assert (
@@ -49,7 +49,7 @@ def test_prometheus_metric_labels_have_remaining_metrics():
 
     This ensures that the labels can be retrieved when creating the metrics.
     """
-    from litellm.types.integrations.prometheus import PrometheusMetricLabels
+    from token_iq.gateway.types.integrations.prometheus import PrometheusMetricLabels
 
     # Test that labels can be retrieved for remaining metrics
     remaining_requests_labels = PrometheusMetricLabels.get_labels(
@@ -88,7 +88,7 @@ def test_all_defined_metrics_have_consistent_naming():
 
     This helps prevent similar inconsistencies in the future.
     """
-    from litellm.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
+    from token_iq.gateway.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
 
     defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
 

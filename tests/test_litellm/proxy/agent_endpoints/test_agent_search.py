@@ -9,9 +9,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from openai import APIConnectionError
 
-import litellm
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.agent_endpoints.agent_search import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.agent_endpoints.agent_search import (
     AgentSearchEmbeddingFailed,
     AgentSearchHits,
     AgentSearchIndex,
@@ -19,10 +19,10 @@ from litellm.proxy.agent_endpoints.agent_search import (
     agent_search_text,
     search_agents,
 )
-from litellm.proxy.agent_endpoints.auth.agent_permission_handler import RestrictedAgentAccess
-from litellm.proxy.agent_endpoints.endpoints import router, user_api_key_auth
-from litellm.proxy.common_utils.semantic_text_index import Vector, cosine_similarity
-from litellm.types.agents import AgentResponse
+from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import RestrictedAgentAccess
+from token_iq.gateway.proxy.agent_endpoints.endpoints import router, user_api_key_auth
+from token_iq.gateway.proxy.common_utils.semantic_text_index import Vector, cosine_similarity
+from token_iq.gateway.types.agents import AgentResponse
 
 CALLER: Final = UserAPIKeyAuth(api_key="hashed-caller-key", team_id="team-1", user_id="user-1")
 
@@ -282,13 +282,13 @@ def _client(role: LitellmUserRoles) -> TestClient:
 
 @pytest.fixture
 def registry(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    from litellm.proxy.agent_endpoints import agent_registry as registry_module
+    from token_iq.gateway.proxy.agent_endpoints import agent_registry as registry_module
 
     mock_registry = MagicMock()
     mock_registry.get_agent_list = MagicMock(return_value=AGENTS)
     mock_registry.ids_for_agent = MagicMock(side_effect=lambda agent_id: frozenset({agent_id}))
     monkeypatch.setattr(registry_module, "global_agent_registry", mock_registry)
-    monkeypatch.setattr("litellm.proxy.agent_endpoints.endpoints.global_agent_search_index", AgentSearchIndex())
+    monkeypatch.setattr("token_iq.gateway.proxy.agent_endpoints.endpoints.global_agent_search_index", AgentSearchIndex())
     return mock_registry
 
 
@@ -301,14 +301,14 @@ def embedding_router(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
             data=[{"object": "embedding", "index": i, "embedding": list(VECTORS[t])} for i, t in enumerate(input)],
         )
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
     monkeypatch.setattr(litellm, "agent_search_embedding_model", "text-embedding-3-small")
     return router
 
 
 @pytest.fixture
 def no_db(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
 
 class TestGetAgentsQuery:
@@ -337,7 +337,7 @@ class TestGetAgentsQuery:
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
             AsyncMock(return_value=RestrictedAgentAccess(frozenset({"sql"}))),
         )
         response = _client(LitellmUserRoles.INTERNAL_USER).get(

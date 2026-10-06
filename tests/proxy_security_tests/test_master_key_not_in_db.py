@@ -1,8 +1,8 @@
 import os
 import pytest
 from fastapi.testclient import TestClient
-from litellm.proxy.proxy_server import app, ProxyLogging, hash_token
-from litellm.caching import DualCache
+from token_iq.gateway.proxy.proxy_server import app, ProxyLogging, hash_token
+from token_iq.gateway.caching import DualCache
 
 MASTER_KEY = "sk-1234"
 
@@ -30,7 +30,7 @@ async def test_master_key_not_inserted(test_client):
     response = test_client.get("/health/liveliness")
     assert response.status_code == 200
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     prisma_client = PrismaClient(
         database_url=os.environ["DATABASE_URL"],

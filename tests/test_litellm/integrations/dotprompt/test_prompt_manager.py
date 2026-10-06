@@ -11,10 +11,10 @@ from unittest.mock import MagicMock, Mock, patch
 
 import httpx
 
-import litellm
-from litellm.integrations.dotprompt.dotprompt_manager import DotpromptManager
-from litellm.integrations.dotprompt.prompt_manager import PromptManager, PromptTemplate
-from litellm.types.prompts.init_prompts import PromptLiteLLMParams, PromptSpec
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.dotprompt.dotprompt_manager import DotpromptManager
+from token_iq.gateway.integrations.dotprompt.prompt_manager import PromptManager, PromptTemplate
+from token_iq.gateway.types.prompts.init_prompts import PromptLiteLLMParams, PromptSpec
 
 
 def test_prompt_manager_initialization():
@@ -551,7 +551,7 @@ async def test_dotprompt_with_prompt_version():
     Test that dotprompt can load and use specific prompt versions.
     Versions are stored as separate files with .v{version}.prompt naming convention.
     """
-    from litellm.integrations.dotprompt.prompt_manager import PromptManager
+    from token_iq.gateway.integrations.dotprompt.prompt_manager import PromptManager
 
     prompt_dir = Path(__file__).parent
     prompt_manager = PromptManager(prompt_directory=str(prompt_dir))
@@ -623,7 +623,7 @@ def test_get_prompt_falls_back_to_base_id_for_versioned_id():
 
 
 def test_should_run_prompt_management_accepts_versioned_id():
-    from litellm.integrations.dotprompt import DotpromptManager
+    from token_iq.gateway.integrations.dotprompt import DotpromptManager
 
     dotprompt_manager = DotpromptManager(
         prompt_data={"content": "Hi", "metadata": {}},
@@ -636,8 +636,8 @@ def test_should_run_prompt_management_accepts_versioned_id():
 
 
 def test_prompt_initializer_registers_flat_db_prompt_under_base_id():
-    from litellm.integrations.dotprompt import DotpromptManager, prompt_initializer
-    from litellm.types.prompts.init_prompts import (
+    from token_iq.gateway.integrations.dotprompt import DotpromptManager, prompt_initializer
+    from token_iq.gateway.types.prompts.init_prompts import (
         PromptInfo,
         PromptLiteLLMParams,
         PromptSpec,
@@ -679,7 +679,7 @@ def _swap_prompt_manager_and_spec(ignore_prompt_manager_model: bool) -> tuple[Do
 
 @pytest.mark.asyncio
 async def test_async_prompt_spec_ignore_prompt_manager_model_keeps_requested_model():
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     manager, spec = _swap_prompt_manager_and_spec(ignore_prompt_manager_model=True)
     model, messages, _ = await manager.async_get_chat_completion_prompt(
@@ -699,7 +699,7 @@ async def test_async_prompt_spec_ignore_prompt_manager_model_keeps_requested_mod
 
 @pytest.mark.asyncio
 async def test_async_prompt_spec_without_ignore_flag_swaps_model():
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     manager, spec = _swap_prompt_manager_and_spec(ignore_prompt_manager_model=False)
     model, _, _ = await manager.async_get_chat_completion_prompt(
@@ -716,7 +716,7 @@ async def test_async_prompt_spec_without_ignore_flag_swaps_model():
 
 
 def test_sync_prompt_spec_ignore_prompt_manager_model_keeps_requested_model():
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     manager, spec = _swap_prompt_manager_and_spec(ignore_prompt_manager_model=True)
     model, _, _ = manager.get_chat_completion_prompt(
@@ -732,7 +732,7 @@ def test_sync_prompt_spec_ignore_prompt_manager_model_keeps_requested_model():
 
 
 def test_sync_caller_ignore_flag_survives_missing_prompt_spec():
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     manager, _ = _swap_prompt_manager_and_spec(ignore_prompt_manager_model=False)
     model, _, _ = manager.get_chat_completion_prompt(

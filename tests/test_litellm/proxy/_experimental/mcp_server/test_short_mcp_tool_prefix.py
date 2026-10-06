@@ -13,8 +13,8 @@ from typing import List
 import pytest
 from mcp.types import Tool as MCPTool
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.proxy._experimental.mcp_server.utils import (
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.proxy._experimental.mcp_server.utils import (
     SHORT_MCP_TOOL_PREFIX_LENGTH,
     add_server_prefix_to_name,
     compute_short_server_prefix,
@@ -25,7 +25,7 @@ from litellm.proxy._experimental.mcp_server.utils import (
     match_known_server_prefix,
     strip_known_server_prefix,
 )
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def _make_server(
@@ -359,7 +359,7 @@ class TestShortPrefixCollisionResolution:
         assert server.short_prefix is None
 
     def test_assigns_natural_hash_when_no_collision(self, monkeypatch):
-        from litellm.proxy._experimental.mcp_server import utils as mcp_utils
+        from token_iq.gateway.proxy._experimental.mcp_server import utils as mcp_utils
 
         monkeypatch.setenv("LITELLM_USE_SHORT_MCP_TOOL_PREFIX", "true")
         manager = MCPServerManager()
@@ -375,14 +375,14 @@ class TestShortPrefixCollisionResolution:
 
         # Force every attempt=0 hash to "AAA" and attempt=1 to "AAB".
         # That way the second server registered must rehash to "AAB".
-        from litellm.proxy._experimental.mcp_server import utils as mcp_utils
+        from token_iq.gateway.proxy._experimental.mcp_server import utils as mcp_utils
 
         def _fake_hash(server_id: str, attempt: int = 0) -> str:
             return "AAA" if attempt == 0 else f"AA{chr(ord('A') + attempt)}"
 
         monkeypatch.setattr(mcp_utils, "compute_short_server_prefix", _fake_hash)
         # Also patch the symbol that the manager imported at module load.
-        from litellm.proxy._experimental.mcp_server import (
+        from token_iq.gateway.proxy._experimental.mcp_server import (
             mcp_server_manager as mgr_module,
         )
 

@@ -13,8 +13,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.types.integrations.prometheus import (
     DEFINED_PROMETHEUS_METRICS,
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,

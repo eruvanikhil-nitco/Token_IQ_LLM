@@ -3,10 +3,10 @@ import os
 from unittest.mock import AsyncMock, Mock
 
 import httpx
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.llms.reducto.common import (
+from token_iq.gateway.llms.reducto.common import (
     extract_file_id_or_bytes,
     upload_bytes_async,
     upload_bytes_sync,

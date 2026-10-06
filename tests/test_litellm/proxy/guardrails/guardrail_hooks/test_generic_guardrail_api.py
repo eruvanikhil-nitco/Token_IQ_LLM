@@ -11,18 +11,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm import ModelResponse
-from litellm._version import version as litellm_version
-from litellm.exceptions import GuardrailRaisedException, Timeout
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway._version import version as litellm_version
+from token_iq.gateway.exceptions import GuardrailRaisedException, Timeout
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
     GenericGuardrailAPI,
 )
-from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api.generic_guardrail_api import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api.generic_guardrail_api import (
     _HEADER_PRESENT_PLACEHOLDER,
 )
-from litellm.types.utils import Choices, Message
+from token_iq.gateway.types.utils import Choices, Message
 
 
 @pytest.fixture
@@ -1024,7 +1024,7 @@ class TestMultimodalSupport:
 
 def _make_stream_chunk(content: str, finish_reason=None):
     """Build a real ModelResponseStream so the handler's isinstance checks pass."""
-    from litellm.types.utils import Delta, ModelResponseStream
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream
 
     return ModelResponseStream(
         model="gpt-4",
@@ -1136,7 +1136,7 @@ class TestGenericGuardrailAPIStreamingConfig:
     def test_optional_params_streaming_sampling_rate_ge_one(self):
         from pydantic import ValidationError
 
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIOptionalParams,
         )
 
@@ -1144,7 +1144,7 @@ class TestGenericGuardrailAPIStreamingConfig:
             GenericGuardrailAPIOptionalParams(streaming_sampling_rate=0)
 
     def test_get_config_model(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIConfigModel,
         )
 
@@ -1168,10 +1168,10 @@ class TestGenericGuardrailAPIStreamingConfig:
         assert guardrail.streaming_transform_mode == "incremental_diff"
 
     def test_initialize_guardrail_forwards_streaming_flags(self):
-        from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="generic_guardrail_api",
@@ -1186,7 +1186,7 @@ class TestGenericGuardrailAPIStreamingConfig:
         guardrail_config = {"guardrail_name": "test-generic-streaming"}
 
         with patch(
-            "litellm.logging_callback_manager.add_litellm_callback"
+            "token_iq.gateway.logging_callback_manager.add_litellm_callback"
         ):
             guardrail = initialize_guardrail(litellm_params, guardrail_config)
 
@@ -1197,11 +1197,11 @@ class TestGenericGuardrailAPIStreamingConfig:
         self,
     ):
         """Top-level streaming knobs win when optional_params only carries siblings."""
-        from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.guardrails import LitellmParams
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIOptionalParams,
         )
 
@@ -1221,7 +1221,7 @@ class TestGenericGuardrailAPIStreamingConfig:
         guardrail_config = {"guardrail_name": "test-generic-streaming-mixed"}
 
         with patch(
-            "litellm.logging_callback_manager.add_litellm_callback"
+            "token_iq.gateway.logging_callback_manager.add_litellm_callback"
         ):
             guardrail = initialize_guardrail(litellm_params, guardrail_config)
 
@@ -1229,11 +1229,11 @@ class TestGenericGuardrailAPIStreamingConfig:
         assert guardrail.streaming_sampling_rate == 2
 
     def test_initialize_guardrail_explicit_optional_params_streaming_wins(self):
-        from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.guardrails import LitellmParams
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIOptionalParams,
         )
 
@@ -1253,7 +1253,7 @@ class TestGenericGuardrailAPIStreamingConfig:
         guardrail_config = {"guardrail_name": "test-generic-streaming-nested-wins"}
 
         with patch(
-            "litellm.logging_callback_manager.add_litellm_callback"
+            "token_iq.gateway.logging_callback_manager.add_litellm_callback"
         ):
             guardrail = initialize_guardrail(litellm_params, guardrail_config)
 
@@ -1262,10 +1262,10 @@ class TestGenericGuardrailAPIStreamingConfig:
 
     def test_initialize_guardrail_dict_optional_params_streaming_wins(self):
         """Guardrail API/UI delivers optional_params as a plain dict, not a model."""
-        from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="generic_guardrail_api",
@@ -1284,7 +1284,7 @@ class TestGenericGuardrailAPIStreamingConfig:
         guardrail_config = {"guardrail_name": "test-generic-streaming-dict-optional"}
 
         with patch(
-            "litellm.logging_callback_manager.add_litellm_callback"
+            "token_iq.gateway.logging_callback_manager.add_litellm_callback"
         ):
             guardrail = initialize_guardrail(litellm_params, guardrail_config)
 
@@ -1295,10 +1295,10 @@ class TestGenericGuardrailAPIStreamingConfig:
         self,
     ):
         """Dict optional_params without streaming keys must not shadow top-level knobs."""
-        from litellm.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="generic_guardrail_api",
@@ -1315,7 +1315,7 @@ class TestGenericGuardrailAPIStreamingConfig:
         guardrail_config = {"guardrail_name": "test-generic-streaming-dict-sibling"}
 
         with patch(
-            "litellm.logging_callback_manager.add_litellm_callback"
+            "token_iq.gateway.logging_callback_manager.add_litellm_callback"
         ):
             guardrail = initialize_guardrail(litellm_params, guardrail_config)
 
@@ -1327,7 +1327,7 @@ class TestGenericGuardrailAPIResponseParsing:
     """GenericGuardrailAPIResponse.from_dict handling of the streaming holdback field."""
 
     def test_from_dict_parses_stream_holdback_chars(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIResponse,
         )
 
@@ -1344,7 +1344,7 @@ class TestGenericGuardrailAPIResponseParsing:
         assert response.stream_holdback_chars == [5]
 
     def test_from_dict_coerces_holdback_values_to_int(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIResponse,
         )
 
@@ -1355,7 +1355,7 @@ class TestGenericGuardrailAPIResponseParsing:
         assert response.stream_holdback_chars == [3, 0]
 
     def test_from_dict_holdback_absent_is_none(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIResponse,
         )
 
@@ -1366,7 +1366,7 @@ class TestGenericGuardrailAPIResponseParsing:
     def test_from_dict_malformed_holdback_degrades_to_zero(self):
         """A null/non-numeric/negative holdback element must not raise; it degrades
         to 0 (no holdback) so a bad guardrail response can't abort the stream."""
-        from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import (
             GenericGuardrailAPIResponse,
         )
 
@@ -1408,7 +1408,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
 
     @pytest.mark.asyncio
     async def test_streaming_safe_content_yields_all_chunks(self):
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1436,7 +1436,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("Hello world! Goodbye"),
             ),
         ):
@@ -1462,8 +1462,8 @@ class TestGenericGuardrailAPIStreamingViaUnified:
 
     @pytest.mark.asyncio
     async def test_streaming_blocked_content_raises(self):
-        from litellm.exceptions import GuardrailRaisedException
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.exceptions import GuardrailRaisedException
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1492,7 +1492,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("Hello ishaan here"),
             ),
         ):
@@ -1520,7 +1520,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         """Default samples every 5th chunk. For 10 chunks, sampled scans at 5 and 10
         cover the full text, so the end-of-stream round is skipped and there are 2 calls
         """
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1548,7 +1548,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("ABCDEFGHIJ"),
             ),
         ):
@@ -1578,7 +1578,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
 
     @pytest.mark.asyncio
     async def test_streaming_end_of_stream_only_calls_guardrail_once(self):
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1607,7 +1607,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("ABCDEFGHIJ"),
             ),
         ):
@@ -1637,7 +1637,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         """sampling_rate=2 on 6 chunks. Scans at 2, 4, and 6 cover the full text, so
         the end-of-stream round is skipped and there are 3 calls
         """
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1665,7 +1665,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("ABCDEF"),
             ),
         ):
@@ -1693,7 +1693,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
 
     @pytest.mark.asyncio
     async def test_streaming_fail_open_on_unreachable_continues_stream(self):
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1717,7 +1717,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
         with (
             patch.object(guardrail.async_handler, "post", mock_post),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=_make_assembled_model_response("ABC"),
             ),
         ):
@@ -1743,7 +1743,7 @@ class TestGenericGuardrailAPIStreamingViaUnified:
     @pytest.mark.asyncio
     async def test_responses_api_streaming_end_of_stream_only_calls_guardrail_once(self):
         """/v1/responses path through unified hook; end-of-stream-only = one call."""
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -1793,8 +1793,8 @@ class TestGenericGuardrailAPIStreamingViaUnified:
     @pytest.mark.asyncio
     async def test_responses_api_streaming_blocked_raises(self):
         """Mid-stream BLOCKED on /v1/responses surfaces GuardrailRaisedException."""
-        from litellm.exceptions import GuardrailRaisedException
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.exceptions import GuardrailRaisedException
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 

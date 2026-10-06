@@ -8,7 +8,7 @@ import json
 import httpx
 import pytest
 
-from litellm.llms.custom_httpx.mock_transport import MockOpenAITransport
+from token_iq.gateway.llms.custom_httpx.mock_transport import MockOpenAITransport
 
 
 # ---------------------------------------------------------------------------

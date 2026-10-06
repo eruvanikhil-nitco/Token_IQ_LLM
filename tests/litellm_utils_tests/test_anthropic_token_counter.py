@@ -10,8 +10,8 @@ from typing import Any, Dict, List
 import pytest
 
 
-from litellm.llms.anthropic.count_tokens import AnthropicTokenCounter
-from litellm.llms.base_llm.base_utils import BaseTokenCounter
+from token_iq.gateway.llms.anthropic.count_tokens import AnthropicTokenCounter
+from token_iq.gateway.llms.base_llm.base_utils import BaseTokenCounter
 from tests.litellm_utils_tests.base_token_counter_test import BaseTokenCounterTest
 
 

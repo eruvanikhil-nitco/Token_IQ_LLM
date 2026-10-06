@@ -8,8 +8,8 @@ See https://github.com/BerriAI/litellm/issues/27122.
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
 
 @pytest.fixture(autouse=True)

@@ -9,13 +9,13 @@ installed; the transformation layer is intentionally pure-Python on dicts.
 import pytest
 
 
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     AudioTranscriptionRequestData,
 )
-from litellm.llms.nvidia_riva.audio_transcription.transformation import (
+from token_iq.gateway.llms.nvidia_riva.audio_transcription.transformation import (
     NvidiaRivaAudioTranscriptionConfig,
 )
-from litellm.llms.nvidia_riva.common_utils import NvidiaRivaException
+from token_iq.gateway.llms.nvidia_riva.common_utils import NvidiaRivaException
 
 
 @pytest.fixture

@@ -13,12 +13,12 @@ load_dotenv()
 import pytest
 from fastapi import HTTPException
 
-import litellm
+from token_iq import gateway as litellm
 from litellm_enterprise.enterprise_callbacks.llm_guard import _ENTERPRISE_LLMGuard
-from litellm import Router, mock_completion
-from litellm.proxy.utils import ProxyLogging, hash_token
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway.proxy.utils import ProxyLogging, hash_token
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 
 ### UNIT TESTS FOR LLM GUARD ###
 

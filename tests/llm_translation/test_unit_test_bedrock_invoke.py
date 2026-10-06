@@ -1,8 +1,9 @@
 import traceback
 from dotenv import load_dotenv
-import litellm.types
+import token_iq.gateway.types
+from token_iq import gateway as litellm
 import pytest
-from litellm import AmazonInvokeConfig
+from token_iq.gateway import AmazonInvokeConfig
 import json
 
 load_dotenv()
@@ -216,7 +217,7 @@ def test_transform_request_meta_llama(bedrock_transformer):
 
 def test_filter_headers_for_aws_signature():
     """Test that header filtering works correctly for AWS signature calculation"""
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     # Create a test instance
     aws_llm = BaseAWSLLM()

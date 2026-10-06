@@ -9,7 +9,7 @@ per the MCP spec.
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from litellm.proxy._experimental.mcp_server.sampling_handler import (
+from token_iq.gateway.proxy._experimental.mcp_server.sampling_handler import (
     _has_priorities,
     _resolve_model_from_preferences,
     _select_model_by_priority,
@@ -101,7 +101,7 @@ class TestHasPriorities:
 class TestSelectModelByPriority:
     """Tests for the priority-based scoring logic."""
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
     def test_should_prefer_cheapest_when_cost_priority_high(self, _mock):
         """High costPriority should select the cheapest model."""
         prefs = _prefs(cost=1.0, speed=0, intelligence=0)
@@ -110,7 +110,7 @@ class TestSelectModelByPriority:
         # gpt-4o-mini has the lowest combined cost
         assert result == "gpt-4o-mini"
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
     def test_should_prefer_smartest_when_intelligence_priority_high(self, _mock):
         """High intelligencePriority should select the model with highest max_output_tokens."""
         prefs = _prefs(cost=0, speed=0, intelligence=1.0)
@@ -120,7 +120,7 @@ class TestSelectModelByPriority:
         # Either is acceptable
         assert result in ("gpt-4o", "gpt-4o-mini")
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
     def test_should_balance_cost_and_intelligence(self, _mock):
         """Balanced priorities should pick a middle-ground model."""
         prefs = _prefs(cost=0.5, speed=0, intelligence=0.5)
@@ -129,7 +129,7 @@ class TestSelectModelByPriority:
         # gpt-4o-mini is cheap AND has high max_output_tokens → best balance
         assert result == "gpt-4o-mini"
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
     def test_should_prefer_fastest_when_speed_priority_high(self, _mock):
         """High speedPriority should prefer cheaper (faster proxy) models."""
         prefs = _prefs(cost=0, speed=1.0, intelligence=0)
@@ -139,7 +139,7 @@ class TestSelectModelByPriority:
         assert result == "gpt-4o-mini"
 
     @patch(
-        "litellm.get_model_info",
+        "token_iq.gateway.get_model_info",
         side_effect=lambda m, **kw: (_ for _ in ()).throw(Exception("no info")),
     )
     def test_should_return_none_when_no_model_info(self, _mock):
@@ -149,7 +149,7 @@ class TestSelectModelByPriority:
         result = _select_model_by_priority(models, prefs)
         assert result is None
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
     def test_should_handle_single_model(self, _mock):
         """Single model should always be returned regardless of priorities."""
         prefs = _prefs(cost=1.0, intelligence=1.0)
@@ -180,7 +180,7 @@ class TestSelectModelByPriority:
         def info(model, **kwargs):
             return no_tps_info[model]
 
-        with patch("litellm.get_model_info", side_effect=info):
+        with patch("token_iq.gateway.get_model_info", side_effect=info):
             prefs = _prefs(speed=1.0)
             # The inverse-max_output proxy would pick "small-ctx" here; a
             # neutral score keeps the first candidate.
@@ -197,10 +197,10 @@ class TestSelectModelByPriority:
 class TestResolveModelPriorityIntegration:
     """End-to-end tests for priority selection within _resolve_model_from_preferences."""
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
-    @patch("litellm.proxy.proxy_server.llm_router", None)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router", None)
     @patch(
-        "litellm.model_list",
+        "token_iq.gateway.model_list",
         [
             {"model_name": "gpt-3.5-turbo"},
             {"model_name": "gpt-4o"},
@@ -214,10 +214,10 @@ class TestResolveModelPriorityIntegration:
         # Should pick cheapest, NOT fall through to default_model
         assert result == "gpt-4o-mini"
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
-    @patch("litellm.proxy.proxy_server.llm_router", None)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router", None)
     @patch(
-        "litellm.model_list",
+        "token_iq.gateway.model_list",
         [
             {"model_name": "gpt-3.5-turbo"},
             {"model_name": "gpt-4o"},
@@ -230,10 +230,10 @@ class TestResolveModelPriorityIntegration:
         result = _resolve_model_from_preferences(prefs, default_model="gpt-4o")
         assert result == "gpt-4o"
 
-    @patch("litellm.get_model_info", side_effect=_mock_get_model_info)
-    @patch("litellm.proxy.proxy_server.llm_router", None)
+    @patch("token_iq.gateway.get_model_info", side_effect=_mock_get_model_info)
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router", None)
     @patch(
-        "litellm.model_list",
+        "token_iq.gateway.model_list",
         [
             {"model_name": "gpt-3.5-turbo"},
             {"model_name": "gpt-4o"},

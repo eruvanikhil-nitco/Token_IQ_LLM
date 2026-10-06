@@ -15,15 +15,15 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import Request
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.litellm_pre_call_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.litellm_pre_call_utils import (
     _CLIENT_PRICING_CONTROL_FIELDS,
     _CLIENT_PRICING_METADATA_FIELDS,
     _strip_client_pricing_overrides,
     add_litellm_data_to_request,
 )
-from litellm.types.utils import CustomPricingLiteLLMParams
+from token_iq.gateway.types.utils import CustomPricingLiteLLMParams
 
 
 
@@ -157,7 +157,7 @@ class TestStripClientPricingOverrides:
         # working override stopped applying after the strip landed.
         import logging
 
-        from litellm._logging import verbose_proxy_logger
+        from token_iq.gateway._logging import verbose_proxy_logger
 
         verbose_proxy_logger.setLevel(logging.DEBUG)
         with caplog.at_level(logging.DEBUG, logger=verbose_proxy_logger.name):
@@ -178,7 +178,7 @@ class TestStripClientPricingOverrides:
         # every legitimate request.
         import logging
 
-        from litellm._logging import verbose_proxy_logger
+        from token_iq.gateway._logging import verbose_proxy_logger
 
         verbose_proxy_logger.setLevel(logging.DEBUG)
         with caplog.at_level(logging.DEBUG, logger=verbose_proxy_logger.name):

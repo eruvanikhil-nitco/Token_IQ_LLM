@@ -9,10 +9,11 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 from fastapi import status
 
-import litellm
-import litellm.proxy.proxy_server
-from litellm.caching.dual_cache import DualCache
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.proxy._types import (
     LiteLLMRoutes,
     LiteLLM_JWTAuth,
     LiteLLM_BudgetTable,
@@ -24,10 +25,10 @@ from litellm.proxy._types import (
     UserAPIKeyAuth,
     JWTRoutingOverride,
 )
-from litellm.proxy.auth.handle_jwt import JWTHandler
-from litellm.proxy.auth.auth_checks import get_key_object, _cache_key_object
-from litellm.proxy.auth.route_checks import RouteChecks
-from litellm.proxy.auth.user_api_key_auth import (
+from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
+from token_iq.gateway.proxy.auth.auth_checks import get_key_object, _cache_key_object
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _check_key_model_budget_with_fallback,
     _ensure_litellm_received_at_on_request_state,
     _ensure_parent_otel_span_on_request_state,
@@ -125,7 +126,7 @@ async def test_disable_budget_reservation_skips_reservation():
     user_api_key_auth_obj = UserAPIKeyAuth(token="test_token")
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
         new=AsyncMock(return_value={"reserved_cost": 0.5, "entries": []}),
     ) as mock_reserve:
         await _reserve_budget_after_common_checks(
@@ -156,7 +157,7 @@ async def test_budget_reservation_runs_when_not_disabled():
     }
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
         new=AsyncMock(return_value=reservation),
     ) as mock_reserve:
         await _reserve_budget_after_common_checks(
@@ -193,7 +194,7 @@ async def test_fail_closed_budget_enforcement_reaches_reservation(
     user_api_key_auth_obj = UserAPIKeyAuth(token="test_token")
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
         new=AsyncMock(return_value=None),
     ) as mock_reserve:
         await _reserve_budget_after_common_checks(
@@ -234,7 +235,7 @@ async def test_apply_user_budget_to_team_keys_reaches_reservation(
     user_api_key_auth_obj = UserAPIKeyAuth(token="test_token")
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.reserve_budget_for_request",
         new=AsyncMock(return_value=None),
     ) as mock_reserve:
         await _reserve_budget_after_common_checks(
@@ -305,11 +306,11 @@ async def test_custom_auth_does_not_enforce_key_model_access_by_default():
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {},
         ),
     ):
@@ -350,14 +351,14 @@ async def test_custom_auth_honors_key_level_model_access_restriction_allowed_wit
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
         patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
         ),
     ):
@@ -383,14 +384,14 @@ async def test_custom_auth_enforces_key_model_access_from_file_route_header_with
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
         patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
         ),
     ):
@@ -416,14 +417,14 @@ async def test_custom_auth_honors_key_level_model_access_restriction_denied_with
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             new_callable=AsyncMock,
         ) as mock_can_key,
         patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
         ),
     ):
@@ -490,10 +491,10 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-custom-auth-trusted",
@@ -512,7 +513,7 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
         litellm.enable_post_custom_auth_checks = False  # explicit: documents default
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
             new_callable=AsyncMock,
         ) as mock_post_checks:
             request = Request(scope={"type": "http"})
@@ -548,10 +549,10 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-custom-auth-trusted",
@@ -570,7 +571,7 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
         litellm.enable_post_custom_auth_checks = True
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
             new_callable=AsyncMock,
             return_value=trusted_token,
         ) as mock_post_checks:
@@ -605,10 +606,10 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-enterprise-custom-auth-trusted",
@@ -628,11 +629,11 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
 
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.enterprise_custom_auth",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.enterprise_custom_auth",
                 new=mock_enterprise_custom_auth,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
                 new_callable=AsyncMock,
             ) as mock_post_checks,
         ):
@@ -668,10 +669,10 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy._types import LitellmUserRoles
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-enterprise-custom-auth-trusted",
@@ -691,11 +692,11 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
 
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.enterprise_custom_auth",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.enterprise_custom_auth",
                 new=mock_enterprise_custom_auth,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
                 new_callable=AsyncMock,
                 return_value=trusted_token,
             ) as mock_post_checks,
@@ -932,7 +933,7 @@ def test_team_metadata_with_tags_flows_through_jwt_auth():
     This is a regression test for the issue where JWT auth was not populating
     team_metadata, causing team-level tags to be missing in litellm_pre_call_utils.py
     """
-    from litellm.proxy._types import LiteLLM_TeamTable, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, UserAPIKeyAuth
 
     # Create a team object with metadata containing tags
     team_object = LiteLLM_TeamTable(
@@ -1143,14 +1144,14 @@ async def test_proxy_admin_expired_key_from_cache():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LitellmUserRoles,
         ProxyErrorTypes,
         ProxyException,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     # Create an expired PROXY_ADMIN key
     api_key = "sk-test-proxy-admin-key"
@@ -1185,18 +1186,18 @@ async def test_proxy_admin_expired_key_from_cache():
     # Mock get_key_object to return expired token from cache
     with (
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
         ) as mock_get_key_object,
         patch(
-            "litellm.proxy.auth.user_api_key_auth._delete_cache_key_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._delete_cache_key_object",
             new_callable=AsyncMock,
         ) as mock_delete_cache,
     ):
         mock_get_key_object.return_value = expired_token
 
         # Set attributes on proxy_server module (these are imported inside _user_api_key_auth_builder)
-        import litellm.proxy.proxy_server as _proxy_server_mod
+        import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
         _attrs_to_set = {
             "prisma_client": mock_prisma_client,
@@ -1282,8 +1283,8 @@ async def test_scim_deactivated_user_key_is_rejected():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     api_key = "sk-scim-deactivated-user-key"
     hashed_key = hash_token(api_key)
@@ -1312,7 +1313,7 @@ async def test_scim_deactivated_user_key_is_rejected():
 
     mock_prisma_client = MagicMock()
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs_to_set = {
         "prisma_client": mock_prisma_client,
@@ -1340,12 +1341,12 @@ async def test_scim_deactivated_user_key_is_rejected():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=deactivated_user,
             ),
@@ -1376,8 +1377,8 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     api_key = "sk-cached-admin-marker-test"
     hashed_key = hash_token(api_key)
@@ -1402,7 +1403,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
     )
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs_to_set = {
         "prisma_client": MagicMock(),
@@ -1429,7 +1430,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
         request._url = URL(url="/chat/completions")
 
         with patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
             return_value=cached_token,
         ):
@@ -1460,8 +1461,8 @@ async def test_master_key_auth_sets_via_virtual_key_marker():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     master_key = "sk-master-key"
 
@@ -1477,7 +1478,7 @@ async def test_master_key_auth_sets_via_virtual_key_marker():
     )
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs_to_set = {
         "prisma_client": MagicMock(),
@@ -1529,8 +1530,8 @@ async def test_db_virtual_key_auth_sets_via_virtual_key_marker():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     api_key = "sk-via-virtual-key-marker-test"
     hashed_key = hash_token(api_key)
@@ -1555,7 +1556,7 @@ async def test_db_virtual_key_auth_sets_via_virtual_key_marker():
 
     mock_prisma_client = MagicMock()
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs_to_set = {
         "prisma_client": mock_prisma_client,
@@ -1583,12 +1584,12 @@ async def test_db_virtual_key_auth_sets_via_virtual_key_marker():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
@@ -1619,8 +1620,8 @@ async def test_return_user_api_key_auth_obj_user_spend_and_budget():
     """
     from datetime import datetime
 
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import _return_user_api_key_auth_obj
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _return_user_api_key_auth_obj
 
     user_obj = type(
         "LiteLLM_UserTable",
@@ -1647,7 +1648,7 @@ async def test_return_user_api_key_auth_obj_user_spend_and_budget():
     mock_service_logger.async_service_success_hook = AsyncMock()
 
     with patch(
-        "litellm.proxy.auth.user_api_key_auth.user_api_key_service_logger_obj",
+        "token_iq.gateway.proxy.auth.user_api_key_auth.user_api_key_service_logger_obj",
         new=mock_service_logger,
     ):
         result = await _return_user_api_key_auth_obj(
@@ -1677,7 +1678,7 @@ def test_proxy_admin_jwt_auth_includes_identity_fields():
     and parent_otel_span, discarding all identity fields resolved from the JWT.
     This caused blank Team Name and Internal User in Request Logs UI.
     """
-    from litellm.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
 
     team_object = LiteLLM_TeamTable(
         team_id="team-123",
@@ -1713,7 +1714,7 @@ def test_proxy_admin_jwt_auth_handles_no_team_object():
     Test that the proxy admin early-return path works correctly when
     team_object is None (user has admin role but no team association).
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     team_object = None
 
@@ -1783,15 +1784,15 @@ async def test_standard_jwt_auth_propagates_user_email():
     mock_request.state = SimpleNamespace()
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
-        patch("litellm.proxy.proxy_server.premium_user", True),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-        patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
         patch(
-            "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
             new_callable=AsyncMock,
             return_value=mock_jwt_result,
         ),
@@ -1820,11 +1821,11 @@ async def test_auto_register_binds_api_key_to_token_hash():
     branch early-returned it without going through _return_user_api_key_auth_obj,
     so litellm_pre_call_utils logged user_api_key_hash=None on that first request.
     """
-    from litellm.proxy.auth.auth_method import AuthMethod
-    from litellm.proxy.auth.resolvers.models import CredentialRef
-    from litellm.proxy.auth.resolvers.store import IdentityStore
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy.auth.auth_method import AuthMethod
+    from token_iq.gateway.proxy.auth.resolvers.models import CredentialRef
+    from token_iq.gateway.proxy.auth.resolvers.store import IdentityStore
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     plaintext = "sk-auto-registered-plaintext"
     token_hash = hash_token(plaintext)
@@ -1851,12 +1852,12 @@ async def test_auto_register_binds_api_key_to_token_hash():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value={"token": plaintext},
         ),
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore.resolve",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore.resolve",
             new_callable=AsyncMock,
             return_value=principal,
         ),
@@ -1938,15 +1939,15 @@ async def test_auto_register_first_request_propagates_user_email():
     mock_request.state = SimpleNamespace()
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
-        patch("litellm.proxy.proxy_server.premium_user", True),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-        patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
         patch(
-            "litellm.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
             new_callable=AsyncMock,
             return_value=_PendingAutoRegister(
                 claim_field="sub",
@@ -1955,12 +1956,12 @@ async def test_auto_register_first_request_propagates_user_email():
             ),
         ),
         patch(
-            "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
             new_callable=AsyncMock,
             return_value=mock_jwt_result,
         ),
         patch(
-            "litellm.proxy.auth.user_api_key_auth._auto_register_jwt_mapping",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._auto_register_jwt_mapping",
             new_callable=AsyncMock,
             return_value=auto_registered_key,
         ),
@@ -2034,17 +2035,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -2082,12 +2083,12 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", False),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
         ):
@@ -2127,13 +2128,13 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", {}),
-            patch("litellm.proxy.proxy_server.premium_user", False),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", DualCache()),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", DualCache()),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
         ):
@@ -2183,16 +2184,16 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
@@ -2259,15 +2260,15 @@ class TestJWTOAuth2Coexistence:
         mock_request.state = SimpleNamespace()
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
                 new_callable=AsyncMock,
                 return_value=_PendingAutoRegister(
                     claim_field="sub",
@@ -2276,12 +2277,12 @@ class TestJWTOAuth2Coexistence:
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._auto_register_jwt_mapping",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._auto_register_jwt_mapping",
                 new_callable=AsyncMock,
                 return_value=auto_registered_key,
             ) as mock_auto_register,
@@ -2350,20 +2351,20 @@ class TestJWTOAuth2Coexistence:
         mock_request.state = SimpleNamespace()
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
                 new_callable=AsyncMock,
                 return_value=mapped_key,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=backfilled_user,
             ) as mock_get_user_object,
@@ -2428,20 +2429,20 @@ class TestJWTOAuth2Coexistence:
         mock_request.state = SimpleNamespace()
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
                 new_callable=AsyncMock,
                 return_value=mapped_key,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=other_owner,
             ) as mock_get_user_object,
@@ -2500,20 +2501,20 @@ class TestJWTOAuth2Coexistence:
         mock_request.state = SimpleNamespace()
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-            patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._resolve_jwt_to_virtual_key",
                 new_callable=AsyncMock,
                 return_value=mapped_key,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 side_effect=Exception("can't reach database server"),
             ),
@@ -2556,17 +2557,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -2629,16 +2630,16 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
@@ -2691,17 +2692,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -2757,17 +2758,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -2830,16 +2831,16 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
@@ -2895,17 +2896,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -2961,17 +2962,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -3017,12 +3018,12 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
         ):
@@ -3066,17 +3067,17 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
@@ -3142,16 +3143,16 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
             ) as mock_oauth2,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
@@ -3203,12 +3204,12 @@ class TestJWTOAuth2Coexistence:
         mock_request.query_params = {}
 
         with (
-            patch("litellm.proxy.proxy_server.general_settings", general_settings),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.Oauth2Handler.check_oauth2_token",
                 new_callable=AsyncMock,
                 return_value=mock_oauth2_response,
             ) as mock_oauth2,
@@ -3234,8 +3235,8 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
     from starlette.datastructures import URL
     from starlette.requests import Request
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     _blocking_methods = [
         "set_cache",
@@ -3270,7 +3271,7 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
     )
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs = {
         "prisma_client": MagicMock(),
@@ -3297,7 +3298,7 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
 
         import contextlib
 
-        from litellm.caching.dual_cache import DualCache
+        from token_iq.gateway.caching.dual_cache import DualCache
 
         blocking_patches = [
             patch.object(
@@ -3317,14 +3318,14 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
                 stack.enter_context(p)
             stack.enter_context(
                 patch(
-                    "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                    "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                     new_callable=AsyncMock,
                     return_value=valid_token,
                 )
             )
             stack.enter_context(
                 patch(
-                    "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                    "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                     new_callable=AsyncMock,
                     return_value=None,
                 )
@@ -3366,12 +3367,12 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
     from starlette.datastructures import URL
     from starlette.requests import Request
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_TeamTableCachedObj,
         LitellmUserRoles,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-team-metadata-refresh"
 
@@ -3404,7 +3405,7 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
     )
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs = {
         "prisma_client": MagicMock(),
@@ -3431,12 +3432,12 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 return_value=fresh_team_obj,
             ),
@@ -3485,8 +3486,8 @@ async def test_auth_flow_never_persists_fallback_team_object_lit_4391():
     from starlette.requests import Request
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-lit-4391-no-team-writeback"
     valid_token = UserAPIKeyAuth(
@@ -3507,7 +3508,7 @@ async def test_auth_flow_never_persists_fallback_team_object_lit_4391():
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs = {
         "prisma_client": MagicMock(),
@@ -3534,12 +3535,12 @@ async def test_auth_flow_never_persists_fallback_team_object_lit_4391():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(
                     status_code=404,
@@ -3584,12 +3585,12 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
     from starlette.requests import Request
     from fastapi import HTTPException
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionTable,
         LitellmUserRoles,
         UserAPIKeyAuth,
     )
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-fallback-team-object-permission"
     valid_token = UserAPIKeyAuth(
@@ -3615,7 +3616,7 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs = {
         "prisma_client": MagicMock(),
@@ -3642,12 +3643,12 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(
                     status_code=404,
@@ -3655,7 +3656,7 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_object_permission",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_object_permission",
                 new_callable=AsyncMock,
                 return_value=restricted_object_permission,
             ) as mock_get_object_permission,
@@ -3689,8 +3690,8 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
     from starlette.requests import Request
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-fallback-team-object-permission-unreadable"
     valid_token = UserAPIKeyAuth(
@@ -3710,7 +3711,7 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
     mock_proxy_logging_obj.internal_usage_cache.dual_cache = AsyncMock()
     mock_proxy_logging_obj.post_call_failure_hook = AsyncMock(return_value=None)
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     _attrs = {
         "prisma_client": MagicMock(),
@@ -3737,12 +3738,12 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
 
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=valid_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(
                     status_code=404,
@@ -3750,7 +3751,7 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_object_permission",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_object_permission",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
@@ -3805,7 +3806,7 @@ async def test_centralized_common_checks_runs_for_standard_auth():
     """Regardless of which _user_api_key_auth_builder path returned, the
     wrapper must run common_checks. This is the structural fix: no
     early-return path can skip authorization."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -3819,7 +3820,7 @@ async def test_centralized_common_checks_runs_for_standard_auth():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -3850,7 +3851,7 @@ async def test_centralized_common_checks_routes_header_tags_to_litellm_metadata(
     pre-seed call site in _run_centralized_common_checks; dropping it routes header
     tags back into metadata.
     """
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -3873,11 +3874,11 @@ async def test_centralized_common_checks_routes_header_tags_to_litellm_metadata(
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._reserve_budget_after_common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._reserve_budget_after_common_checks",
                 new_callable=AsyncMock,
             ),
         ):
@@ -3901,7 +3902,7 @@ async def test_centralized_common_checks_skipped_for_custom_auth_without_flag():
     custom_auth_run_common_checks must not pay the centralized gate.
     Custom-auth paths don't use OAuth2/DB-fallback so this skip does
     not widen any bypass."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -3917,7 +3918,7 @@ async def test_centralized_common_checks_skipped_for_custom_auth_without_flag():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -3953,10 +3954,10 @@ def _custom_auth_end_user_world(mock_prisma):
     """The proxy globals a custom-auth deployment running the centralized gate reads, with cold
     spend counters. Real caches, so the end user's spend reaches the counter the way it does in
     production: through the cache entry get_end_user_object writes."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
-    from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     key_cache = UserApiKeyCache()
     attrs = {
@@ -4008,11 +4009,11 @@ async def test_centralized_checks_enforce_token_end_user_budget_against_row_spen
     with _custom_auth_end_user_world(mock_prisma):
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+                "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
                 return_value=0.6,
             ),
             pytest.raises(litellm.BudgetExceededError) as exc_info,
@@ -4045,11 +4046,11 @@ async def test_centralized_checks_skip_end_user_lookup_without_a_token_budget():
     with _custom_auth_end_user_world(mock_prisma):
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+                "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
                 return_value=0.6,
             ),
         ):
@@ -4070,7 +4071,7 @@ async def test_centralized_checks_skip_end_user_lookup_without_a_token_budget():
 async def test_centralized_common_checks_runs_for_custom_auth_with_flag():
     """Custom-auth deployments that opt in via custom_auth_run_common_checks
     get the centralized gate."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4084,7 +4085,7 @@ async def test_centralized_common_checks_runs_for_custom_auth_with_flag():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -4104,7 +4105,7 @@ async def test_centralized_common_checks_runs_for_oauth2_fallback_token():
     """VERIA-18 regression: an OAuth2 token that would previously early-
     return without common_checks is now subject to it. If common_checks
     raises, the gate propagates the failure."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4118,7 +4119,7 @@ async def test_centralized_common_checks_runs_for_oauth2_fallback_token():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
             side_effect=ProxyException(
                 message="Key not allowed to access model",
@@ -4146,11 +4147,11 @@ async def test_centralized_common_checks_tolerates_db_errors_when_fetching_conte
     DB is down, then the gate tries to fetch team/user/etc. Those fetches
     fail — the gate must swallow and still call common_checks with None
     objects so enforcement runs against whatever the token recorded."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy.auth.auth_exception_handler import (
+    from token_iq.gateway.proxy.auth.auth_exception_handler import (
         DB_UNAVAILABLE_FALLBACK_USER_ID,
     )
 
@@ -4169,12 +4170,12 @@ async def test_centralized_common_checks_tolerates_db_errors_when_fetching_conte
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=Exception("DB down"),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -4200,8 +4201,8 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
     re-raise it so the wrapper surfaces the budget violation, rather
     than swallowing it and letting ``common_checks`` see
     ``end_user_object=None`` and skip enforcement."""
-    import litellm
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4217,7 +4218,7 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
                 new_callable=AsyncMock,
                 side_effect=litellm.BudgetExceededError(
                     message="End-user budget exceeded",
@@ -4226,7 +4227,7 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -4251,7 +4252,7 @@ async def test_centralized_common_checks_reserves_request_end_user_budget():
     """Regression: reservation runs before user_api_key_auth() copies the
     request end-user onto the token, so centralized checks must pass the
     locally extracted end_user_id/end_user_object into reservation."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4279,16 +4280,16 @@ async def test_centralized_common_checks_reserves_request_end_user_budget():
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
                 new_callable=AsyncMock,
                 return_value=end_user_object,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+                "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
                 return_value=0.6,
             ),
         ):
@@ -4327,11 +4328,11 @@ async def test_centralized_common_checks_short_circuits_when_master_key_unset():
     common_checks must not run. Deployments in this mode have no proxy-
     level authentication, so applying authz would block every admin
     route for a test/dev setup that was previously wide-open."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     token = UserAPIKeyAuth(
         api_key="sk-test", user_id="u", user_role=LitellmUserRoles.INTERNAL_USER
@@ -4345,7 +4346,7 @@ async def test_centralized_common_checks_short_circuits_when_master_key_unset():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -4367,7 +4368,7 @@ async def test_centralized_common_checks_skips_public_routes():
     common_checks on top — the synthetic INTERNAL_USER_VIEW_ONLY token
     has no user_id, so common_checks would reject the request as
     admin-only."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4381,7 +4382,7 @@ async def test_centralized_common_checks_skips_public_routes():
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -4404,7 +4405,7 @@ async def test_centralized_common_checks_skips_passthrough_endpoint_with_auth_fa
     common_checks on that empty token would reject the request as
     admin-only. The "auth" flag on the endpoint config is the contract
     — when it's anything other than True, skip the gate."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4427,7 +4428,7 @@ async def test_centralized_common_checks_skips_passthrough_endpoint_with_auth_fa
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -4448,7 +4449,7 @@ async def test_centralized_common_checks_runs_for_passthrough_endpoint_with_auth
     has ``auth: true``, the builder runs full authentication and the
     centralized gate must run too. Skipping based on path-match alone
     would re-open every ``auth: true`` pass-through endpoint."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4471,7 +4472,7 @@ async def test_centralized_common_checks_runs_for_passthrough_endpoint_with_auth
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
             new_callable=AsyncMock,
         ) as mock_checks:
             await _run_centralized_common_checks(
@@ -4496,7 +4497,7 @@ async def test_centralized_common_checks_master_key_admin_overrides_db_user_role
     common_checks demotes the master_key request to internal_user and
     blocks /team/update. The token is the source of truth for admin
     status; the DB row must not override it."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -4524,12 +4525,12 @@ async def test_centralized_common_checks_master_key_admin_overrides_db_user_role
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=db_user,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -4556,7 +4557,7 @@ async def test_centralized_common_checks_http_exception_without_team_id():
     _team_obj_from_token reconstruction when the token has no team_id —
     the helper asserts team_id is not None. This is the Greptile P1
     finding: the ``except HTTPException`` arm was team-fetch-biased."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
@@ -4573,12 +4574,12 @@ async def test_centralized_common_checks_http_exception_without_team_id():
         # return_exceptions=False propagates it.
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=404, detail="user-not-found"),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -4605,11 +4606,11 @@ async def test_centralized_common_checks_team_404_does_not_zero_other_contexts()
     Pre-fix a bare ``except HTTPException`` over ``asyncio.gather`` zeroed
     every context, silently skipping user-budget, end-user-budget, and
     project enforcement whenever the token's team_id was stale."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_EndUserTable,
         LiteLLM_ProjectTableCachedObj,
     )
@@ -4649,27 +4650,27 @@ async def test_centralized_common_checks_team_404_does_not_zero_other_contexts()
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=404, detail="team-not-found"),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=fetched_user,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_project_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_project_object",
                 new_callable=AsyncMock,
                 return_value=fetched_project,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
                 new_callable=AsyncMock,
                 return_value=fetched_end_user,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -4701,7 +4702,7 @@ async def test_centralized_common_checks_unresolvable_team_without_grant_is_refu
     only surviving team record is the token's own, which carries ``team_models=[]``
     and reads as every model. The request must be refused with the original lookup
     error. Pre-fix it was served."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
@@ -4726,7 +4727,7 @@ async def test_centralized_common_checks_unresolvable_team_without_grant_is_refu
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.get_team_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
             new_callable=AsyncMock,
             side_effect=team_read_failure,
         ):
@@ -4755,11 +4756,11 @@ async def test_centralized_common_checks_absent_team_refused_despite_db_unavaila
     Imported from the module under test rather than from ``auth_checks``: other
     tests in this suite ``importlib.reload`` that module, which rebinds the class
     and would leave this raising a type the guard has never seen."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
-    from litellm.proxy.auth.user_api_key_auth import TeamNotFoundError
+    from token_iq.gateway.proxy.auth.user_api_key_auth import TeamNotFoundError
 
     token = UserAPIKeyAuth(
         api_key="sk-test",
@@ -4780,7 +4781,7 @@ async def test_centralized_common_checks_absent_team_refused_despite_db_unavaila
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.get_team_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
             new_callable=AsyncMock,
             side_effect=team_absent,
         ):
@@ -4803,12 +4804,12 @@ async def test_centralized_common_checks_unreadable_team_keeps_db_unavailable_op
     answered, so an operator who has accepted degraded authorization during a
     database fault still gets the fallback. Without this the fix would trade the
     widening for a lockout with no way out."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException as _HTTPException
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     token = UserAPIKeyAuth(api_key="sk-test", team_id="unreadable-team", models=[], team_models=[])
     request = Request(scope={"type": "http"})
@@ -4829,12 +4830,12 @@ async def test_centralized_common_checks_unreadable_team_keeps_db_unavailable_op
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=_HTTPException(status_code=404, detail={"error": "team unreadable"}),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 _capturing_common_checks,
             ),
         ):
@@ -4862,11 +4863,11 @@ async def test_centralized_common_checks_unresolvable_team_with_grant_enforces_i
     """Mirror of the refusal above: a token that does carry a team model grant keeps
     the fallback, and the reconstructed team must still enforce that grant rather
     than wave the request through."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import ProxyErrorTypes, ProxyException
+    from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
 
     token = UserAPIKeyAuth(
         api_key="sk-test",
@@ -4884,7 +4885,7 @@ async def test_centralized_common_checks_unresolvable_team_with_grant_enforces_i
         for k, v in attrs.items():
             setattr(_proxy_server_mod, k, v)
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.get_team_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
             new_callable=AsyncMock,
             side_effect=HTTPException(status_code=404, detail={"error": "team unreadable"}),
         ):
@@ -4917,12 +4918,12 @@ async def test_centralized_common_checks_ui_sentinel_team_vouches_despite_absent
     provably gone, refuse" the way it is for a real team_id: PR #36837 made that
     exact mistake and PR #36982 reverted it because every dashboard request
     404'd. The sentinel must keep vouching from the token unconditionally."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import UI_TEAM_ID, LiteLLM_TeamTableCachedObj
-    from litellm.proxy.auth.user_api_key_auth import TeamNotFoundError
+    from token_iq.gateway.proxy._types import UI_TEAM_ID, LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy.auth.user_api_key_auth import TeamNotFoundError
 
     token = UserAPIKeyAuth(
         api_key="sk-test",
@@ -4948,12 +4949,12 @@ async def test_centralized_common_checks_ui_sentinel_team_vouches_despite_absent
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=TeamNotFoundError(team_id=UI_TEAM_ID),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 _capturing_common_checks,
             ),
         ):
@@ -4980,11 +4981,11 @@ async def test_centralized_common_checks_ui_sentinel_team_skips_db_lookup():
     log on every dashboard request. The gate must not call ``get_team_object``
     for the sentinel at all, while the token-derived team object still reaches
     ``common_checks``."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import UI_TEAM_ID, LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import UI_TEAM_ID, LiteLLM_TeamTableCachedObj
 
     token = UserAPIKeyAuth(
         api_key="sk-test",
@@ -5010,11 +5011,11 @@ async def test_centralized_common_checks_ui_sentinel_team_skips_db_lookup():
             setattr(_proxy_server_mod, k, v)
         with (
             patch(  # test-quality-ok: the regression IS that this DB lookup is never made for the sentinel
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
             ) as mock_get_team_object,
             patch(  # test-quality-ok: capture the team_object the consumer receives without a DB
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 _capturing_common_checks,
             ),
         ):
@@ -5040,13 +5041,13 @@ async def test_builder_ui_sentinel_team_never_hits_get_team_object():  # test-qu
     UI session token's team refresh and the post-validation team fetch must
     both skip ``get_team_object`` for ``UI_TEAM_ID`` instead of 404ing on
     every request."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import UI_TEAM_ID
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.proxy_server import hash_token
+    from token_iq.gateway.proxy._types import UI_TEAM_ID
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     api_key = "sk-test-ui-session-key"
     cached_token = UserAPIKeyAuth(
@@ -5084,12 +5085,12 @@ async def test_builder_ui_sentinel_team_never_hits_get_team_object():  # test-qu
 
         with (
             patch(  # test-quality-ok: seed the cached UI session token without a DB
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 new_callable=AsyncMock,
                 return_value=cached_token,
             ),
             patch(  # test-quality-ok: the regression IS that this DB lookup is never made for the sentinel
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
             ) as mock_get_team_object,
         ):
@@ -5115,11 +5116,11 @@ async def test_centralized_common_checks_user_http_exception_isolates_to_user_on
     from get_user_object must zero only ``user_object``. The successfully
     fetched team / end_user / project / global_spend must reach
     common_checks intact so their enforcement still runs."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import HTTPException, Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_EndUserTable,
         LiteLLM_ProjectTableCachedObj,
         LiteLLM_TeamTableCachedObj,
@@ -5155,27 +5156,27 @@ async def test_centralized_common_checks_user_http_exception_isolates_to_user_on
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 return_value=fetched_team,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=404, detail="user-not-found"),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_project_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_project_object",
                 new_callable=AsyncMock,
                 return_value=fetched_project,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
                 new_callable=AsyncMock,
                 return_value=fetched_end_user,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -5213,11 +5214,11 @@ async def test_centralized_common_checks_backfills_org_id_from_team(key_org_id, 
     spend writer (which reads user_api_key_dict.org_id, no team fallback)
     credits the org and the org budget cap can actually trip. A key with an
     explicitly pinned org_id must win over the team's org."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     token = UserAPIKeyAuth(api_key="sk-test", user_id="u", team_id="t1", org_id=key_org_id)
     request = Request(scope={"type": "http"})
@@ -5233,12 +5234,12 @@ async def test_centralized_common_checks_backfills_org_id_from_team(key_org_id, 
         org_id_seen_by_common_checks = []
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 return_value=fetched_team,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
                 side_effect=lambda **kw: org_id_seen_by_common_checks.append(kw["valid_token"].org_id),
             ) as mock_checks,
@@ -5265,12 +5266,12 @@ async def test_cli_session_token_org_backfilled_from_team(monkeypatch):
     without the combined_view team join, so their spend never reached the org.
     The centralized-checks backfill must complete the credential from the team
     the same way the SQL view does for DB keys."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj, LiteLLM_UserTable
-    from litellm.proxy.auth.auth_checks import ExperimentalUIJWTToken
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj, LiteLLM_UserTable
+    from token_iq.gateway.proxy.auth.auth_checks import ExperimentalUIJWTToken
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "sk-test-salt-lit4688")
 
@@ -5294,12 +5295,12 @@ async def test_cli_session_token_org_backfilled_from_team(monkeypatch):
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 return_value=org_linked_team,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ),
         ):
@@ -5321,7 +5322,7 @@ async def test_centralized_common_checks_org_backfill_survives_team_fetch_failur
     """When the team DB fetch fails, the token-derived fallback team carries no
     organization_id, so the backfill must leave org_id as None rather than
     crash or mis-attribute."""
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -5336,12 +5337,12 @@ async def test_centralized_common_checks_org_backfill_survives_team_fetch_failur
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=Exception("DB down"),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks",
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
@@ -5371,11 +5372,11 @@ async def test_master_key_auth_substitutes_alias_for_api_key():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.utils import hash_token
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     attrs = _proxy_server_attrs_for_custom_auth(user_custom_auth=None)
     master_key = attrs["master_key"]
@@ -5419,7 +5420,7 @@ async def test_user_api_key_auth_sets_end_user_id_when_builder_skips_it():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     builder_token = UserAPIKeyAuth(api_key="sk-test", user_id="u1")
     # builder did NOT set end_user_id (e.g. master_key=None early return)
@@ -5446,16 +5447,16 @@ async def test_user_api_key_auth_sets_end_user_id_when_builder_skips_it():
         # auth state machine; we only care about the wrapper's safety net.
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 return_value=builder_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_centralized_common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_centralized_common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
         ):
             result = await user_api_key_auth(request=request, api_key="Bearer sk-test")
@@ -5477,7 +5478,7 @@ async def test_user_api_key_auth_does_not_overwrite_end_user_id_set_by_builder()
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     builder_token = UserAPIKeyAuth(
         api_key="sk-test", user_id="u1", end_user_id="builder-resolved-id"
@@ -5502,19 +5503,19 @@ async def test_user_api_key_auth_does_not_overwrite_end_user_id_set_by_builder()
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 return_value=builder_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_centralized_common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_centralized_common_checks",
                 new_callable=AsyncMock,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.resolve_and_validate_end_user_id",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.resolve_and_validate_end_user_id",
                 new_callable=AsyncMock,
             ) as mock_resolve,
         ):
@@ -5536,7 +5537,7 @@ async def test_user_api_key_auth_authenticates_before_raising_malformed_body_err
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     builder_token = UserAPIKeyAuth(api_key="sk-test", user_id="u1", team_id="team-1")
 
@@ -5557,19 +5558,19 @@ async def test_user_api_key_auth_authenticates_before_raising_malformed_body_err
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 return_value=builder_token,
             ) as mock_builder,
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_centralized_common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_centralized_common_checks",
                 new_callable=AsyncMock,
             ) as mock_common_checks,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.seed_request_identity",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.seed_request_identity",
             ) as mock_seed,
         ):
             with pytest.raises(ProxyException) as exc_info:
@@ -5595,7 +5596,7 @@ async def _run_auth_with_malformed_body(post_call_failure_hook):
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     builder_token = UserAPIKeyAuth(api_key="sk-test", user_id="u1", team_id="team-1")
 
@@ -5617,12 +5618,12 @@ async def _run_auth_with_malformed_body(post_call_failure_hook):
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 return_value=builder_token,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
         ):
             with pytest.raises(ProxyException) as exc_info:
@@ -5669,7 +5670,7 @@ async def test_user_api_key_auth_malformed_body_with_rejected_key_still_returns_
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     request = Request(
         scope={
@@ -5688,7 +5689,7 @@ async def test_user_api_key_auth_malformed_body_with_rejected_key_still_returns_
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 side_effect=ProxyException(
                     message="Authentication Error, invalid key",
@@ -5698,7 +5699,7 @@ async def test_user_api_key_auth_malformed_body_with_rejected_key_still_returns_
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
         ):
             with pytest.raises(ProxyException) as exc_info:
@@ -5719,7 +5720,7 @@ async def test_user_api_key_auth_does_not_double_log_a_malformed_body_from_a_rej
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
 
     request = Request(
         scope={
@@ -5740,7 +5741,7 @@ async def test_user_api_key_auth_does_not_double_log_a_malformed_body_from_a_rej
             setattr(_proxy_server_mod, k, v)
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._user_api_key_auth_builder",
                 new_callable=AsyncMock,
                 side_effect=ProxyException(
                     message="Authentication Error, invalid key",
@@ -5750,7 +5751,7 @@ async def test_user_api_key_auth_does_not_double_log_a_malformed_body_from_a_rej
                 ),
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.RouteChecks.should_call_route",
             ),
         ):
             with pytest.raises(ProxyException):
@@ -5791,8 +5792,8 @@ async def _run_builder_with_key_lookup(get_key_object_mock):
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     attrs = _proxy_attrs_for_db_lookup()
     originals = {a: getattr(_proxy_server_mod, a, None) for a in attrs}
@@ -5803,11 +5804,11 @@ async def _run_builder_with_key_lookup(get_key_object_mock):
         request._url = URL(url="/chat/completions")
         with (
             patch(
-                "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+                "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
                 get_key_object_mock,
             ),
             patch(
-                "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+                "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
             ),
         ):
             return await _user_api_key_auth_builder(
@@ -5866,7 +5867,7 @@ async def test_builder_succeeds_when_db_lookup_returns_valid_token():
     get_key_object = AsyncMock(return_value=valid_token)
 
     with patch(
-        "litellm.proxy.auth.user_api_key_auth._return_user_api_key_auth_obj",
+        "token_iq.gateway.proxy.auth.user_api_key_auth._return_user_api_key_auth_obj",
         new_callable=AsyncMock,
         return_value=valid_token,
     ) as mock_return:
@@ -5882,7 +5883,7 @@ def _mint_cli_session_token(monkeypatch, *, user_id="cli-admin"):
     """Mint a CLI session token for a PROXY_ADMIN user so auth resolves on the
     admin early-return path (no prisma/common_checks needed)."""
     monkeypatch.setenv("LITELLM_SALT_KEY", "sk-salt-cli-test")
-    from litellm.proxy.auth.auth_checks import ExperimentalUIJWTToken
+    from token_iq.gateway.proxy.auth.auth_checks import ExperimentalUIJWTToken
 
     user_info = LiteLLM_UserTable(
         user_id=user_id,
@@ -5911,8 +5912,8 @@ async def test_cli_session_token_authenticates_without_experimental_flag(monkeyp
     mock_request.query_params = {}
 
     with (
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         result = await user_api_key_auth(
             request=mock_request,
@@ -5940,8 +5941,8 @@ async def test_random_non_sk_token_is_rejected(monkeypatch):
     mock_request.query_params = {}
 
     with (
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         with pytest.raises(Exception, match='LiteLLM Virtual Key expected\\.') as exc_info:
             await user_api_key_auth(
@@ -5964,8 +5965,8 @@ async def test_expired_cli_session_token_is_rejected(monkeypatch):
 
     import importlib
 
-    from litellm import constants
-    from litellm.proxy.auth import auth_checks
+    from token_iq.gateway import constants
+    from token_iq.gateway.proxy.auth import auth_checks
 
     importlib.reload(constants)
     importlib.reload(auth_checks)
@@ -5987,8 +5988,8 @@ async def test_expired_cli_session_token_is_rejected(monkeypatch):
 
     try:
         with (
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         ):
             with pytest.raises(ProxyException) as exc_info:
                 await user_api_key_auth(
@@ -6014,7 +6015,7 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
     monkeypatch.delenv("EXPERIMENTAL_UI_LOGIN", raising=False)
     monkeypatch.setenv("LITELLM_SALT_KEY", "sk-salt-cli-test")
 
-    from litellm.proxy.auth.auth_checks import ExperimentalUIJWTToken
+    from token_iq.gateway.proxy.auth.auth_checks import ExperimentalUIJWTToken
 
     user_info = LiteLLM_UserTable(
         user_id="internal-user-1",
@@ -6026,7 +6027,7 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
         user_info, team_id="team-abc", team_alias="my-team"
     )
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
 
@@ -6044,17 +6045,17 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
         request._url = URL(url="/chat/completions")
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._return_user_api_key_auth_obj",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._return_user_api_key_auth_obj",
                 new_callable=AsyncMock,
                 return_value=assembled,
             ) as mock_assemble,
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_user_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_user_object",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.get_team_object",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=__import__("fastapi").HTTPException(status_code=404),
             ),
@@ -6103,11 +6104,11 @@ async def test_cli_session_token_authenticates_when_jwt_auth_enabled_without_lic
     mock_request.query_params = {}
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", {"enable_jwt_auth": True}),
-        patch("litellm.proxy.proxy_server.premium_user", False),
-        patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {"enable_jwt_auth": True}),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
+        patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         result = await user_api_key_auth(
             request=mock_request,
@@ -6139,11 +6140,11 @@ async def test_real_jwt_still_requires_license_when_jwt_auth_enabled(monkeypatch
     mock_request.query_params = {}
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", {"enable_jwt_auth": True}),
-        patch("litellm.proxy.proxy_server.premium_user", False),
-        patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {"enable_jwt_auth": True}),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
+        patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         with pytest.raises(Exception, match="JWT auth: This feature is not included in this installation's Token IQ plan") as exc_info:
             await user_api_key_auth(
@@ -6170,10 +6171,10 @@ async def test_auth_does_not_rewrite_cached_key_object_back_into_cache():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    import litellm.proxy.proxy_server as _proxy_server_mod
-    from litellm.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
-    from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-    from litellm.proxy.proxy_server import hash_token
+    import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+    from token_iq.gateway.proxy.proxy_server import hash_token
 
     api_key = "sk-lit-cached-key-no-rewrite"
     hashed_key = hash_token(api_key)
@@ -6219,7 +6220,7 @@ async def test_auth_does_not_rewrite_cached_key_object_back_into_cache():
         request = Request(scope={"type": "http"})
         request._url = URL(url="/chat/completions")
         with patch(
-            "litellm.proxy.auth.resolvers.store._fetch_key_object_from_db_with_reconnect",
+            "token_iq.gateway.proxy.auth.resolvers.store._fetch_key_object_from_db_with_reconnect",
             fetch_from_db,
         ):
             result = await _user_api_key_auth_builder(
@@ -6265,14 +6266,14 @@ class TestJWTAuthUserEmail:
     async def _run_jwt_auth(self, mock_jwt_result, jwt_token):
         with (
             patch(
-                "litellm.proxy.proxy_server.general_settings",
+                "token_iq.gateway.proxy.proxy_server.general_settings",
                 {"enable_jwt_auth": True},
             ),
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
+                "token_iq.gateway.proxy.auth.user_api_key_auth.JWTAuthManager.auth_builder",
                 new_callable=AsyncMock,
                 return_value=mock_jwt_result,
             ),
@@ -6447,7 +6448,7 @@ class TestCheckKeyModelBudgetWithFallback:
         request = self._make_request()
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             side_effect=ProxyException(
                 message="model not allowed",
                 type=ProxyErrorTypes.budget_exceeded,
@@ -6487,7 +6488,7 @@ class TestCheckKeyModelBudgetWithFallback:
         request = self._make_request()
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             return_value=True,
         ):
             await _check_key_model_budget_with_fallback(
@@ -6521,7 +6522,7 @@ class TestCheckKeyModelBudgetWithFallback:
         request = self._make_request()
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             return_value=True,
         ):
             with pytest.raises(litellm.BudgetExceededError) as exc_info:
@@ -6558,7 +6559,7 @@ class TestCheckKeyModelBudgetWithFallback:
         request.scope["path_params"] = {"model": "gpt-4o"}
 
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.can_key_call_model",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             return_value=True,
         ):
             await _check_key_model_budget_with_fallback(
@@ -6611,10 +6612,10 @@ async def test_global_proxy_spend_reads_resettable_proxy_budget_row():
     request and ResetBudgetJob zeroes every budget_duration. It must NOT be
     loaded from the MonthlyGlobalSpend view, whose window is hardcoded to a
     trailing 30 days and never resets on the configured duration."""
-    from litellm.proxy.auth.user_api_key_auth import (
+    from token_iq.gateway.proxy.auth.user_api_key_auth import (
         _fetch_global_spend_with_event_coordination,
     )
-    from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
     proxy_budget_row = MagicMock()
     proxy_budget_row.spend = 42.5
@@ -6640,10 +6641,10 @@ async def test_global_proxy_spend_reads_resettable_proxy_budget_row():
 async def test_global_proxy_spend_none_when_proxy_budget_row_missing():
     """Before the startup upsert creates the aggregate row, enforcement must
     see None (no cap applied) rather than raising."""
-    from litellm.proxy.auth.user_api_key_auth import (
+    from token_iq.gateway.proxy.auth.user_api_key_auth import (
         _fetch_global_spend_with_event_coordination,
     )
-    from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
     prisma_client = MagicMock()
     prisma_client.db.litellm_usertable.find_unique = AsyncMock(return_value=None)
@@ -6675,7 +6676,7 @@ async def test_temp_budget_increase_applied_for_cached_key():
     """
     from datetime import datetime, timedelta
 
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy.utils import hash_token
 
     api_key = "sk-temp-budget-cache-regression"
     hashed_token = hash_token(api_key)
@@ -6707,13 +6708,13 @@ async def test_temp_budget_increase_applied_for_cached_key():
     proxy_logging_obj.budget_alerts = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj),
         patch(
-            "litellm.proxy.auth.user_api_key_auth._virtual_key_max_budget_alert_check",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._virtual_key_max_budget_alert_check",
             new_callable=AsyncMock,
         ),
     ):
@@ -6762,13 +6763,13 @@ async def _proxy_exception_for_key(
     )
 
     with (
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
-        patch("litellm.proxy.proxy_server.premium_user", premium_user),
-        patch("litellm.proxy.proxy_server.master_key", "sk-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj),
-        patch("litellm.proxy.proxy_server.jwt_handler", jwt_handler),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", premium_user),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj),
+        patch("token_iq.gateway.proxy.proxy_server.jwt_handler", jwt_handler),
     ):
         with pytest.raises(ProxyException) as exc_info:
             await _user_api_key_auth_builder(
@@ -6843,7 +6844,7 @@ class TestLitellmReceivedAtStamping:
 
     def test_stamped_even_when_otel_is_not_configured(self, monkeypatch):
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.open_telemetry_logger", None
+            "token_iq.gateway.proxy.proxy_server.open_telemetry_logger", None
         )
         request = MagicMock()
         request.state = SimpleNamespace()

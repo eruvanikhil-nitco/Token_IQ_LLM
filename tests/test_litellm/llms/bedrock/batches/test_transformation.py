@@ -20,8 +20,8 @@ import httpx
 import pytest
 
 
-from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
-from litellm.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
+from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
 
 # AWS JobStatus -> OpenAI BatchJobStatus, exactly as encoded in transformation.py
 # (both transform_create_batch_response and transform_retrieve_batch_response).
@@ -169,7 +169,7 @@ def test_create_request_omits_kms_key_when_absent(config):
         "generate_unique_job_name",
         return_value="litellm-batch-1",
     ), patch.object(config.common_utils, "sign_aws_request") as mock_sign, patch(
-        "litellm.llms.bedrock.common_utils.get_secret_str",
+        "token_iq.gateway.llms.bedrock.common_utils.get_secret_str",
         return_value=None,
     ):
         mock_sign.return_value = ({}, b"{}")

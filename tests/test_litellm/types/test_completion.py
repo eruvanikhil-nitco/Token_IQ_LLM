@@ -13,7 +13,7 @@ from typing import List
 
 import pytest
 
-from litellm.types.completion import (
+from token_iq.gateway.types.completion import (
     ChatCompletionMessageParam,
     CompletionRequest,
     _CompletionDispatchContext,

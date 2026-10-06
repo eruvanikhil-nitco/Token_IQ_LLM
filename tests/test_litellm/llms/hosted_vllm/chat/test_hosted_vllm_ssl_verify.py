@@ -13,13 +13,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestHostedVLLMSSLVerify:
     """Test suite for SSL verification in hosted_vllm provider."""
 
-    @patch("litellm.llms.custom_httpx.llm_http_handler._get_httpx_client")
+    @patch("token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client")
     def test_hosted_vllm_ssl_verify_false_sync(self, mock_get_httpx_client):
         """Test that ssl_verify=False is passed to the HTTP client for sync calls."""
         # Setup mock client
@@ -80,7 +80,7 @@ class TestHostedVLLMSSLVerify:
             params.get("ssl_verify") is False
         ), f"Expected ssl_verify=False in params, got {params}"
 
-    @patch("litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client")
+    @patch("token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client")
     @pytest.mark.asyncio
     async def test_hosted_vllm_ssl_verify_false_async(
         self, mock_get_async_httpx_client

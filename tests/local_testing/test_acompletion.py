@@ -1,11 +1,11 @@
 import pytest
-from litellm import acompletion
-from litellm import completion
+from token_iq.gateway import acompletion
+from token_iq.gateway import completion
 
 
 def test_acompletion_params():
     import inspect
-    from litellm.types.completion import CompletionRequest
+    from token_iq.gateway.types.completion import CompletionRequest
 
     acompletion_params_odict = inspect.signature(acompletion).parameters
     completion_params_dict = inspect.signature(completion).parameters
@@ -39,7 +39,7 @@ def test_acompletion_params():
 
 @pytest.mark.asyncio
 async def test_langfuse_double_logging():
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
     litellm.success_callback = ["langfuse"]

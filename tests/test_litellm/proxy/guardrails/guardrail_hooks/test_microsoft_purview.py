@@ -8,11 +8,11 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview.base import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview.base import (
     PurviewGuardrailBase,
 )
-from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview.purview_dlp import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview.purview_dlp import (
     MicrosoftPurviewDLPGuardrail,
 )
 
@@ -365,7 +365,7 @@ class TestPreCallFullTranscript:
 class TestPostCallHook:
     @pytest.mark.asyncio
     async def test_post_call_allow(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -393,7 +393,7 @@ class TestPostCallHook:
 
     @pytest.mark.asyncio
     async def test_post_call_block(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -429,7 +429,7 @@ class TestPostCallHook:
 
     @pytest.mark.asyncio
     async def test_post_call_no_user_id_raises(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -453,7 +453,7 @@ class TestPostCallHook:
 
     @pytest.mark.asyncio
     async def test_post_call_scans_all_choices(self):
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -509,7 +509,7 @@ class TestTextCompletionHooks:
 
     @pytest.mark.asyncio
     async def test_post_call_text_completion_all_choices(self):
-        from litellm.types.utils import TextChoices, TextCompletionResponse
+        from token_iq.gateway.types.utils import TextChoices, TextCompletionResponse
 
         guardrail = _make_guardrail()
         response = TextCompletionResponse(
@@ -674,7 +674,7 @@ class TestResponsesAPIHooks:
     @pytest.mark.asyncio
     async def test_post_call_responses_api_output_text(self):
         """Post-call hook must scan text from ``ResponsesAPIResponse.output``."""
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         response = ResponsesAPIResponse(
@@ -712,7 +712,7 @@ class TestResponsesAPIHooks:
     @pytest.mark.asyncio
     async def test_post_call_responses_api_empty_output_skips(self):
         """Post-call hook must not call _check_content when output has no text."""
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         response = ResponsesAPIResponse(
@@ -735,7 +735,7 @@ class TestResponsesAPIHooks:
     @pytest.mark.asyncio
     async def test_logging_hook_responses_api_input_and_output(self):
         """Logging hook must scan both ``input`` and ``ResponsesAPIResponse.output``."""
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         result_response = ResponsesAPIResponse(
@@ -786,7 +786,7 @@ class TestResponsesAPIHooks:
         the prompt via the responses-specific path, not silently fall through
         the generic ``messages`` branch with the wrong format.
         """
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         result_response = ResponsesAPIResponse(
@@ -1379,7 +1379,7 @@ class TestLoggingHookNonBlocking:
 
 class TestInitializerValidation:
     def test_missing_tenant_id(self):
-        from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview import (
             initialize_guardrail,
         )
 
@@ -1405,7 +1405,7 @@ class TestInitializerValidation:
             initialize_guardrail(litellm_params, {"guardrail_name": "test"})
 
     def test_missing_client_id(self):
-        from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview import (
             initialize_guardrail,
         )
 
@@ -1431,7 +1431,7 @@ class TestInitializerValidation:
             initialize_guardrail(litellm_params, {"guardrail_name": "test"})
 
     def test_missing_client_secret(self):
-        from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview import (
             initialize_guardrail,
         )
 
@@ -1641,7 +1641,7 @@ class TestAsyncLoggingHookIndependence:
     @pytest.mark.asyncio
     async def test_response_audit_runs_even_if_prompt_audit_fails(self):
         """A failure in the prompt audit must not prevent the response audit from running."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -1680,7 +1680,7 @@ class TestAsyncLoggingHookIndependence:
     @pytest.mark.asyncio
     async def test_prompt_audit_runs_even_if_response_audit_fails(self):
         """A failure in the response audit must not affect the prompt audit result."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -1770,7 +1770,7 @@ class TestExtractToolCallArgs:
         assert '{"query": "secret"}' in args
 
     def test_object_message_with_tool_calls(self):
-        from litellm.types.utils import Message
+        from token_iq.gateway.types.utils import Message
 
         msg = Message(
             role="assistant",
@@ -1874,7 +1874,7 @@ class TestGetPromptTextToolCalls:
 
             await guardrail.async_pre_call_hook(
                 user_api_key_dict=__import__(
-                    "litellm.proxy._types", fromlist=["UserAPIKeyAuth"]
+                    "token_iq.gateway.proxy._types", fromlist=["UserAPIKeyAuth"]
                 ).UserAPIKeyAuth(api_key="test", user_id="user-123"),
                 cache=None,
                 data={
@@ -1912,7 +1912,7 @@ class TestGetPromptTextToolCalls:
 class TestCompletionResponseTextPartsToolCalls:
     def test_response_tool_call_args_included(self):
         """Model-generated tool_call arguments must appear in the DLP scan text."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -1941,7 +1941,7 @@ class TestCompletionResponseTextPartsToolCalls:
 
     def test_response_with_content_and_tool_calls(self):
         """Both message content and tool_call arguments must be included."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -1973,7 +1973,7 @@ class TestCompletionResponseTextPartsToolCalls:
     @pytest.mark.asyncio
     async def test_post_call_hook_scans_response_tool_call_args(self):
         """async_post_call_success_hook must send tool_call arguments to Purview."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
         response = ModelResponse(
@@ -2006,7 +2006,7 @@ class TestCompletionResponseTextPartsToolCalls:
             await guardrail.async_post_call_success_hook(
                 data={},
                 user_api_key_dict=__import__(
-                    "litellm.proxy._types", fromlist=["UserAPIKeyAuth"]
+                    "token_iq.gateway.proxy._types", fromlist=["UserAPIKeyAuth"]
                 ).UserAPIKeyAuth(api_key="test", user_id="user-123"),
                 response=response,
             )
@@ -2017,7 +2017,7 @@ class TestCompletionResponseTextPartsToolCalls:
 
     def test_responses_api_function_call_args_included(self):
         """Function-call arguments in ``ResponsesAPIResponse.output`` must be DLP-scanned."""
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         response = ResponsesAPIResponse(
@@ -2047,7 +2047,7 @@ class TestCompletionResponseTextPartsToolCalls:
 
     def test_responses_api_function_call_args_only(self):
         """Function-call args must be scanned even when no ``output_text`` blocks exist."""
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         guardrail = _make_guardrail()
         response = ResponsesAPIResponse(
@@ -2360,7 +2360,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_clean_response_yields_all_chunks(self):
         """Clean stream: all chunks must be re-yielded after DLP passes."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
 
@@ -2377,9 +2377,9 @@ class TestStreamingIteratorHook:
             yield assembled_response
 
         with (
-            patch("litellm.main.stream_chunk_builder", return_value=assembled_response),
+            patch("token_iq.gateway.main.stream_chunk_builder", return_value=assembled_response),
             patch(
-                "litellm.llms.base_llm.base_model_iterator.MockResponseIterator"
+                "token_iq.gateway.llms.base_llm.base_model_iterator.MockResponseIterator"
             ) as mock_iterator_cls,
             patch.object(
                 guardrail, "_check_content", new_callable=AsyncMock
@@ -2407,7 +2407,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_violation_raises_before_any_chunk(self):
         """A policy violation must raise HTTPException before yielding any chunk."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
 
@@ -2427,7 +2427,7 @@ class TestStreamingIteratorHook:
             yield assembled_response
 
         with (
-            patch("litellm.main.stream_chunk_builder", return_value=assembled_response),
+            patch("token_iq.gateway.main.stream_chunk_builder", return_value=assembled_response),
             patch.object(
                 guardrail,
                 "_check_content",
@@ -2460,7 +2460,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_no_user_id_raises_before_yield(self):
         """No resolvable user_id → fail closed before any chunk is yielded."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         guardrail = _make_guardrail()
 
@@ -2477,7 +2477,7 @@ class TestStreamingIteratorHook:
             yield assembled_response
 
         with patch(
-            "litellm.main.stream_chunk_builder", return_value=assembled_response
+            "token_iq.gateway.main.stream_chunk_builder", return_value=assembled_response
         ):
             chunks = []
             async def _drain():
@@ -2497,7 +2497,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_text_completion_scans_before_yield(self):
         """Streamed /v1/completions must be DLP-scanned via TextCompletionResponse."""
-        from litellm.types.utils import TextChoices, TextCompletionResponse
+        from token_iq.gateway.types.utils import TextChoices, TextCompletionResponse
 
         guardrail = _make_guardrail()
 
@@ -2510,7 +2510,7 @@ class TestStreamingIteratorHook:
             yield assembled_response
 
         with (
-            patch("litellm.main.stream_chunk_builder", return_value=assembled_response),
+            patch("token_iq.gateway.main.stream_chunk_builder", return_value=assembled_response),
             patch.object(
                 guardrail, "_check_content", new_callable=AsyncMock
             ) as mock_check,
@@ -2532,7 +2532,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_responses_api_scans_completed_event(self):
         """Streamed Responses API: assembled ResponsesAPIResponse must be DLP-scanned."""
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             ResponseCompletedEvent,
             ResponseCreatedEvent,
             ResponsesAPIResponse,
@@ -2568,7 +2568,7 @@ class TestStreamingIteratorHook:
             yield completed_event
 
         with (
-            patch("litellm.main.stream_chunk_builder") as mock_stream_builder,
+            patch("token_iq.gateway.main.stream_chunk_builder") as mock_stream_builder,
             patch.object(
                 guardrail, "_check_content", new_callable=AsyncMock
             ) as mock_check,
@@ -2592,7 +2592,7 @@ class TestStreamingIteratorHook:
     @pytest.mark.asyncio
     async def test_streaming_responses_api_violation_blocks_before_yield(self):
         """Responses API stream with a DLP violation must raise before any chunk is yielded."""
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             ResponseCompletedEvent,
             ResponsesAPIResponse,
             ResponsesAPIStreamEvents,
@@ -2655,7 +2655,7 @@ class TestStreamingIteratorHook:
 
 class TestRegistration:
     def test_registry_contains_microsoft_purview(self):
-        from litellm.proxy.guardrails.guardrail_hooks.microsoft_purview import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.microsoft_purview import (
             guardrail_class_registry,
             guardrail_initializer_registry,
         )

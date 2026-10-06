@@ -11,8 +11,8 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.watsonx.passthrough.transformation import WatsonxPassthroughConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.watsonx.passthrough.transformation import WatsonxPassthroughConfig
 
 
 class TestWatsonxPassthroughConfig:
@@ -73,7 +73,7 @@ class TestWatsonxPassthroughConfig:
         assert "version=2024-03-19" in str(complete_url)
         assert base_target_url == api_base
 
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_get_complete_url_with_env_api_base(self, mock_get_secret):
         """Test URL construction with api_base from environment."""
         config = WatsonxPassthroughConfig()
@@ -138,7 +138,7 @@ class TestWatsonxPassthroughConfig:
         assert base_target_url == api_base
         assert "version=2024-03-19" not in str(complete_url)
 
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_get_api_base_with_explicit_value(self, mock_get_secret):
         """Test get_api_base returns explicit value when provided."""
         explicit_base = "https://custom.watsonx.com"
@@ -148,7 +148,7 @@ class TestWatsonxPassthroughConfig:
         assert result == explicit_base
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_get_api_base_from_environment(self, mock_get_secret):
         """Test get_api_base retrieves from environment when not provided."""
         env_base = "https://env.watsonx.com"
@@ -159,7 +159,7 @@ class TestWatsonxPassthroughConfig:
         assert result == env_base
         mock_get_secret.assert_called_once_with("WATSONX_API_BASE")
 
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_get_api_key_with_explicit_value(self, mock_get_secret):
         """Test get_api_key returns explicit value when provided."""
         explicit_key = "test-api-key-123"
@@ -169,7 +169,7 @@ class TestWatsonxPassthroughConfig:
         assert result == explicit_key
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_get_api_key_from_environment(self, mock_get_secret):
         """Test get_api_key retrieves from environment when not provided."""
         env_key = "env-api-key-456"

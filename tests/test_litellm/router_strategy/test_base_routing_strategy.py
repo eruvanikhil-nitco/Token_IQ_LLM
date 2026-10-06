@@ -8,9 +8,9 @@ import asyncio
 from unittest.mock import MagicMock, patch
 
 
-from litellm.caching.caching import DualCache
-from litellm.caching.redis_cache import RedisPipelineIncrementOperation
-from litellm.router_strategy.base_routing_strategy import BaseRoutingStrategy
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.caching.redis_cache import RedisPipelineIncrementOperation
+from token_iq.gateway.router_strategy.base_routing_strategy import BaseRoutingStrategy
 
 
 @pytest.fixture
@@ -90,7 +90,7 @@ async def test_push_in_memory_increments_to_redis(base_strategy, mock_dual_cache
 
 @pytest.mark.asyncio
 async def test_sync_in_memory_spend_with_redis(base_strategy, mock_dual_cache):
-    from litellm.types.caching import RedisPipelineIncrementOperation
+    from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
 
     # Setup test data
     base_strategy.in_memory_keys_to_update = {"key1"}

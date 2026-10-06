@@ -11,17 +11,17 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.integrations.datadog.datadog import DataDogLogger
-from litellm.integrations.datadog.datadog_team_handler import (
+from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
+from token_iq.gateway.integrations.datadog.datadog_team_handler import (
     DataDogHandler,
 )
-from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
     TRUSTED_CALLBACK_VARS_FIELD,
 )
-from litellm.litellm_core_utils.specialty_caches.dynamic_logging_cache import (
+from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
     DynamicLoggingCache,
 )
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 @pytest.fixture
@@ -223,7 +223,7 @@ class TestDataDogHandler:
 
     def test_request_blocked_callback_params_includes_dd(self):
         """DD params should be blocked from request-level metadata (security)."""
-        from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+        from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
             _request_blocked_callback_params,
         )
 
@@ -265,7 +265,7 @@ class TestStandardCallbackDynamicParamsIncludesDatadog:
 
 
 def _build_logging_obj(kwargs: dict, *, with_datadog_callback: bool = True):
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     with patch("asyncio.create_task"):
         return Logging(

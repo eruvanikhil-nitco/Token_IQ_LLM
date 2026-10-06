@@ -15,14 +15,14 @@ from unittest.mock import patch
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 def _make_image_response(**kwargs) -> ImageResponse:
@@ -73,7 +73,7 @@ async def test_post_call_success_hook_invoked_for_image_generation():
     guardrail = TrackingGuardrail()
     image_response = _make_image_response()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
         data = {"model": "dall-e-3", "prompt": "A sunset over mountains"}
@@ -130,7 +130,7 @@ async def test_guardrail_can_transform_image_response():
     guardrail = TransformingGuardrail()
     original_response = _make_image_response()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
         data = {"model": "dall-e-3", "prompt": "A sunset"}
@@ -179,7 +179,7 @@ async def test_guardrail_exception_propagates_for_image_generation():
     """
     guardrail = BlockingGuardrail()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
         data = {"model": "dall-e-3", "prompt": "Something unsafe"}
@@ -225,7 +225,7 @@ async def test_custom_logger_post_call_success_hook_fires_for_image_generation()
     logger = TrackingLogger()
     image_response = _make_image_response()
 
-    with patch("litellm.callbacks", [logger]):
+    with patch("token_iq.gateway.callbacks", [logger]):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
         data = {"model": "dall-e-3", "prompt": "A cat"}
@@ -276,7 +276,7 @@ async def test_non_default_guardrail_skipped_for_image_generation():
     """
     guardrail = OptInGuardrail()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
         # No guardrails key in data -> should_run_guardrail returns False

@@ -10,7 +10,7 @@ Issue: SAP GenAI Hub Orchestration Service rejects tools with:
 
 import pytest
 
-from litellm.llms.sap.chat.models import FunctionTool, ChatCompletionTool
+from token_iq.gateway.llms.sap.chat.models import FunctionTool, ChatCompletionTool
 
 
 class TestFunctionToolParametersValidation:
@@ -108,7 +108,7 @@ class TestToolTransformationIntegration:
 
     def test_should_transform_openai_format_tool_correctly(self):
         """Simulate transformation.py tool validation flow."""
-        from litellm.llms.sap.chat.transformation import validate_dict
+        from token_iq.gateway.llms.sap.chat.transformation import validate_dict
 
         # OpenAI format tool with empty parameters (common case that was failing)
         openai_tool = {
@@ -124,7 +124,7 @@ class TestToolTransformationIntegration:
 
     def test_should_transform_tool_with_existing_parameters(self):
         """Tool with parameters should preserve them while ensuring type='object'."""
-        from litellm.llms.sap.chat.transformation import validate_dict
+        from token_iq.gateway.llms.sap.chat.transformation import validate_dict
 
         openai_tool = {
             "type": "function",

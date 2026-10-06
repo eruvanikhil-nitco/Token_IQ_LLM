@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy.health_endpoints._health_endpoints import (
+from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
     _aggregate_health_check_results,
     _build_model_param_to_info_mapping,
     _perform_health_check_and_save,
@@ -14,7 +14,7 @@ from litellm.proxy.health_endpoints._health_endpoints import (
     _save_health_check_results_if_changed,
     _save_health_check_to_db,
 )
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 @pytest.fixture
@@ -568,7 +568,7 @@ async def test_perform_health_check_and_save_passes_model_id_to_perform_health_c
         return healthy, unhealthy, {}
 
     with patch(
-        "litellm.proxy.health_endpoints._health_endpoints.perform_health_check",
+        "token_iq.gateway.proxy.health_endpoints._health_endpoints.perform_health_check",
         side_effect=mock_perform_health_check,
     ) as mock_perform:
         result = await _perform_health_check_and_save(
@@ -604,7 +604,7 @@ async def test_perform_health_check_and_save_forwards_skip_disabled_background_f
         return [], [], {}
 
     with patch(
-        "litellm.proxy.health_endpoints._health_endpoints.perform_health_check",
+        "token_iq.gateway.proxy.health_endpoints._health_endpoints.perform_health_check",
         side_effect=mock_perform_health_check,
     ) as mock_perform:
         await _perform_health_check_and_save(
@@ -624,7 +624,7 @@ async def test_perform_health_check_and_save_forwards_skip_disabled_background_f
 
 
 def test_parse_background_health_check_model_groups_unset_returns_none():
-    from litellm.proxy.health_check import parse_background_health_check_model_groups
+    from token_iq.gateway.proxy.health_check import parse_background_health_check_model_groups
 
     assert parse_background_health_check_model_groups(None) is None
     assert parse_background_health_check_model_groups({}) is None
@@ -637,7 +637,7 @@ def test_parse_background_health_check_model_groups_unset_returns_none():
 
 
 def test_parse_background_health_check_model_groups_list_returns_frozenset():
-    from litellm.proxy.health_check import parse_background_health_check_model_groups
+    from token_iq.gateway.proxy.health_check import parse_background_health_check_model_groups
 
     parsed = parse_background_health_check_model_groups(
         {"background_health_check_model_groups": ["prod-openai", "prod-claude"]}
@@ -647,7 +647,7 @@ def test_parse_background_health_check_model_groups_list_returns_frozenset():
 
 @pytest.mark.parametrize("bad_value", ["prod-openai", 42, {"a": 1}, [1, 2], [None]])
 def test_parse_background_health_check_model_groups_malformed_raises(bad_value):
-    from litellm.proxy.health_check import parse_background_health_check_model_groups
+    from token_iq.gateway.proxy.health_check import parse_background_health_check_model_groups
 
     with pytest.raises(ValueError, match="must be a list of model group names"):
         parse_background_health_check_model_groups(
@@ -656,7 +656,7 @@ def test_parse_background_health_check_model_groups_malformed_raises(bad_value):
 
 
 def test_filter_deployments_to_model_groups():
-    from litellm.proxy.health_check import filter_deployments_to_model_groups
+    from token_iq.gateway.proxy.health_check import filter_deployments_to_model_groups
 
     model_list = [
         {"model_name": "prod-openai", "model_info": {"id": "a"}},

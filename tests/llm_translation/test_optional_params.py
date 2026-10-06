@@ -9,14 +9,14 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.factory import map_system_message_pt
-from litellm.types.completion import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.factory import map_system_message_pt
+from token_iq.gateway.types.completion import (
     ChatCompletionMessageParam,
     ChatCompletionSystemMessageParam,
     ChatCompletionUserMessageParam,
 )
-from litellm.utils import (
+from token_iq.gateway.utils import (
     get_optional_params,
     get_optional_params_embeddings,
     get_optional_params_image_gen,
@@ -71,7 +71,7 @@ def test_get_requester_metadata_returns_none_for_empty():
     assert get_requester_metadata(metadata) is None
 
 
-@patch("litellm.main.openai_chat_completions.completion")
+@patch("token_iq.gateway.main.openai_chat_completions.completion")
 def test_requester_metadata_forwarded_to_openai(mock_completion):
     mock_completion.return_value = MagicMock()
     metadata = {
@@ -158,7 +158,7 @@ def test_allowed_openai_params_does_not_forward_unset_params():
     added ``optional_params["enable_thinking"] = None`` which then
     crashed the openai client.
     """
-    from litellm.utils import _apply_openai_param_overrides
+    from token_iq.gateway.utils import _apply_openai_param_overrides
 
     chat_template_kwargs = {"enable_thinking": False}
     optional_params: dict = {}
@@ -533,7 +533,7 @@ def test_dynamic_drop_params(drop_params):
 
 def test_dynamic_drop_params_e2e():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
             response = litellm.completion(
@@ -552,7 +552,7 @@ def test_dynamic_drop_params_e2e():
 
 def test_dynamic_pass_additional_params():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
             response = litellm.completion(
@@ -602,7 +602,7 @@ def test_dynamic_drop_params_parallel_tool_calls():
     https://github.com/BerriAI/litellm/issues/4584
     """
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
             response = litellm.completion(
@@ -659,7 +659,7 @@ def test_dynamic_drop_additional_params_stream_options():
 
 def test_dynamic_drop_additional_params_e2e():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
             response = litellm.completion(
@@ -709,7 +709,7 @@ def test_get_optional_params_num_retries():
     Relevant issue - https://github.com/BerriAI/litellm/issues/5124
     """
     with patch(
-        "litellm.main.get_optional_params",
+        "token_iq.gateway.main.get_optional_params",
         new=MagicMock(return_value={"max_retries": 0}),
     ) as mock_client:
         _ = litellm.completion(
@@ -1098,7 +1098,7 @@ def test_together_ai_model_params():
 
 
 def test_forward_user_param():
-    from litellm.utils import get_supported_openai_params, get_optional_params
+    from token_iq.gateway.utils import get_supported_openai_params, get_optional_params
 
     model = "claude-3-5-sonnet-20240620"
     optional_params = get_optional_params(
@@ -1135,7 +1135,7 @@ def test_ollama_pydantic_obj():
 
 
 def test_gemini_frequency_penalty_listed_in_vertex_ai_supported_params():
-    from litellm.utils import get_supported_openai_params
+    from token_iq.gateway.utils import get_supported_openai_params
 
     optional_params = get_supported_openai_params(
         model="gemini-1.5-flash",
@@ -1831,7 +1831,7 @@ def test_azure_response_format_param():
     ],
 )
 def test_anthropic_unified_reasoning_content(model, provider):
-    from litellm.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
+    from token_iq.gateway.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
 
     optional_params = get_optional_params(
         model=model,
@@ -1897,9 +1897,9 @@ def test_optional_params_image_gen_with_aspect_ratio():
 
 
 def test_optional_params_responses_api_allowed_openai_params():
-    from litellm import responses
+    from token_iq.gateway import responses
     from unittest.mock import patch, MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -1995,7 +1995,7 @@ def test_validate_openai_optional_params_integration():
     """
     # Test that completion with more than 4 stop sequences works without error
     try:
-        with patch("litellm.llms.openai.openai.OpenAI") as mock_client:
+        with patch("token_iq.gateway.llms.openai.openai.OpenAI") as mock_client:
             mock_response = MagicMock()
             mock_response.choices = [MagicMock()]
             mock_response.choices[0].message.content = "Test response"
@@ -2076,12 +2076,12 @@ def test_store_in_openai_chat_completion_params():
 
     Ref: https://github.com/BerriAI/litellm/issues/19700
     """
-    from litellm.constants import OPENAI_CHAT_COMPLETION_PARAMS
+    from token_iq.gateway.constants import OPENAI_CHAT_COMPLETION_PARAMS
 
     assert "store" in OPENAI_CHAT_COMPLETION_PARAMS
 
     # Verify get_standard_openai_params recognizes store
-    from litellm.utils import get_standard_openai_params
+    from token_iq.gateway.utils import get_standard_openai_params
 
     result = get_standard_openai_params({"store": True, "temperature": 0.7})
     assert "store" in result

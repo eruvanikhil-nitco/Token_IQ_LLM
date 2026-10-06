@@ -7,11 +7,11 @@ import re
 import pytest
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.llms import get_guardrail_translation_mapping
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
-from litellm.llms.mistral.ocr.guardrail_translation.handler import OCRHandler
-from litellm.types.utils import CallTypes
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.llms import get_guardrail_translation_mapping
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
+from token_iq.gateway.llms.mistral.ocr.guardrail_translation.handler import OCRHandler
+from token_iq.gateway.types.utils import CallTypes
 
 
 class MockGuardrail(CustomGuardrail):

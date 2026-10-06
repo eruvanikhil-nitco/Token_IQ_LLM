@@ -9,8 +9,8 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 )
 
-from litellm.llms.openai_like.dynamic_config import create_config_class
-from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
 ASSEMBLYAI_BASE_URL = "https://llm-gateway.assemblyai.com/v1"
 
@@ -51,7 +51,7 @@ def test_assemblyai_complete_url_appends_endpoint():
 
 
 def test_assemblyai_provider_resolution():
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, api_key, api_base = get_llm_provider(
         model="assemblyai/claude-sonnet-4-5-20250929",
@@ -66,8 +66,8 @@ def test_assemblyai_provider_resolution():
 
 
 def test_assemblyai_provider_config_manager():
-    from litellm import LlmProviders
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_chat_config(
         model="claude-sonnet-4-5-20250929", provider=LlmProviders.ASSEMBLYAI

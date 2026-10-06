@@ -76,17 +76,17 @@ async def test_sap_chat(
     fake_deployment_url,
     sync_mode,
 ):
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.disable_aiohttp_transport = True
     with (
         patch(
-            "litellm.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
+            "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.chat.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.chat.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):
@@ -113,17 +113,17 @@ async def test_sap_streaming(
     fake_token_creator,
     fake_deployment_url,
 ):
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.disable_aiohttp_transport = True
     with (
         patch(
-            "litellm.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
+            "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.chat.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.chat.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):
@@ -156,7 +156,7 @@ async def test_sap_chat_required_headers(
     fake_deployment_url,
 ):
     """Test that required headers are correctly set in SAP chat requests."""
-    import litellm
+    from token_iq import gateway as litellm
 
     # Define required headers for SAP requests
     required_headers = {
@@ -169,12 +169,12 @@ async def test_sap_chat_required_headers(
     litellm.disable_aiohttp_transport = True
     with (
         patch(
-            "litellm.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
+            "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.chat.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.chat.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):

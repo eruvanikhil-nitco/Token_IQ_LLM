@@ -14,8 +14,8 @@ import os
 
 import pytest
 
-import litellm
-from litellm.utils import get_model_info
+from token_iq import gateway as litellm
+from token_iq.gateway.utils import get_model_info
 
 
 @pytest.fixture(scope="module", autouse=True)

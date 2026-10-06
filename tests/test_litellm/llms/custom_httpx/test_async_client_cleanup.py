@@ -1,8 +1,8 @@
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.async_client_cleanup import close_litellm_async_clients
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.async_client_cleanup import close_litellm_async_clients
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 @pytest.mark.asyncio

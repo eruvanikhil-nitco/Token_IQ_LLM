@@ -12,9 +12,9 @@ import concurrent
 
 from dotenv import load_dotenv
 
-import litellm
+from token_iq import gateway as litellm
 
-from litellm import Router
+from token_iq.gateway import Router
 
 load_dotenv()
 

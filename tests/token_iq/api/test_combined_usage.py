@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from token_iq.attribution.gap_owner import GapRow, attribute
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.combined_usage import comparison_response
 from token_iq.types.attribution import AttributionRule
 

@@ -27,24 +27,24 @@ from typing import Optional, Tuple
 import pytest
 from starlette.requests import Request
 
-import litellm
-from litellm.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     HttpPassThroughEndpointHelpers,
 )
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     EndpointType,
     PassthroughStandardLoggingPayload,
 )
-from litellm.types.utils import Choices, Message, ModelResponse, Usage
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
 URL_ROUTE = "https://api.anthropic.com/v1/messages"
 MODEL = "claude-sonnet-4-5-20250929"

@@ -17,7 +17,7 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.responses.litellm_completion_transformation.handler import (
+from token_iq.gateway.responses.litellm_completion_transformation.handler import (
     LiteLLMCompletionTransformationHandler,
 )
 
@@ -34,7 +34,7 @@ def test_sync_fallback_tags_skip_responses_api_bridge():
         captured.update(kwargs)
         raise _StopForwarding()
 
-    with patch("litellm.completion", fake_completion):
+    with patch("token_iq.gateway.completion", fake_completion):
         with pytest.raises(_StopForwarding):
             handler.response_api_handler(
                 model="gpt-4o",
@@ -56,7 +56,7 @@ async def test_async_fallback_tags_skip_responses_api_bridge():
         captured.update(kwargs)
         raise _StopForwarding()
 
-    with patch("litellm.acompletion", fake_acompletion):
+    with patch("token_iq.gateway.acompletion", fake_acompletion):
         coro = handler.response_api_handler(
             model="gpt-4o",
             input="hello",

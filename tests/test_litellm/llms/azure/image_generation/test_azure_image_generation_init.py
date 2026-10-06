@@ -7,18 +7,18 @@ import httpx
 import pytest
 import respx
 
-import litellm
-from litellm.caching.llm_caching_handler import LLMClientCache
-from litellm.llms.azure.azure import AzureChatCompletion
-from litellm.llms.azure.image_generation.http_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+from token_iq.gateway.llms.azure.azure import AzureChatCompletion
+from token_iq.gateway.llms.azure.image_generation.http_utils import (
     azure_deployment_image_generation_json_body,
 )
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.azure.image_generation import (
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.azure.image_generation import (
     AzureDallE3ImageGenerationConfig,
     get_azure_image_generation_config,
 )
-from litellm.utils import get_optional_params_image_gen
+from token_iq.gateway.utils import get_optional_params_image_gen
 
 
 @pytest.mark.parametrize(
@@ -177,7 +177,7 @@ def test_azure_image_generation_headers_without_api_key():
     if api_key is not None:
         default_headers["api-key"] = api_key
     """
-    from litellm.images.main import image_generation
+    from token_iq.gateway.images.main import image_generation
 
     # Test the header building logic directly
     api_key = None
@@ -225,7 +225,7 @@ def test_azure_image_generation_drop_params_response_format():
     Without the fix, response_format would be added to extra_body and cause Azure to
     return a 400 Bad Request error due to strict schema validation.
     """
-    from litellm.llms.openai.image_generation.gpt_transformation import (
+    from token_iq.gateway.llms.openai.image_generation.gpt_transformation import (
         GPTImageGenerationConfig,
     )
 
@@ -274,8 +274,8 @@ def test_azure_image_generation_drop_params_false_raises_error():
     This verifies that the error handling still works correctly when drop_params
     is not enabled.
     """
-    from litellm.exceptions import UnsupportedParamsError
-    from litellm.llms.openai.image_generation.gpt_transformation import (
+    from token_iq.gateway.exceptions import UnsupportedParamsError
+    from token_iq.gateway.llms.openai.image_generation.gpt_transformation import (
         GPTImageGenerationConfig,
     )
 
@@ -411,7 +411,7 @@ async def test_azure_aimage_generation_base_model_vs_deployment_name():
     mock_client.post = AsyncMock(return_value=mock_http_response)
 
     with patch(
-        "litellm.llms.azure.azure.get_async_httpx_client", return_value=mock_client
+        "token_iq.gateway.llms.azure.azure.get_async_httpx_client", return_value=mock_client
     ):
         logging_obj = MagicMock()
         logging_obj.pre_call = MagicMock()

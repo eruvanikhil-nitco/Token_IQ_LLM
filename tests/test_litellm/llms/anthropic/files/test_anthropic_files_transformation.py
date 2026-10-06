@@ -12,13 +12,13 @@ import httpx
 import pytest
 from unittest.mock import Mock, patch
 
-from litellm.llms.anthropic.files.transformation import (
+from token_iq.gateway.llms.anthropic.files.transformation import (
     AnthropicFilesConfig,
     ANTHROPIC_FILES_API_BASE,
     ANTHROPIC_FILES_BETA_HEADER,
 )
-from litellm.types.llms.openai import OpenAIFileObject
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.types.llms.openai import OpenAIFileObject
+from token_iq.gateway.types.utils import LlmProviders
 
 
 class TestAnthropicFilesConfig:
@@ -76,7 +76,7 @@ class TestAnthropicFilesConfig:
 
     @patch.dict("os.environ", {}, clear=True)
     @patch(
-        "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+        "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
         return_value=None,
     )
     def test_validate_environment_missing_api_key(self, mock_get_key):
@@ -415,7 +415,7 @@ class TestProviderConfigRegistration:
     """Test that AnthropicFilesConfig is properly registered."""
 
     def test_provider_config_returns_anthropic_files_config(self):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_files_config(
             model="",

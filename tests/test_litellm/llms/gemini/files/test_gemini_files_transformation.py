@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-from litellm.llms.gemini.files.transformation import GoogleAIStudioFilesHandler
-from litellm.types.llms.openai import OpenAIFileObject
+from token_iq.gateway.llms.gemini.files.transformation import GoogleAIStudioFilesHandler
+from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
 
 class TestGoogleAIStudioFilesTransformation:
@@ -117,7 +117,7 @@ class TestGoogleAIStudioFilesTransformation:
             )
 
     @patch.dict("os.environ", {}, clear=True)
-    @patch("litellm.llms.gemini.common_utils.get_secret_str", return_value=None)
+    @patch("token_iq.gateway.llms.gemini.common_utils.get_secret_str", return_value=None)
     def test_transform_retrieve_file_request_missing_api_key(self, mock_get_secret):
         """Test that transform_retrieve_file_request raises error when API key is missing"""
         file_id = "files/test123"
@@ -270,7 +270,7 @@ class TestGoogleAIStudioFilesTransformation:
         assert result_headers["x-goog-api-key"] == api_key
 
     @patch.dict("os.environ", {}, clear=True)
-    @patch("litellm.llms.gemini.common_utils.get_secret_str", return_value=None)
+    @patch("token_iq.gateway.llms.gemini.common_utils.get_secret_str", return_value=None)
     def test_validate_environment_missing_api_key(self, mock_get_secret):
         """Test that validate_environment raises error when API key is missing"""
         headers = {}

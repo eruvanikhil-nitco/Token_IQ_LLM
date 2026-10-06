@@ -46,9 +46,9 @@
 import pytest
 import asyncio
 import aiohttp, openai
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import json
-from litellm.proxy._types import ProxyErrorTypes
+from token_iq.gateway.proxy._types import ProxyErrorTypes
 from typing import Optional
 
 LITELLM_MASTER_KEY = "sk-1234"

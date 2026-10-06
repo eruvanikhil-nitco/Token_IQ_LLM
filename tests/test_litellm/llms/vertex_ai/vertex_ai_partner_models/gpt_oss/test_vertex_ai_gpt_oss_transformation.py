@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.vertex_ai.vertex_ai_partner_models.gpt_oss.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.gpt_oss.transformation import (
     VertexAIGPTOSSTransformation,
 )
 
@@ -14,7 +14,7 @@ from litellm.llms.vertex_ai.vertex_ai_partner_models.gpt_oss.transformation impo
 @pytest.fixture(autouse=True)
 def _reset_litellm_http_client_cache():
     """Ensure each test gets a fresh async HTTP client mock."""
-    from litellm import in_memory_llm_clients_cache
+    from token_iq.gateway import in_memory_llm_clients_cache
 
     in_memory_llm_clients_cache.flush_cache()
 
@@ -62,7 +62,7 @@ class TestVertexAIGPTOSSTransformation:
         config = VertexAIGPTOSSTransformation()
 
         # Mock litellm.supports_function_calling to return False
-        with patch("litellm.supports_function_calling", return_value=False):
+        with patch("token_iq.gateway.supports_function_calling", return_value=False):
             supported_params = config.get_supported_openai_params(
                 model="openai/gpt-oss-20b-maas"
             )
@@ -111,10 +111,10 @@ async def test_vertex_ai_gpt_oss_simple_request():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "pathrise-convert-1606954137718"),
         ),
         patch.dict(
@@ -210,10 +210,10 @@ async def test_vertex_ai_gpt_oss_reasoning_effort():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "pathrise-convert-1606954137718"),
         ),
         patch.dict(

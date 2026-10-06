@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import MagicMock, patch
 
-from litellm.llms.bedrock.image_generation.amazon_stability3_transformation import (
+from token_iq.gateway.llms.bedrock.image_generation.amazon_stability3_transformation import (
     AmazonStability3Config,
 )
 

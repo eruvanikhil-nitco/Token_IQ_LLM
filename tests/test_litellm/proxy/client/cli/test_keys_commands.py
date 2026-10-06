@@ -9,7 +9,7 @@ import requests
 import pytest
 from click.testing import CliRunner
 
-from litellm.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli import cli
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def mock_env():
 @pytest.fixture
 def mock_keys_client():
     with patch(
-        "litellm.proxy.client.cli.commands.keys.KeysManagementClient"
+        "token_iq.gateway.proxy.client.cli.commands.keys.KeysManagementClient"
     ) as MockClient:
         yield MockClient
 
@@ -215,7 +215,7 @@ def test_keys_import_actual_import_success(mock_keys_client, cli_runner):
     """Test successful actual import of keys"""
     # Create separate mock instances for source and destination
     with patch(
-        "litellm.proxy.client.cli.commands.keys.KeysManagementClient"
+        "token_iq.gateway.proxy.client.cli.commands.keys.KeysManagementClient"
     ) as MockClient:
         mock_source_instance = MockClient.return_value
         mock_dest_instance = MockClient.return_value
@@ -448,7 +448,7 @@ def test_keys_import_source_api_error(mock_keys_client, cli_runner):
 def test_keys_import_partial_failure(mock_keys_client, cli_runner):
     """Test handling when some keys fail to import"""
     with patch(
-        "litellm.proxy.client.cli.commands.keys.KeysManagementClient"
+        "token_iq.gateway.proxy.client.cli.commands.keys.KeysManagementClient"
     ) as MockClient:
         mock_source_instance = MockClient.return_value
         mock_dest_instance = MockClient.return_value
@@ -493,7 +493,7 @@ def test_keys_import_missing_required_source_url(cli_runner):
 def test_keys_import_with_all_key_properties(mock_keys_client, cli_runner):
     """Test import preserves all key properties (models, aliases, config, etc.)"""
     with patch(
-        "litellm.proxy.client.cli.commands.keys.KeysManagementClient"
+        "token_iq.gateway.proxy.client.cli.commands.keys.KeysManagementClient"
     ) as MockClient:
         mock_source_instance = MockClient.return_value
         mock_dest_instance = MockClient.return_value

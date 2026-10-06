@@ -16,9 +16,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
 
 
 def _make_user_api_key_auth(
@@ -44,7 +44,7 @@ async def test_under_budget_passes():
     user_api_key_dict = _make_user_api_key_auth(user_max_budget=10.0)
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=3.0),
     ):
         result = await handler.async_pre_call_hook(
@@ -63,7 +63,7 @@ async def test_over_budget_rejects_without_reservation():
     user_api_key_dict = _make_user_api_key_auth(user_max_budget=10.0)
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=10.0),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -108,7 +108,7 @@ async def test_skips_when_user_counter_is_reserved():
     # `get_current_spend` would return 10.0 here (counter pre-filled by the
     # reservation). The hook must skip without reading it.
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=10.0),
     ) as mock_get_spend:
         result = await handler.async_pre_call_hook(
@@ -148,7 +148,7 @@ async def test_does_not_skip_when_reservation_covers_a_different_counter():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=10.0),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -171,7 +171,7 @@ async def test_team_keys_skip_personal_budget():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=999.0),
     ) as mock_get_spend:
         result = await handler.async_pre_call_hook(
@@ -197,10 +197,10 @@ async def test_team_keys_enforce_personal_budget_when_flag_enabled():
     )
 
     with patch.dict(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"apply_user_budget_to_team_keys": True},
     ), patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=999.0),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -223,7 +223,7 @@ async def test_no_max_budget_passes():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=999.0),
     ) as mock_get_spend:
         result = await handler.async_pre_call_hook(

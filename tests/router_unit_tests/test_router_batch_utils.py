@@ -4,7 +4,7 @@ import pytest
 import json
 from io import BytesIO
 from typing import Dict, List
-from litellm.router_utils.batch_utils import (
+from token_iq.gateway.router_utils.batch_utils import (
     replace_model_in_jsonl,
     _get_router_metadata_variable_name,
     InMemoryFile,
@@ -116,7 +116,7 @@ def test_router_metadata_variable_name():
 
 def test_non_json_input():
     """Test that replace_model_in_jsonl returns original content for non-JSON input"""
-    from litellm.router_utils.batch_utils import replace_model_in_jsonl
+    from token_iq.gateway.router_utils.batch_utils import replace_model_in_jsonl
 
     # Test with non-JSON string
     non_json_str = "This is not a JSON string"
@@ -138,7 +138,7 @@ def test_non_json_input():
 
 def test_should_replace_model_in_jsonl():
     """Test that should_replace_model_in_jsonl returns the correct value"""
-    from litellm.router_utils.batch_utils import should_replace_model_in_jsonl
+    from token_iq.gateway.router_utils.batch_utils import should_replace_model_in_jsonl
 
     assert should_replace_model_in_jsonl(purpose="batch") is True
     assert should_replace_model_in_jsonl(purpose="test") is False

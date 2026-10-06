@@ -4,8 +4,8 @@ import pytest
 from pydantic import BaseModel
 
 
-import litellm
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.llms.openai import (
     IncompleteDetails,
     ResponseAPIUsage,
     ResponsesAPIResponse,
@@ -149,7 +149,7 @@ class TestTextFormatConversion:
                 )
 
         with patch(
-            "litellm.responses.main.base_llm_http_handler.response_api_handler",
+            "token_iq.gateway.responses.main.base_llm_http_handler.response_api_handler",
             new=mock_handler,
         ):
             litellm._turn_on_debug()

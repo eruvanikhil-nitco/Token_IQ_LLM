@@ -19,11 +19,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.anthropic_cache_control_hook import (
+from token_iq.gateway.integrations.anthropic_cache_control_hook import (
     AnthropicCacheControlHook,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.llms.openai import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
     ResponseInputParam,
 )
@@ -63,7 +63,7 @@ def _patch_responses_dispatch():
     """Patch everything after the prompt management block so tests stay unit-level."""
     return [
         patch(
-            "litellm.responses.main.litellm.get_llm_provider",
+            "token_iq.gateway.responses.main.litellm.get_llm_provider",
             side_effect=_provider_by_model,
         ),
         patch(
@@ -158,7 +158,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input="Tell me about AI.",
@@ -193,7 +193,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input=client_messages,  # type: ignore[arg-type]
@@ -216,7 +216,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input="Hello",
@@ -247,7 +247,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input="Hello",
@@ -273,7 +273,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input="What is AI?",
@@ -305,7 +305,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input=mixed_input,  # type: ignore[arg-type]
@@ -328,7 +328,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input=original_input,
@@ -368,7 +368,7 @@ class TestResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input=original_input,
@@ -394,14 +394,14 @@ class TestResponsesAPIPromptManagement:
         patches = _patch_responses_dispatch()
         with (
             patch(
-                "litellm.responses.main.litellm.get_llm_provider",
+                "token_iq.gateway.responses.main.litellm.get_llm_provider",
                 side_effect=_provider_by_model,
             ),
             patches[1],
             patches[2],
             patches[3] as mock_handler,
         ):
-            import litellm
+            from token_iq import gateway as litellm
 
             litellm.responses(
                 input="Hi",
@@ -437,7 +437,7 @@ class TestAsyncResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             await litellm.aresponses(
                 input="Hi",
@@ -467,7 +467,7 @@ class TestAsyncResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             await litellm.aresponses(
                 input="Hello",
@@ -498,7 +498,7 @@ class TestAsyncResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3]:
-            import litellm
+            from token_iq import gateway as litellm
 
             await litellm.aresponses(
                 input=mixed_input,  # type: ignore[arg-type]
@@ -524,7 +524,7 @@ class TestAsyncResponsesAPIPromptManagement:
 
         patches = _patch_responses_dispatch()
         with patches[0], patches[1], patches[2], patches[3] as mock_handler:
-            import litellm
+            from token_iq import gateway as litellm
 
             await litellm.aresponses(
                 input=original_input,
@@ -551,8 +551,8 @@ class TestAsyncResponsesAPIPromptManagement:
 
 
 def test_resolve_prompt_swapped_provider_raises_cross_provider_with_credentials():
-    import litellm
-    from litellm.responses.main import _resolve_prompt_swapped_provider
+    from token_iq import gateway as litellm
+    from token_iq.gateway.responses.main import _resolve_prompt_swapped_provider
 
     with pytest.raises(litellm.BadRequestError, match="Refusing to send"):
         _resolve_prompt_swapped_provider(
@@ -565,7 +565,7 @@ def test_resolve_prompt_swapped_provider_raises_cross_provider_with_credentials(
 
 
 def test_resolve_prompt_swapped_provider_allows_swap_without_credentials():
-    from litellm.responses.main import _resolve_prompt_swapped_provider
+    from token_iq.gateway.responses.main import _resolve_prompt_swapped_provider
 
     assert (
         _resolve_prompt_swapped_provider(
@@ -580,7 +580,7 @@ def test_resolve_prompt_swapped_provider_allows_swap_without_credentials():
 
 
 def test_resolve_prompt_swapped_provider_allows_same_provider_swap_with_credentials():
-    from litellm.responses.main import _resolve_prompt_swapped_provider
+    from token_iq.gateway.responses.main import _resolve_prompt_swapped_provider
 
     assert (
         _resolve_prompt_swapped_provider(
@@ -595,12 +595,12 @@ def test_resolve_prompt_swapped_provider_allows_same_provider_swap_with_credenti
 
 
 def test_sync_prompt_swap_resolves_credentials_for_swapped_provider(monkeypatch: pytest.MonkeyPatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setenv("XAI_API_KEY", "sk-xai-test")
     logging_obj = _make_logging_obj("gpt-4o-mini", [{"role": "user", "content": "hi"}])
     with patch(  # test-quality-ok: handler boundary stub proves creds resolve for the swapped provider without network
-        "litellm.responses.main.base_llm_http_handler.response_api_handler", return_value=MagicMock()
+        "token_iq.gateway.responses.main.base_llm_http_handler.response_api_handler", return_value=MagicMock()
     ) as mock_handler:
         litellm.responses(input="hi", model="xai/grok-4", prompt_id="p1", litellm_logging_obj=logging_obj)
 
@@ -612,8 +612,8 @@ def test_sync_prompt_swap_resolves_credentials_for_swapped_provider(monkeypatch:
 
 
 def test_sync_prompt_swap_cross_provider_with_credentials_raises():
-    import litellm
-    from litellm.responses.main import _apply_prompt_management_to_responses_call
+    from token_iq import gateway as litellm
+    from token_iq.gateway.responses.main import _apply_prompt_management_to_responses_call
 
     logging_obj = _make_logging_obj("gpt-4o-mini", [{"role": "user", "content": "hi"}])
     with pytest.raises(litellm.BadRequestError, match="Refusing to send"):
@@ -630,7 +630,7 @@ def test_sync_prompt_swap_cross_provider_with_credentials_raises():
 
 @pytest.mark.asyncio
 async def test_aresponses_prompt_swap_cross_provider_with_credentials_raises():
-    import litellm
+    from token_iq import gateway as litellm
 
     logging_obj = _make_logging_obj("gpt-4o-mini", [{"role": "user", "content": "hi"}])
     logging_obj.async_failure_handler = AsyncMock()

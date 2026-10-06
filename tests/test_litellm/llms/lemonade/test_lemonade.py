@@ -1,9 +1,9 @@
 
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.llms.lemonade.chat.transformation import LemonadeChatConfig
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.lemonade.chat.transformation import LemonadeChatConfig
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_lemonade_config_initialization():

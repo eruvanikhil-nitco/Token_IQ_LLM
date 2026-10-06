@@ -5,9 +5,9 @@ from urllib.parse import urlparse
 
 import pytest
 
-import litellm
-from litellm.integrations.s3_v2 import S3Logger
-from litellm.litellm_core_utils.aws_partition import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.s3_v2 import S3Logger
+from token_iq.gateway.core_utils.aws_partition import (
     AwsPartition,
     contains_aws_arn,
     contains_bedrock_arn,
@@ -16,12 +16,12 @@ from litellm.litellm_core_utils.aws_partition import (
     get_aws_partition,
     is_bedrock_arn,
 )
-from litellm.llms.aws_polly.text_to_speech.transformation import AWSPollyTextToSpeechConfig
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
-from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
-from litellm.llms.bedrock.common_utils import init_bedrock_client
-from litellm.llms.sagemaker.chat.transformation import SagemakerChatConfig
+from token_iq.gateway.llms.aws_polly.text_to_speech.transformation import AWSPollyTextToSpeechConfig
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
+from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+from token_iq.gateway.llms.bedrock.common_utils import init_bedrock_client
+from token_iq.gateway.llms.sagemaker.chat.transformation import SagemakerChatConfig
 
 
 @pytest.mark.parametrize(

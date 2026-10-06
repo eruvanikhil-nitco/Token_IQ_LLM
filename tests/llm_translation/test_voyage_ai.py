@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from base_embedding_unit_tests import BaseLLMEmbeddingTest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestVoyageAI(BaseLLMEmbeddingTest):
@@ -30,8 +30,8 @@ class TestVoyageAI(BaseLLMEmbeddingTest):
 
         # Mock the embedding function to avoid API calls
         with (
-            patch("litellm.embedding") as mock_embedding,
-            patch("litellm.aembedding") as mock_aembedding,
+            patch("token_iq.gateway.embedding") as mock_embedding,
+            patch("token_iq.gateway.aembedding") as mock_aembedding,
         ):
             # Create a mock response that matches Voyage format
             mock_response = MagicMock()
@@ -72,7 +72,7 @@ def test_voyage_ai_embedding_extra_params():
     """Test Voyage AI embedding with extra parameters"""
     try:
         # Mock the entire embedding function to avoid API calls
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             # Create a mock response
             mock_response = MagicMock()
             mock_response.usage.prompt_tokens = 24
@@ -103,7 +103,7 @@ def test_voyage_ai_embedding_prompt_token_mapping():
     """Test Voyage AI embedding token mapping"""
     try:
         # Mock the entire embedding function
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             # Create a mock response with usage
             mock_response = MagicMock()
             mock_response.usage.prompt_tokens = 120
@@ -131,7 +131,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_model_detection(self):
         """Test that contextual models are correctly identified"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -149,7 +149,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_url_generation(self):
         """Test URL generation for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -177,7 +177,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_request_transformation(self):
         """Test request transformation for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -197,10 +197,10 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_response_transformation(self):
         """Test response transformation for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
-        from litellm.types.utils import EmbeddingResponse
+        from token_iq.gateway.types.utils import EmbeddingResponse
 
         config = VoyageContextualEmbeddingConfig()
 
@@ -247,7 +247,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_parameter_mapping(self):
         """Test parameter mapping for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -265,7 +265,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_environment_validation(self):
         """Test environment validation for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -285,7 +285,7 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_embedding_error_handling(self):
         """Test error handling for contextual embeddings"""
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
             VoyageError,
         )
@@ -300,8 +300,8 @@ class TestVoyageContextualEmbeddings:
 
     def test_contextual_vs_regular_embedding_differences(self):
         """Test that contextual and regular embeddings are handled differently"""
-        from litellm.llms.voyage.embedding.transformation import VoyageEmbeddingConfig
-        from litellm.llms.voyage.embedding.transformation_contextual import (
+        from token_iq.gateway.llms.voyage.embedding.transformation import VoyageEmbeddingConfig
+        from token_iq.gateway.llms.voyage.embedding.transformation_contextual import (
             VoyageContextualEmbeddingConfig,
         )
 
@@ -334,7 +334,7 @@ class TestVoyageContextualEmbeddings:
         """Test full integration of contextual embeddings"""
         try:
             # Mock the entire embedding function to avoid API calls
-            with patch("litellm.embedding") as mock_embedding:
+            with patch("token_iq.gateway.embedding") as mock_embedding:
                 # Create a mock response that matches the expected structure
                 mock_response = MagicMock()
                 mock_response.model = "voyage-context-3"
@@ -378,7 +378,7 @@ class TestVoyageContextualEmbeddings:
         """Test contextual embeddings with multiple input groups"""
         try:
             # Mock the entire embedding function
-            with patch("litellm.embedding") as mock_embedding:
+            with patch("token_iq.gateway.embedding") as mock_embedding:
                 # Create a mock response for multiple input groups
                 mock_response = MagicMock()
                 mock_response.model = "voyage-context-3"

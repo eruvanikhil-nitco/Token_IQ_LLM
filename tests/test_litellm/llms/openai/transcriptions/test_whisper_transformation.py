@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.llms.openai.transcriptions.whisper_transformation import (
+from token_iq.gateway.llms.openai.transcriptions.whisper_transformation import (
     OpenAIWhisperAudioTranscriptionConfig,
 )
 

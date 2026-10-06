@@ -13,9 +13,9 @@ from typing import Any, Final
 
 from pydantic import ValidationError
 
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.common_utils import _is_user_team_admin
 
 CREDENTIAL_TEAM_KEY: Final = "team_id"
 

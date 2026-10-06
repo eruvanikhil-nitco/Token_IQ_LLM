@@ -1,12 +1,12 @@
 """
-Unit tests for litellm/llms/bedrock/common_utils.py
+Unit tests for token_iq/gateway/llms/bedrock/common_utils.py
 
 Tests the standalone model name utility functions and BedrockTokenCounter.
 """
 
 import pytest
 
-from litellm.llms.bedrock.common_utils import (
+from token_iq.gateway.llms.bedrock.common_utils import (
     BedrockModelInfo,
     extract_model_name_from_bedrock_arn,
     get_bedrock_base_model,
@@ -14,7 +14,7 @@ from litellm.llms.bedrock.common_utils import (
     strip_bedrock_routing_prefix,
     strip_bedrock_throughput_suffix,
 )
-from litellm.llms.bedrock.count_tokens.bedrock_token_counter import BedrockTokenCounter
+from token_iq.gateway.llms.bedrock.count_tokens.bedrock_token_counter import BedrockTokenCounter
 
 
 class TestStripBedrockRoutingPrefix:

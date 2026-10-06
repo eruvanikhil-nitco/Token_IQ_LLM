@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 import pytest
 
 
-from litellm.caching.gcs_cache import GCSCache
+from token_iq.gateway.caching.gcs_cache import GCSCache
 
 
 @pytest.fixture
@@ -14,14 +14,14 @@ def mock_gcs_dependencies():
 
     with (
         patch(
-            "litellm.caching.gcs_cache._get_httpx_client", return_value=mock_sync_client
+            "token_iq.gateway.caching.gcs_cache._get_httpx_client", return_value=mock_sync_client
         ),
         patch(
-            "litellm.caching.gcs_cache.get_async_httpx_client",
+            "token_iq.gateway.caching.gcs_cache.get_async_httpx_client",
             return_value=mock_async_client,
         ),
         patch(
-            "litellm.caching.gcs_cache.GCSBucketBase.sync_construct_request_headers",
+            "token_iq.gateway.caching.gcs_cache.GCSBucketBase.sync_construct_request_headers",
             return_value={},
         ),
     ):

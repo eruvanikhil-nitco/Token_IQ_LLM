@@ -14,7 +14,7 @@ from prometheus_client import CollectorRegistry, Gauge
 from prometheus_client.metrics_core import GaugeMetricFamily
 from prometheus_client.registry import Collector
 
-from litellm.integrations.prometheus_metrics_endpoint import (
+from token_iq.gateway.integrations.prometheus_metrics_endpoint import (
     RESPONSE_CHUNK_SIZE_BYTES,
     make_metrics_asgi_app,
 )

@@ -1,6 +1,6 @@
 """
 Tests for AnthropicResponsesStreamWrapper
-(litellm/llms/anthropic/experimental_pass_through/responses_adapters/streaming_iterator.py)
+(token_iq/gateway/llms/anthropic/experimental_pass_through/responses_adapters/streaming_iterator.py)
 """
 
 import asyncio
@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../..")))
 
-from litellm.llms.anthropic.experimental_pass_through.responses_adapters.streaming_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.streaming_iterator import (
     AnthropicResponsesStreamWrapper,
 )
 
@@ -288,7 +288,7 @@ class TestResponseCompletedUsage:
     input rate."""
 
     def test_response_completed_usage_carries_cache_tokens(self):
-        from litellm.types.llms.openai import ResponseAPIUsage
+        from token_iq.gateway.types.llms.openai import ResponseAPIUsage
 
         response = SimpleNamespace(
             status="completed",

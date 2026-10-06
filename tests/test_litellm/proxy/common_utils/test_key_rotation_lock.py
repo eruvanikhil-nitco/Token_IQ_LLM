@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.proxy._types import LiteLLM_VerificationToken
-from litellm.proxy.common_utils.key_rotation_manager import KeyRotationManager
+from token_iq.gateway.proxy._types import LiteLLM_VerificationToken
+from token_iq.gateway.proxy.common_utils.key_rotation_manager import KeyRotationManager
 
 
 class TestKeyRotationLock:

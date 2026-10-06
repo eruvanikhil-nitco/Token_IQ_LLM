@@ -9,12 +9,12 @@ import httpx
 import pytest
 
 
-from litellm.llms.dashscope.common_utils import DashScopeError
-from litellm.llms.dashscope.rerank.transformation import (
+from token_iq.gateway.llms.dashscope.common_utils import DashScopeError
+from token_iq.gateway.llms.dashscope.rerank.transformation import (
     DEFAULT_RERANK_URL,
     DashScopeRerankConfig,
 )
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.types.rerank import RerankResponse
 
 
 class TestDashScopeRerankURL:
@@ -313,8 +313,8 @@ class TestDashScopeRerankResponse:
 
 class TestProviderConfigManagerDispatch:
     def test_dashscope_returns_rerank_config(self):
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_rerank_config(
             model="qwen3-rerank",

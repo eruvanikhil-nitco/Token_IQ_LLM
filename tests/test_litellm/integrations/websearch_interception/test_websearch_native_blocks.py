@@ -10,20 +10,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WEBSEARCH_EMIT_NATIVE_BLOCKS_KEY,
     WEBSEARCH_NATIVE_BLOCKS_METADATA_KEY,
     WebSearchInterceptionLogger,
 )
-from litellm.integrations.websearch_interception.tools import (
+from token_iq.gateway.integrations.websearch_interception.tools import (
     is_anthropic_native_web_search_tool,
     is_web_search_tool,
 )
-from litellm.integrations.websearch_interception.transformation import (
+from token_iq.gateway.integrations.websearch_interception.transformation import (
     WebSearchTransformation,
 )
-from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
-from litellm.types.integrations.custom_logger import (
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
+from token_iq.gateway.types.integrations.custom_logger import (
     AgenticLoopPlan,
     AgenticLoopRequestPatch,
 )
@@ -492,7 +492,7 @@ class TestLegacyPathMatchesNewPath:
                 new=AsyncMock(return_value=(patch_obj, [_make_search_response()])),
             ),
             patch(
-                "litellm.integrations.websearch_interception.handler.anthropic_messages.acreate",
+                "token_iq.gateway.integrations.websearch_interception.handler.anthropic_messages.acreate",
                 new=AsyncMock(return_value=followup_response),
             ),
         ):

@@ -2,10 +2,10 @@ import os
 
 
 import asyncio
-import litellm
+from token_iq import gateway as litellm
 import pytest
 import logging
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 
 
 def test_datadog_logging_async():

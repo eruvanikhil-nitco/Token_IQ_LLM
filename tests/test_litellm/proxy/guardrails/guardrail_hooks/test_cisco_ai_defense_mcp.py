@@ -133,8 +133,8 @@ class TestCiscoAIDefenseMCPMode:
     )
     @pytest.mark.asyncio
     async def test_mcp_input_redaction_reaches_tool_call(self, verdict_extra):
-        from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         original_args = {"note": "ssn 123-45-6789"}
         sanitized_args = {"note": "ssn [REDACTED]"}
@@ -223,7 +223,7 @@ class TestCiscoAIDefenseMCPMode:
 
     @pytest.mark.asyncio
     async def test_mcp_response_hook_blocks_violation(self):
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         g = _make_guardrail(
             inspection_type="mcp", event_hook=["pre_mcp_call", "during_mcp_call"]
@@ -320,7 +320,7 @@ class TestCiscoAIDefenseMCPMode:
     async def test_mcp_response_hook_handles_raw_list_content(
         self, cisco_response_kind, expected_block
     ):
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         g = _make_guardrail(
             inspection_type="mcp", event_hook=["pre_mcp_call", "during_mcp_call"]
@@ -380,7 +380,7 @@ class TestCiscoAIDefenseMCPMode:
     async def test_mcp_response_hook_through_real_logging_wrapper(self):
         from mcp.types import CallToolResult, TextContent
 
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         g = _make_guardrail(
             inspection_type="mcp", event_hook=["pre_mcp_call", "during_mcp_call"]
@@ -524,7 +524,7 @@ class TestCiscoAIDefenseRedactListShape:
     @pytest.mark.asyncio
     async def test_redact_rewrites_mcp_response_list_shape(self, factory_name):
 
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         g = _make_guardrail(
             inspection_type="mcp", event_hook=["pre_mcp_call", "during_mcp_call"]
@@ -560,8 +560,8 @@ class TestCiscoAIDefenseRedactListShape:
     async def test_redact_rewrites_client_visible_original_response(self):
         from mcp.types import CallToolResult, TextContent
 
-        from litellm.types.llms.base import HiddenParams
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.llms.base import HiddenParams
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         original_response = CallToolResult(
             content=[TextContent(type="text", text="SSN: 123-45-6789")],
@@ -666,8 +666,8 @@ class TestCiscoAIDefenseMCPBlockingContract:
 
     @pytest.mark.asyncio
     async def test_block_response_survives_dispatcher_contract(self):
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
         from mcp.types import CallToolResult, TextContent
 
         g = _make_guardrail(

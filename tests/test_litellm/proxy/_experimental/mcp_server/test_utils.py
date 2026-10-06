@@ -3,15 +3,15 @@ from unittest.mock import patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._experimental.mcp_server.utils import (
+from token_iq.gateway.proxy._experimental.mcp_server.utils import (
     _upstream_credential_headers,
     build_synthetic_mcp_request,
     logging_safe_mcp_headers,
     validate_and_normalize_mcp_server_payload,
     validate_tool_display_names,
 )
-from litellm.proxy._types import NewMCPServerRequest
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._types import NewMCPServerRequest
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def _server_forwarding(*header_names: str) -> MCPServer:
@@ -26,7 +26,7 @@ def _server_forwarding(*header_names: str) -> MCPServer:
 
 def _configured_servers(*servers: MCPServer):
     return patch.dict(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager.config_mcp_servers",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager.config_mcp_servers",
         {server.server_id: server for server in servers},
         clear=False,
     )
@@ -97,7 +97,7 @@ class TestLoggingSafeMcpHeaders:
         """general_settings.litellm_key_header_name carries the proxy virtual key, so it must
         never reach a callback or a guardrail even though clean_headers cannot know its name."""
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"litellm_key_header_name": "x-company-key"},
             clear=False,
         ):
@@ -126,7 +126,7 @@ class TestLoggingSafeMcpHeaders:
 
     def test_strips_custom_mcp_client_side_auth_header(self):
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"mcp_client_side_auth_header_name": "x-upstream-token"},
             clear=False,
         ):
@@ -154,7 +154,7 @@ class TestLoggingSafeMcpHeaders:
         """get_user_from_headers resolves end user attribution off this same request, so a header
         the deployment reads identity from stays even when a server forwards it upstream."""
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"user_header_name": "x-user-email"},
             clear=False,
         ):
@@ -176,7 +176,7 @@ class TestLoggingSafeMcpHeaders:
         accept a bare mapping as well as a list, and config_settings.md documents the key as a
         dict, so the exemption has to read both shapes."""
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"user_header_mappings": configured},
             clear=False,
         ):
@@ -220,7 +220,7 @@ class TestBuildSyntheticMcpRequest:
         """Callers such as the sampling flow build metadata off this request, so the
         deployment's custom proxy key header must never be forwarded on it."""
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"litellm_key_header_name": "x-company-key"},
             clear=False,
         ):
@@ -258,7 +258,7 @@ class TestBuildSyntheticMcpRequest:
         """add_litellm_data_to_request reads user_header_name off this request to fill
         end_user_id, so forwarding that header upstream must not remove it here."""
         with patch.dict(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"user_header_name": "x-user-email"},
             clear=False,
         ):

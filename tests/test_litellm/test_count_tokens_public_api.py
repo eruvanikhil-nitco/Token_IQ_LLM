@@ -7,14 +7,14 @@ import os
 from unittest.mock import AsyncMock, patch
 
 
-import litellm
-from litellm.types.utils import TokenCountResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import TokenCountResponse
 
 
 def test_acount_tokens_routes_to_openai():
     """Test that acount_tokens routes to OpenAI token counter for openai/ models."""
     with patch(
-        "litellm.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
+        "token_iq.gateway.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
         new_callable=AsyncMock,
         return_value={"input_tokens": 15},
     ):
@@ -34,7 +34,7 @@ def test_acount_tokens_routes_to_openai():
 def test_acount_tokens_routes_to_anthropic():
     """Test that acount_tokens routes to Anthropic token counter for anthropic/ models."""
     with patch(
-        "litellm.llms.anthropic.count_tokens.token_counter.anthropic_count_tokens_handler.handle_count_tokens_request",
+        "token_iq.gateway.llms.anthropic.count_tokens.token_counter.anthropic_count_tokens_handler.handle_count_tokens_request",
         new_callable=AsyncMock,
         return_value={"input_tokens": 20},
     ):
@@ -81,7 +81,7 @@ def test_acount_tokens_with_tools():
     ]
 
     with patch(
-        "litellm.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
+        "token_iq.gateway.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
         new_callable=AsyncMock,
         return_value={"input_tokens": 30},
     ) as mock_handler:
@@ -103,7 +103,7 @@ def test_acount_tokens_with_tools():
 def test_acount_tokens_with_system():
     """Test that system messages are passed through."""
     with patch(
-        "litellm.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
+        "token_iq.gateway.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
         new_callable=AsyncMock,
         return_value={"input_tokens": 25},
     ):
@@ -121,10 +121,10 @@ def test_acount_tokens_with_system():
 
 def test_acount_tokens_api_error_falls_back():
     """Test that API errors in token counting return error response."""
-    from litellm.llms.openai.common_utils import OpenAIError
+    from token_iq.gateway.llms.openai.common_utils import OpenAIError
 
     with patch(
-        "litellm.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
+        "token_iq.gateway.llms.openai.responses.count_tokens.token_counter.openai_count_tokens_handler.handle_count_tokens_request",
         new_callable=AsyncMock,
         side_effect=OpenAIError(status_code=401, message="Invalid API key"),
     ):

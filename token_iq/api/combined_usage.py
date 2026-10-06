@@ -20,8 +20,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.combined_usage import (
     ComparisonDay,
     ComparisonResponse,
@@ -128,7 +128,7 @@ async def combined_comparison(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ComparisonResponse:
     """Per provider per day: what the provider billed, what the gateway recorded, and the difference."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -222,7 +222,7 @@ async def combined_explorer(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ExplorerResponse:
     """Gateway spend and spend that bypassed the gateway, grouped by one dimension."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:

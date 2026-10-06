@@ -9,8 +9,8 @@ import pytest
 # Add parent directory to path for imports
 
 from tests.llm_translation.base_embedding_unit_tests import BaseLLMEmbeddingTest
-import litellm
-from litellm.types.utils import EmbeddingResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 class TestVolcEngineEmbedding(BaseLLMEmbeddingTest):
@@ -32,8 +32,8 @@ class TestVolcEngineEmbedding(BaseLLMEmbeddingTest):
 
         # Mock the embedding functions to avoid actual API calls
         with (
-            patch("litellm.embedding") as mock_embedding,
-            patch("litellm.aembedding") as mock_aembedding,
+            patch("token_iq.gateway.embedding") as mock_embedding,
+            patch("token_iq.gateway.aembedding") as mock_aembedding,
         ):
             # Create realistic Volcengine response
             mock_response = MagicMock()
@@ -98,7 +98,7 @@ def test_volcengine_embedding_with_encoding_formats():
     ]
 
     for params in test_cases:
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             # Create mock response based on encoding format
             mock_response = MagicMock()
             mock_response.model = "doubao-embedding-text-240715"
@@ -147,7 +147,7 @@ def test_volcengine_embedding_with_encoding_formats():
 def test_volcengine_embedding_with_user_parameter():
     """Test Volcengine embedding with user parameter for tracking"""
 
-    with patch("litellm.embedding") as mock_embedding:
+    with patch("token_iq.gateway.embedding") as mock_embedding:
         mock_response = MagicMock()
         mock_response.model = "doubao-embedding-text-240715"
         mock_response.object = "list"
@@ -186,7 +186,7 @@ def test_volcengine_embedding_error_scenarios():
     ]
 
     for scenario in error_scenarios:
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             # Configure mock to raise appropriate errors
             if "invalid-model" in scenario.get("model", ""):
                 mock_embedding.side_effect = Exception("Model not found")
@@ -228,7 +228,7 @@ def test_volcengine_embedding_with_multiple_inputs():
     ]
 
     for test_input in test_inputs:
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             # Create proportional mock response
             mock_response = MagicMock()
             mock_response.model = "doubao-embedding-text-240715"

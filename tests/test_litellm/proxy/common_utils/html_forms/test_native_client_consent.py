@@ -1,7 +1,7 @@
 
 
-from litellm.constants import CLI_JWT_EXPIRATION_HOURS
-from litellm.proxy.common_utils.html_forms.native_client_consent import render_native_client_consent_page
+from token_iq.gateway.constants import CLI_JWT_EXPIRATION_HOURS
+from token_iq.gateway.proxy.common_utils.html_forms.native_client_consent import render_native_client_consent_page
 
 
 def _render(teams=(), **overrides) -> str:

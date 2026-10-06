@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.audit_logs import list_audit_logs
 
 
@@ -15,7 +15,7 @@ def _prisma_with_no_rows() -> MagicMock:
 
 
 async def _list_as(role: LitellmUserRoles):
-    with patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_no_rows()):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_no_rows()):
         return await list_audit_logs(
             user_api_key_dict=UserAPIKeyAuth(user_role=role),
             table_name=None,

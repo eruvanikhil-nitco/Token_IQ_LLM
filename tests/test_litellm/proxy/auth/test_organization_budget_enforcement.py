@@ -16,15 +16,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_OrganizationTable,
     LiteLLM_TeamTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks import common_checks
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy.auth.auth_checks import common_checks
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 
 @pytest.mark.asyncio
@@ -73,10 +73,10 @@ async def test_organization_budget_exceeded_blocks_request():
     mock_proxy_logging = MagicMock(spec=ProxyLogging)
     mock_proxy_logging.budget_alerts = AsyncMock()
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
-        with patch("litellm.proxy.proxy_server.user_api_key_cache") as mock_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
             with patch(
-                "litellm.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
+                "token_iq.gateway.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
             ) as mock_get_org:
                 mock_get_org.return_value = org_object
 
@@ -150,10 +150,10 @@ async def test_multiple_teams_exceed_organization_budget():
     mock_proxy_logging = MagicMock(spec=ProxyLogging)
     mock_proxy_logging.budget_alerts = AsyncMock()
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
-        with patch("litellm.proxy.proxy_server.user_api_key_cache") as mock_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
             with patch(
-                "litellm.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
+                "token_iq.gateway.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
             ) as mock_get_org:
                 mock_get_org.return_value = org_object
 
@@ -222,10 +222,10 @@ async def test_organization_budget_fields_are_checked():
         litellm_budget_table=LiteLLM_BudgetTable(max_budget=100.0),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
-        with patch("litellm.proxy.proxy_server.user_api_key_cache") as mock_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
             with patch(
-                "litellm.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
+                "token_iq.gateway.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
             ) as mock_get_org:
                 mock_get_org.return_value = org_over_budget
 
@@ -277,8 +277,8 @@ async def test_both_team_and_org_budget_enforced():
         team_id="team-over",
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
-        with patch("litellm.proxy.proxy_server.user_api_key_cache") as mock_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
             with pytest.raises(litellm.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body={"model": "gpt-4"},
@@ -321,10 +321,10 @@ async def test_both_team_and_org_budget_enforced():
         organization_max_budget=100.0,
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
-        with patch("litellm.proxy.proxy_server.user_api_key_cache") as mock_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
             with patch(
-                "litellm.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
+                "token_iq.gateway.proxy.auth.auth_checks.get_org_object", new_callable=AsyncMock
             ) as mock_get_org:
                 mock_get_org.return_value = org_over_budget
 

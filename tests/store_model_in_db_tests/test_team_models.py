@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import json
 from openai import AsyncOpenAI
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from httpx import AsyncClient
 import os
 

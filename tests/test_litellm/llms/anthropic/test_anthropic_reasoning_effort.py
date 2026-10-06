@@ -7,7 +7,7 @@ including Claude Opus 4.6.
 
 import pytest
 
-from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
 
 class TestMapReasoningEffort:

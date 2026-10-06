@@ -1,7 +1,7 @@
-from litellm.litellm_core_utils.llm_cost_calc.usage_object_transformation import (
+from token_iq.gateway.core_utils.llm_cost_calc.usage_object_transformation import (
     InteractionsUsageObjectTransformation,
 )
-from litellm.types.utils import Usage
+from token_iq.gateway.types.utils import Usage
 
 OMNI_VIDEO_USAGE = {
     "total_tokens": 18247,

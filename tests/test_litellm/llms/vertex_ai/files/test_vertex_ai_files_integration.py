@@ -5,8 +5,8 @@ Test Vertex AI files integration with main files API
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm.types.llms.openai import HttpxBinaryResponseContent
+from token_iq import gateway as litellm
+from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
 
 class TestVertexAIFilesIntegration:
@@ -32,7 +32,7 @@ class TestVertexAIFilesIntegration:
         # Mock the base_llm_http_handler.retrieve_file_content since the code
         # now routes through ProviderConfigManager -> base_llm_http_handler
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             new_callable=MagicMock,
         ) as mock_retrieve:
             # Make it return a coroutine for async path
@@ -72,7 +72,7 @@ class TestVertexAIFilesIntegration:
 
         # Mock the base_llm_http_handler.retrieve_file_content
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             return_value=mock_result,
         ) as mock_retrieve:
             result = litellm.file_content(
@@ -109,11 +109,11 @@ class TestVertexAIFilesIntegration:
 
         # Mock the base_llm_http_handler.retrieve_file_content
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             return_value=mock_result,
         ):
             # Mock get_llm_provider to return vertex_ai
-            with patch("litellm.files.main.get_llm_provider") as mock_get_provider:
+            with patch("token_iq.gateway.files.main.get_llm_provider") as mock_get_provider:
                 mock_get_provider.return_value = (
                     "vertex_ai/gemini-pro",
                     "vertex_ai",
@@ -144,7 +144,7 @@ class TestVertexAIFilesIntegration:
         # ProviderConfigManager to return None so it falls through to the
         # old vertex_ai code path that validates file_id.
         with patch(
-            "litellm.files.main.ProviderConfigManager.get_provider_files_config",
+            "token_iq.gateway.files.main.ProviderConfigManager.get_provider_files_config",
             return_value=None,
         ):
             with pytest.raises(ValueError, match="file_id is required"):
@@ -188,7 +188,7 @@ class TestVertexAIFilesIntegration:
 
         # Mock the base_llm_http_handler.retrieve_file_content
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             new_callable=MagicMock,
         ) as mock_retrieve:
             mock_retrieve.return_value = mock_result

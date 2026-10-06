@@ -3,7 +3,7 @@ import json
 import pytest
 
 
-from litellm.litellm_core_utils.safe_json_dumps import safe_dumps, strip_null_bytes
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps, strip_null_bytes
 
 
 def test_primitive_types():

@@ -3,8 +3,8 @@ import socket
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.proxy.vertex_ai_endpoints.langfuse_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.vertex_ai_endpoints.langfuse_endpoints import (
     _build_langfuse_proxy_target,
     _get_langfuse_proxy_credentials,
 )

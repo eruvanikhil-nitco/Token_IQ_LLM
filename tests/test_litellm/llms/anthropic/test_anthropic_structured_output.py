@@ -22,7 +22,7 @@ class TestAnthropicStructuredOutput:
 
         Related issue: https://github.com/BerriAI/litellm/issues/19444
         """
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         # Define a Pydantic model with max_length on a List field
         class ResponseModel(BaseModel):
@@ -67,7 +67,7 @@ class TestAnthropicStructuredOutput:
 
         Anthropic likely doesn't support 'minItems' either.
         """
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         class ResponseModel(BaseModel):
             items: List[str] = Field(min_length=2, description="List of items")
@@ -92,7 +92,7 @@ class TestAnthropicStructuredOutput:
         """
         Test that array constraints are filtered at all nesting levels.
         """
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         class NestedItem(BaseModel):
             tags: List[str] = Field(max_length=3)
@@ -129,7 +129,7 @@ class TestAnthropicStructuredOutput:
         Per Anthropic API requirements, constraints like minLength/maxLength and
         minimum/maximum must be removed from the schema but documented in descriptions.
         """
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         class ResponseModel(BaseModel):
             name: str = Field(max_length=100, min_length=1, description="Name")
@@ -177,7 +177,7 @@ class TestAnthropicOutputFormatSchemaBudget:
 
     def test_schema_bomb_rejected(self):
         """A compact request whose $defs expand past the byte budget raises instead of materialising."""
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         big = {"type": "string", "description": "x" * 200_000}
         schema = {
@@ -190,7 +190,7 @@ class TestAnthropicOutputFormatSchemaBudget:
             AnthropicConfig().map_response_format_to_anthropic_output_format(self._response_format(schema))
 
     def test_normal_defs_still_resolve(self):
-        from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+        from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
         schema = {
             "type": "object",

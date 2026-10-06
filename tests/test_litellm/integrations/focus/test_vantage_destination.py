@@ -8,15 +8,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.focus.destinations.base import FocusTimeWindow
-from litellm.integrations.focus.destinations.vantage_destination import (
+from token_iq.gateway.integrations.focus.destinations.base import FocusTimeWindow
+from token_iq.gateway.integrations.focus.destinations.vantage_destination import (
     FocusVantageDestination,
     VANTAGE_MAX_BYTES_PER_UPLOAD,
     VANTAGE_MAX_ROWS_PER_UPLOAD,
 )
 
 MOCK_TARGET = (
-    "litellm.integrations.focus.destinations.vantage_destination.get_async_httpx_client"
+    "token_iq.gateway.integrations.focus.destinations.vantage_destination.get_async_httpx_client"
 )
 
 

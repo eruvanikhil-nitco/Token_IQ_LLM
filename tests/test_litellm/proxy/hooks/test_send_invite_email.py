@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from litellm.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
-from litellm.proxy.hooks.key_management_event_hooks import KeyManagementEventHooks
-from litellm.proxy._types import (
+from token_iq.gateway.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
+from token_iq.gateway.proxy.hooks.key_management_event_hooks import KeyManagementEventHooks
+from token_iq.gateway.proxy._types import (
     NewUserRequest,
     NewUserResponse,
     GenerateKeyRequest,
@@ -24,14 +24,14 @@ async def test_v1_user_creation_no_email_when_send_invite_email_false():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with patch(
-        "litellm.logging_callback_manager.get_custom_loggers_for_type", return_value=[]
+        "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type", return_value=[]
     ):
         mock_proxy_server = SimpleNamespace(
             general_settings={"alerting": ["email"]},
             proxy_logging_obj=mock_proxy_logging_obj,
             litellm_proxy_admin_name="admin-user",
         )
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
             data = NewUserRequest(
                 user_email="test@example.com",
                 send_invite_email=False,  # Should NOT send email
@@ -63,14 +63,14 @@ async def test_v1_user_creation_sends_email_when_send_invite_email_true():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with patch(
-        "litellm.logging_callback_manager.get_custom_loggers_for_type", return_value=[]
+        "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type", return_value=[]
     ):
         mock_proxy_server = SimpleNamespace(
             general_settings={"alerting": ["email"]},
             proxy_logging_obj=mock_proxy_logging_obj,
             litellm_proxy_admin_name="admin-user",
         )
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
             data = NewUserRequest(
                 user_email="test@example.com",
                 send_invite_email=True,  # Should send email
@@ -118,7 +118,7 @@ async def test_v2_invitation_email_suppresses_legacy_duplicate():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with patch(
-        "litellm.logging_callback_manager.get_custom_loggers_for_type",
+        "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type",
         return_value=[recording_logger],
     ):
         mock_proxy_server = SimpleNamespace(
@@ -126,7 +126,7 @@ async def test_v2_invitation_email_suppresses_legacy_duplicate():
             proxy_logging_obj=mock_proxy_logging_obj,
             litellm_proxy_admin_name="admin-user",
         )
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
             data = NewUserRequest(
                 user_email="test@example.com",
                 send_invite_email=True,
@@ -173,7 +173,7 @@ async def test_v2_invitation_email_failure_falls_back_to_legacy():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with patch(
-        "litellm.logging_callback_manager.get_custom_loggers_for_type",
+        "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type",
         return_value=[failing_logger],
     ):
         mock_proxy_server = SimpleNamespace(
@@ -181,7 +181,7 @@ async def test_v2_invitation_email_failure_falls_back_to_legacy():
             proxy_logging_obj=mock_proxy_logging_obj,
             litellm_proxy_admin_name="admin-user",
         )
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
             data = NewUserRequest(
                 user_email="test@example.com",
                 send_invite_email=True,
@@ -213,11 +213,11 @@ async def test_v1_key_generation_sends_email_when_send_invite_email_true():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with (
-        patch("litellm.store_audit_logs", False),
+        patch("token_iq.gateway.store_audit_logs", False),
         patch.object(KeyManagementEventHooks, "_send_key_created_email", mock_send_key_created_email),
     ):
         with patch(
-            "litellm.logging_callback_manager.get_custom_loggers_for_type",
+            "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type",
             return_value=[],
         ):
             mock_proxy_server = SimpleNamespace(
@@ -226,7 +226,7 @@ async def test_v1_key_generation_sends_email_when_send_invite_email_true():
                 litellm_proxy_admin_name="admin-user",
             )
             with patch.dict(
-                sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}
+                sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}
             ):
                 data = GenerateKeyRequest(
                     user_email="test@example.com",
@@ -259,11 +259,11 @@ async def test_v1_key_generation_no_email_when_send_invite_email_false():
     mock_proxy_logging_obj.slack_alerting_instance = mock_slack_alerting
 
     with (
-        patch("litellm.store_audit_logs", False),
+        patch("token_iq.gateway.store_audit_logs", False),
         patch.object(KeyManagementEventHooks, "_send_key_created_email", mock_send_key_created_email),
     ):
         with patch(
-            "litellm.logging_callback_manager.get_custom_loggers_for_type",
+            "token_iq.gateway.logging_callback_manager.get_custom_loggers_for_type",
             return_value=[],
         ):
             mock_proxy_server = SimpleNamespace(
@@ -272,7 +272,7 @@ async def test_v1_key_generation_no_email_when_send_invite_email_false():
                 litellm_proxy_admin_name="admin-user",
             )
             with patch.dict(
-                sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}
+                sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}
             ):
                 data = GenerateKeyRequest(
                     user_email="test@example.com",

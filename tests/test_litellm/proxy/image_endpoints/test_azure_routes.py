@@ -6,8 +6,8 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm.proxy.proxy_server import app, initialize
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import app, initialize
 
 example_image_generation_result = {
     "created": 1589478378,
@@ -29,7 +29,7 @@ def mock_patch_aimage_generation():
     mock_obj = mock.AsyncMock(return_value=example_image_generation_result)
     mock_obj.__name__ = "aimage_generation"
     return mock.patch(
-        "litellm.aimage_generation",
+        "token_iq.gateway.aimage_generation",
         new_callable=lambda: mock_obj,
     )
 
@@ -39,14 +39,14 @@ def mock_patch_aimage_edit():
     mock_obj = mock.AsyncMock(return_value=example_image_edit_result)
     mock_obj.__name__ = "aimage_edit"
     return mock.patch(
-        "litellm.aimage_edit",
+        "token_iq.gateway.aimage_edit",
         new_callable=lambda: mock_obj,
     )
 
 
 @pytest.fixture(scope="function")
 def client_no_auth():
-    from litellm.proxy.proxy_server import cleanup_router_config_variables
+    from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
     cleanup_router_config_variables()
     repo_root = Path(__file__).resolve().parents[4]
@@ -68,11 +68,11 @@ def client_no_auth():
 
     with (
         mock.patch(
-            "litellm.aimage_generation",
+            "token_iq.gateway.aimage_generation",
             new_callable=lambda: mock_generation,
         ) as patched_generation,
         mock.patch(
-            "litellm.aimage_edit",
+            "token_iq.gateway.aimage_edit",
             new_callable=lambda: mock_edit,
         ) as patched_edit,
     ):

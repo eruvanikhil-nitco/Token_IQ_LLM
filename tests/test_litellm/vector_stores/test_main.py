@@ -1,5 +1,5 @@
 """
-Tests for litellm/vector_stores/main.py.
+Tests for token_iq/gateway/vector_stores/main.py.
 
 Pins the router threading contract for vector store search: the router is an
 explicit named parameter that reaches the HTTP handler wrapped in the embedding
@@ -9,11 +9,11 @@ model_dump() it (the #19550 serialization trap).
 
 from unittest.mock import MagicMock, patch
 
-import litellm.vector_stores.main as vector_stores_main
-from litellm.llms.base_llm.vector_store.transformation import (
+import token_iq.gateway.vector_stores.main as vector_stores_main
+from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     RouterVectorStoreEmbeddingExecutor,
 )
-from litellm.vector_stores.main import search
+from token_iq.gateway.vector_stores.main import search
 
 MOCK_SEARCH_RESPONSE = {
     "object": "vector_store.search_results.page",
@@ -30,7 +30,7 @@ def test_search_wraps_router_into_the_handler_embedding_executor():
 
     with (
         patch(  # test-quality-ok: stubs provider config resolution; the seam under test is the executor threading
-            "litellm.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=MagicMock(),
         ),
         patch.object(  # test-quality-ok: the handler call is the observable boundary for the executor contract
@@ -65,7 +65,7 @@ def test_search_router_not_in_litellm_params():
 
     with (
         patch(  # test-quality-ok: stubs provider config resolution; the seam under test is litellm_params contents
-            "litellm.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
+            "token_iq.gateway.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
             return_value=MagicMock(),
         ),
         patch.object(  # test-quality-ok: the handler call is where a leaked router in litellm_params would surface

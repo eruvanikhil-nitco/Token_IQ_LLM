@@ -21,12 +21,12 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
     _byok_auth_codes,
     _verify_pkce,
     router,
 )
-from litellm.proxy._types import MCPTransport
+from token_iq.gateway.proxy._types import MCPTransport
 
 # ---------------------------------------------------------------------------
 # _verify_pkce
@@ -62,10 +62,10 @@ def test_verify_pkce_tampered_challenge():
 
 from fastapi import FastAPI
 
-from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
     _byok_session_auth,
 )
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 _test_app = FastAPI()
 _test_app.include_router(router)
@@ -287,33 +287,33 @@ async def test_token_endpoint_success():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
             mock_store,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.router",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.router",
         ),
     ):
         # Import the actual handler function directly
-        from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
             byok_token,
         )
 
         mock_request = MagicMock()
         # Patch module-level globals in the function's module
         with patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
             mock_store,
         ):
-            import litellm.proxy._experimental.mcp_server.byok_oauth_endpoints as mod
+            import token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints as mod
 
             original_prisma = None
             original_master_key = None
 
             # Temporarily inject our test values
             with (
-                patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-                patch("litellm.proxy.proxy_server.master_key", test_master_key),
+                patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+                patch("token_iq.gateway.proxy.proxy_server.master_key", test_master_key),
             ):
                 result = await byok_token(
                     request=mock_request,
@@ -356,12 +356,12 @@ async def test_token_endpoint_success():
 
 @pytest.mark.asyncio
 async def test_token_endpoint_invalid_code():
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
 
     mock_request = MagicMock()
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.master_key", "key"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "key"),
     ):
         result = await byok_token(
             request=mock_request,
@@ -388,12 +388,12 @@ async def test_token_endpoint_expired_code():
         ttl=-10,  # already expired
     )
 
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
 
     mock_request = MagicMock()
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.master_key", "key"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "key"),
     ):
         result = await byok_token(
             request=mock_request,
@@ -419,12 +419,12 @@ async def test_token_endpoint_wrong_verifier():
         redirect_uri="http://127.0.0.1:3000/cb",
     )
 
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
 
     mock_request = MagicMock()
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.master_key", "key"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "key"),
     ):
         result = await byok_token(
             request=mock_request,
@@ -440,12 +440,12 @@ async def test_token_endpoint_wrong_verifier():
 
 @pytest.mark.asyncio
 async def test_token_endpoint_unsupported_grant_type():
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import byok_token
 
     mock_request = MagicMock()
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.master_key", "key"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "key"),
     ):
         result = await byok_token(
             request=mock_request,
@@ -467,8 +467,8 @@ async def test_token_endpoint_unsupported_grant_type():
 @pytest.mark.asyncio
 async def test_check_byok_credential_not_byok():
     """Non-BYOK servers should pass through without any DB check."""
-    from litellm.proxy._experimental.mcp_server.server import _check_byok_credential
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._experimental.mcp_server.server import _check_byok_credential
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="s1",
@@ -483,8 +483,8 @@ async def test_check_byok_credential_not_byok():
 @pytest.mark.asyncio
 async def test_check_byok_credential_no_user_id():
     """BYOK server with no user identity → 401."""
-    from litellm.proxy._experimental.mcp_server.server import _check_byok_credential
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._experimental.mcp_server.server import _check_byok_credential
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="byok-1",
@@ -503,9 +503,9 @@ async def test_check_byok_credential_no_user_id():
 @pytest.mark.asyncio
 async def test_check_byok_credential_missing_credential():
     """BYOK server with a known user but no stored credential → 401."""
-    from litellm.proxy._experimental.mcp_server.server import _check_byok_credential
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._experimental.mcp_server.server import _check_byok_credential
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="byok-2",
@@ -519,10 +519,10 @@ async def test_check_byok_credential_missing_credential():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.db.get_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.get_user_credential",
             new=AsyncMock(return_value=None),
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await _check_byok_credential(server, user_auth)
@@ -539,9 +539,9 @@ async def test_check_byok_credential_missing_credential():
 @pytest.mark.asyncio
 async def test_check_byok_credential_has_credential():
     """BYOK server with a valid stored credential → no error raised."""
-    from litellm.proxy._experimental.mcp_server.server import _check_byok_credential
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._experimental.mcp_server.server import _check_byok_credential
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="byok-3",
@@ -555,10 +555,10 @@ async def test_check_byok_credential_has_credential():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.db.get_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.get_user_credential",
             new=AsyncMock(return_value="some-credential-value"),
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
     ):
         # Should not raise
         await _check_byok_credential(server, user_auth)
@@ -571,9 +571,9 @@ async def test_check_byok_credential_db_unavailable_fails_closed():
     Regression for GHSA-6762: previously returned silently, bypassing the
     ownership check during DB outage windows.
     """
-    from litellm.proxy._experimental.mcp_server.server import _check_byok_credential
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._experimental.mcp_server.server import _check_byok_credential
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="byok-4",
@@ -583,7 +583,7 @@ async def test_check_byok_credential_db_unavailable_fails_closed():
     )
     user_auth = UserAPIKeyAuth(user_id="user-55", api_key="sk-test")
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc_info:
             await _check_byok_credential(server, user_auth)
 
@@ -684,7 +684,7 @@ async def test_token_endpoint_rejects_missing_user_id_in_code_record():
     """Defense in depth: if a code record somehow lacks user_id (older
     format / manual DB write), /token must reject rather than fall back to
     the form's client_id."""
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -735,7 +735,7 @@ def test_authorize_post_accepts_ui_session_cookie(unauthenticated_client):
     whose ``user_id`` + ``login_method`` claims authenticate the POST."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "test-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "test-master-key"):
         cookie_jwt = _jwt.encode(
             {
                 "user_id": "browser-user-42",
@@ -761,7 +761,7 @@ def test_authorize_post_rejects_cookie_signed_with_wrong_key(unauthenticated_cli
     against any key could impersonate any user."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "real-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "real-master-key"):
         forged = _jwt.encode(
             {"user_id": "victim-user", "login_method": "sso"},
             "attacker-key",
@@ -779,7 +779,7 @@ def test_authorize_post_rejects_replayed_byok_session_token(unauthenticated_clie
     writes without a valid UI session."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "real-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "real-master-key"):
         byok_session = _jwt.encode(
             {
                 "user_id": "any-user",
@@ -820,7 +820,7 @@ def test_authorize_post_rejects_non_loopback_redirect_uri(client):
 async def test_token_endpoint_rejects_redirect_uri_mismatch():
     """RFC 6749 §4.1.3 / OAuth 2.1 §4.1.3: if redirect_uri was sent at
     /authorize, the /token redirect_uri MUST match exactly."""
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -856,7 +856,7 @@ def test_authorize_post_rejects_cookie_missing_login_method(unauthenticated_clie
     regression above protects against."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "real-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "real-master-key"):
         malformed = _jwt.encode(
             {"user_id": "some-user"},
             "real-master-key",
@@ -874,7 +874,7 @@ async def test_token_endpoint_accepts_spec_compliant_client_id():
     identifier, not the user. It must not be cross-checked against the
     record's user_id — that cross-check would break spec-compliant MCP
     clients that pass e.g. client_id="claude-desktop"."""
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -892,11 +892,11 @@ async def test_token_endpoint_accepts_spec_compliant_client_id():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
             new=AsyncMock(),
         ),
-        patch("litellm.proxy.proxy_server.master_key", "test-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "test-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         result = await byok_token(
             request=MagicMock(),
@@ -916,7 +916,7 @@ async def test_token_endpoint_rejects_client_id_mismatch():
     client_id, the token request must submit the same value. An attacker
     who steals a code from another client (different native app) can't
     redeem it."""
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -990,7 +990,7 @@ async def test_token_endpoint_missing_master_key_preserves_code_and_db():
     code or writing the credential — otherwise a misconfigured deploy
     burns the code and persists the key with no way for the user to
     retrieve a session token without restarting the flow."""
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -1010,11 +1010,11 @@ async def test_token_endpoint_missing_master_key_preserves_code_and_db():
     mock_store = AsyncMock()
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
             mock_store,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         result = await byok_token(
             request=MagicMock(),
@@ -1040,7 +1040,7 @@ def test_authorize_post_rejects_cookie_without_exp(unauthenticated_client):
     ``options={"require": ["exp"]}``)."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "real-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "real-master-key"):
         no_exp = _jwt.encode(
             {"user_id": "u", "login_method": "sso"},
             "real-master-key",
@@ -1054,7 +1054,7 @@ def test_authorize_post_rejects_expired_cookie(unauthenticated_client):
     """An expired UI session cookie is rejected, not accepted as valid."""
     import jwt as _jwt
 
-    with patch("litellm.proxy.proxy_server.master_key", "real-master-key"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "real-master-key"):
         expired = _jwt.encode(
             {
                 "user_id": "u",
@@ -1078,7 +1078,7 @@ async def test_token_endpoint_accepts_oauth21_client_omitting_redirect_uri():
     Enforcement still fires when the client DOES submit a value that
     disagrees with the record (see test_token_endpoint_rejects_redirect_uri_mismatch).
     """
-    from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
         byok_token,
     )
 
@@ -1097,11 +1097,11 @@ async def test_token_endpoint_accepts_oauth21_client_omitting_redirect_uri():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
+            "token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints.store_user_credential",
             new=AsyncMock(),
         ),
-        patch("litellm.proxy.proxy_server.master_key", "test-master"),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", "test-master"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
     ):
         result = await byok_token(
             request=MagicMock(),
@@ -1115,7 +1115,7 @@ async def test_token_endpoint_accepts_oauth21_client_omitting_redirect_uri():
 
 
 def test_validate_loopback_redirect_uri_rejects_fragment():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_loopback_redirect_uri,
     )
 
@@ -1127,7 +1127,7 @@ def test_validate_loopback_redirect_uri_rejects_fragment():
 def test_validate_loopback_redirect_uri_rejects_malformed_cleanly():
     """Malformed / unparseable URIs should surface as 400 invalid_request,
     not a 500 from an unhandled exception inside ip_address()."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_loopback_redirect_uri,
     )
 
@@ -1158,7 +1158,7 @@ def _make_trusted_request(base_url: str = "https://llm.example.com/"):
 
 
 def test_validate_trusted_redirect_uri_accepts_same_origin():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1171,7 +1171,7 @@ def test_validate_trusted_redirect_uri_same_origin_normalizes_default_port():
     otherwise produce a proxy_base of ``https://llm.example.com:443``
     which wouldn't literally match the browser's port-less ``llm.example.com``
     redirect_uri even though both represent the same origin."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1185,7 +1185,7 @@ def test_validate_trusted_redirect_uri_same_origin_normalizes_default_port():
 
 
 def test_validate_trusted_redirect_uri_accepts_loopback():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1202,7 +1202,7 @@ def test_validate_trusted_redirect_uri_accepts_loopback():
 def test_validate_trusted_redirect_uri_rejects_cross_origin_by_default(
     monkeypatch,
 ):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1214,7 +1214,7 @@ def test_validate_trusted_redirect_uri_rejects_cross_origin_by_default(
 
 
 def test_validate_trusted_redirect_uri_rejects_fragment_and_bad_scheme():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1230,7 +1230,7 @@ def test_validate_trusted_redirect_uri_rejects_fragment_and_bad_scheme():
 
 
 def test_validate_trusted_redirect_uri_accepts_cursor_native_callback():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1241,14 +1241,14 @@ def test_validate_trusted_redirect_uri_accepts_cursor_native_callback():
 def test_validate_trusted_redirect_uri_rejects_unlisted_native_callback(
     monkeypatch,
 ):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
     monkeypatch.setenv("MCP_TRUSTED_NATIVE_REDIRECT_URIS", "")
     # Clear defaults by patching — env-only path for this test
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
         [],
     )
     req = _make_trusted_request("http://localhost:4000/")
@@ -1262,12 +1262,12 @@ def test_validate_trusted_redirect_uri_rejects_unlisted_native_callback(
 def test_validate_trusted_redirect_uri_accepts_env_native_redirect_uri(
     monkeypatch,
 ):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
         [],
     )
     monkeypatch.setenv(
@@ -1279,7 +1279,7 @@ def test_validate_trusted_redirect_uri_accepts_env_native_redirect_uri(
 
 
 def test_validate_trusted_redirect_uri_rejects_native_callback_with_fragment():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1292,7 +1292,7 @@ def test_validate_trusted_redirect_uri_rejects_native_callback_with_fragment():
 
 
 def test_validate_trusted_redirect_uri_rejects_native_callback_with_query():
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1306,12 +1306,12 @@ def test_validate_trusted_redirect_uri_rejects_native_callback_with_query():
 
 
 def test_validate_trusted_redirect_uri_native_path_case_insensitive(monkeypatch):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
         [],
     )
     monkeypatch.setenv(
@@ -1325,12 +1325,12 @@ def test_validate_trusted_redirect_uri_native_path_case_insensitive(monkeypatch)
 def test_validate_trusted_redirect_uri_native_wildcard_respects_path_boundary(
     monkeypatch,
 ):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
         [],
     )
     monkeypatch.setenv(
@@ -1350,12 +1350,12 @@ def test_validate_trusted_redirect_uri_native_wildcard_respects_path_boundary(
 def test_validate_trusted_redirect_uri_native_wildcard_directory_prefix(
     monkeypatch,
 ):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth_utils._DEFAULT_NATIVE_REDIRECT_URIS",
         [],
     )
     monkeypatch.setenv(
@@ -1370,7 +1370,7 @@ def test_validate_trusted_redirect_uri_rejects_scheme_mismatch_on_same_host():
     """Regression: an attacker who can serve http on the proxy's own
     host (e.g. by MITMing an unencrypted LAN hop) must not be able to
     pass same-origin validation — scheme must match as well as host."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1392,7 +1392,7 @@ def test_validate_trusted_redirect_uri_rejects_userinfo(monkeypatch):
     allowlist, and wildcard allowlist — so the bypass is closed on
     every path through the validator.
     """
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1445,7 +1445,7 @@ def test_validate_trusted_redirect_uri_rejects_backslash_in_netloc(monkeypatch):
     exact-entry, and wildcard — by bouncing the netloc before any
     matching runs.
     """
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1479,7 +1479,7 @@ def test_validate_trusted_redirect_uri_allowlist_entry_with_default_port(monkeyp
     away for the same-origin compare; the allowlist side has to apply
     the same normalization or the comparison is asymmetric and silently
     fails."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         _parse_trusted_redirect_origins,
         validate_trusted_redirect_uri,
     )
@@ -1499,7 +1499,7 @@ def test_validate_trusted_redirect_uri_allowlist_entry_with_default_port(monkeyp
 
 
 def test_validate_trusted_redirect_uri_accepts_exact_allowlisted_host(monkeypatch):
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1524,7 +1524,7 @@ def test_validate_trusted_redirect_uri_allowlist_rejects_http_even_on_listed_hos
     """An attacker must not be able to elevate to the allowlist by
     serving http:// on the listed host — only https is accepted for
     non-loopback allowlist entries."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1539,7 +1539,7 @@ def test_validate_trusted_redirect_uri_wildcard_allowlist(monkeypatch):
     """``*.suffix`` entries match any strictly-deeper subdomain of
     ``suffix`` but must not match the bare suffix, nor unrelated domains
     that happen to end with the same characters."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1564,7 +1564,7 @@ def test_validate_trusted_redirect_uri_wildcard_allowlist(monkeypatch):
 
 def test_validate_trusted_redirect_uri_wildcard_rejects_http(monkeypatch):
     """The https-only gate applies to wildcard entries too."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1580,7 +1580,7 @@ def test_validate_trusted_redirect_uri_wildcard_host_with_port_still_matches(
 ):
     """Wildcard entries don't express port constraints — an allowlisted
     subdomain should match regardless of explicit port on the URL."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1592,7 +1592,7 @@ def test_validate_trusted_redirect_uri_wildcard_host_with_port_still_matches(
 def test_validate_trusted_redirect_uri_accepts_ipv6_loopback_with_default_port():
     """IPv6 loopback with explicit ``:443`` on an ``https`` URL should
     still match — exercises ``_strip_default_port``'s IPv6 branch."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1605,7 +1605,7 @@ def test_validate_trusted_redirect_uri_tolerates_malformed_env_entries(monkeypat
     ``*.``, non-numeric ports). None of those should raise; unmatched
     entries must simply fail to grant access while well-formed entries
     in the same list continue to work."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1633,7 +1633,7 @@ def test_validate_trusted_redirect_uri_rejects_wildcard_entry_with_dot_leading_s
     whose own leading ``.`` makes it look like a deeper subdomain.
     Operators who mistype an extra dot should get an ignored entry, not
     a broader match than they intended."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1655,7 +1655,7 @@ def test_validate_trusted_redirect_uri_falls_through_when_origin_lookup_fails():
     """If ``get_request_base_url`` can't determine the proxy's origin,
     same-origin is skipped silently but loopback + allowlist paths are
     still reachable."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1675,7 +1675,7 @@ def test_strip_default_port_empty_netloc():
     """``_strip_default_port("", "")`` should round-trip — validator
     rejects empty-netloc URLs upstream so this is purely a defensive
     contract on the helper itself."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import _strip_default_port
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import _strip_default_port
 
     assert _strip_default_port("https", "") == ""
 
@@ -1684,7 +1684,7 @@ def test_strip_default_port_handles_non_numeric_port():
     """Raw netloc with a non-numeric port is returned unchanged. Reached
     in practice when a malformed ``Host`` header survives upstream
     parsing — we stay out of its way rather than 500ing."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import _strip_default_port
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import _strip_default_port
 
     assert _strip_default_port("https", "foo.com:bar") == "foo.com:bar"
     assert _strip_default_port("https", "[::1]:bar") == "[::1]:bar"
@@ -1693,7 +1693,7 @@ def test_strip_default_port_handles_non_numeric_port():
 def test_validate_trusted_redirect_uri_rejects_public_ip_without_allowlist():
     """A redirect_uri whose host is a public IP (parseable by
     ``ip_address`` but not loopback) must fail all three tiers and 400."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         validate_trusted_redirect_uri,
     )
 
@@ -1707,7 +1707,7 @@ def test_parse_trusted_redirect_origins_drops_bare_path_entries(monkeypatch):
     """``/foo`` has a scheme-less leading slash and would strip to the
     empty string — drop silently rather than allowlisting empty
     origins."""
-    from litellm.proxy._experimental.mcp_server.oauth_utils import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
         _parse_trusted_redirect_origins,
     )
 

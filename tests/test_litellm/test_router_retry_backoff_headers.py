@@ -7,8 +7,8 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ Test to ensure all providers in LlmProviders enum are documented in README.md
 
 import os
 import re
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.types.utils import LlmProviders
 
 # Define paths
 readme_path = "./README.md"

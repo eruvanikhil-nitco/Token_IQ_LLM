@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
 
 
 @pytest.mark.asyncio

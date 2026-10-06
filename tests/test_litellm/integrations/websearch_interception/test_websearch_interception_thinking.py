@@ -9,10 +9,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.integrations.websearch_interception.transformation import (
+from token_iq.gateway.integrations.websearch_interception.transformation import (
     WebSearchTransformation,
 )
 

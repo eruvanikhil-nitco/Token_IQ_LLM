@@ -10,8 +10,8 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-import litellm
-from litellm import Router, completion_cost, stream_chunk_builder
+from token_iq import gateway as litellm
+from token_iq.gateway import Router, completion_cost, stream_chunk_builder
 
 models = [
     dict(

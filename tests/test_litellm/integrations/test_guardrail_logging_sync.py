@@ -9,7 +9,7 @@ spend logs.
 """
 
 import pytest
-from litellm.integrations.custom_guardrail import _sync_guardrail_info_to_logging_obj
+from token_iq.gateway.integrations.custom_guardrail import _sync_guardrail_info_to_logging_obj
 
 
 def _make_slg_entry(name: str = "headroom-test") -> dict:
@@ -22,7 +22,7 @@ def _make_slg_entry(name: str = "headroom-test") -> dict:
 
 
 class _FakeLogging:
-    """Minimal stand-in for litellm.litellm_core_utils.litellm_logging.Logging."""
+    """Minimal stand-in for litellm.core_utils.litellm_logging.Logging."""
 
     def __init__(self, lp_metadata: dict | None = None):
         self.litellm_params: dict = {"metadata": lp_metadata or {}}

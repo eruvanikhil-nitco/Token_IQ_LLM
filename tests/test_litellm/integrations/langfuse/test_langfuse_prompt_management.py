@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.langfuse.langfuse_prompt_management import (
+from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
     langfuse_client_init,
 )
@@ -52,7 +52,7 @@ class TestLangfusePromptManagement:
     def test_log_failure_event_runs_async_logger(self):
         langfuse_prompt_management = LangfusePromptManagement()
         with patch(
-            "litellm.integrations.langfuse.langfuse_prompt_management.run_async_function"
+            "token_iq.gateway.integrations.langfuse.langfuse_prompt_management.run_async_function"
         ) as mock_run_async:
             kwargs = {"standard_callback_dynamic_params": {}}
             start_time, end_time = 1, 2
@@ -73,23 +73,23 @@ class TestLangfusePromptManagement:
     def test_langfuse_client_init_passes_dedicated_httpx_client(self):
         import httpx
 
-        from litellm.llms.custom_httpx.http_handler import _get_httpx_client
+        from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 
         shared_client = _get_httpx_client().client
 
         mock_langfuse_class = MagicMock()
         with (
             patch(
-                "litellm.integrations.langfuse.langfuse_prompt_management.resolve_langfuse_credentials",
+                "token_iq.gateway.integrations.langfuse.langfuse_prompt_management.resolve_langfuse_credentials",
                 return_value=("pk-1234", "sk-1234", "https://localhost"),
             ),
             patch(
-                "litellm.integrations.langfuse.langfuse_prompt_management.LangFuseLogger._get_langfuse_flush_interval",
+                "token_iq.gateway.integrations.langfuse.langfuse_prompt_management.LangFuseLogger._get_langfuse_flush_interval",
                 return_value=1,
             ),
             patch.dict("sys.modules", {"langfuse": self._mock_langfuse}),
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_ssl_configuration",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_ssl_configuration",
                 return_value=False,
             ) as mock_get_ssl,
         ):

@@ -25,7 +25,7 @@ from typing import Any, Dict, Optional
 
 import pytest
 
-from litellm.proxy.utils import hash_token
+from token_iq.gateway.proxy.utils import hash_token
 
 from .actors import Actor
 from .conftest import MASTER_KEY, create_scratch_org, create_scratch_team

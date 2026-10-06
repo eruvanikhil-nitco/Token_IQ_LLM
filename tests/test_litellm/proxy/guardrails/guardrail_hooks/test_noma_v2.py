@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy.guardrails.guardrail_hooks.noma import NomaV2Guardrail
-from litellm.proxy.guardrails.guardrail_hooks.noma.noma import NomaBlockedMessage
-from litellm.types.proxy.guardrails.guardrail_hooks.noma import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma import NomaV2Guardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import NomaBlockedMessage
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.noma import (
     NomaV2GuardrailConfigModel,
 )
 
@@ -27,7 +27,7 @@ def noma_v2_guardrail():
 class TestNomaV2Configuration:
     @pytest.mark.asyncio
     async def test_provider_specific_params_include_noma_v2_fields(self):
-        from litellm.proxy.guardrails.guardrail_endpoints import (
+        from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
             get_provider_specific_params,
         )
 
@@ -334,11 +334,11 @@ class TestNomaV2Configuration:
         self, noma_v2_guardrail
     ):
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.json.dumps",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.json.dumps",
             side_effect=TypeError("cannot serialize"),
         ):
             with patch(
-                "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_dumps",
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_dumps",
                 return_value='{"fallback": true}',
             ) as mock_safe_dumps:
                 sanitized = noma_v2_guardrail._sanitize_payload_for_transport(
@@ -352,11 +352,11 @@ class TestNomaV2Configuration:
         self, noma_v2_guardrail
     ):
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_json_loads",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_json_loads",
             return_value={},
         ):
             with patch(
-                "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.verbose_proxy_logger.warning"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.verbose_proxy_logger.warning"
             ) as mock_warning:
                 sanitized = noma_v2_guardrail._sanitize_payload_for_transport(
                     {"inputs": {"texts": ["hello"]}}
@@ -371,11 +371,11 @@ class TestNomaV2Configuration:
         self, noma_v2_guardrail
     ):
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_json_loads",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.safe_json_loads",
             return_value=["not-a-dict"],
         ):
             with patch(
-                "litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2.verbose_proxy_logger.warning"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2.verbose_proxy_logger.warning"
             ) as mock_warning:
                 sanitized = noma_v2_guardrail._sanitize_payload_for_transport(
                     {"inputs": {"texts": ["hello"]}}

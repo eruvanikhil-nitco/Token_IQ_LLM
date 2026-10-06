@@ -201,11 +201,21 @@ class TestTheBundledFilesAreActuallyPackaged:
             entry.startswith("data/") for entry in include
         ), f"data/ is not packaged; the wheel would ship without prices. include = {include}"
 
-    def test_the_price_path_resolves_relative_to_the_package_root(self) -> None:
-        """It must land beside the installed package, not at a path only a checkout has."""
-        from litellm.litellm_core_utils.get_model_cost_map import PRICES_PATH
-        import litellm as _litellm
+    def test_the_price_path_resolves_relative_to_the_installation_root(self) -> None:
+        """It must land beside the installed top-level package, not at a path only a checkout has.
+
+        Found by name rather than by counting parents. This test used to walk two directories up from
+        the engine's `__init__`, which was the installation root while the engine was the top-level
+        package. Moving it into `token_iq/gateway/` made that `token_iq/` instead, and the test failed
+        while the loader it checks was correct.
+        """
+        from token_iq.gateway.core_utils.get_model_cost_map import PRICES_PATH
+        import token_iq
         import pathlib as _pathlib
 
-        package_root = _pathlib.Path(_litellm.__file__).resolve().parent.parent
-        assert PRICES_PATH.is_relative_to(package_root), f"{PRICES_PATH} is outside {package_root}"
+        package = _pathlib.Path(token_iq.__file__).resolve().parent
+        installation_root = package.parent
+        assert PRICES_PATH.is_relative_to(installation_root), f"{PRICES_PATH} is outside {installation_root}"
+        assert not PRICES_PATH.is_relative_to(package), (
+            f"{PRICES_PATH} is inside the package, so tool.maturin.include would not need to ship data/"
+        )

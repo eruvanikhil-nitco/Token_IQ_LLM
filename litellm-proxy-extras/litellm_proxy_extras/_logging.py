@@ -22,7 +22,7 @@ class JsonFormatter(logging.Formatter):
 
 def _is_json_enabled():
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         return getattr(litellm, "json_logs", False)
     except (ImportError, AttributeError):

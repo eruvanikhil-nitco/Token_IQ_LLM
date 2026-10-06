@@ -5,13 +5,13 @@ from collections.abc import Mapping, Sequence
 
 import pytest
 
-from litellm.litellm_core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
-from litellm.proxy._types import DBSpendUpdateTransactions, Litellm_EntityType, SpendUpdateQueueItem
-from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter, debitable_model_access_groups
-from litellm.proxy.db.db_transaction_queue.daily_spend_update_queue import DailySpendUpdateQueue
-from litellm.proxy.db.db_transaction_queue.redis_update_buffer import RedisUpdateBuffer
-from litellm.proxy.db.db_transaction_queue.spend_update_queue import SpendUpdateQueue
-from litellm.proxy.spend_tracking.spend_tracking_utils import get_request_model_access_groups
+from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
+from token_iq.gateway.proxy._types import DBSpendUpdateTransactions, Litellm_EntityType, SpendUpdateQueueItem
+from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter, debitable_model_access_groups
+from token_iq.gateway.proxy.db.db_transaction_queue.daily_spend_update_queue import DailySpendUpdateQueue
+from token_iq.gateway.proxy.db.db_transaction_queue.redis_update_buffer import RedisUpdateBuffer
+from token_iq.gateway.proxy.db.db_transaction_queue.spend_update_queue import SpendUpdateQueue
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import get_request_model_access_groups
 
 
 class _FakeRouter:

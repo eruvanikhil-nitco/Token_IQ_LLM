@@ -5,7 +5,7 @@ RBAC tests
 import os
 import re
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -16,17 +16,17 @@ load_dotenv()
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 from unittest.mock import MagicMock
 import pytest
 
-import litellm
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy.auth.auth_checks import get_user_object
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy.auth.auth_checks import get_user_object
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_key_fn,
     generate_key_fn,
     generate_key_helper_fn,
@@ -34,18 +34,18 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
     regenerate_key_fn,
     update_key_fn,
 )
-from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
-from litellm.proxy.management_endpoints.organization_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
+from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
     new_organization,
     organization_member_add,
 )
 
-from litellm.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     new_team,
     team_info,
     update_team,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     LitellmUserRoles,
     audio_transcriptions,
     chat_completion,
@@ -55,10 +55,10 @@ from litellm.proxy.proxy_server import (
     moderations,
     user_api_key_auth,
 )
-from litellm.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
     new_end_user,
 )
-from litellm.proxy.spend_tracking.spend_management_endpoints import (
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
     global_spend,
     global_spend_logs,
     global_spend_models,
@@ -69,20 +69,20 @@ from litellm.proxy.spend_tracking.spend_management_endpoints import (
 )
 from starlette.datastructures import URL
 
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import *
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import *
 
 proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}

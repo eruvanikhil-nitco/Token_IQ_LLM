@@ -18,15 +18,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.exceptions import (
+from token_iq.gateway.exceptions import (
     RateLimitError,
     RateLimitErrorCategory,
     RateLimitType,
 )
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-from litellm.types.integrations.prometheus import (
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+from token_iq.gateway.types.integrations.prometheus import (
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,
     UserAPIKeyLabelValues,
@@ -44,7 +44,7 @@ def test_should_register_rate_limit_label_names_on_enum():
 
 
 def test_should_include_rate_limit_labels_on_failed_requests_metric():
-    import litellm
+    from token_iq import gateway as litellm
 
     original = litellm.prometheus_emit_rate_limit_labels
     try:
@@ -65,7 +65,7 @@ def test_should_omit_rate_limit_labels_by_default_for_back_compat():
     """Default-off preserves the metric's historical label set so existing
     dashboards / recording rules keyed on `litellm_proxy_failed_requests_metric`
     keep matching after upgrade."""
-    import litellm
+    from token_iq import gateway as litellm
 
     assert litellm.prometheus_emit_rate_limit_labels is False
     labels = PrometheusMetricLabels.get_labels("litellm_proxy_failed_requests_metric")
@@ -125,7 +125,7 @@ def test_should_extract_budget_dimension_for_budget_exceeded_error():
     # the same `.category` / `.rate_limit_type` attributes as the unified
     # RateLimitError path so Prometheus can split budget 429s from other
     # 429s without the customer parsing free-text error messages.
-    import litellm
+    from token_iq import gateway as litellm
 
     err = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
     category, rate_limit_type = PrometheusLogger._extract_rate_limit_labels(err)
@@ -228,7 +228,7 @@ async def test_should_populate_rate_limit_labels_for_proxy_rate_limit_error_on_f
     ``exception_class="HTTPException"`` for back-compat.
     """
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         logger.litellm_proxy_failed_requests_metric = MagicMock()
@@ -246,7 +246,7 @@ async def test_should_populate_rate_limit_labels_for_proxy_rate_limit_error_on_f
     )
 
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
         await logger.async_post_call_failure_hook(
@@ -267,7 +267,7 @@ async def test_should_populate_rate_limit_labels_for_proxy_rate_limit_error_on_f
 @pytest.mark.asyncio
 async def test_should_populate_rate_limit_labels_for_vendor_rate_limit_error_on_failure_hook():
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         logger.litellm_proxy_failed_requests_metric = MagicMock()
@@ -281,7 +281,7 @@ async def test_should_populate_rate_limit_labels_for_vendor_rate_limit_error_on_
     err = RateLimitError(message="upstream 429", llm_provider="openai", model="gpt-4o")
 
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
         await logger.async_post_call_failure_hook(
@@ -302,7 +302,7 @@ async def test_should_populate_rate_limit_labels_for_vendor_rate_limit_error_on_
 @pytest.mark.asyncio
 async def test_should_leave_rate_limit_labels_blank_for_non_rate_limit_failure():
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
         logger.litellm_proxy_failed_requests_metric = MagicMock()
@@ -314,7 +314,7 @@ async def test_should_leave_rate_limit_labels_blank_for_non_rate_limit_failure()
         )
 
     with patch(
-        "litellm.integrations.prometheus.prometheus_label_factory"
+        "token_iq.gateway.integrations.prometheus.prometheus_label_factory"
     ) as mock_label_factory:
         mock_label_factory.return_value = {}
         await logger.async_post_call_failure_hook(
@@ -331,7 +331,7 @@ async def test_should_leave_rate_limit_labels_blank_for_non_rate_limit_failure()
 
 def _logger_with_mock_virtual_key_gauges() -> PrometheusLogger:
     with patch(
-        "litellm.integrations.prometheus.PrometheusLogger.__init__", return_value=None
+        "token_iq.gateway.integrations.prometheus.PrometheusLogger.__init__", return_value=None
     ):
         logger = PrometheusLogger()
     logger.litellm_remaining_api_key_requests_for_model = MagicMock()

@@ -17,12 +17,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.litellm_core_utils.prompt_templates.common_utils import (
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     _decode_vector_store_ids_in_tools,
     update_responses_tools_with_model_file_ids,
 )
-from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -186,27 +186,27 @@ class TestFileSearchGuardInResponsesMain:
     """Tests for _has_file_search_tool helper and emulated routing guard."""
 
     def test_has_file_search_tool_true(self):
-        from litellm.responses.main import _has_file_search_tool
+        from token_iq.gateway.responses.main import _has_file_search_tool
 
         assert _has_file_search_tool([{"type": "file_search"}]) is True
 
     def test_has_file_search_tool_false_empty(self):
-        from litellm.responses.main import _has_file_search_tool
+        from token_iq.gateway.responses.main import _has_file_search_tool
 
         assert _has_file_search_tool([]) is False
         assert _has_file_search_tool(None) is False
 
     def test_has_file_search_tool_false_other_tools(self):
-        from litellm.responses.main import _has_file_search_tool
+        from token_iq.gateway.responses.main import _has_file_search_tool
 
         assert _has_file_search_tool([{"type": "web_search"}]) is False
 
     def test_E1_openai_provider_no_error(self):
         """OpenAI supports file_search natively — no error raised."""
-        from litellm.llms.openai.responses.transformation import (
+        from token_iq.gateway.llms.openai.responses.transformation import (
             OpenAIResponsesAPIConfig,
         )
-        from litellm.responses.main import _has_file_search_tool
+        from token_iq.gateway.responses.main import _has_file_search_tool
 
         config = OpenAIResponsesAPIConfig()
         tools = [{"type": "file_search", "vector_store_ids": ["vs_abc"]}]
@@ -216,7 +216,7 @@ class TestFileSearchGuardInResponsesMain:
 
     def test_E2_no_provider_config_routes_to_emulated_handler(self):
         """Provider config None + file_search should route to emulated handler."""
-        from litellm.responses.main import responses
+        from token_iq.gateway.responses.main import responses
 
         tools = [{"type": "file_search", "vector_store_ids": ["vs_abc"]}]
         logging_obj = MagicMock()
@@ -224,27 +224,27 @@ class TestFileSearchGuardInResponsesMain:
 
         with (
             patch(
-                "litellm.responses.main.litellm.get_llm_provider",
+                "token_iq.gateway.responses.main.litellm.get_llm_provider",
                 return_value=("claude-sonnet-4-5", "anthropic", None, None),
             ),
             patch(
-                "litellm.responses.main.update_responses_input_with_model_file_ids",
+                "token_iq.gateway.responses.main.update_responses_input_with_model_file_ids",
                 return_value="hello",
             ),
             patch(
-                "litellm.responses.main.update_responses_tools_with_model_file_ids",
+                "token_iq.gateway.responses.main.update_responses_tools_with_model_file_ids",
                 return_value=tools,
             ),
             patch(
-                "litellm.responses.main.ProviderConfigManager.get_provider_responses_api_config",
+                "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config",
                 return_value=None,
             ),
             patch(
-                "litellm.responses.main.ResponsesAPIRequestUtils.get_requested_response_api_optional_param",
+                "token_iq.gateway.responses.main.ResponsesAPIRequestUtils.get_requested_response_api_optional_param",
                 return_value={},
             ),
             patch(
-                "litellm.responses.main.run_async_function", return_value=expected
+                "token_iq.gateway.responses.main.run_async_function", return_value=expected
             ) as run_async_mock,
         ):
             result = responses(
@@ -262,10 +262,10 @@ class TestFileSearchGuardInResponsesMain:
 
     def test_E3_non_native_provider_config_routes_to_emulated_handler(self):
         """Non-native provider config + file_search should route to emulated handler."""
-        from litellm.llms.base_llm.responses.transformation import (
+        from token_iq.gateway.llms.base_llm.responses.transformation import (
             BaseResponsesAPIConfig,
         )
-        from litellm.responses.main import responses
+        from token_iq.gateway.responses.main import responses
 
         tools = [{"type": "file_search", "vector_store_ids": ["vs_abc"]}]
         logging_obj = MagicMock()
@@ -275,27 +275,27 @@ class TestFileSearchGuardInResponsesMain:
 
         with (
             patch(
-                "litellm.responses.main.litellm.get_llm_provider",
+                "token_iq.gateway.responses.main.litellm.get_llm_provider",
                 return_value=("claude-sonnet-4-5", "anthropic", None, None),
             ),
             patch(
-                "litellm.responses.main.update_responses_input_with_model_file_ids",
+                "token_iq.gateway.responses.main.update_responses_input_with_model_file_ids",
                 return_value="hello",
             ),
             patch(
-                "litellm.responses.main.update_responses_tools_with_model_file_ids",
+                "token_iq.gateway.responses.main.update_responses_tools_with_model_file_ids",
                 return_value=tools,
             ),
             patch(
-                "litellm.responses.main.ProviderConfigManager.get_provider_responses_api_config",
+                "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config",
                 return_value=mock_config,
             ),
             patch(
-                "litellm.responses.main.ResponsesAPIRequestUtils.get_requested_response_api_optional_param",
+                "token_iq.gateway.responses.main.ResponsesAPIRequestUtils.get_requested_response_api_optional_param",
                 return_value={},
             ),
             patch(
-                "litellm.responses.main.run_async_function", return_value=expected
+                "token_iq.gateway.responses.main.run_async_function", return_value=expected
             ) as run_async_mock,
         ):
             result = responses(
@@ -313,7 +313,7 @@ class TestFileSearchGuardInResponsesMain:
 
     def test_E4_no_file_search_tools_no_error(self):
         """No file_search tool in request → guard never fires."""
-        from litellm.responses.main import _has_file_search_tool
+        from token_iq.gateway.responses.main import _has_file_search_tool
 
         tools = [{"type": "web_search"}, {"type": "code_interpreter"}]
         assert not _has_file_search_tool(tools)
@@ -357,7 +357,7 @@ class TestManagedFilesVectorStoreAccess:
 
     def _make_vs_row(self, vector_store_id: str, team_id: Optional[str]) -> Any:
         """Build a row compatible with get_managed_vector_store_rows_by_uuids (Prisma model_dump)."""
-        from litellm.proxy._types import LiteLLM_ManagedVectorStoresTable
+        from token_iq.gateway.proxy._types import LiteLLM_ManagedVectorStoresTable
 
         return LiteLLM_ManagedVectorStoresTable(
             vector_store_id=vector_store_id,
@@ -389,11 +389,11 @@ class TestManagedFilesVectorStoreAccess:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
+                "token_iq.gateway.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
                 side_effect=mock_get_rows,
             ),
         ):
@@ -418,11 +418,11 @@ class TestManagedFilesVectorStoreAccess:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
+                "token_iq.gateway.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
                 side_effect=mock_get_rows,
             ),
         ):
@@ -450,11 +450,11 @@ class TestManagedFilesVectorStoreAccess:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
+                "token_iq.gateway.proxy.auth.auth_checks.get_managed_vector_store_rows_by_uuids",
                 get_rows_mock,
             ),
         ):
@@ -474,7 +474,7 @@ class TestManagedFilesVectorStoreAccess:
         from litellm_enterprise.proxy.hooks.managed_files import (
             _PROXY_LiteLLMManagedFiles as ManagedFiles,
         )
-        from litellm.proxy._types import CallTypes
+        from token_iq.gateway.proxy._types import CallTypes
 
         # If call_type is acompletion, the vector_store check branch isn't reached.
         # Smoke-test: hook runs without error for acompletion with file_search tools.
@@ -533,7 +533,7 @@ class TestGetVectorStoreIdsFromFileSearchTools:
 
 
 class TestEmulatedFileSearchHandler:
-    """Tests for litellm/responses/file_search/emulated_handler.py"""
+    """Tests for token_iq/gateway/responses/file_search/emulated_handler.py"""
 
     def _make_mock_responses_api_response(
         self,
@@ -570,7 +570,7 @@ class TestEmulatedFileSearchHandler:
     # --- Tool conversion ---
 
     def test_H1_file_search_replaced_with_function_tool(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _replace_file_search_tools,
         )
 
@@ -587,7 +587,7 @@ class TestEmulatedFileSearchHandler:
         assert "vs_def" in enum_ids
 
     def test_H2_non_file_search_tools_preserved(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _replace_file_search_tools,
         )
 
@@ -602,7 +602,7 @@ class TestEmulatedFileSearchHandler:
         assert new_tools[1]["type"] == "function"
 
     def test_H3_no_file_search_tools_returns_unchanged(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _replace_file_search_tools,
         )
 
@@ -613,7 +613,7 @@ class TestEmulatedFileSearchHandler:
         assert new_tools == [{"type": "web_search"}]
 
     def test_H4_empty_vector_store_ids_no_function_tool(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _replace_file_search_tools,
         )
 
@@ -626,7 +626,7 @@ class TestEmulatedFileSearchHandler:
     # --- Detection ---
 
     def test_H5_should_use_emulated_for_non_native_provider(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             should_use_emulated_file_search,
         )
 
@@ -637,10 +637,10 @@ class TestEmulatedFileSearchHandler:
         assert should_use_emulated_file_search(tools, mock_config) is True
 
     def test_H6_should_not_emulate_for_native_provider(self):
-        from litellm.llms.openai.responses.transformation import (
+        from token_iq.gateway.llms.openai.responses.transformation import (
             OpenAIResponsesAPIConfig,
         )
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             should_use_emulated_file_search,
         )
 
@@ -650,7 +650,7 @@ class TestEmulatedFileSearchHandler:
         assert should_use_emulated_file_search(tools, config) is False
 
     def test_H7_should_not_emulate_without_file_search_tools(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             should_use_emulated_file_search,
         )
 
@@ -663,7 +663,7 @@ class TestEmulatedFileSearchHandler:
     # --- Output synthesis ---
 
     def test_H8_synthesized_output_has_file_search_call_and_message(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _build_file_search_call_output,
             _build_message_output,
         )
@@ -680,7 +680,7 @@ class TestEmulatedFileSearchHandler:
         assert msg["content"][0]["text"] == "The answer is 42."
 
     def test_H9_file_citations_added_for_results_with_file_ids(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _build_file_citation_annotations,
         )
 
@@ -695,7 +695,7 @@ class TestEmulatedFileSearchHandler:
         assert annotations[0]["filename"] == "doc.pdf"
 
     def test_H10_no_duplicate_citations_for_same_file(self):
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _build_file_citation_annotations,
         )
 
@@ -711,7 +711,7 @@ class TestEmulatedFileSearchHandler:
     def test_H14_include_search_results_returns_all_chunks(self):
         """All chunks are returned even when they originate from the same file,
         matching OpenAI native file_search behaviour."""
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             _build_search_results_for_include,
         )
 
@@ -739,7 +739,7 @@ class TestEmulatedFileSearchHandler:
     @pytest.mark.asyncio
     async def test_H11_emulated_full_flow_provider_calls_tool(self):
         """Full flow: provider calls file_search function → search → follow-up → OpenAI output."""
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             aresponses_with_emulated_file_search,
         )
 
@@ -759,11 +759,11 @@ class TestEmulatedFileSearchHandler:
 
         with (
             patch(
-                "litellm.responses.file_search.emulated_handler._call_aresponses",
+                "token_iq.gateway.responses.file_search.emulated_handler._call_aresponses",
                 new=AsyncMock(side_effect=[first_resp, final_resp]),
             ),
             patch(
-                "litellm.vector_stores.main.asearch",
+                "token_iq.gateway.vector_stores.main.asearch",
                 new=AsyncMock(return_value=mock_search_response),
             ),
         ):
@@ -789,7 +789,7 @@ class TestEmulatedFileSearchHandler:
     @pytest.mark.asyncio
     async def test_H11b_emulated_full_flow_primary_queries_schema(self):
         """Primary path: provider returns queries (plural array) as defined in the tool schema."""
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             aresponses_with_emulated_file_search,
         )
 
@@ -822,11 +822,11 @@ class TestEmulatedFileSearchHandler:
 
         with (
             patch(
-                "litellm.responses.file_search.emulated_handler._call_aresponses",
+                "token_iq.gateway.responses.file_search.emulated_handler._call_aresponses",
                 new=AsyncMock(side_effect=[first_resp_plural, final_resp]),
             ),
             patch(
-                "litellm.vector_stores.main.asearch",
+                "token_iq.gateway.vector_stores.main.asearch",
                 new=AsyncMock(return_value=mock_search_response),
             ),
         ):
@@ -847,7 +847,7 @@ class TestEmulatedFileSearchHandler:
     @pytest.mark.asyncio
     async def test_H12_emulated_flow_provider_answers_without_tool_call(self):
         """If provider answers directly (no tool call), still return OpenAI format."""
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             aresponses_with_emulated_file_search,
         )
 
@@ -856,7 +856,7 @@ class TestEmulatedFileSearchHandler:
         )
 
         with patch(
-            "litellm.responses.file_search.emulated_handler._call_aresponses",
+            "token_iq.gateway.responses.file_search.emulated_handler._call_aresponses",
             new=AsyncMock(return_value=direct_resp),
         ):
             result = await aresponses_with_emulated_file_search(
@@ -874,7 +874,7 @@ class TestEmulatedFileSearchHandler:
 
     def test_H13_should_use_emulated_when_provider_config_is_none(self):
         """None provider config (chat fallback) also triggers emulation."""
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             should_use_emulated_file_search,
         )
 
@@ -888,8 +888,8 @@ class TestEmulatedFileSearchHandler:
         This ensures wrapper_async skips success/failure callbacks for sub-calls so
         billing fires exactly once (on the outer call) with the synthesized result.
         """
-        from litellm._internal_context import is_internal_call
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway._internal_context import is_internal_call
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             aresponses_with_emulated_file_search,
         )
 
@@ -906,11 +906,11 @@ class TestEmulatedFileSearchHandler:
 
         with (
             patch(
-                "litellm.responses.file_search.emulated_handler._call_aresponses",
+                "token_iq.gateway.responses.file_search.emulated_handler._call_aresponses",
                 new=AsyncMock(side_effect=[first_resp, final_resp]),
             ) as mock_call,
             patch(
-                "litellm.vector_stores.main.asearch",
+                "token_iq.gateway.vector_stores.main.asearch",
                 new=AsyncMock(return_value=mock_search_response),
             ),
         ):

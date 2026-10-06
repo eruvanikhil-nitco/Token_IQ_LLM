@@ -8,9 +8,9 @@ import io
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
-from litellm.llms.triton.embedding.transformation import TritonEmbeddingConfig
+from token_iq.gateway.llms.triton.embedding.transformation import TritonEmbeddingConfig
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 
@@ -71,7 +71,7 @@ def test_triton_embedding_response_sets_usage_with_token_counter():
     }
 
     with patch(
-        "litellm.llms.triton.embedding.transformation.token_counter",
+        "token_iq.gateway.llms.triton.embedding.transformation.token_counter",
         return_value=7,
     ):
         transformed = config.transform_embedding_response(
@@ -115,7 +115,7 @@ def test_triton_embedding_response_sets_usage_with_word_count_fallback():
     }
 
     with patch(
-        "litellm.llms.triton.embedding.transformation.token_counter",
+        "token_iq.gateway.llms.triton.embedding.transformation.token_counter",
         side_effect=Exception("tokenizer error"),
     ):
         transformed = config.transform_embedding_response(
@@ -160,7 +160,7 @@ def test_triton_embedding_batch_usage_sums_per_input_token_counts():
     }
 
     with patch(
-        "litellm.llms.triton.embedding.transformation.token_counter",
+        "token_iq.gateway.llms.triton.embedding.transformation.token_counter",
         side_effect=[5, 7],
     ):
         transformed = config.transform_embedding_response(
@@ -206,7 +206,7 @@ def test_completion_triton_generate_api(stream):
         mock_response.status_code = 200
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
             response = litellm.completion(
@@ -294,7 +294,7 @@ def test_completion_triton_infer_api():
         mock_response.status_code = 200
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
             response = litellm.completion(
@@ -367,8 +367,8 @@ async def test_triton_embeddings():
 
 
 def test_triton_generate_raw_request():
-    from litellm.utils import return_raw_request
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
 
     try:
         kwargs = {

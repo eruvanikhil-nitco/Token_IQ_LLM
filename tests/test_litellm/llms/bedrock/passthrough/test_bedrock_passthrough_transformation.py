@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 
-from litellm.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
+from token_iq.gateway.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
 
 
 def test_bedrock_passthrough_get_complete_url_default_endpoint():

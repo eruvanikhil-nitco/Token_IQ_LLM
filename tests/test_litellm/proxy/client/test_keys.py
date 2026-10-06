@@ -8,8 +8,8 @@ import requests
 
 import responses
 
-from litellm.proxy.client.exceptions import NotFoundError, UnauthorizedError
-from litellm.proxy.client.keys import KeysManagementClient
+from token_iq.gateway.proxy.client.exceptions import NotFoundError, UnauthorizedError
+from token_iq.gateway.proxy.client.keys import KeysManagementClient
 
 
 @pytest.fixture

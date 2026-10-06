@@ -9,10 +9,10 @@ import asyncio
 sys.path.insert(
     0, os.path.abspath("../..")
 )  # Adds the parent directory to the system path
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 from dotenv import load_dotenv
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 load_dotenv()
 

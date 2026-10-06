@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-import litellm
-from litellm import Choices, Message, ModelResponse
-from litellm.types.utils import PromptTokensDetails
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse
+from token_iq.gateway.types.utils import PromptTokensDetails
 
 
 @pytest.mark.asyncio

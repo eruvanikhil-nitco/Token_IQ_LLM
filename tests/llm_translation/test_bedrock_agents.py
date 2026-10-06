@@ -2,7 +2,8 @@ import traceback
 
 from dotenv import load_dotenv
 
-import litellm.types
+import token_iq.gateway.types
+from token_iq import gateway as litellm
 
 load_dotenv()
 import io
@@ -62,7 +63,7 @@ async def test_bedrock_agents_with_streaming():
 def test_bedrock_agents_with_custom_params():
     litellm._turn_on_debug()
     from unittest.mock import MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 

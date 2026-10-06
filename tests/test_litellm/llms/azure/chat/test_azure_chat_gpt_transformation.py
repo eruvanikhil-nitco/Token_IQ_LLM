@@ -9,11 +9,11 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
 )
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
-from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
-from litellm.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
-from litellm.utils import get_optional_params
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
+from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
+from token_iq.gateway.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
+from token_iq.gateway.utils import get_optional_params
 
 _MAPPED_PARAMS: Final = TypeAdapter(dict[str, object])
 _SUPPORTED_PARAMS: Final = TypeAdapter(list[str])

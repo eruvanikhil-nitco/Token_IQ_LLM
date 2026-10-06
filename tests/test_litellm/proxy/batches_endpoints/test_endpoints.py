@@ -1,5 +1,5 @@
 """
-Routing-contract tests for litellm/proxy/batches_endpoints/endpoints.py
+Routing-contract tests for token_iq/gateway/proxy/batches_endpoints/endpoints.py
 
 These are not happy-path smoke tests. Each row of the matrix locks the full
 contract of a single routing branch so that *any* behavior change in this layer
@@ -38,18 +38,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-import litellm.proxy.batches_endpoints.endpoints as endpoints
-import litellm.proxy.proxy_server as proxy_server
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.openai_files_endpoints.common_utils import (
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.batches_endpoints.endpoints as endpoints
+import token_iq.gateway.proxy.proxy_server as proxy_server
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     encode_file_id_with_model,
 )
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.llms.openai import BatchJobStatus
-from litellm.types.utils import CredentialItem, LiteLLMBatch
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.llms.openai import BatchJobStatus
+from token_iq.gateway.types.utils import CredentialItem, LiteLLMBatch
 
 from fastapi import Request, Response
 
@@ -2512,7 +2512,7 @@ async def test_cancel__provider_only_resolves_named_vertex_credentials(cancel_ha
 def _unified_batch_id(model_id: str = "azure/gpt-4o", batch_id: str = "batch-provider-id") -> str:
     import base64
 
-    from litellm.types.utils import SpecialEnums
+    from token_iq.gateway.types.utils import SpecialEnums
 
     unified = SpecialEnums.LITELLM_MANAGED_BATCH_COMPLETE_STR.value.format(model_id, batch_id)
     return base64.urlsafe_b64encode(unified.encode()).decode().rstrip("=")
@@ -2521,7 +2521,7 @@ def _unified_batch_id(model_id: str = "azure/gpt-4o", batch_id: str = "batch-pro
 def _unified_file_id() -> str:
     import base64
 
-    from litellm.types.utils import SpecialEnums
+    from token_iq.gateway.types.utils import SpecialEnums
 
     unified = SpecialEnums.LITELLM_MANAGED_FILE_COMPLETE_STR.value.format(
         "application/json", "managed-id", "gpt-4o-mini", "file-provider-id", "gpt-4o-mini-id"

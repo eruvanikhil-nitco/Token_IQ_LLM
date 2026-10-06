@@ -6,17 +6,17 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.azure.audio_transcription.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.audio_transcription.transformation import (
     AzureSpeechAudioTranscriptionConfig,
     AzureSpeechAudioTranscriptionException,
 )
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     AudioTranscriptionRequestData,
     BaseAudioTranscriptionConfig,
 )
-from litellm.types.utils import TranscriptionResponse
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import TranscriptionResponse
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_azure_speech_audio_transcription_config_installed():
@@ -67,7 +67,7 @@ def test_azure_speech_audio_transcription_uses_dedicated_api_base_env(monkeypatc
     config = AzureSpeechAudioTranscriptionConfig()
 
     monkeypatch.setattr(
-        "litellm.llms.azure.audio_transcription.transformation.get_secret_str",
+        "token_iq.gateway.llms.azure.audio_transcription.transformation.get_secret_str",
         lambda key: (
             "https://centralus.api.cognitive.microsoft.com"
             if key == "AZURE_SPEECH_API_BASE"
@@ -126,7 +126,7 @@ def test_azure_speech_audio_transcription_uses_dedicated_api_key_env(monkeypatch
     config = AzureSpeechAudioTranscriptionConfig()
 
     monkeypatch.setattr(
-        "litellm.llms.azure.audio_transcription.transformation.get_secret_str",
+        "token_iq.gateway.llms.azure.audio_transcription.transformation.get_secret_str",
         lambda key: "speech-key" if key == "AZURE_SPEECH_API_KEY" else None,
     )
 

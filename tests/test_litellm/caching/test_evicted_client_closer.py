@@ -14,8 +14,8 @@ import weakref
 import httpx
 import pytest
 
-from litellm.caching.evicted_client_closer import EvictedClientCloser
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 class FakeClock:

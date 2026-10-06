@@ -1,7 +1,7 @@
 import pytest
 
-from litellm.llms.groq.cost_calculator import cost_per_web_search_request
-from litellm.types.utils import ModelInfo, ServerToolUse, Usage
+from token_iq.gateway.llms.groq.cost_calculator import cost_per_web_search_request
+from token_iq.gateway.types.utils import ModelInfo, ServerToolUse, Usage
 
 PRICED_MODEL_INFO = ModelInfo(
     key="groq/openai/gpt-oss-20b",

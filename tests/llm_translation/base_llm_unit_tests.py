@@ -5,23 +5,23 @@ import sys
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import time
 import base64
 import inspect
 
-import litellm
-from litellm.exceptions import BadRequestError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.utils import (
     CustomStreamWrapper,
     get_supported_openai_params,
     get_optional_params,
     ProviderConfigManager,
 )
-from litellm.main import stream_chunk_builder
+from token_iq.gateway.main import stream_chunk_builder
 from typing import Union
-from litellm.types.utils import Usage, ModelResponse
+from token_iq.gateway.types.utils import Usage, ModelResponse
 
 # test_example.py
 from abc import ABC, abstractmethod
@@ -145,7 +145,7 @@ class BaseLLMChatTest(ABC):
 
     def test_tool_call_with_property_type_array(self):
         litellm._turn_on_debug()
-        from litellm.utils import supports_function_calling
+        from token_iq.gateway.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -191,7 +191,7 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.flaky(retries=3, delay=1)
     def test_tool_call_with_empty_enum_property(self):
         litellm._turn_on_debug()
-        from litellm.utils import supports_function_calling
+        from token_iq.gateway.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -245,7 +245,7 @@ class BaseLLMChatTest(ABC):
 
     def test_streaming(self):
         """Check if litellm handles streaming correctly"""
-        from litellm.types.utils import ModelResponseStream
+        from token_iq.gateway.types.utils import ModelResponseStream
         from typing import Optional
 
         base_completion_call_args = self.get_base_completion_call_args()
@@ -288,7 +288,7 @@ class BaseLLMChatTest(ABC):
     def test_pydantic_model_input(self):
         litellm.set_verbose = True
 
-        from litellm import completion, Message
+        from token_iq.gateway import completion, Message
 
         base_completion_call_args = self.get_base_completion_call_args()
         messages = [Message(content="Hello, how are you?", role="user")]
@@ -296,7 +296,7 @@ class BaseLLMChatTest(ABC):
         self.completion_function(**base_completion_call_args, messages=messages)
 
     def test_web_search(self):
-        from litellm.utils import supports_web_search
+        from token_iq.gateway.utils import supports_web_search
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -322,7 +322,7 @@ class BaseLLMChatTest(ABC):
         print(f"response={response}")
 
     def test_url_context(self):
-        from litellm.utils import supports_url_context
+        from token_iq.gateway.utils import supports_url_context
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -351,7 +351,7 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_pdf_handling(self, pdf_messages, sync_mode):
-        from litellm.utils import supports_pdf_input
+        from token_iq.gateway.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -390,7 +390,7 @@ class BaseLLMChatTest(ABC):
 
     @pytest.mark.asyncio
     async def test_async_pdf_handling_with_file_id(self):
-        from litellm.utils import supports_pdf_input
+        from token_iq.gateway.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -422,9 +422,9 @@ class BaseLLMChatTest(ABC):
         assert response is not None
 
     def test_file_data_unit_test(self, pdf_messages):
-        from litellm.utils import supports_pdf_input, return_raw_request
-        from litellm.types.utils import CallTypes
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.utils import supports_pdf_input, return_raw_request
+        from token_iq.gateway.types.utils import CallTypes
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             convert_to_anthropic_image_obj,
         )
 
@@ -485,7 +485,7 @@ class BaseLLMChatTest(ABC):
         """
         Test that the JSON response format is supported by the LLM API
         """
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         base_completion_call_args = self.get_base_completion_call_args()
         litellm.set_verbose = True
@@ -571,7 +571,7 @@ class BaseLLMChatTest(ABC):
         """
         Test that the response format type text does not lead to tool calls
         """
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         base_completion_call_args = self.get_base_completion_call_args()
         litellm.set_verbose = True
@@ -604,7 +604,7 @@ class BaseLLMChatTest(ABC):
     def test_json_response_pydantic_obj(self):
         litellm._turn_on_debug()
         from pydantic import BaseModel
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -644,7 +644,7 @@ class BaseLLMChatTest(ABC):
     def test_json_response_pydantic_obj_nested_obj(self):
         litellm.set_verbose = True
         from pydantic import BaseModel
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -652,7 +652,7 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.flaky(retries=6, delay=1)
     def test_json_response_nested_pydantic_obj(self):
         from pydantic import BaseModel
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -700,8 +700,8 @@ class BaseLLMChatTest(ABC):
         """
         litellm._turn_on_debug()
         from pydantic import BaseModel
-        from litellm.utils import supports_response_schema
-        from litellm.llms.base_llm.base_utils import type_to_response_format_param
+        from token_iq.gateway.utils import supports_response_schema
+        from token_iq.gateway.llms.base_llm.base_utils import type_to_response_format_param
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -749,7 +749,7 @@ class BaseLLMChatTest(ABC):
         """
         Test that audio input is supported by the LLM API
         """
-        from litellm.utils import supports_audio_input
+        from token_iq.gateway.utils import supports_audio_input
 
         litellm._turn_on_debug()
         base_completion_call_args = self.get_base_completion_call_args()
@@ -787,7 +787,7 @@ class BaseLLMChatTest(ABC):
         """
         Test that the JSON response format with streaming is supported by the LLM API
         """
-        from litellm.utils import supports_response_schema
+        from token_iq.gateway.utils import supports_response_schema
 
         base_completion_call_args = self.get_base_completion_call_args()
         litellm.set_verbose = True
@@ -865,7 +865,7 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.flaky(retries=4, delay=2)
     def test_image_url(self, detail, image_url):
         litellm.set_verbose = True
-        from litellm.utils import supports_vision
+        from token_iq.gateway.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -924,7 +924,7 @@ class BaseLLMChatTest(ABC):
 
     def test_image_url_string(self):
         litellm.set_verbose = True
-        from litellm.utils import supports_vision
+        from token_iq.gateway.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -967,7 +967,7 @@ class BaseLLMChatTest(ABC):
         _skip_live_prompt_caching_test()
         print("test_prompt_caching")
         litellm.set_verbose = True
-        from litellm.utils import supports_prompt_caching
+        from token_iq.gateway.utils import supports_prompt_caching
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -1087,11 +1087,11 @@ class BaseLLMChatTest(ABC):
         Related Issue: https://github.com/BerriAI/litellm/issues/9080
         """
         try:
-            from litellm import completion, ModelResponse
+            from token_iq.gateway import completion, ModelResponse
 
             litellm.set_verbose = True
             litellm._turn_on_debug()
-            from litellm.utils import supports_function_calling
+            from token_iq.gateway.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
             litellm.model_cost = litellm.get_model_cost_map()
@@ -1120,11 +1120,11 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.flaky(retries=3, delay=1)
     def test_basic_tool_calling(self):
         try:
-            from litellm import completion, ModelResponse
+            from token_iq.gateway import completion, ModelResponse
 
             litellm.set_verbose = True
             litellm._turn_on_debug()
-            from litellm.utils import supports_function_calling
+            from token_iq.gateway.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
             litellm.model_cost = litellm.get_model_cost_map()
@@ -1243,7 +1243,7 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.flaky(retries=3, delay=1)
     @pytest.mark.asyncio
     async def test_completion_cost(self):
-        from litellm import completion_cost
+        from token_iq.gateway import completion_cost
 
         litellm._turn_on_debug()
 
@@ -1262,8 +1262,8 @@ class BaseLLMChatTest(ABC):
     @pytest.mark.parametrize("input_type", ["input_audio", "audio_url"])
     @pytest.mark.parametrize("format_specified", [True])
     def test_supports_audio_input(self, input_type, format_specified):
-        from litellm.utils import return_raw_request, supports_audio_input
-        from litellm.types.utils import CallTypes
+        from token_iq.gateway.utils import return_raw_request, supports_audio_input
+        from token_iq.gateway.types.utils import CallTypes
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -1329,8 +1329,8 @@ class BaseLLMChatTest(ABC):
             ), "Audio URL not sent to gemini"
 
     def test_function_calling_with_tool_response(self):
-        from litellm.utils import supports_function_calling
-        from litellm import completion
+        from token_iq.gateway.utils import supports_function_calling
+        from token_iq.gateway import completion
 
         litellm._turn_on_debug()
         try:
@@ -1428,8 +1428,8 @@ class BaseLLMChatTest(ABC):
 
     def test_reasoning_effort(self):
         """Test that reasoning_effort is passed correctly to the model"""
-        from litellm.utils import supports_reasoning
-        from litellm import completion
+        from token_iq.gateway.utils import supports_reasoning
+        from token_iq.gateway import completion
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -1455,7 +1455,7 @@ class BaseLLMChatTest(ABC):
             reasoning_effort="high",
         )
         # either accepts reasoning effort or thinking budget
-        from litellm.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
+        from token_iq.gateway.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
 
         assert "reasoning_effort" in optional_params or str(
             DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
@@ -1485,7 +1485,7 @@ class BaseOSeriesModelsTest(ABC):  # test across azure/openai
     def test_reasoning_effort(self):
         """Test that reasoning_effort is passed correctly to the model"""
 
-        from litellm import completion
+        from token_iq.gateway import completion
 
         client = self.get_client()
 
@@ -1511,7 +1511,7 @@ class BaseOSeriesModelsTest(ABC):  # test across azure/openai
 
     def test_developer_role_translation(self):
         """Test that developer role is translated correctly to system role for non-OpenAI providers"""
-        from litellm import completion
+        from token_iq.gateway import completion
 
         client = self.get_client()
 
@@ -1546,7 +1546,7 @@ class BaseOSeriesModelsTest(ABC):  # test across azure/openai
         Test that temperature is not passed to O-series models
         """
         try:
-            from litellm import completion
+            from token_iq.gateway import completion
 
             client = self.get_client()
 
@@ -1776,7 +1776,7 @@ class BaseAnthropicChatTest(ABC):
             model=base_completion_call_args["model"]
         )
 
-        from litellm.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
+        from token_iq.gateway.constants import DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET
 
         optional_params = get_optional_params(
             model=base_completion_call_args.get("model"),

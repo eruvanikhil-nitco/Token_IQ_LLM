@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from litellm.proxy.rag_endpoints.upload_security import (
+from token_iq.gateway.proxy.rag_endpoints.upload_security import (
     EICAR_TEST_SIGNATURE,
     DetectedFormat,
     EicarTestMalwareScanner,
@@ -113,7 +113,7 @@ def test_utf8_text_accepted():
 
 
 def test_inspect_content_classifies_directly():
-    from litellm.proxy.rag_endpoints.upload_security import AllowedContent, DisallowedContent, DisallowedKind
+    from token_iq.gateway.proxy.rag_endpoints.upload_security import AllowedContent, DisallowedContent, DisallowedKind
 
     assert inspect_content(_PDF_BYTES) == AllowedContent(DetectedFormat.PDF)
     assert inspect_content(_TEXT_BYTES) == AllowedContent(DetectedFormat.TEXT)

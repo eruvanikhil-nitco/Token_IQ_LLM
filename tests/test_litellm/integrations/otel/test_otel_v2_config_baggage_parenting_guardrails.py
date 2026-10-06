@@ -21,15 +21,15 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
     InMemorySpanExporter,
 )
 
-from litellm.integrations.otel import LiteLLM, OpenTelemetryV2Config  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.model.baggage import (  # noqa: E402
+from token_iq.gateway.integrations.otel import LiteLLM, OpenTelemetryV2Config  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.model.baggage import (  # noqa: E402
     BAGGAGE_PROMOTED_KEYS,
     DEFAULT_BAGGAGE_METADATA_KEYS,
 )
-from litellm.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
-from litellm.integrations.otel.model.payloads import GuardrailSpanData  # noqa: E402
-from litellm.integrations.otel.model.spans import (  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
+from token_iq.gateway.integrations.otel.model.payloads import GuardrailSpanData  # noqa: E402
+from token_iq.gateway.integrations.otel.model.spans import (  # noqa: E402
     LITELLM_PROXY_REQUEST_SPAN_NAME,
     SpanRole,
 )
@@ -78,9 +78,9 @@ def test_baggage_processor_allowlist_uses_config_keys():
         exporter="in_memory", baggage_promoted_keys=[LiteLLM.TEAM_ID]
     )
     provider, exporter = providers.in_memory_provider(cfg)
-    from litellm.integrations.otel.plumbing import context as ctx_mod
-    from litellm.integrations.otel.emitter import SpanEmitter
-    from litellm.integrations.otel.model.payloads import ServiceSpanData
+    from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.model.payloads import ServiceSpanData
 
     engine = SpanEmitter(providers.get_tracer(provider, "t"), cfg)
     ctx = ctx_mod.set_request_baggage({LiteLLM.TEAM_ID: "t1", LiteLLM.TEAM_ALIAS: "ta"})
@@ -176,7 +176,7 @@ def test_llm_span_unaffected_by_phase_span_active_at_close():
 
 
 def test_guardrail_mode_enum_normalized_to_value():
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     d = GuardrailSpanData.from_logging_entry(
         {
@@ -190,7 +190,7 @@ def test_guardrail_mode_enum_normalized_to_value():
 
 
 def test_guardrail_mode_list_of_enums_joined():
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     d = GuardrailSpanData.from_logging_entry(
         {
@@ -206,7 +206,7 @@ def test_guardrail_mode_list_of_enums_joined():
 
 
 def test_guardrail_typed_metadata_fields_mapped_to_span():
-    from litellm.integrations.otel.mappers.genai import GenAIMapper
+    from token_iq.gateway.integrations.otel.mappers.genai import GenAIMapper
 
     d = GuardrailSpanData.from_logging_entry(
         {

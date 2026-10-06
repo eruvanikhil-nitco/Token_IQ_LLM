@@ -7,7 +7,7 @@ import polars as pl
 import pytest
 
 
-from litellm.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
+from token_iq.gateway.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
 
 
 class TestCloudZeroStreamer:

@@ -1,5 +1,5 @@
 """
-require_managed_files enforcement for litellm/proxy/vector_store_files_endpoints/endpoints.py
+require_managed_files enforcement for token_iq/gateway/proxy/vector_store_files_endpoints/endpoints.py
 
 Every vector-store file route (create, retrieve, content, update, delete) resolves its
 caller-supplied file id through _update_request_data_with_managed_file_id before the
@@ -19,12 +19,12 @@ import pytest
 
 from fastapi import HTTPException
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.vector_store_files_endpoints.endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
     _update_request_data_with_managed_file_id,
 )
-from litellm.types.utils import SpecialEnums
+from token_iq.gateway.types.utils import SpecialEnums
 
 RAW_FILE_ID = "file-victim-abc123"
 CALLER = UserAPIKeyAuth(api_key="sk-test", user_id="attacker-user", team_id="team-b")
@@ -85,7 +85,7 @@ async def test_raw_file_id_rejected_when_managed_files_required():
 async def test_model_encoded_file_id_rejected_when_managed_files_required():
     """encode_file_id_with_model output is client-forgeable and carries no ownership
     row, so it is not a managed file id."""
-    from litellm.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
 
     encoded = encode_file_id_with_model(RAW_FILE_ID, "gpt-4o-mini", id_type="file")
 

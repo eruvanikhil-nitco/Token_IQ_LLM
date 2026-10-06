@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Add litellm to path
-import litellm
+from token_iq import gateway as litellm
 
 
 def assert_response_shape(response, custom_llm_provider):
@@ -33,8 +33,8 @@ def assert_response_shape(response, custom_llm_provider):
 
 
 @pytest.mark.parametrize("sync_mode", [True, False])
-@patch("litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post")
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_basic_rerank_deepinfra(mock_sync_post, mock_async_post, sync_mode):
     """Test basic DeepInfra rerank functionality."""
     # Mock response data that matches DeepInfra API format
@@ -125,7 +125,7 @@ def test_basic_rerank_deepinfra(mock_sync_post, mock_async_post, sync_mode):
     assert_response_shape(response, custom_llm_provider="deepinfra")
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_deepinfra_rerank_with_queries_param(mock_post):
     """Test DeepInfra rerank with multiple queries parameter."""
     mock_response_data = {
@@ -165,7 +165,7 @@ def test_deepinfra_rerank_with_queries_param(mock_post):
     assert len(response.results) == 3
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_deepinfra_rerank_with_service_tier(mock_post):
     """Test DeepInfra rerank with service_tier parameter."""
     mock_response_data = {
@@ -207,7 +207,7 @@ def test_deepinfra_rerank_with_service_tier(mock_post):
     assert response.results is not None
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_deepinfra_rerank_request_format(mock_post):
     """Test that the request is properly formatted for DeepInfra API."""
     mock_response_data = {"scores": [0.9, 0.1], "input_tokens": 20}
@@ -258,7 +258,7 @@ def test_deepinfra_rerank_request_format(mock_post):
     assert response.results is not None
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_deepinfra_rerank_error_handling(mock_post):
     """Test DeepInfra rerank error handling."""
     error_response = {"detail": {"error": "Invalid API key"}}
@@ -306,7 +306,7 @@ def test_deepinfra_rerank_models():
         assert api_base == "https://api.deepinfra.com/v1/openai"
 
 
-@patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+@patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
 def test_deepinfra_rerank_minimal_response(mock_post):
     """Test handling of minimal DeepInfra response."""
     # Minimal response with just scores

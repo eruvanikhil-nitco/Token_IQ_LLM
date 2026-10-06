@@ -1,13 +1,13 @@
 import io, asyncio
 import pytest
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     BedrockGuardrail,
     _redact_pii_matches,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching import DualCache
 from unittest.mock import MagicMock, AsyncMock, patch
 
 
@@ -195,8 +195,8 @@ async def test_bedrock_guardrails_block_responses_api():
 @pytest.mark.asyncio
 async def test_bedrock_guardrails_with_streaming():
     from fastapi import HTTPException
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     # Create proper mock objects
     mock_user_api_key_cache = MagicMock(spec=DualCache)
@@ -243,8 +243,8 @@ async def test_bedrock_guardrails_with_streaming():
 
 @pytest.mark.asyncio
 async def test_bedrock_guardrails_with_streaming_no_violation():
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     # Create proper mock objects
     mock_user_api_key_cache = MagicMock(spec=DualCache)
@@ -290,9 +290,9 @@ async def test_bedrock_guardrails_streaming_request_body_mock():
     """Test that the exact request body sent to Bedrock matches expected format when using streaming"""
     import json
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.caching import DualCache
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     # Create mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -379,8 +379,8 @@ async def test_bedrock_guardrails_streaming_request_body_mock():
 @pytest.mark.asyncio
 async def test_bedrock_guardrail_aws_param_persistence():
     """Test that AWS auth params set on init are used for every request and not popped out."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     guardrail = BedrockGuardrail(
         guardrailIdentifier="wf0hkdb5x07f",
@@ -431,10 +431,10 @@ async def test_bedrock_guardrail_aws_param_persistence():
 async def test_bedrock_guardrail_blocked_vs_anonymized_actions():
     """Test that BLOCKED actions raise exceptions but ANONYMIZED actions do not"""
     from unittest.mock import MagicMock
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrailResponse,
     )
 
@@ -550,8 +550,8 @@ async def test_bedrock_guardrail_blocked_vs_anonymized_actions():
 async def test_bedrock_guardrail_masking_with_anonymized_response():
     """Test that masking works correctly when guardrail returns ANONYMIZED actions"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.caching import DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.caching import DualCache
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -619,7 +619,7 @@ async def test_bedrock_guardrail_masking_with_anonymized_response():
 async def test_bedrock_guardrail_uses_masked_output_without_masking_flags():
     """Test that masked output from guardrails is used even when masking flags are not enabled"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -693,7 +693,7 @@ async def test_bedrock_guardrail_uses_masked_output_without_masking_flags():
 async def test_bedrock_guardrail_response_pii_masking_non_streaming():
     """Test that PII masking is applied to response content in non-streaming scenarios"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -784,8 +784,8 @@ async def test_bedrock_guardrail_response_pii_masking_non_streaming():
 async def test_bedrock_guardrail_response_pii_masking_streaming():
     """Test that PII masking is applied to response content in streaming scenarios"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.utils import ModelResponseStream
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -918,10 +918,10 @@ async def test_bedrock_guardrail_response_pii_masking_streaming():
 @pytest.mark.asyncio
 async def test_convert_to_bedrock_format_input_source():
     """Test convert_to_bedrock_format with INPUT source and mock messages"""
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockRequest,
     )
     from unittest.mock import patch
@@ -968,13 +968,13 @@ async def test_convert_to_bedrock_format_input_source():
 @pytest.mark.asyncio
 async def test_convert_to_bedrock_format_output_source():
     """Test convert_to_bedrock_format with OUTPUT source and mock ModelResponse"""
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockRequest,
     )
-    import litellm
+    from token_iq import gateway as litellm
     from unittest.mock import patch
 
     # Create the guardrail instance
@@ -1031,9 +1031,9 @@ async def test_convert_to_bedrock_format_output_source():
 async def test_convert_to_bedrock_format_post_call_streaming_hook():
     """Test async_post_call_streaming_iterator_hook makes OUTPUT bedrock request and applies masking"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.utils import ModelResponseStream
-    import litellm
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.utils import ModelResponseStream
+    from token_iq import gateway as litellm
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -1125,7 +1125,7 @@ async def test_convert_to_bedrock_format_post_call_streaming_hook():
             }
         )
         # Return the mock bedrock response
-        from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
             BedrockGuardrailResponse,
         )
 
@@ -1199,7 +1199,7 @@ async def test_convert_to_bedrock_format_post_call_streaming_hook():
 async def test_bedrock_guardrail_blocked_action_shows_output_text():
     """Test that BLOCKED actions raise HTTPException with the output text in the detail"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from fastapi import HTTPException
 
     # Create proper mock objects
@@ -1270,7 +1270,7 @@ async def test_bedrock_guardrail_blocked_action_shows_output_text():
 async def test_bedrock_guardrail_blocked_action_empty_outputs():
     """Test that BLOCKED actions with empty outputs still raise HTTPException"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from fastapi import HTTPException
 
     # Create proper mock objects
@@ -1335,7 +1335,7 @@ async def test_bedrock_guardrail_blocked_action_empty_outputs():
 async def test_bedrock_guardrail_disable_exception_on_block_non_streaming():
     """Test that disable_exception_on_block=True prevents exceptions in non-streaming scenarios"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from fastapi import HTTPException
 
     # Create proper mock objects
@@ -1397,7 +1397,7 @@ async def test_bedrock_guardrail_disable_exception_on_block_non_streaming():
     # unpacked kwargs) so during_call let the model call proceed anyway.
     # The correct contract is to raise ModifyResponseException so the endpoint
     # handler returns a 200 with the block message as content.
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail_disabled = BedrockGuardrail(
         guardrailIdentifier="test-guardrail",
@@ -1423,10 +1423,10 @@ async def test_bedrock_guardrail_disable_exception_on_block_non_streaming():
 async def test_bedrock_guardrail_disable_exception_on_block_streaming():
     """Test that disable_exception_on_block=True prevents exceptions in streaming scenarios"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.utils import ModelResponseStream
     from fastapi import HTTPException
-    import litellm
+    from token_iq import gateway as litellm
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -1552,9 +1552,9 @@ async def test_bedrock_guardrail_disable_exception_on_block_streaming():
 async def test_bedrock_guardrail_post_call_success_hook_no_output_text():
     """Test that async_post_call_success_hook skips when there's no output text"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.types.utils import ModelResponseStream
-    import litellm
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.types.utils import ModelResponseStream
+    from token_iq import gateway as litellm
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()

@@ -6,13 +6,13 @@ import pytest
 from fastapi import Request
 from pydantic import BaseModel
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.list_api.common import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.list_api.common import (
     PROBLEM_TYPE_BASE,
     ManagementProblem,
     build_page_links,
 )
-from litellm.proxy.list_api.list_framework import (
+from token_iq.gateway.proxy.list_api.list_framework import (
     AnyOf,
     Compare,
     FilterSpec,
@@ -29,8 +29,8 @@ from litellm.proxy.list_api.list_framework import (
     order_by_sql,
     where_sql,
 )
-from litellm.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
-from litellm.types.proxy.management_endpoints.management_v1 import (
+from token_iq.gateway.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
+from token_iq.gateway.types.proxy.management_endpoints.management_v1 import (
     PageLinks,
     PageMeta,
     ProblemDetail,

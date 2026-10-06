@@ -5,13 +5,13 @@ import pytest
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
-import litellm
-from litellm.exceptions import BadRequestError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.utils import CustomStreamWrapper
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.utils import CustomStreamWrapper
 from openai.types.image import Image
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 class TestCustomLogger(CustomLogger):
@@ -96,7 +96,7 @@ class BaseImageGenTest(ABC):
 
 @pytest.mark.skip(reason="Skipping image edit test, image file not in ci/cd")
 def test_openai_gpt_image_1():
-    from litellm import image_edit
+    from token_iq.gateway import image_edit
     from PIL import Image
     import io
 

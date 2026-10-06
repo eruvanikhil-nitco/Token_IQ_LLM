@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 
 @pytest.mark.parametrize("model", ["xai/grok-4.3", "xai/grok-4.3-latest"])

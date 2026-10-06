@@ -7,16 +7,16 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
     OpenAIPassthroughLoggingHandler,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.proxy.spend_tracking.spend_tracking_utils import get_logging_payload
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import get_logging_payload
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
 
@@ -269,8 +269,8 @@ class TestOpenAIPassthroughLoggingHandler:
         assert OpenAIPassthroughLoggingHandler.is_openai_responses_route(cognitive_chat) is False
         assert OpenAIPassthroughLoggingHandler.is_openai_embeddings_route(cognitive_chat) is False
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_openai_passthrough_handler_success(self, mock_get_standard_logging, mock_completion_cost):
         """Test successful cost tracking for OpenAI chat completions"""
         # Arrange
@@ -319,7 +319,7 @@ class TestOpenAIPassthroughLoggingHandler:
         assert mock_logging_obj.model_call_details["model"] == "gpt-4o"
         assert mock_logging_obj.model_call_details["custom_llm_provider"] == "openai"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_openai_passthrough_handler_non_chat_completions(self, mock_completion_cost):
         """Test that non-chat-completions routes fall back to base handler"""
         # Arrange
@@ -353,8 +353,8 @@ class TestOpenAIPassthroughLoggingHandler:
         # Cost calculation may be called by the base handler fallback
         # The important thing is that our specific OpenAI handler logic didn't run
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_openai_passthrough_handler_with_user_tracking(self, mock_get_standard_logging, mock_completion_cost):
         """Test cost tracking with user information"""
         # Arrange
@@ -410,7 +410,7 @@ class TestOpenAIPassthroughLoggingHandler:
         assert "body" in result["kwargs"]["litellm_params"]["proxy_server_request"]
         assert result["kwargs"]["litellm_params"]["proxy_server_request"]["body"]["user"] == "test_user_123"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_openai_passthrough_handler_cost_calculation_error(self, mock_completion_cost):
         """Test error handling in cost calculation"""
         # Arrange
@@ -459,7 +459,7 @@ class TestOpenAIPassthroughLoggingHandler:
         assert result is None  # Placeholder implementation
 
     @patch(f"{OpenAIPassthroughLoggingHandler.__module__}.get_standard_logging_object_payload")
-    @patch("litellm.completion_cost", return_value=3.3e-06)
+    @patch("token_iq.gateway.completion_cost", return_value=3.3e-06)
     def test_streaming_responses_cost_uses_completed_response(self, mock_completion_cost, mock_get_standard_logging):
         response_id = "resp_PROOFSENTINEL0123456789abcdef"
         completed_event = {
@@ -532,7 +532,7 @@ class TestOpenAIPassthroughLoggingHandler:
         )
 
     @patch(f"{OpenAIPassthroughLoggingHandler.__module__}.get_standard_logging_object_payload")
-    @patch("litellm.completion_cost", return_value=2.1e-06)
+    @patch("token_iq.gateway.completion_cost", return_value=2.1e-06)
     def test_streaming_responses_incomplete_event_is_billed(self, mock_completion_cost, mock_get_standard_logging):
         response_id = "resp_INCOMPLETESENTINEL0123456789ab"
         incomplete_event = {
@@ -604,7 +604,7 @@ class TestOpenAIPassthroughLoggingHandler:
         )
 
     @patch(f"{OpenAIPassthroughLoggingHandler.__module__}.get_standard_logging_object_payload")
-    @patch("litellm.completion_cost", return_value=1.4e-06)
+    @patch("token_iq.gateway.completion_cost", return_value=1.4e-06)
     def test_streaming_responses_failed_event_is_billed(self, mock_completion_cost, mock_get_standard_logging):
         response_id = "resp_FAILEDSENTINEL0123456789abcd"
         failed_event = {
@@ -662,7 +662,7 @@ class TestOpenAIPassthroughLoggingHandler:
         )
 
     @patch(f"{OpenAIPassthroughLoggingHandler.__module__}.get_standard_logging_object_payload", return_value=None)
-    @patch("litellm.completion_cost", return_value=3.3e-06)
+    @patch("token_iq.gateway.completion_cost", return_value=3.3e-06)
     def test_streaming_responses_none_payload_is_not_attached(self, mock_completion_cost, mock_get_standard_logging):
         completed_event = {
             "type": "response.completed",
@@ -709,7 +709,7 @@ class TestOpenAIPassthroughLoggingHandler:
         assert result["kwargs"]["response_cost"] == 3.3e-06
 
     @patch(f"{OpenAIPassthroughLoggingHandler.__module__}.get_standard_logging_object_payload")
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_streaming_responses_without_completed_event_returns_none(
         self, mock_completion_cost, mock_get_standard_logging
     ):
@@ -732,8 +732,8 @@ class TestOpenAIPassthroughLoggingHandler:
         assert result == {"result": None, "kwargs": {}}
         mock_completion_cost.assert_not_called()
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_different_models_cost_tracking(self, mock_get_standard_logging, mock_completion_cost):
         """Test cost tracking for different OpenAI models"""
         # Arrange
@@ -800,8 +800,8 @@ class TestOpenAIPassthroughLoggingHandler:
         handler = OpenAIPassthroughLoggingHandler()
         assert handler.get_provider_config("gpt-4o") is not None
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_azure_passthrough_tags_metadata_model_provider(self, mock_get_standard_logging, mock_completion_cost):
         """Test that tags, metadata, model, and custom_llm_provider are preserved for Azure passthrough in UI"""
         # Arrange
@@ -881,9 +881,9 @@ class TestOpenAIPassthroughLoggingHandler:
         call_args = mock_completion_cost.call_args
         assert call_args[1]["custom_llm_provider"] == "azure"
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
-    @patch("litellm.llms.openai.responses.transformation.OpenAIResponsesAPIConfig.transform_response_api_response")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.llms.openai.responses.transformation.OpenAIResponsesAPIConfig.transform_response_api_response")
     def test_responses_api_cost_tracking(
         self,
         mock_transform_responses,
@@ -903,7 +903,7 @@ class TestOpenAIPassthroughLoggingHandler:
 
         # Mock the Responses transformer's return — a ResponsesAPIResponse
         # carrying the usage fields downstream cost-calc expects.
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         mock_responses_api_response = ResponsesAPIResponse.model_construct(
             id="resp_abc123",
@@ -974,8 +974,8 @@ class TestOpenAIPassthroughLoggingHandler:
         assert mock_logging_obj.model_call_details["model"] == "gpt-4o"
         assert mock_logging_obj.model_call_details["custom_llm_provider"] == "openai"
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_responses_api_uses_responses_transformer_not_chat_completions(
         self, mock_get_standard_logging, mock_completion_cost
     ):
@@ -1067,7 +1067,7 @@ class TestOpenAIPassthroughLoggingHandler:
         call_kwargs = mock_completion_cost.call_args[1]
         assert call_kwargs["call_type"] == "responses"
 
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         assert isinstance(call_kwargs["completion_response"], ResponsesAPIResponse), (
             "completion_response must be a ResponsesAPIResponse; passing a "
@@ -1192,8 +1192,8 @@ class TestOpenAIPassthroughIntegration:
         assert self.handler.is_cohere_route("https://api.cohere.com/v1/rerank") is False
         assert self.handler.is_cohere_route("http://localhost:4000/openai_passthrough/v1/embeddings") is False
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
     def test_openai_passthrough_handler_embeddings_sets_response_cost(
         self, mock_get_standard_logging, mock_completion_cost
     ):
@@ -1253,9 +1253,9 @@ class TestOpenAIPassthroughIntegration:
         assert mock_logging_obj.model_call_details["response_cost"] == 2.8e-07
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.passthrough_chat_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.passthrough_chat_handler"
     )
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_openai_passthrough_handler_embeddings_without_model_falls_back(
         self, mock_completion_cost, mock_chat_handler
     ):
@@ -1355,7 +1355,7 @@ class TestOpenAIPassthroughIntegration:
         assert result["kwargs"]["passthrough_logging_payload"] == kwargs_in["passthrough_logging_payload"]
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
     )
     @pytest.mark.asyncio
     async def test_success_handler_dispatches_embeddings_to_openai_handler(self, mock_openai_handler):
@@ -1413,7 +1413,7 @@ class TestOpenAIPassthroughIntegration:
         assert mock_openai_handler.call_args.kwargs["url_route"] == "https://api.openai.com/v1/embeddings"
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
     )
     @pytest.mark.asyncio
     async def test_success_handler_dispatches_responses_api_to_openai_handler(self, mock_openai_handler):
@@ -1476,7 +1476,7 @@ class TestOpenAIPassthroughIntegration:
         assert call_kwargs["url_route"] == "https://api.openai.com/v1/responses"
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler.OpenAIPassthroughLoggingHandler.openai_passthrough_handler"
     )
     @pytest.mark.asyncio
     async def test_success_handler_calls_openai_handler(self, mock_openai_handler):
@@ -1575,7 +1575,7 @@ class TestOpenAIPassthroughIntegration:
         # Assert - Should call the base handler, not our OpenAI handler
         self.handler._handle_logging.assert_called_once()
 
-    @patch("litellm.cost_calculator.default_image_cost_calculator")
+    @patch("token_iq.gateway.cost_calculator.default_image_cost_calculator")
     def test_calculate_image_generation_cost(self, mock_image_cost_calculator):
         """Test image generation cost calculation"""
         # Arrange
@@ -1615,7 +1615,7 @@ class TestOpenAIPassthroughIntegration:
             optional_params=request_body,
         )
 
-    @patch("litellm.cost_calculator.default_image_cost_calculator")
+    @patch("token_iq.gateway.cost_calculator.default_image_cost_calculator")
     def test_calculate_image_editing_cost(self, mock_image_cost_calculator):
         """Test image editing cost calculation"""
         # Arrange
@@ -1674,7 +1674,7 @@ class TestOpenAIPassthroughIntegration:
         logging_obj.model_call_details["custom_llm_provider"] = "openai"
 
         # Create an ImageResponse with cost in _hidden_params
-        from litellm.types.utils import ImageResponse
+        from token_iq.gateway.types.utils import ImageResponse
 
         image_response = ImageResponse(
             data=[{"url": "https://example.com/image.png"}],
@@ -1687,7 +1687,7 @@ class TestOpenAIPassthroughIntegration:
 
         assert calculated_cost == test_cost, f"Expected {test_cost}, got {calculated_cost}"
 
-    @patch("litellm.cost_calculator.default_image_cost_calculator")
+    @patch("token_iq.gateway.cost_calculator.default_image_cost_calculator")
     def test_openai_passthrough_handler_image_generation(self, mock_image_cost_calculator):
         """Test successful cost tracking for OpenAI image generation"""
         # Arrange
@@ -1749,7 +1749,7 @@ class TestOpenAIPassthroughIntegration:
         assert mock_logging_obj.model_call_details["model"] == "dall-e-3"
         assert mock_logging_obj.model_call_details["custom_llm_provider"] == "openai"
 
-    @patch("litellm.cost_calculator.default_image_cost_calculator")
+    @patch("token_iq.gateway.cost_calculator.default_image_cost_calculator")
     def test_openai_passthrough_handler_image_editing(self, mock_image_cost_calculator):
         """Test successful cost tracking for OpenAI image editing"""
         # Arrange

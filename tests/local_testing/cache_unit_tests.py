@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from litellm.caching import LiteLLMCacheType
+from token_iq.gateway.caching import LiteLLMCacheType
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 
@@ -14,9 +14,9 @@ import random
 
 import pytest
 
-import litellm
-from litellm.caching import Cache
-from litellm import completion, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway.caching import Cache
+from token_iq.gateway import completion, embedding
 
 
 class LLMCachingUnitTests(ABC):

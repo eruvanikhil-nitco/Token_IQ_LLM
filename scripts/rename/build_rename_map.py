@@ -96,7 +96,7 @@ PACKAGE_MOVES: Final[tuple[Move, ...]] = (
         "package",
         "litellm_core_utils",
         "core_utils",
-        "litellm/litellm_core_utils",
+        "token_iq/gateway/litellm_core_utils",
         "the redundant prefix goes; it moves with the engine",
     ),
     Move(

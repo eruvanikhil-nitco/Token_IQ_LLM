@@ -4,7 +4,7 @@
 import sys, os, pytest
 import traceback
 
-import litellm
+from token_iq import gateway as litellm
 
 
 ## case 1: set_function_to_prompt not set

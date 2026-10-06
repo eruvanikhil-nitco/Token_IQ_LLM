@@ -1,4 +1,4 @@
-from litellm.integrations.opik.opik_payload_builder.extractors import (
+from token_iq.gateway.integrations.opik.opik_payload_builder.extractors import (
     extract_opik_metadata,
 )
 

@@ -1,9 +1,9 @@
-"""Tests for litellm/llms/a2a/chat/transformation.py response transform."""
+"""Tests for token_iq/gateway/llms/a2a/chat/transformation.py response transform."""
 
 from unittest.mock import MagicMock
 
-from litellm.llms.a2a.chat.transformation import A2AConfig
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.llms.a2a.chat.transformation import A2AConfig
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def _raw_response(text: str) -> MagicMock:

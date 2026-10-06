@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
-from litellm.proxy._types import ProxyException
-from litellm.proxy.management_endpoints.policy_endpoints.ai_policy_suggester import (
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.management_endpoints.policy_endpoints.ai_policy_suggester import (
     SUGGEST_TOOL,
     AiPolicySuggester,
 )
@@ -138,7 +138,7 @@ class TestAiPolicySuggester:
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.tool_calls = [mock_tool_call]
 
-        with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
             mock_acompletion.return_value = mock_response
 
             result = await suggester.suggest(
@@ -178,7 +178,7 @@ class TestAiPolicySuggester:
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.tool_calls = [mock_tool_call]
 
-        with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
             mock_acompletion.return_value = mock_response
 
             result = await suggester.suggest(
@@ -200,7 +200,7 @@ class TestAiPolicySuggester:
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.tool_calls = None
 
-        with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
             mock_acompletion.return_value = mock_response
 
             result = await suggester.suggest(
@@ -225,7 +225,7 @@ class TestAiPolicySuggester:
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.tool_calls = [mock_tool_call]
 
-        with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
             mock_acompletion.return_value = mock_response
 
             await suggester.suggest(
@@ -302,7 +302,7 @@ class TestSuggesterToleratesAModelThatRefusesItsSamplingParams:
     def test_the_pinned_temperature_is_what_such_a_model_refuses(self, local_model_cost_map):
         """The other half of the discriminator above: the same temperature this call pins is
         exactly what the model rejects, and drop_params is what removes it."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         optional_params = get_optional_params(
             model="gpt-5.6-terra",

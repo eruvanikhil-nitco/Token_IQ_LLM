@@ -26,7 +26,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.proxy_server as ps
+import token_iq.gateway.proxy.proxy_server as ps
 
 from .conftest import normalize
 
@@ -586,7 +586,7 @@ async def test_increment_spend_counters_skips_reserved_counter_keys(monkeypatch)
     """Counters already reserved by a budget reservation are skipped, every
     other scope is still incremented exactly once, and the reservation is
     finalized after the gathered work completes."""
-    import litellm.proxy.spend_tracking.budget_reservation as br
+    import token_iq.gateway.proxy.spend_tracking.budget_reservation as br
 
     reserved = {"spend:key:hashed-tok", "spend:org:org1"}
     monkeypatch.setattr(
@@ -724,7 +724,7 @@ async def test_reconcile_budget_reservation_for_counter_update_failure_invalidat
     """Reservation reconcile raising must invalidate reserved counters, swallow
     the exception, and return an empty set so the caller falls back to the
     direct spend-counter increment instead of skipping it."""
-    import litellm.proxy.spend_tracking.budget_reservation as br
+    import token_iq.gateway.proxy.spend_tracking.budget_reservation as br
 
     monkeypatch.setattr(
         br,

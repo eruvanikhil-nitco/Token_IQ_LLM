@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.router_utils.cooldown_handlers import (
+from token_iq import gateway as litellm
+from token_iq.gateway.router_utils.cooldown_handlers import (
     _get_deployment_cooldown_policy,
     _resolve_allowed_fails_from_policy,
     _should_cooldown_based_on_deployment_policy,
@@ -117,7 +117,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             result = _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, policy, None, is_single_deployment_model_group=False
@@ -133,7 +133,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.InternalServerError("500", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = False
             result = _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, policy, dep_allowed_fails=3, is_single_deployment_model_group=False
@@ -152,7 +152,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.InternalServerError("500", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             result = _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, dep_allowed_fails=3, is_single_deployment_model_group=True
             )
@@ -167,7 +167,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             result = _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, policy, None, is_single_deployment_model_group=True
@@ -184,7 +184,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.InternalServerError("500", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, None, is_single_deployment_model_group=False
@@ -202,7 +202,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.Timeout("timed out", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = False
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, policy, dep_allowed_fails=None, is_single_deployment_model_group=False
@@ -216,7 +216,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {}, "model_info": {"cooldown_time": 120.0}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, None, is_single_deployment_model_group=False
@@ -232,7 +232,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {"cooldown_time": 120.0}, "model_info": {}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, None, is_single_deployment_model_group=False
@@ -245,7 +245,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {"cooldown_time": 120.0}, "model_info": {"cooldown_time": 15.0}})
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = True
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, None, is_single_deployment_model_group=False
@@ -258,7 +258,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         exc = litellm.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router(None)
 
-        with patch("litellm.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
+        with patch("token_iq.gateway.router_utils.cooldown_handlers.should_cooldown_based_on_allowed_fails_policy") as mock_sc:
             mock_sc.return_value = False
             _should_cooldown_based_on_deployment_policy(
                 router, "dep-1", exc, None, None, is_single_deployment_model_group=False
@@ -300,7 +300,7 @@ class TestShouldCooldownBasedOnAllowedFailsPolicy:
 
 class TestRoutingGroupCooldownAlternatives:
     def _router(self, routing_groups=None):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         return Router(
             model_list=[
@@ -319,7 +319,7 @@ class TestRoutingGroupCooldownAlternatives:
         )
 
     def test_group_call_429_cools_down_member_with_alternatives(self):
-        from litellm.router_utils.cooldown_handlers import _should_cooldown_deployment
+        from token_iq.gateway.router_utils.cooldown_handlers import _should_cooldown_deployment
 
         router = self._router(
             routing_groups=[
@@ -342,7 +342,7 @@ class TestRoutingGroupCooldownAlternatives:
         )
 
     def test_direct_member_429_keeps_single_deployment_exemption(self):
-        from litellm.router_utils.cooldown_handlers import _should_cooldown_deployment
+        from token_iq.gateway.router_utils.cooldown_handlers import _should_cooldown_deployment
 
         router = self._router(
             routing_groups=[
@@ -365,7 +365,7 @@ class TestRoutingGroupCooldownAlternatives:
         )
 
     def test_429_without_request_context_keeps_exemption(self):
-        from litellm.router_utils.cooldown_handlers import _should_cooldown_deployment
+        from token_iq.gateway.router_utils.cooldown_handlers import _should_cooldown_deployment
 
         router = self._router(routing_groups=None)
         assert (

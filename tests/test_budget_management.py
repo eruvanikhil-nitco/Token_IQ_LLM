@@ -1,14 +1,14 @@
 # What is this?
 ## Unit tests for the /budget/* endpoints
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime, timezone
 
 import aiohttp
 import pytest
 import pytest_asyncio
 
-from litellm.litellm_core_utils.duration_parser import get_next_standardized_reset_time
-from litellm.proxy.common_utils.timezone_utils import get_budget_reset_timezone
+from token_iq.gateway.core_utils.duration_parser import get_next_standardized_reset_time
+from token_iq.gateway.proxy.common_utils.timezone_utils import get_budget_reset_timezone
 
 
 def _parse_budget_api_datetime(value: str) -> datetime:

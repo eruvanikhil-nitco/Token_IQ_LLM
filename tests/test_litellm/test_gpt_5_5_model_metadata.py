@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 
 @pytest.mark.parametrize("model", ["azure_ai/gpt-5.5", "azure_ai/gpt-5.5-2026-04-23"])

@@ -2,7 +2,7 @@ import warnings
 
 import pytest
 
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     Choices,
     Delta,
     Message,

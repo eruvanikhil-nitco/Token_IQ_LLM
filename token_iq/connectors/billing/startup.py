@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from logging import Logger
 from typing import Any, Final
 
-from litellm._logging import verbose_proxy_logger
+from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.types.provider_billing import BillingTokenFactory
 
 AZURE_MANAGEMENT_SCOPE: Final = "https://management.azure.com/.default"
@@ -75,8 +75,8 @@ def build_token_factory(
 
 def register_billing_connectors(*, prisma_client: Any) -> None:  # any-ok: untyped runtime wrapper
     """Idempotent: a worker that restarts its scheduler must not fail on a second call."""
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
     from token_iq.connectors.billing.anthropic import AnthropicBillingConnector
     from token_iq.connectors.billing.azure import AzureBillingConnector
     from token_iq.connectors.billing.bedrock import BedrockBillingConnector, build_cost_explorer

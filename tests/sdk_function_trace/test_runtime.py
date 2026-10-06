@@ -33,7 +33,7 @@ def test_unexpected_call_failure_is_not_skipped() -> None:
     (("chat_completions", False), ("chat_completions", True), ("messages", True), ("ocr", False), ("ocr", True)),
 )
 def test_compiled_routes_match_python_steps(route: str, asynchronous: bool) -> None:
-    from litellm.rust_bridge import get_native_bridge
+    from token_iq.gateway.rust_bridge import get_native_bridge
 
     if get_native_bridge() is None:
         pytest.skip("build the native bridge to run executed route parity")

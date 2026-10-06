@@ -30,8 +30,8 @@ def build_tool_credentials_lookup(
     """
 
     async def credentials_for(tool: str) -> tuple[BillingCredential, ...]:
-        from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
-        from litellm.repositories.credentials_repository import CredentialsRepository
+        from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
+        from token_iq.gateway.repositories.credentials_repository import CredentialsRepository
 
         rows: Final = await CredentialsRepository(prisma_client).find_all()
         return tuple(

@@ -4,8 +4,8 @@ from zoneinfo import ZoneInfo
 import pytest
 
 
-import litellm
-from litellm.proxy.common_utils.timezone_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.common_utils.timezone_utils import (
     BudgetResetSettings,
     compute_budget_reset_at,
     get_budget_reset_settings,

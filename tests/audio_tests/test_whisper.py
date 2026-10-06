@@ -14,8 +14,8 @@ import pytest
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 # Get the current directory of the file being run
 pwd = os.path.dirname(os.path.realpath(__file__))
@@ -40,7 +40,7 @@ def _audio_file2():
 
 load_dotenv()
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 async def _run_transcription(
@@ -95,8 +95,8 @@ async def test_transcription_azure_whisper(response_format, timestamp_granularit
 
 @pytest.mark.asyncio()
 async def test_transcription_caching():
-    import litellm
-    from litellm.caching.caching import Cache
+    from token_iq import gateway as litellm
+    from token_iq.gateway.caching.caching import Cache
 
     litellm.set_verbose = True
     litellm.cache = Cache()
@@ -138,7 +138,7 @@ async def test_transcription_caching():
 
 @pytest.mark.asyncio
 async def test_whisper_log_pre_call():
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
     from datetime import datetime
     from unittest.mock import patch, MagicMock
 
@@ -156,7 +156,7 @@ async def test_whisper_log_pre_call():
 
 @pytest.mark.asyncio
 async def test_gpt_4o_transcribe():
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
     from datetime import datetime
     from unittest.mock import patch, MagicMock
 
@@ -242,7 +242,7 @@ async def test_azure_transcribe_model_mapping():
 
     # Mock the get_azure_openai_client method to return our mock client
     with patch(
-        "litellm.llms.azure.audio_transcriptions.AzureAudioTranscription.get_azure_openai_client",
+        "token_iq.gateway.llms.azure.audio_transcriptions.AzureAudioTranscription.get_azure_openai_client",
         return_value=mock_azure_client,
     ):
         # Make the transcription call

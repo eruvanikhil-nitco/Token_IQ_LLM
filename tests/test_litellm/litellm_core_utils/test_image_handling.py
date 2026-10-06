@@ -3,10 +3,10 @@ from unittest.mock import patch
 import pytest
 from httpx import Request, Response
 
-import litellm
-from litellm import constants
-from litellm.litellm_core_utils.prompt_templates import image_handling
-from litellm.litellm_core_utils.prompt_templates.image_handling import (
+from token_iq import gateway as litellm
+from token_iq.gateway import constants
+from token_iq.gateway.core_utils.prompt_templates import image_handling
+from token_iq.gateway.core_utils.prompt_templates.image_handling import (
     async_convert_url_to_base64,
     convert_url_to_base64,
 )
@@ -258,7 +258,7 @@ def test_image_size_limit_disabled(monkeypatch):
     """
     Test that setting MAX_IMAGE_URL_DOWNLOAD_SIZE_MB to 0 disables all image URL downloads.
     """
-    import litellm.litellm_core_utils.prompt_templates.image_handling as image_handling
+    import token_iq.gateway.core_utils.prompt_templates.image_handling as image_handling
 
     monkeypatch.setattr(litellm, "module_level_client", SmallImageClient())
     monkeypatch.setattr(image_handling, "MAX_IMAGE_URL_DOWNLOAD_SIZE_MB", 0)

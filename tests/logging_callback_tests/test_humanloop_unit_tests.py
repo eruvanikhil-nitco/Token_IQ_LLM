@@ -3,9 +3,9 @@ from datetime import datetime
 
 
 import pytest
-from litellm.integrations.humanloop import HumanLoopPromptManager
-from litellm.types.utils import StandardCallbackDynamicParams
-from litellm.litellm_core_utils.litellm_logging import DynamicLoggingCache
+from token_iq.gateway.integrations.humanloop import HumanLoopPromptManager
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.core_utils.litellm_logging import DynamicLoggingCache
 from unittest.mock import Mock, patch
 
 

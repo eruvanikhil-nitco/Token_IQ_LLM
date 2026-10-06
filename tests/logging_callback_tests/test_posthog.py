@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from litellm.integrations.posthog import PostHogLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.posthog import PostHogLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 from typing import cast
 
 # Set env vars for tests
@@ -266,7 +266,7 @@ async def test_custom_metadata_with_no_metadata():
 @pytest.mark.asyncio
 async def test_dynamic_credentials():
     """Test that per-request credentials override environment variables"""
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     posthog_logger = PostHogLogger()
 
@@ -315,7 +315,7 @@ def test_async_callback_atexit_handler_exists():
     since unit testing atexit behavior across event loop boundaries is complex.
     """
     import atexit
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     # Verify GLOBAL_LOGGING_WORKER has _flush_on_exit method
     assert hasattr(

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy.proxy_server import ProxyStartupEvent
-from litellm.secret_managers.main import get_secret_str as real_get_secret_str
+from token_iq.gateway.proxy.proxy_server import ProxyStartupEvent
+from token_iq.gateway.secret_managers.main import get_secret_str as real_get_secret_str
 
 
 def _mock_pyroscope_module():
@@ -29,7 +29,7 @@ def _patch_pyroscope_grafana_secrets(user: Optional[str], token: Optional[str]):
         return real_get_secret_str(secret_name, default_value)
 
     return patch(
-        "litellm.proxy.proxy_server.get_secret_str",
+        "token_iq.gateway.proxy.proxy_server.get_secret_str",
         side_effect=side_effect,
     )
 
@@ -38,7 +38,7 @@ def test_init_pyroscope_returns_cleanly_when_disabled():
     """When LITELLM_ENABLE_PYROSCOPE is false, _init_pyroscope returns without error."""
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=False,
         ),
         patch.dict(
@@ -55,7 +55,7 @@ def test_init_pyroscope_raises_when_enabled_but_missing_app_name():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         patch.dict(
@@ -81,7 +81,7 @@ def test_init_pyroscope_raises_when_enabled_but_missing_server_address():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         patch.dict(
@@ -107,7 +107,7 @@ def test_init_pyroscope_raises_when_sample_rate_invalid():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         patch.dict(
@@ -136,7 +136,7 @@ def test_init_pyroscope_accepts_integer_sample_rate():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         patch.dict(
@@ -169,7 +169,7 @@ def test_init_pyroscope_accepts_float_sample_rate_parsed_as_int():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         patch.dict(
@@ -199,7 +199,7 @@ def test_init_pyroscope_configures_grafana_cloud_basic_auth():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         _patch_pyroscope_grafana_secrets("123456", "glc_test_token"),
@@ -228,7 +228,7 @@ def test_init_pyroscope_raises_when_grafana_token_missing_user():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         _patch_pyroscope_grafana_secrets("", "glc_test_token"),
@@ -255,7 +255,7 @@ def test_init_pyroscope_raises_when_grafana_user_missing_token():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         _patch_pyroscope_grafana_secrets("123456", ""),
@@ -282,7 +282,7 @@ def test_init_pyroscope_raises_when_grafana_user_whitespace_only_with_token():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         _patch_pyroscope_grafana_secrets("   \t", "glc_test_token"),
@@ -309,7 +309,7 @@ def test_init_pyroscope_strips_grafana_credentials_for_basic_auth():
     mock_pyroscope = _mock_pyroscope_module()
     with (
         patch(
-            "litellm.proxy.proxy_server.get_secret_bool",
+            "token_iq.gateway.proxy.proxy_server.get_secret_bool",
             return_value=True,
         ),
         _patch_pyroscope_grafana_secrets("  123456  ", "  glc_test_token\n"),

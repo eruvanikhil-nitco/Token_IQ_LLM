@@ -16,10 +16,10 @@ import pytest
 import soundfile as sf
 
 
-from litellm.llms.nvidia_riva.audio_transcription.audio_utils import (
+from token_iq.gateway.llms.nvidia_riva.audio_transcription.audio_utils import (
     resample_to_riva_pcm,
 )
-from litellm.llms.nvidia_riva.common_utils import NvidiaRivaException
+from token_iq.gateway.llms.nvidia_riva.common_utils import NvidiaRivaException
 
 
 def _wav_bytes(samples: np.ndarray, sample_rate: int) -> bytes:

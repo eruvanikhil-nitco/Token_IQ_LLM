@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 MOCK_V1_RESPONSE = {
     "search_id": "search_abc123",
@@ -57,7 +57,7 @@ def bundled_cost_map(monkeypatch):
     litellm caches model-info lookups, so swapping ``model_cost`` only takes
     effect once those caches are invalidated -- on the way in and back out.
     """
-    from litellm.utils import _invalidate_model_cost_lowercase_map
+    from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
     monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     _invalidate_model_cost_lowercase_map()
@@ -75,7 +75,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_v1_endpoint_and_headers(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -96,7 +96,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_string_query_maps_to_search_queries_and_objective(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -113,7 +113,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_list_query_maps_to_search_queries(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -133,7 +133,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_mode_param_passthrough(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -151,7 +151,7 @@ class TestParallelAISearch:
     async def test_default_mode_is_basic(self):
         """v1 defaults to 'advanced' server-side; litellm must send 'basic' to keep v1beta's default tier and cost tracking accurate."""
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -168,7 +168,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_legacy_processor_maps_to_mode(self, processor, expected_mode):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -186,7 +186,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_explicit_mode_wins_over_processor(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -205,7 +205,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_top_level_v1_params_pass_through(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -226,7 +226,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_optional_params_nest_under_advanced_settings(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -262,7 +262,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_explicit_advanced_settings_take_precedence(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -280,7 +280,7 @@ class TestParallelAISearch:
     @pytest.mark.asyncio
     async def test_response_transformation(self):
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -320,7 +320,7 @@ class TestParallelAISearch:
         # host), so the server key is still used and the URL is normalized.
         monkeypatch.setenv("PARALLEL_AI_API_BASE", api_base)
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _mock_response()
@@ -339,7 +339,7 @@ class TestParallelAISearch:
         # server key must be refused without any outbound request.
         monkeypatch.setenv("PARALLEL_API_KEY", "server-secret")
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             with pytest.raises(Exception, match="Refusing to send"):

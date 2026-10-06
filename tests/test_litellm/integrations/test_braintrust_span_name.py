@@ -4,14 +4,14 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
-import litellm
-from litellm.integrations.braintrust_logging import BraintrustLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.braintrust_logging import BraintrustLogger
 
 
 class TestBraintrustSpanName(unittest.TestCase):
     """Test custom span_name functionality in Braintrust logging."""
 
-    @patch("litellm.integrations.braintrust_logging.HTTPHandler")
+    @patch("token_iq.gateway.integrations.braintrust_logging.HTTPHandler")
     def test_default_span_name(self, MockHTTPHandler):
         """Test that default span name is 'Chat Completion' when not provided."""
         # Mock HTTP response
@@ -58,7 +58,7 @@ class TestBraintrustSpanName(unittest.TestCase):
             json_data["events"][0]["span_attributes"]["name"], "Chat Completion"
         )
 
-    @patch("litellm.integrations.braintrust_logging.HTTPHandler")
+    @patch("token_iq.gateway.integrations.braintrust_logging.HTTPHandler")
     def test_custom_span_name(self, MockHTTPHandler):
         """Test that custom span name is used when provided in metadata."""
         # Mock HTTP response
@@ -105,7 +105,7 @@ class TestBraintrustSpanName(unittest.TestCase):
             json_data["events"][0]["span_attributes"]["name"], "Custom Operation"
         )
 
-    @patch("litellm.integrations.braintrust_logging.HTTPHandler")
+    @patch("token_iq.gateway.integrations.braintrust_logging.HTTPHandler")
     def test_span_name_with_other_metadata(self, MockHTTPHandler):
         """Test that span_name works alongside other metadata fields."""
         # Mock HTTP response
@@ -175,7 +175,7 @@ class TestBraintrustSpanName(unittest.TestCase):
         # Span name should be in span_attributes, not in metadata
         self.assertIn("span_name", event_metadata)  # span_name is also kept in metadata
 
-    @patch("litellm.integrations.braintrust_logging.get_async_httpx_client")
+    @patch("token_iq.gateway.integrations.braintrust_logging.get_async_httpx_client")
     async def test_async_custom_span_name(self, mock_get_http_handler):
         """Test async logging with custom span name."""
         # Mock async HTTP response
@@ -224,7 +224,7 @@ class TestBraintrustSpanName(unittest.TestCase):
             json_data["events"][0]["span_attributes"]["name"], "Async Custom Operation"
         )
 
-    @patch("litellm.integrations.braintrust_logging.HTTPHandler")
+    @patch("token_iq.gateway.integrations.braintrust_logging.HTTPHandler")
     def test_span_attributes_with_multiple_metadata_fields(self, MockHTTPHandler):
         """Test that span_name works correctly alongside other metadata fields."""
         # Mock HTTP response

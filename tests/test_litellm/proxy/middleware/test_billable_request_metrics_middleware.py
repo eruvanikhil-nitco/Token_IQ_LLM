@@ -18,14 +18,14 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from litellm.proxy.db.gateway_request_tracking import GatewayRequestAccumulator
-from litellm.proxy.middleware.billable_request_metrics_middleware import (
+from token_iq.gateway.proxy.db.gateway_request_tracking import GatewayRequestAccumulator
+from token_iq.gateway.proxy.middleware.billable_request_metrics_middleware import (
     BillableCategory,
     BillableRequestMetricsMiddleware,
     _extract_model_id,
     classify_billable_request,
 )
-from litellm.proxy.middleware.in_flight_requests_middleware import (
+from token_iq.gateway.proxy.middleware.in_flight_requests_middleware import (
     InFlightRequestsMiddleware,
 )
 
@@ -456,7 +456,7 @@ def test_record_runs_before_request_leaves_the_in_flight_tracker():
 def test_billable_middleware_is_registered_inside_the_in_flight_tracker():
     """Starlette makes the last-added middleware outermost, so the in-flight
     tracker must be registered after the billing middleware to wrap it."""
-    from litellm.proxy.proxy_server import app as proxy_app
+    from token_iq.gateway.proxy.proxy_server import app as proxy_app
 
     classes = [middleware.cls for middleware in proxy_app.user_middleware]
     assert classes.index(InFlightRequestsMiddleware) < classes.index(BillableRequestMetricsMiddleware)

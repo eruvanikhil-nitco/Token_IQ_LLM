@@ -3,17 +3,17 @@ import pytest
 import asyncio
 from unittest.mock import patch, AsyncMock
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 import json
-from litellm.types.utils import StandardLoggingPayload
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponseAPIUsage,
     IncompleteDetails,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from base_responses_api import BaseResponsesAPITest
 
 
@@ -130,7 +130,7 @@ async def test_azure_responses_api_status_error():
         )
         return response
 
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
     from unittest.mock import patch
 
     with patch.object(AsyncHTTPHandler, "post", new=mock_post):

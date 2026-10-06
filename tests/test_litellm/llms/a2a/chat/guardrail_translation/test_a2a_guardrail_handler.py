@@ -1,9 +1,9 @@
-"""Tests for litellm/llms/a2a/chat/guardrail_translation/handler.py."""
+"""Tests for token_iq/gateway/llms/a2a/chat/guardrail_translation/handler.py."""
 
 import json
 
-from litellm.llms.a2a.chat.guardrail_translation.handler import A2AGuardrailHandler
-from litellm.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
+from token_iq.gateway.llms.a2a.chat.guardrail_translation.handler import A2AGuardrailHandler
+from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import StreamingScanKey
 
 
 def _text_event(text: str) -> str:

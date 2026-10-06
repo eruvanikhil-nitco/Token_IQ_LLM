@@ -3,7 +3,7 @@ Tests for structured outputs support in Anthropic /v1/messages endpoint.
 """
 
 import pytest
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
 

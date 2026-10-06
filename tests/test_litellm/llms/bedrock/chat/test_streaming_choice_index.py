@@ -13,7 +13,7 @@ References:
   https://platform.openai.com/docs/api-reference/chat/object
 """
 
-from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
 
 class TestBedrockStreamingChoiceIndex:

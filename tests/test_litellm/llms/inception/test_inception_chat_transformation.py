@@ -8,8 +8,8 @@ from unittest import mock
 
 import httpx
 
-import litellm
-from litellm.llms.inception.chat.transformation import InceptionChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.inception.chat.transformation import InceptionChatConfig
 
 
 def test_inception_config_initialization():
@@ -211,7 +211,7 @@ def test_inception_does_not_leak_key_to_caller_api_base():
 
 
 def test_get_llm_provider_inception():
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, _, _ = get_llm_provider("inception/mercury-2")
     assert model == "mercury-2"
@@ -232,7 +232,7 @@ def test_inception_in_provider_lists():
 
 
 def test_inception_model_configuration(monkeypatch):
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     litellm.model_cost = litellm.get_model_cost_map()

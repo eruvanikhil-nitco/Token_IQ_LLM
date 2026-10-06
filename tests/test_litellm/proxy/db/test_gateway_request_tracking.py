@@ -8,13 +8,13 @@ from datetime import datetime, timezone
 
 import pytest
 
-from litellm.proxy.db.gateway_request_tracking import (
+from token_iq.gateway.proxy.db.gateway_request_tracking import (
     GatewayRequestAccumulator,
     commit_gateway_requests_to_db,
     flush_gateway_requests,
 )
-from litellm.proxy.middleware.billable_request_metrics_middleware import BillableCategory
-from litellm.types.proxy.gateway_requests import GatewayRequestCounts, GatewayRequestKey
+from token_iq.gateway.proxy.middleware.billable_request_metrics_middleware import BillableCategory
+from token_iq.gateway.types.proxy.gateway_requests import GatewayRequestCounts, GatewayRequestKey
 
 
 def _today() -> str:

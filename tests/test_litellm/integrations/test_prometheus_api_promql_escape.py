@@ -14,7 +14,7 @@ import pytest
 
 
 def test_quote_safe_input_round_trips():
-    from litellm.integrations.prometheus_helpers.prometheus_api import (
+    from token_iq.gateway.integrations.prometheus_helpers.prometheus_api import (
         _quote_promql_string_literal,
     )
 
@@ -23,7 +23,7 @@ def test_quote_safe_input_round_trips():
 
 
 def test_quote_escapes_double_quote():
-    from litellm.integrations.prometheus_helpers.prometheus_api import (
+    from token_iq.gateway.integrations.prometheus_helpers.prometheus_api import (
         _quote_promql_string_literal,
     )
 
@@ -33,7 +33,7 @@ def test_quote_escapes_double_quote():
 
 
 def test_quote_escapes_backslash():
-    from litellm.integrations.prometheus_helpers.prometheus_api import (
+    from token_iq.gateway.integrations.prometheus_helpers.prometheus_api import (
         _quote_promql_string_literal,
     )
 
@@ -44,7 +44,7 @@ def test_quote_escapes_newlines_and_control_chars():
     """Beyond the security minimum, the canonical Go/JSON escape also
     handles control characters that would otherwise produce an invalid
     PromQL string literal."""
-    from litellm.integrations.prometheus_helpers.prometheus_api import (
+    from token_iq.gateway.integrations.prometheus_helpers.prometheus_api import (
         _quote_promql_string_literal,
     )
 
@@ -55,7 +55,7 @@ def test_quote_escapes_newlines_and_control_chars():
 
 @pytest.mark.asyncio
 async def test_get_daily_spend_does_not_pass_raw_quote_into_query():
-    from litellm.integrations.prometheus_helpers import prometheus_api
+    from token_iq.gateway.integrations.prometheus_helpers import prometheus_api
 
     captured = {}
 
@@ -97,7 +97,7 @@ async def test_get_daily_spend_does_not_pass_raw_quote_into_query():
 
 @pytest.mark.asyncio
 async def test_get_daily_spend_with_no_api_key_uses_unfiltered_query():
-    from litellm.integrations.prometheus_helpers import prometheus_api
+    from token_iq.gateway.integrations.prometheus_helpers import prometheus_api
 
     captured = {}
 
@@ -124,7 +124,7 @@ async def test_get_daily_spend_legitimate_hashed_key_unchanged():
     """A normal hex hashed_api_key flows through `json.dumps` as itself
     plus the surrounding quotes — no spurious escaping that would break
     real lookups."""
-    from litellm.integrations.prometheus_helpers import prometheus_api
+    from token_iq.gateway.integrations.prometheus_helpers import prometheus_api
 
     captured = {}
 

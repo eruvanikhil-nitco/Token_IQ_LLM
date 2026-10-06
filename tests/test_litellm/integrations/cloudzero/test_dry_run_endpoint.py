@@ -8,7 +8,7 @@ import polars as pl
 import pytest
 
 
-from litellm.integrations.cloudzero.cloudzero import CloudZeroLogger
+from token_iq.gateway.integrations.cloudzero.cloudzero import CloudZeroLogger
 
 
 class TestCloudZeroDryRunEndpoint:
@@ -60,10 +60,10 @@ class TestCloudZeroDryRunEndpoint:
 
         with (
             patch(
-                "litellm.integrations.cloudzero.database.LiteLLMDatabase"
+                "token_iq.gateway.integrations.cloudzero.database.LiteLLMDatabase"
             ) as mock_db_class,
             patch(
-                "litellm.integrations.cloudzero.transform.CBFTransformer"
+                "token_iq.gateway.integrations.cloudzero.transform.CBFTransformer"
             ) as mock_transformer_class,
         ):
 
@@ -117,7 +117,7 @@ class TestCloudZeroDryRunEndpoint:
         mock_empty_data = pl.DataFrame()
 
         with patch(
-            "litellm.integrations.cloudzero.database.LiteLLMDatabase"
+            "token_iq.gateway.integrations.cloudzero.database.LiteLLMDatabase"
         ) as mock_db_class:
 
             # Setup mocks

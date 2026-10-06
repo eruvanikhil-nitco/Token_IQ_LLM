@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.proxy_server import app
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.fixture
@@ -99,13 +99,13 @@ async def test_get_cloudzero_settings_success(client, monkeypatch):
 
     # Mock the decrypt function to return a decrypted key
     with patch(
-        "litellm.proxy.spend_tracking.cloudzero_endpoints.decrypt_value_helper"
+        "token_iq.gateway.proxy.spend_tracking.cloudzero_endpoints.decrypt_value_helper"
     ) as mock_decrypt:
         mock_decrypt.return_value = "decrypted_api_key"
 
         # Mock the masker
         with patch(
-            "litellm.proxy.spend_tracking.cloudzero_endpoints._sensitive_masker"
+            "token_iq.gateway.proxy.spend_tracking.cloudzero_endpoints._sensitive_masker"
         ) as mock_masker:
             mock_masker.mask_dict.return_value = {"api_key": "test****key"}
 

@@ -1,7 +1,7 @@
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 from base_audio_transcription_unit_tests import BaseLLMAudioTranscriptionTest
 
 

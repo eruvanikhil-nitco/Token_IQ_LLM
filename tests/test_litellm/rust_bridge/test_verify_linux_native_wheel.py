@@ -109,7 +109,7 @@ def _run_verifier(
     native_module: Final = (
         _NativeModuleWithPanicHook("litellm.rust_bridge._native")
         if exposes_panic
-        else ModuleType("litellm.rust_bridge._native")
+        else ModuleType("token_iq.gateway.rust_bridge._native")
     )
 
     def _fake_load_native_module(_: Path) -> ModuleType:

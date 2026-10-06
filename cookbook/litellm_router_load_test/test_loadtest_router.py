@@ -7,7 +7,7 @@ sys.path.insert(
     0, os.path.abspath("../..")
 )  # Adds the parent directory to the system path
 import asyncio
-from litellm import Router, Timeout
+from token_iq.gateway import Router, Timeout
 import time
 
 ### Test calling router async

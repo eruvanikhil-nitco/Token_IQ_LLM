@@ -9,16 +9,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.hooks.responses_id_security import (
+from token_iq.gateway.proxy.hooks.responses_id_security import (
     ResponsesIDSecurity,
     _is_responses_api_create_route,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from litellm.types.utils import SpecialEnums
+from token_iq.gateway.types.utils import SpecialEnums
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ class TestIsEncryptedResponseId:
     def test_is_encrypted_response_id_valid(self, responses_id_security):
         """Test that a properly encrypted response ID is identified correctly"""
         # Patch at the module level where it's imported
-        import litellm.proxy.hooks.responses_id_security as responses_module
+        import token_iq.gateway.proxy.hooks.responses_id_security as responses_module
 
         with patch.object(responses_module, "decrypt_value_helper") as mock_decrypt:
             mock_decrypt.return_value = f"{SpecialEnums.LITELM_MANAGED_FILE_ID_PREFIX.value}response_id:resp_123;user_id:user-456"
@@ -65,7 +65,7 @@ class TestIsEncryptedResponseId:
     def test_is_encrypted_response_id_invalid(self, responses_id_security):
         """Test that an unencrypted response ID returns False"""
         # Patch at the module level where it's imported
-        import litellm.proxy.hooks.responses_id_security as responses_module
+        import token_iq.gateway.proxy.hooks.responses_id_security as responses_module
 
         with patch.object(responses_module, "decrypt_value_helper") as mock_decrypt:
             mock_decrypt.return_value = None
@@ -81,7 +81,7 @@ class TestDecryptResponseId:
     def test_decrypt_response_id_valid(self, responses_id_security):
         """Test decrypting a valid encrypted response ID"""
         # Patch at the module level where it's imported
-        import litellm.proxy.hooks.responses_id_security as responses_module
+        import token_iq.gateway.proxy.hooks.responses_id_security as responses_module
 
         with patch.object(responses_module, "decrypt_value_helper") as mock_decrypt:
             mock_decrypt.return_value = f"{SpecialEnums.LITELM_MANAGED_FILE_ID_PREFIX.value}response_id:resp_original_123;user_id:user-456;team_id:team-789"
@@ -97,7 +97,7 @@ class TestDecryptResponseId:
     def test_decrypt_response_id_no_encryption(self, responses_id_security):
         """Test decrypting a non-encrypted response ID"""
         # Patch at the module level where it's imported
-        import litellm.proxy.hooks.responses_id_security as responses_module
+        import token_iq.gateway.proxy.hooks.responses_id_security as responses_module
 
         with patch.object(responses_module, "decrypt_value_helper") as mock_decrypt:
             mock_decrypt.return_value = None
@@ -126,7 +126,7 @@ class TestEncryptResponseId:
         )
 
         with patch(
-            "litellm.proxy.hooks.responses_id_security.encrypt_value_helper"
+            "token_iq.gateway.proxy.hooks.responses_id_security.encrypt_value_helper"
         ) as mock_encrypt:
             mock_encrypt.return_value = "encrypted_base64_value"
 
@@ -153,7 +153,7 @@ class TestEncryptResponseId:
         )
 
         with patch(
-            "litellm.proxy.common_utils.encrypt_decrypt_utils._get_salt_key",
+            "token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils._get_salt_key",
             return_value="test-salt-key",
         ):
             with patch.object(
@@ -187,7 +187,7 @@ class TestCheckUserAccessToResponseId:
         self, responses_id_security, mock_user_api_key_dict
     ):
         """Test that different user is denied access to response ID"""
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             with pytest.raises(HTTPException) as exc_info:
                 responses_id_security.check_user_access_to_response_id(
                     response_id_user_id="different-user-456",
@@ -202,7 +202,7 @@ class TestCheckUserAccessToResponseId:
         self, responses_id_security, mock_user_api_key_dict
     ):
         """Test that different team is denied access to response ID"""
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             with pytest.raises(HTTPException) as exc_info:
                 responses_id_security.check_user_access_to_response_id(
                     response_id_user_id=None,
@@ -223,7 +223,7 @@ class TestCheckUserAccessToResponseId:
         mock_auth_team_a.team_id = "team-a"
         mock_auth_team_a.user_role = None
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             with pytest.raises(HTTPException) as exc_info:
                 responses_id_security.check_user_access_to_response_id(
                     response_id_user_id=None,
@@ -244,7 +244,7 @@ class TestCheckUserAccessToResponseId:
         mock_auth_team_a.team_id = "team-a"
         mock_auth_team_a.user_role = None
 
-        with patch("litellm.proxy.proxy_server.general_settings", {}):
+        with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
             with pytest.raises(HTTPException) as exc_info:
                 responses_id_security.check_user_access_to_response_id(
                     response_id_user_id="user-from-team-b",
@@ -276,7 +276,7 @@ class TestCheckUserAccessToResponseId:
         self, responses_id_security
     ):
         """Test that proxy admin can access any response ID"""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         # Create a mock admin user
         mock_admin_auth = MagicMock()
@@ -298,7 +298,7 @@ class TestCheckUserAccessToResponseId:
     ):
         """Test that when security is disabled, any user can access any response"""
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"disable_responses_id_security": True},
         ):
             # User from team A should be able to access response from team B when security is disabled
@@ -383,7 +383,7 @@ class TestAsyncPreCallHook:
                 "_decrypt_response_id",
                 return_value=("resp_original_team_b", None, "team-b"),
             ):
-                with patch("litellm.proxy.proxy_server.general_settings", {}):
+                with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                     with pytest.raises(HTTPException) as exc_info:
                         await responses_id_security.async_pre_call_hook(
                             user_api_key_dict=mock_auth_team_a,
@@ -416,7 +416,7 @@ class TestAsyncPreCallHook:
                 "_decrypt_response_id",
                 return_value=("resp_original_team_b", "user-from-team-b", "team-b"),
             ):
-                with patch("litellm.proxy.proxy_server.general_settings", {}):
+                with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                     with pytest.raises(HTTPException) as exc_info:
                         await responses_id_security.async_pre_call_hook(
                             user_api_key_dict=mock_auth_team_a,
@@ -480,7 +480,7 @@ class TestAsyncPreCallHook:
                 "_decrypt_response_id",
                 return_value=("resp_original_team_b", None, "team-b"),
             ):
-                with patch("litellm.proxy.proxy_server.general_settings", {}):
+                with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                     with pytest.raises(HTTPException) as exc_info:
                         await responses_id_security.async_pre_call_hook(
                             user_api_key_dict=mock_auth_team_a,
@@ -513,7 +513,7 @@ class TestAsyncPreCallHook:
                 "_decrypt_response_id",
                 return_value=("resp_original_team_b", None, "team-b"),
             ):
-                with patch("litellm.proxy.proxy_server.general_settings", {}):
+                with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                     with pytest.raises(HTTPException) as exc_info:
                         await responses_id_security.async_pre_call_hook(
                             user_api_key_dict=mock_auth_team_a,
@@ -569,7 +569,7 @@ class TestAsyncPreCallHook:
                 "_decrypt_response_id",
                 return_value=("resp_original_team_b", None, "team-b"),
             ):
-                with patch("litellm.proxy.proxy_server.general_settings", {}):
+                with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                     with pytest.raises(HTTPException) as exc_info:
                         await responses_id_security.async_pre_call_hook(
                             user_api_key_dict=mock_auth_team_a,

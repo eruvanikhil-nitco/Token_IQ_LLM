@@ -11,11 +11,11 @@ from typing import cast
 
 from fastapi import FastAPI
 
-import litellm
-from litellm.integrations.datadog.datadog import DataDogLogger
-from litellm.integrations.langfuse.langfuse import LangFuseLogger
-from litellm.proxy.management_endpoints.callback_management_endpoints import router
-from litellm.proxy.proxy_server import app
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
+from token_iq.gateway.integrations.langfuse.langfuse import LangFuseLogger
+from token_iq.gateway.proxy.management_endpoints.callback_management_endpoints import router
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -82,7 +82,7 @@ class TestCallbackManagementEndpoints:
         client = TestClient(app)
 
         # Initialize Langfuse logger and add to callbacks
-        with patch("litellm.integrations.langfuse.langfuse.Langfuse") as mock_langfuse:
+        with patch("token_iq.gateway.integrations.langfuse.langfuse.Langfuse") as mock_langfuse:
             # Mock the Langfuse client initialization
             mock_langfuse_client = MagicMock()
             mock_langfuse.return_value = mock_langfuse_client
@@ -287,15 +287,15 @@ class TestNewRelicCallbackConfig:
 
 class TestNewRelicTeamCallbackValidation:
     def _data(self, callback_vars):
-        from litellm.proxy._types import AddTeamCallback
+        from token_iq.gateway.proxy._types import AddTeamCallback
 
         return AddTeamCallback(callback_name="newrelic", callback_type="success", callback_vars=callback_vars)
 
     def test_rejects_when_otel_v2_off(self, monkeypatch):
         from fastapi import HTTPException
 
-        from litellm.integrations.otel.model.config import is_otel_v2_enabled
-        from litellm.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
+        from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+        from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
 
         monkeypatch.delenv("LITELLM_OTEL_V2", raising=False)
         is_otel_v2_enabled.cache_clear()
@@ -309,8 +309,8 @@ class TestNewRelicTeamCallbackValidation:
     def test_rejects_unknown_region_and_region_without_key(self, monkeypatch):
         from fastapi import HTTPException
 
-        from litellm.integrations.otel.model.config import is_otel_v2_enabled
-        from litellm.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
+        from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+        from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
 
         monkeypatch.setenv("LITELLM_OTEL_V2", "true")
         is_otel_v2_enabled.cache_clear()
@@ -331,9 +331,9 @@ class TestNewRelicTeamCallbackValidation:
             is_otel_v2_enabled.cache_clear()
 
     def test_ignores_other_callbacks_and_bare_newrelic(self, monkeypatch):
-        from litellm.integrations.otel.model.config import is_otel_v2_enabled
-        from litellm.proxy._types import AddTeamCallback
-        from litellm.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
+        from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+        from token_iq.gateway.proxy._types import AddTeamCallback
+        from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import _validate_team_callback
 
         monkeypatch.delenv("LITELLM_OTEL_V2", raising=False)
         is_otel_v2_enabled.cache_clear()
@@ -362,8 +362,8 @@ class TestNewRelicKeyLoggingValidation:
     def test_rejects_same_configs_as_team_endpoint(self, monkeypatch):
         from fastapi import HTTPException
 
-        from litellm.integrations.otel.model.config import is_otel_v2_enabled
-        from litellm.proxy.management_endpoints.key_management_endpoints import (
+        from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+        from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
             raise_on_invalid_key_logging_config,
         )
 
@@ -389,8 +389,8 @@ class TestNewRelicKeyLoggingValidation:
             is_otel_v2_enabled.cache_clear()
 
     def test_ignores_metadata_without_newrelic_logging(self, monkeypatch):
-        from litellm.integrations.otel.model.config import is_otel_v2_enabled
-        from litellm.proxy.management_endpoints.key_management_endpoints import (
+        from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
+        from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
             raise_on_invalid_key_logging_config,
         )
 

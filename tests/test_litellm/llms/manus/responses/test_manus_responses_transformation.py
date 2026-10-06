@@ -4,14 +4,14 @@ Tests for Manus Responses API transformation
 Tests the ManusResponsesAPIConfig class that handles Manus-specific
 transformations for the Responses API.
 
-Source: litellm/llms/manus/responses/transformation.py
+Source: token_iq/gateway/llms/manus/responses/transformation.py
 """
 
 
 
-from litellm.llms.manus.responses.transformation import ManusResponsesAPIConfig
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.manus.responses.transformation import ManusResponsesAPIConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 def test_extract_agent_profile():

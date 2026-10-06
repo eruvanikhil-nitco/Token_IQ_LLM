@@ -2,7 +2,7 @@
 Unit tests for the context_management polyfill dispatcher.
 """
 
-from litellm.llms.anthropic.experimental_pass_through.context_management import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management import (
     apply_context_management,
 )
 

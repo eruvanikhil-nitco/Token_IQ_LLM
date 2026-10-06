@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.arize.arize_phoenix import (
+from token_iq.gateway.integrations.arize.arize_phoenix import (
     ArizePhoenixConfig,
     ArizePhoenixLogger,
 )
@@ -387,7 +387,7 @@ class TestResolveProjectName:
 class TestProjectNameNotOnSpan:
     """Project routing uses Resource on TracerProvider, not span attributes."""
 
-    @patch("litellm.integrations.arize._utils.set_attributes")
+    @patch("token_iq.gateway.integrations.arize._utils.set_attributes")
     def test_set_arize_phoenix_attributes_does_not_set_project_on_span(
         self, _mock_set_attrs
     ):
@@ -413,7 +413,7 @@ class TestPerProjectTracerProviderCache:
             InMemorySpanExporter,
         )
 
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         exporter = InMemorySpanExporter()
         logger = ArizePhoenixLogger(
@@ -453,7 +453,7 @@ class TestPerProjectTracerProviderCache:
         assert "project-b" in project_names
 
     def test_shared_span_processor_created_once_at_init(self):
-        from litellm.integrations.opentelemetry import (
+        from token_iq.gateway.integrations.opentelemetry import (
             OpenTelemetry,
             OpenTelemetryConfig,
         )
@@ -475,7 +475,7 @@ class TestPerProjectTracerProviderCache:
             assert mock_get_processor.call_count == 1
 
     def test_lru_eviction_does_not_shutdown_provider(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -497,7 +497,7 @@ class TestPerProjectTracerProviderCache:
         shutdown_mock.assert_not_called()
 
     def test_flush_tracer_providers_force_flushes_shared_processor(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -518,7 +518,7 @@ class TestGetLitellmResourceForProject:
     """Resource attrs used by Phoenix OSS and Arize AX for project routing."""
 
     def test_project_attrs_win_over_otel_resource_attributes_env(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -540,7 +540,7 @@ class TestGetLitellmResourceForProject:
 
     @patch.dict("os.environ", {"OTEL_DEPLOYMENT_ENVIRONMENT": "staging"}, clear=False)
     def test_preserves_deployment_environment_from_config(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(
@@ -556,7 +556,7 @@ class TestTracerResolutionAndCache:
     """_resolve_tracer_for_kwargs, get_tracer_to_use_for_request, provider cache."""
 
     def test_get_tracer_to_use_for_request_matches_resolve_tracer(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -575,7 +575,7 @@ class TestTracerResolutionAndCache:
         assert tracer_from_request is not None
 
     def test_cache_reuses_provider_for_same_project(self):
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -595,7 +595,7 @@ class TestTracerResolutionAndCache:
     def test_parallel_cache_miss_for_same_project_inserts_once(self):
         import threading
 
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         logger = ArizePhoenixLogger(
             config=OpenTelemetryConfig(exporter=MagicMock()),
@@ -643,7 +643,7 @@ class TestTracerResolutionAndCache:
             InMemorySpanExporter,
         )
 
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         exporter = InMemorySpanExporter()
         provider = TracerProvider()
@@ -674,7 +674,7 @@ class TestTracerResolutionAndCache:
             InMemorySpanExporter,
         )
 
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         exporter = InMemorySpanExporter()
         provider = TracerProvider()
@@ -711,7 +711,7 @@ class TestPhoenixTraceHandling:
         )
         from opentelemetry.trace import StatusCode
 
-        from litellm.integrations.opentelemetry import (
+        from token_iq.gateway.integrations.opentelemetry import (
             LITELLM_REQUEST_SPAN_NAME,
             OpenTelemetryConfig,
         )
@@ -753,7 +753,7 @@ class TestPhoenixTraceHandling:
             InMemorySpanExporter,
         )
 
-        from litellm.integrations.opentelemetry import (
+        from token_iq.gateway.integrations.opentelemetry import (
             LITELLM_REQUEST_SPAN_NAME,
             OpenTelemetryConfig,
         )
@@ -807,7 +807,7 @@ class TestPhoenixTraceHandling:
             InMemorySpanExporter,
         )
 
-        from litellm.integrations.opentelemetry import OpenTelemetryConfig
+        from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
         exporter = InMemorySpanExporter()
         logger = ArizePhoenixLogger(
@@ -870,7 +870,7 @@ if __name__ == "__main__":
 
 
 def test_arize_phoenix_client_sanitize_id_rejects_traversal():
-    from litellm.integrations.arize.arize_phoenix_client import _sanitize_id
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import _sanitize_id
 
     # dotdot without slashes
     with pytest.raises(ValueError, match="path traversal"):
@@ -881,35 +881,35 @@ def test_arize_phoenix_client_sanitize_id_rejects_traversal():
 
 
 def test_arize_phoenix_client_sanitize_id_rejects_slash():
-    from litellm.integrations.arize.arize_phoenix_client import _sanitize_id
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import _sanitize_id
 
     with pytest.raises(ValueError, match="disallowed characters"):
         _sanitize_id("valid/extra")
 
 
 def test_arize_phoenix_client_sanitize_id_rejects_fragment():
-    from litellm.integrations.arize.arize_phoenix_client import _sanitize_id
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import _sanitize_id
 
     with pytest.raises(ValueError, match="disallowed characters"):
         _sanitize_id("abc#suffix")
 
 
 def test_arize_phoenix_client_sanitize_id_rejects_query():
-    from litellm.integrations.arize.arize_phoenix_client import _sanitize_id
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import _sanitize_id
 
     with pytest.raises(ValueError, match="disallowed characters"):
         _sanitize_id("abc?x=1")
 
 
 def test_arize_phoenix_client_sanitize_id_allows_uuid():
-    from litellm.integrations.arize.arize_phoenix_client import _sanitize_id
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import _sanitize_id
 
     uid = "550e8400-e29b-41d4-a716-446655440000"
     assert _sanitize_id(uid) == uid
 
 
 def test_arize_phoenix_client_get_prompt_version_rejects_traversal():
-    from litellm.integrations.arize.arize_phoenix_client import ArizePhoenixClient
+    from token_iq.gateway.integrations.arize.arize_phoenix_client import ArizePhoenixClient
 
     client = ArizePhoenixClient(
         api_key="test-key", api_base="https://app.phoenix.arize.com"

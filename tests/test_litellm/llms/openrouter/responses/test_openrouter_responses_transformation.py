@@ -11,12 +11,12 @@ Related issue: https://github.com/BerriAI/litellm/issues/22189
 
 import pytest
 
-import litellm
-from litellm.llms.openrouter.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.openrouter.responses.transformation import (
     OpenRouterResponsesAPIConfig,
 )
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class TestOpenRouterResponsesAPIConfig:
@@ -54,7 +54,7 @@ class TestOpenRouterResponsesAPIConfig:
     def test_validate_environment_sets_auth_header(self):
         """validate_environment should set the Authorization header."""
         config = OpenRouterResponsesAPIConfig()
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         params = GenericLiteLLMParams(api_key="sk-or-test-key")
         headers = config.validate_environment(
@@ -65,7 +65,7 @@ class TestOpenRouterResponsesAPIConfig:
     def test_validate_environment_raises_without_key(self, monkeypatch):
         """validate_environment should raise when no API key is available."""
         config = OpenRouterResponsesAPIConfig()
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Clear any globally set API keys so the validation correctly raises
         monkeypatch.setattr(litellm, "api_key", None)

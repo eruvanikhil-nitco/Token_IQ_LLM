@@ -6,11 +6,11 @@ import httpx
 import pytest
 
 
-from litellm.llms.recraft.image_generation.transformation import (
+from token_iq.gateway.llms.recraft.image_generation.transformation import (
     RecraftImageGenerationConfig,
 )
-from litellm.types.llms.openai import OpenAIImageGenerationOptionalParams
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.types.llms.openai import OpenAIImageGenerationOptionalParams
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 class TestRecraftImageGenerationTransformation:
@@ -70,7 +70,7 @@ class TestRecraftImageGenerationTransformation:
         assert "unsupported_param" in str(exc_info.value)
         assert "is not supported for model" in str(exc_info.value)
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_get_complete_url_with_api_base(self, mock_get_secret):
         """Test that get_complete_url returns correct URL when api_base is provided."""
         api_base = "https://custom.api.recraft.ai"
@@ -87,7 +87,7 @@ class TestRecraftImageGenerationTransformation:
         assert result == expected_url
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_get_complete_url_with_secret_base(self, mock_get_secret):
         """Test that get_complete_url uses secret when api_base is None."""
         mock_get_secret.return_value = "https://secret.api.recraft.ai"
@@ -106,7 +106,7 @@ class TestRecraftImageGenerationTransformation:
         assert result == expected_url
         mock_get_secret.assert_called_once_with("RECRAFT_API_BASE")
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_get_complete_url_with_default_base(self, mock_get_secret):
         """Test that get_complete_url uses default base URL when no other options are available."""
         mock_get_secret.return_value = None
@@ -124,7 +124,7 @@ class TestRecraftImageGenerationTransformation:
         )
         assert result == expected_url
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         """Test that validate_environment correctly sets authorization header when api_key is provided."""
         headers = {}
@@ -142,7 +142,7 @@ class TestRecraftImageGenerationTransformation:
         assert result["Authorization"] == f"Bearer {api_key}"
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_secret_key(self, mock_get_secret):
         """Test that validate_environment uses secret API key when api_key is None."""
         mock_get_secret.return_value = "secret_api_key"
@@ -160,7 +160,7 @@ class TestRecraftImageGenerationTransformation:
         assert result["Authorization"] == "Bearer secret_api_key"
         mock_get_secret.assert_called_once_with("RECRAFT_API_KEY")
 
-    @patch("litellm.llms.recraft.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.recraft.image_generation.transformation.get_secret_str")
     def test_validate_environment_no_api_key_raises_error(self, mock_get_secret):
         """Test that validate_environment raises ValueError when no API key is available."""
         mock_get_secret.return_value = None

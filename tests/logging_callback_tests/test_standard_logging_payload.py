@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock
 from datetime import datetime as dt_object
 import time
 import pytest
-import litellm
-from litellm.types.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     Usage,
     StandardLoggingMetadata,
@@ -21,11 +21,11 @@ from create_mock_standard_logging_payload import (
     create_standard_logging_payload,
     create_standard_logging_payload_with_long_content,
 )
-from litellm.litellm_core_utils.litellm_logging import (
+from token_iq.gateway.core_utils.litellm_logging import (
     StandardLoggingPayloadSetup,
 )
 
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 @pytest.mark.parametrize(
@@ -345,7 +345,7 @@ def test_standard_logging_payload_uses_deployment_when_no_base_model():
     """metadata["deployment"] is used for cost-map lookup when base_model is not set."""
     from datetime import datetime
 
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         Logging,
         get_standard_logging_object_payload,
     )
@@ -757,11 +757,11 @@ def test_cost_breakdown_in_standard_logging_payload():
     Test that cost breakdown fields are properly included in StandardLoggingPayload.
     Tests input_cost, output_cost, tool_usage_cost, and total_cost fields.
     """
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         get_standard_logging_object_payload,
         Logging,
     )
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
     from datetime import datetime
     import time
 
@@ -843,7 +843,7 @@ def test_cost_breakdown_missing_in_standard_logging_payload():
     """
     Test that cost breakdown field is None when not available (e.g., for embedding calls)
     """
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         get_standard_logging_object_payload,
         Logging,
     )
@@ -913,7 +913,7 @@ def test_usage_dict_roundtrip_in_payload(use_combined_usage_object):
     - prompt_tokens, completion_tokens, total_tokens on the payload match the usage dict
     - Works for both normal usage dict path and combined_usage_object (realtime API) path
     """
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         get_standard_logging_object_payload,
         Logging,
     )
@@ -987,7 +987,7 @@ def test_usage_dict_roundtrip_in_payload(use_combined_usage_object):
 
 
 def test_standard_logging_payload_uses_actual_model_for_azure_router():
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         Logging,
         get_standard_logging_object_payload,
     )
@@ -1035,7 +1035,7 @@ def test_standard_logging_payload_uses_actual_model_for_azure_router():
 
 
 def test_standard_logging_payload_uses_actual_model_for_azure_router_with_underscore():
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         Logging,
         get_standard_logging_object_payload,
     )
@@ -1143,7 +1143,7 @@ def test_merge_litellm_metadata_skip_non_serializable():
     """
     Test that non-serializable objects like UserAPIKeyAuth are skipped.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     user_api_key_auth = UserAPIKeyAuth(
         api_key="test-key",

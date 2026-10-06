@@ -25,8 +25,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 from dotenv import load_dotenv
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     ChatCompletionDeltaChunk,
     ChatCompletionUsageBlock,
     CustomLLM,
@@ -37,8 +37,8 @@ from litellm import (
     get_llm_provider,
     image_generation,
 )
-from litellm.utils import ModelResponseIterator
-from litellm.types.utils import (
+from token_iq.gateway.utils import ModelResponseIterator
+from token_iq.gateway.types.utils import (
     ImageResponse,
     ImageObject,
     EmbeddingResponse,
@@ -46,7 +46,7 @@ from litellm.types.utils import (
     StreamingChoices,
     Delta,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 class CustomModelResponseIterator:
@@ -351,7 +351,7 @@ class MyCustomLLM(CustomLLM):
 
 def test_get_llm_provider():
     """"""
-    from litellm.utils import custom_llm_setup
+    from token_iq.gateway.utils import custom_llm_setup
 
     my_custom_llm = MyCustomLLM()
     litellm.custom_provider_map = [
@@ -606,7 +606,7 @@ def test_get_supported_openai_params():
     assert resp.choices[0].message.content == "Hi!"
 
     # Get supported openai params
-    from litellm import get_supported_openai_params
+    from token_iq.gateway import get_supported_openai_params
 
     response = get_supported_openai_params(model="my-custom-llm/my-fake-model")
     assert response is not None

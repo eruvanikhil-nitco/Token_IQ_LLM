@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from litellm.proxy.spend_tracking.spend_tracking_utils import get_logging_payload
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import get_logging_payload
 
 
 def _kwargs(litellm_params: dict) -> dict:

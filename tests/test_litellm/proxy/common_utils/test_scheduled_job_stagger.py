@@ -11,9 +11,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from litellm.constants import PTU_ROLLUP_JOB_ID, PTU_ROLLUP_LOCK_TTL_SECONDS
-from litellm.proxy._types import ScheduledJobStaggerSettings
-from litellm.proxy.common_utils.scheduled_job_stagger import (
+from token_iq.gateway.constants import PTU_ROLLUP_JOB_ID, PTU_ROLLUP_LOCK_TTL_SECONDS
+from token_iq.gateway.proxy._types import ScheduledJobStaggerSettings
+from token_iq.gateway.proxy.common_utils.scheduled_job_stagger import (
     apply_scheduled_job_stagger,
     attach_job_timing_logger,
     offset_seconds,

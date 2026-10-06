@@ -14,12 +14,12 @@ from unittest.mock import patch
 import pytest
 from prometheus_client import REGISTRY
 
-import litellm
-from litellm.integrations.prometheus import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.prometheus import (
     UNRECOGNIZED_REQUESTED_MODEL_LABEL,
     PrometheusLogger,
 )
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 class _ClientSideError(Exception):
@@ -103,7 +103,7 @@ async def _fire_proxy_failure(logger: PrometheusLogger, model: str) -> None:
 async def test_unknown_models_collapse_to_one_series_on_proxy_request_metrics(router):
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         for index in range(25):
             await _fire_proxy_failure(logger, f"agent-typo-{index}")
 
@@ -120,7 +120,7 @@ async def test_unknown_models_collapse_to_one_series_on_proxy_request_metrics(ro
 async def test_known_alias_and_wildcard_models_keep_their_own_labels(router):
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         await _fire_proxy_failure(logger, "gpt-4o-mini")
         await _fire_proxy_failure(logger, "gpt4o-alias")
         await _fire_proxy_failure(logger, "openai/gpt-4o-audio-preview")
@@ -142,7 +142,7 @@ async def test_known_alias_and_wildcard_models_keep_their_own_labels(router):
 async def test_team_alias_and_team_wildcard_models_keep_their_own_labels(team_router):
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", team_router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", team_router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         await _fire_proxy_failure(logger, "team-alias-gpt")
         await _fire_proxy_failure(logger, "team-models/gpt-4o-audio-preview")
         await _fire_proxy_failure(logger, "agent-typo-hallucinated")
@@ -162,7 +162,7 @@ async def test_team_alias_and_team_wildcard_models_keep_their_own_labels(team_ro
 async def test_unknown_models_collapse_to_other_when_router_is_unavailable():
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", None, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", None, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         await _fire_proxy_failure(logger, "agent-typo-no-router")
         await _fire_proxy_failure(logger, "gpt-4o-mini")
 
@@ -175,7 +175,7 @@ async def test_unknown_models_collapse_to_other_when_router_is_unavailable():
 async def test_sdk_router_originated_metrics_keep_labels_without_proxy_router():
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", None, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", None, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         logger.set_llm_deployment_failure_metrics(
             request_kwargs={
                 "model": "sdk-deployment-group",
@@ -197,13 +197,13 @@ async def test_sdk_router_originated_metrics_keep_labels_without_proxy_router():
 @pytest.mark.asyncio
 async def test_sdk_fallback_labels_survive_non_import_errors_from_proxy_module(monkeypatch):
     logger = PrometheusLogger()
-    broken_proxy_module = types.ModuleType("litellm.proxy.proxy_server")
+    broken_proxy_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
 
     def _raise_value_error(_name: str):
         raise ValueError("bad proxy env var")
 
     broken_proxy_module.__getattr__ = _raise_value_error  # test-quality-ok: reproduces a proxy_server import raising non-ImportError, no injection seam
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", broken_proxy_module)  # test-quality-ok: reproduces a proxy_server import raising non-ImportError, no injection seam
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", broken_proxy_module)  # test-quality-ok: reproduces a proxy_server import raising non-ImportError, no injection seam
 
     await logger.log_failure_fallback_event(
         original_model_group="sdk-fallback-group",
@@ -217,7 +217,7 @@ async def test_sdk_fallback_labels_survive_non_import_errors_from_proxy_module(m
 def test_unknown_models_collapse_to_one_series_on_deployment_metrics(router):
     logger = PrometheusLogger()
 
-    with patch("litellm.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         for index in range(25):
             logger.set_llm_deployment_failure_metrics(
                 request_kwargs={
@@ -253,7 +253,7 @@ async def test_fallback_event_requested_model_is_bounded(router):
     logger = PrometheusLogger()
     kwargs = {"model": "gpt-4o-mini", "metadata": {}}
 
-    with patch("litellm.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router, create=True):  # test-quality-ok: production reads proxy_server.llm_router lazily, no injection seam
         await logger.log_failure_fallback_event(
             original_model_group="agent-typo-hallucinated",
             kwargs=kwargs,

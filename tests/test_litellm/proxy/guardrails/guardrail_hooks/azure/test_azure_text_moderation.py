@@ -3,11 +3,11 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.azure.text_moderation import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.azure.text_moderation import (
     AzureContentSafetyTextModerationGuardrail,
 )
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 
 @pytest.mark.asyncio

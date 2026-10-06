@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 # Mock responses for different embedding models
 titan_embedding_response = {"embedding": [0.1, 0.2, 0.3], "inputTextTokenCount": 10}
@@ -156,7 +156,7 @@ def test_bedrock_embedding_with_sigv4():
     model = "bedrock/amazon.titan-embed-text-v1"
 
     with patch(
-        "litellm.llms.bedrock.embed.embedding.BedrockEmbedding.embeddings"
+        "token_iq.gateway.llms.bedrock.embed.embedding.BedrockEmbedding.embeddings"
     ) as mock_bedrock_embed:
         mock_embedding_response = litellm.EmbeddingResponse()
         mock_embedding_response.data = [{"embedding": [0.1, 0.2, 0.3]}]
@@ -825,7 +825,7 @@ async def test_bedrock_embedding_custom_headers_with_iam_role_and_custom_api_bas
 
 def test_titan_multimodal_embedding_image_cost_tracking():
     """Test that Titan multimodal embedding with image input populates image_count in Usage."""
-    from litellm.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
+    from token_iq.gateway.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
         AmazonTitanMultimodalEmbeddingG1Config,
     )
 
@@ -855,7 +855,7 @@ def test_titan_multimodal_embedding_image_cost_tracking():
 
 def test_titan_multimodal_embedding_text_no_image_count():
     """Test that Titan multimodal embedding with text-only input does not set image_count."""
-    from litellm.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
+    from token_iq.gateway.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
         AmazonTitanMultimodalEmbeddingG1Config,
     )
 
@@ -884,7 +884,7 @@ def test_titan_multimodal_embedding_text_no_image_count():
 
 def test_titan_multimodal_embedding_backward_compat_no_batch_data():
     """Test that Titan transformer works without batch_data (backward compatibility)."""
-    from litellm.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
+    from token_iq.gateway.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
         AmazonTitanMultimodalEmbeddingG1Config,
     )
 
@@ -994,7 +994,7 @@ def test_load_credentials_assumes_role_with_external_id(monkeypatch):
     import boto3
     from botocore.exceptions import ClientError
 
-    from litellm.llms.bedrock.embed.embedding import BedrockEmbedding
+    from token_iq.gateway.llms.bedrock.embed.embedding import BedrockEmbedding
 
     monkeypatch.delenv("AWS_EXTERNAL_ID", raising=False)
 

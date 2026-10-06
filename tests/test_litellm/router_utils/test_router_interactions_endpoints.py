@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 class TestInitializeInteractionsEndpoints:

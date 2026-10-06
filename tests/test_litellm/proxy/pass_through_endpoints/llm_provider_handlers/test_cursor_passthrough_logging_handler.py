@@ -5,11 +5,11 @@ import httpx
 import pytest
 
 
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.cursor_passthrough_logging_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.cursor_passthrough_logging_handler import (
     CursorPassthroughLoggingHandler,
     _classify_cursor_request,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
 

@@ -8,25 +8,25 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import LiteLLMRoutes, LitellmUserRoles
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
-from litellm.proxy.list_api.common import (
+from token_iq.gateway.proxy._types import LiteLLMRoutes, LitellmUserRoles
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
+from token_iq.gateway.proxy.list_api.common import (
     PROBLEM_TYPE_BASE,
     ManagementProblem,
     problem_response,
 )
-from litellm.proxy.list_api.list_framework import (
+from token_iq.gateway.proxy.list_api.list_framework import (
     Compare,
     ScopeWhere,
     build_query_plan,
 )
-from litellm.proxy.management_endpoints.management_v1 import router
-from litellm.proxy.management_endpoints.management_v1.budgets import (
+from token_iq.gateway.proxy.management_endpoints.management_v1 import router
+from token_iq.gateway.proxy.management_endpoints.management_v1.budgets import (
     BUDGETS_LIST_SPEC,
     BudgetListItem,
 )
-from litellm.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
-from litellm.types.proxy.management_endpoints.management_v1 import ProblemDetail
+from token_iq.gateway.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
+from token_iq.gateway.types.proxy.management_endpoints.management_v1 import ProblemDetail
 
 app = FastAPI()
 
@@ -76,7 +76,7 @@ def query_raw(monkeypatch):
     mock = AsyncMock(side_effect=[[{"count": 0}], []])
     prisma_client = MagicMock()
     prisma_client.db.query_raw = mock
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client)
     return mock
 
 
@@ -497,7 +497,7 @@ def test_bigint_limits_serialize_as_json_numbers(query_raw, as_proxy_admin):
 
 
 def test_reports_a_missing_database_as_a_problem_document(monkeypatch, as_proxy_admin):
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     response = _get()
 
@@ -508,7 +508,7 @@ def test_reports_a_missing_database_as_a_problem_document(monkeypatch, as_proxy_
 def test_the_spec_serves_what_the_row_model_declares():
     """SELECTED_COLUMNS is built off the model, so a field added to one cannot go
     missing from the other and produce a row the validator rejects."""
-    from litellm.proxy.management_endpoints.management_v1.budgets import SELECTED_COLUMNS
+    from token_iq.gateway.proxy.management_endpoints.management_v1.budgets import SELECTED_COLUMNS
 
     assert SELECTED_COLUMNS == ", ".join(f'"{name}"' for name in BudgetListItem.model_fields)
     assert BUDGETS_LIST_SPEC.tiebreaker in BudgetListItem.model_fields

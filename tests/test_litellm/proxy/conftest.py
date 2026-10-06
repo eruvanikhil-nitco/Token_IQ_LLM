@@ -69,7 +69,7 @@ def pytest_runtest_setup(item):
     "original", and monkeypatch.undo re-plants that mock after all restores
     have run, poisoning the global for the rest of the xdist worker.
     """
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     item.stash[_proxy_module_globals_snapshot] = {
         name: getattr(proxy_server, name, _MODULE_GLOBAL_MISSING)
@@ -84,7 +84,7 @@ def pytest_runtest_teardown(item, nextitem):
     snapshot = item.stash.get(_proxy_module_globals_snapshot, None)
     if snapshot is None:
         return
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     for name, value in snapshot.items():
         if value is _MODULE_GLOBAL_MISSING:
@@ -97,7 +97,7 @@ def pytest_runtest_teardown(item, nextitem):
 @pytest.fixture(autouse=True)
 def _reset_graceful_shutdown_state():
     """Graceful shutdown state is process-scoped; keep it from leaking between tests."""
-    from litellm.proxy.shutdown.graceful_shutdown_manager import (
+    from token_iq.gateway.proxy.shutdown.graceful_shutdown_manager import (
         GracefulShutdownManager,
     )
 
@@ -233,7 +233,7 @@ def create_proxy_test_client(
     Returns:
         TestClient: FastAPI test client for the proxy server
     """
-    from litellm.proxy.proxy_server import (
+    from token_iq.gateway.proxy.proxy_server import (
         cleanup_router_config_variables,
         initialize,
         app,

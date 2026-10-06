@@ -14,9 +14,9 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     ProviderAccountSpend,
     ProviderModelSpend,
     ProviderRawFact,
@@ -108,7 +108,7 @@ async def provider_usage_summary(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ProviderUsageSummaryResponse:
     """Cost and token totals for one provider over a window, by model, account and evidence level."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(provider)
@@ -183,7 +183,7 @@ async def provider_usage_raw(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ProviderUsageRawResponse:
     """The provider's own payload for one provider, newest first, keyset-paged on bucket_start."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     _known_provider_or_404(provider)

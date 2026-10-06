@@ -8,15 +8,15 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.llms.soniox.audio_transcription.handler import (
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.soniox.audio_transcription.handler import (
     SonioxAudioTranscriptionHandler,
 )
-from litellm.llms.soniox.audio_transcription.transformation import (
+from token_iq.gateway.llms.soniox.audio_transcription.transformation import (
     SonioxAudioTranscriptionConfig,
 )
-from litellm.llms.soniox.common_utils import SonioxException
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.llms.soniox.common_utils import SonioxException
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 def _make_response(payload: Dict[str, Any], status_code: int = 200) -> httpx.Response:
@@ -340,7 +340,7 @@ class TestPollLimitsClamping:
     """
 
     def test_should_clamp_poll_interval_to_minimum(self):
-        from litellm.llms.soniox.common_utils import SONIOX_MIN_POLL_INTERVAL
+        from token_iq.gateway.llms.soniox.common_utils import SONIOX_MIN_POLL_INTERVAL
 
         handler = SonioxAudioTranscriptionHandler()
         _, _, _, handler_opts = handler._prepare(
@@ -358,7 +358,7 @@ class TestPollLimitsClamping:
         assert handler_opts["poll_interval"] == SONIOX_MIN_POLL_INTERVAL
 
     def test_should_clamp_negative_poll_interval_to_minimum(self):
-        from litellm.llms.soniox.common_utils import SONIOX_MIN_POLL_INTERVAL
+        from token_iq.gateway.llms.soniox.common_utils import SONIOX_MIN_POLL_INTERVAL
 
         handler = SonioxAudioTranscriptionHandler()
         _, _, _, handler_opts = handler._prepare(
@@ -392,7 +392,7 @@ class TestPollLimitsClamping:
         assert handler_opts["poll_interval"] == 5.0
 
     def test_should_clamp_max_attempts_to_upper_bound(self):
-        from litellm.llms.soniox.common_utils import SONIOX_MAX_POLL_ATTEMPTS
+        from token_iq.gateway.llms.soniox.common_utils import SONIOX_MAX_POLL_ATTEMPTS
 
         handler = SonioxAudioTranscriptionHandler()
         _, _, _, handler_opts = handler._prepare(
@@ -1044,7 +1044,7 @@ class TestSpendTracking:
 
     @pytest.fixture(autouse=True)
     def _use_local_model_cost_map(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         original_model_cost = litellm.model_cost
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
@@ -1057,7 +1057,7 @@ class TestSpendTracking:
             litellm.get_model_info.cache_clear()
 
     def test_should_charge_by_audio_duration(self, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr("time.sleep", lambda *_: None)
         responses = {

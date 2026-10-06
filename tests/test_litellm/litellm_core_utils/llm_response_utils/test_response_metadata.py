@@ -1,5 +1,5 @@
 """
-Tests for litellm.litellm_core_utils.llm_response_utils.response_metadata
+Tests for litellm.core_utils.llm_response_utils.response_metadata
 
 Covers the callback_duration_ms timing metric that flows from the Logging object
 through _hidden_params to the x-litellm-callback-duration-ms response header.
@@ -9,17 +9,17 @@ import asyncio
 import datetime
 from unittest.mock import MagicMock
 
-import litellm.litellm_core_utils.llm_response_utils.response_metadata as response_metadata_mod
-import litellm.proxy.common_request_processing as common_request_processing_mod
-from litellm.litellm_core_utils.litellm_logging import Logging
-from litellm.litellm_core_utils.llm_response_utils.response_metadata import (
+import token_iq.gateway.core_utils.llm_response_utils.response_metadata as response_metadata_mod
+import token_iq.gateway.proxy.common_request_processing as common_request_processing_mod
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.core_utils.llm_response_utils.response_metadata import (
     ResponseMetadata,
     response_timing_metrics,
     update_response_metadata,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.types.utils import ModelResponse
 
 
 class TestCallbackDurationMs:

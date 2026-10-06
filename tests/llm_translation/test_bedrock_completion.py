@@ -8,7 +8,8 @@ import traceback
 
 from dotenv import load_dotenv
 
-import litellm.types
+import token_iq.gateway.types
+from token_iq import gateway as litellm
 
 load_dotenv()
 import io
@@ -18,8 +19,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     ModelResponse,
     RateLimitError,
     ServiceUnavailableError,
@@ -28,9 +29,9 @@ from litellm import (
     completion_cost,
     embedding,
 )
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 from base_llm_unit_tests import BaseLLMChatTest, BaseAnthropicChatTest
 from base_rerank_unit_tests import BaseLLMRerankTest
 from base_embedding_unit_tests import BaseLLMEmbeddingTest
@@ -95,7 +96,7 @@ def test_completion_bedrock_guardrails(streaming):
     litellm.set_verbose = True
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     # verbose_logger.setLevel(logging.DEBUG)
     try:
@@ -1128,7 +1129,7 @@ def test_bedrock_converse_tools_pt_converts_custom_schema_type_to_object():
 
 
 def test_bedrock_tools_transformation_valid_params():
-    from litellm.types.llms.bedrock import ToolJsonSchemaBlock
+    from token_iq.gateway.types.llms.bedrock import ToolJsonSchemaBlock
 
     tools = [
         {
@@ -1200,18 +1201,18 @@ def test_not_found_error():
     ],
 )
 def test_bedrock_get_base_model(model, expected_base_model):
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     assert BedrockModelInfo.get_base_model(model) == expected_base_model
 
 
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     _bedrock_converse_messages_pt,
 )
 
 
 def test_bedrock_converse_translation_tool_message():
-    from litellm.types.utils import ChatCompletionMessageToolCall, Function
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
     litellm.set_verbose = True
 
@@ -1265,7 +1266,7 @@ def test_base_aws_llm_get_credentials():
 
     import boto3
 
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     start_time = time.time()
     session = boto3.Session(
@@ -1524,7 +1525,7 @@ def test_bedrock_completion_test_2():
         ],
     }
 
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     request = AmazonConverseConfig()._transform_request(
         model=data["model"],
@@ -1547,8 +1548,8 @@ def test_bedrock_completion_test_3():
     """
     Check if content in tool result is formatted correctly
     """
-    from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function, Message
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -1925,7 +1926,7 @@ def test_bedrock_mapped_converse_models():
 
 
 def test_bedrock_base_model_helper():
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     model = "us.amazon.nova-pro-v1:0"
     base_model = BedrockModelInfo.get_base_model(model)
@@ -1962,7 +1963,7 @@ def test_bedrock_base_model_helper():
 )
 def test_bedrock_route_detection(model, expected_route):
     """Test all scenarios for BedrockModelInfo.get_bedrock_route"""
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     route = BedrockModelInfo.get_bedrock_route(model)
     assert (
@@ -2009,7 +2010,7 @@ def test_bedrock_route_detection(model, expected_route):
     ],
 )
 def test_bedrock_prompt_caching_message(messages, expected_cache_control):
-    import litellm
+    from token_iq import gateway as litellm
     import json
 
     transformed_messages = litellm.AmazonConverseConfig()._transform_request(
@@ -2264,7 +2265,7 @@ def test_bedrock_nova_topk(top_k_param):
         return result
 
     with patch(
-        "litellm.AmazonConverseConfig._transform_request", side_effect=mock_transform
+        "token_iq.gateway.AmazonConverseConfig._transform_request", side_effect=mock_transform
     ):
         litellm.completion(**data)
 
@@ -2278,7 +2279,7 @@ def test_bedrock_nova_topk(top_k_param):
 
 
 def test_bedrock_cross_region_inference(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     litellm.model_cost = litellm.get_model_cost_map()
@@ -2322,7 +2323,7 @@ def test_bedrock_empty_content_real_call():
 
 
 def test_bedrock_process_empty_text_blocks():
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         process_empty_text_blocks,
     )
 
@@ -2425,7 +2426,7 @@ class TestBedrockEmbedding(BaseLLMEmbeddingTest):
         return litellm.LlmProviders.BEDROCK
 
     def test_bedrock_image_embedding_transformation(self):
-        from litellm.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.amazon_titan_multimodal_transformation import (
             AmazonTitanMultimodalEmbeddingG1Config,
         )
 
@@ -2442,9 +2443,9 @@ class TestBedrockEmbedding(BaseLLMEmbeddingTest):
 
 @pytest.mark.asyncio
 async def test_bedrock_image_url_sync_client():
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
     import logging
-    from litellm import verbose_logger
+    from token_iq.gateway import verbose_logger
 
     verbose_logger.setLevel(level=logging.DEBUG)
 
@@ -2494,7 +2495,7 @@ def test_bedrock_error_handling_streaming(exception_type, expected_status_code):
     (e.g. internalServerException -> 500). For 5xx this is what makes the error
     retryable downstream; for all types it replaces the misleading 400 with the
     true code. Regression for #24608."""
-    from litellm.llms.bedrock.chat.invoke_handler import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import (
         AWSEventStreamDecoder,
         BedrockError,
     )
@@ -2535,7 +2536,7 @@ def test_bedrock_error_handling_streaming(exception_type, expected_status_code):
 @pytest.mark.flaky(retries=6, delay=2)
 @pytest.mark.asyncio
 async def test_bedrock_document_understanding(image_url):
-    from litellm import acompletion
+    from token_iq.gateway import acompletion
 
     litellm._turn_on_debug()
     model = "bedrock/us.amazon.nova-pro-v1:0"
@@ -2560,7 +2561,7 @@ async def test_bedrock_document_understanding(image_url):
 
 
 def test_bedrock_custom_proxy():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -2583,7 +2584,7 @@ def test_bedrock_custom_proxy():
 
 
 def test_bedrock_custom_deepseek():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     import json
 
     litellm._turn_on_debug()
@@ -2766,8 +2767,8 @@ def test_bedrock_invoke_provider():
 
 
 def test_bedrock_description_param():
-    from litellm import completion
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import completion
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -2814,7 +2815,7 @@ def test_bedrock_description_param():
 @pytest.mark.asyncio
 async def test_bedrock_thinking_in_assistant_message(sync_mode):
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     if sync_mode:
         client = HTTPHandler()
@@ -2934,7 +2935,7 @@ async def test_bedrock_stream_thinking_content_openwebui():
 
 
 def test_bedrock_application_inference_profile():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     client = HTTPHandler()
     client2 = HTTPHandler()
@@ -3025,7 +3026,7 @@ async def test_bedrock_max_completion_tokens(model: str):
     Tests that:
     - max_completion_tokens is passed as max_tokens to bedrock models
     """
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     litellm.set_verbose = True
 
@@ -3062,8 +3063,8 @@ def test_bedrock_meta_llama_function_calling():
     Tests that:
     - meta llama models support function calling
     """
-    from litellm.utils import return_raw_request
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
 
     tools = [
         {
@@ -3111,7 +3112,7 @@ def test_bedrock_meta_llama_function_calling():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync_mode", [True, False])
 async def test_bedrock_passthrough(sync_mode: bool):
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm._turn_on_debug()
 
@@ -3160,8 +3161,8 @@ async def test_bedrock_passthrough_router():
     1. Resolves the router model name to the actual deployment
     2. Replaces the router model name in the endpoint with the actual deployment model
     """
-    import litellm
-    from litellm import Router
+    from token_iq import gateway as litellm
+    from token_iq.gateway import Router
 
     litellm._turn_on_debug()
 
@@ -3208,8 +3209,8 @@ async def test_bedrock_passthrough_router():
 
 @pytest.mark.asyncio
 async def test_bedrock_converse__streaming_passthrough(monkeypatch):
-    import litellm
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
     import asyncio
 
     if os.environ.get("LITELLM_RUN_LIVE_BEDROCK_PASSTHROUGH_TESTS") != "1":
@@ -3261,11 +3262,11 @@ async def test_bedrock_converse__streaming_passthrough(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_bedrock_streaming_passthrough_test2(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
     import time
     import asyncio
     from unittest.mock import MagicMock
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MockCustomLogger(CustomLogger):
         pass
@@ -3320,7 +3321,7 @@ def test_bedrock_openai_imported_model():
     2. The URL is correctly constructed for Bedrock invoke endpoint
     3. Messages with system, user roles and image_url content are preserved
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3419,7 +3420,7 @@ def test_bedrock_nova_provider_detection():
     Regression test for issue #17910 where models like "amazon.nova-pro-v1:0"
     were incorrectly identified as "amazon" (Titan) instead of "nova".
     """
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     # Test various Nova model formats
     nova_test_cases = [
@@ -3460,7 +3461,7 @@ def test_bedrock_openai_provider_detection():
     """
     Test that the OpenAI provider is correctly detected from model strings.
     """
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     # Test various OpenAI model formats
     test_cases = [
@@ -3480,7 +3481,7 @@ def test_bedrock_openai_model_id_extraction():
     """
     Test that the model ID (ARN) is correctly extracted and encoded for OpenAI models.
     """
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     model = (
         "openai/arn:aws:bedrock:us-east-1:123456789012:imported-model/test-model-123"
@@ -3498,7 +3499,7 @@ def test_bedrock_openai_model_id_extraction():
 
 
 def test_bedrock_openai_response_parsing():
-    from litellm.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
         AmazonBedrockOpenAIConfig,
     )
 
@@ -3545,7 +3546,7 @@ def test_bedrock_openai_request_transformation():
     """
     Test that the request is correctly transformed for OpenAI models.
     """
-    from litellm.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
         AmazonInvokeConfig,
     )
 
@@ -3593,7 +3594,7 @@ def test_bedrock_openai_parameter_filtering():
     """
     Test that only supported OpenAI parameters are included in the request.
     """
-    from litellm.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
         AmazonBedrockOpenAIConfig,
     )
 
@@ -3617,7 +3618,7 @@ def test_bedrock_openai_route_detection():
     """
     Test that the OpenAI route is correctly detected.
     """
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     test_cases = [
         ("openai/arn:aws:bedrock:us-east-1:123:imported-model/test", "openai"),
@@ -3634,7 +3635,7 @@ def test_bedrock_openai_explicit_route_check():
     """
     Test the explicit OpenAI route checker helper method.
     """
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     # Test with openai/ prefix
     assert (
@@ -3666,7 +3667,7 @@ def test_bedrock_openai_config_initialization():
     """
     Test that AmazonBedrockOpenAIConfig can be properly initialized.
     """
-    from litellm.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
         AmazonBedrockOpenAIConfig,
     )
 
@@ -3685,7 +3686,7 @@ def test_bedrock_openai_multiple_message_types():
     """
     Test that various message content types are handled correctly.
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3731,10 +3732,10 @@ def test_bedrock_openai_multiple_message_types():
 
 
 def test_bedrock_openai_error_handling():
-    from litellm.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
         AmazonBedrockOpenAIConfig,
     )
-    from litellm.llms.bedrock.common_utils import BedrockError
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 
     error = AmazonBedrockOpenAIConfig().get_error_class(
         error_message="ValidationException: bad request",
@@ -3763,7 +3764,7 @@ def test_bedrock_nova_grounding_web_search_options_non_streaming():
     Related: https://docs.aws.amazon.com/nova/latest/userguide/grounding.html
     """
     from unittest.mock import patch, MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3818,7 +3819,7 @@ def test_bedrock_nova_grounding_with_function_tools():
     custom function calling capabilities.
     """
     from unittest.mock import patch
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3902,7 +3903,7 @@ async def test_bedrock_nova_grounding_async():
     This test verifies the request transformation for async calls.
     """
     from unittest.mock import patch, AsyncMock
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     client = AsyncHTTPHandler()
 
@@ -3954,7 +3955,7 @@ def test_bedrock_nova_web_search_options_ignored_for_non_nova():
     Nova grounding is only supported on Nova models. For other models,
     the parameter should be silently ignored.
     """
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     config = AmazonConverseConfig()
 
@@ -3984,7 +3985,7 @@ def test_bedrock_nova_grounding_request_transformation():
     Unit test to verify that web_search_options transforms to systemTool in the request.
     """
     from unittest.mock import patch, MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 

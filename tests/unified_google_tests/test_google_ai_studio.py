@@ -2,7 +2,7 @@ from base_google_genai_proxy_sdk_test import BaseGoogleGenAIProxySDKTest
 from base_google_test import BaseGoogleGenAITest
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 import unittest.mock
 import json
 
@@ -24,7 +24,7 @@ class TestGoogleGenAIStudio(BaseGoogleGenAITest, BaseGoogleGenAIProxySDKTest):
 @pytest.mark.asyncio
 async def test_mock_stream_generate_content_with_tools():
     """Test streaming function call response parsing and validation"""
-    from litellm.types.google_genai.main import ToolConfigDict
+    from token_iq.gateway.types.google_genai.main import ToolConfigDict
 
     litellm._turn_on_debug()
     contents = [
@@ -71,7 +71,7 @@ async def test_mock_stream_generate_content_with_tools():
 
     # Mock the HTTP handler
     with unittest.mock.patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=unittest.mock.AsyncMock,
     ) as mock_post:
         # Create mock response object
@@ -273,7 +273,7 @@ async def test_validate_post_request_parameters():
         2. contents
         3. tools
     """
-    from litellm.types.google_genai.main import ToolConfigDict
+    from token_iq.gateway.types.google_genai.main import ToolConfigDict
 
     contents = [
         {
@@ -322,7 +322,7 @@ async def test_validate_post_request_parameters():
 
     # Mock the HTTP handler to capture the request
     with unittest.mock.patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=unittest.mock.AsyncMock,
     ) as mock_post:
         # Create mock response object

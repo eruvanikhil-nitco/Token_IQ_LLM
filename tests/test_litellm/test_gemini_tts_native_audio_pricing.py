@@ -5,9 +5,9 @@ from typing import Final
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.types.utils import CompletionTokensDetailsWrapper, PromptTokensDetailsWrapper, Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.types.utils import CompletionTokensDetailsWrapper, PromptTokensDetailsWrapper, Usage
 
 REPO_ROOT: Final = Path(__file__).parents[2]
 MAIN_PATH: Final = REPO_ROOT / "model_prices_and_context_window.json"

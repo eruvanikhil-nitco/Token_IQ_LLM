@@ -12,8 +12,8 @@ from click.testing import CliRunner
 
 
 # local imports
-from litellm.proxy.client.cli import cli
-from litellm.proxy.client.cli.commands.models import (
+from token_iq.gateway.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli.commands.models import (
     format_cost_per_1k_tokens,
     format_iso_datetime_str,
     format_timestamp,
@@ -23,7 +23,7 @@ from litellm.proxy.client.cli.commands.models import (
 @pytest.fixture
 def mock_client():
     """Fixture to create a mock client with common setup"""
-    with patch("litellm.proxy.client.cli.commands.models.Client") as MockClient:
+    with patch("token_iq.gateway.proxy.client.cli.commands.models.Client") as MockClient:
         yield MockClient
 
 

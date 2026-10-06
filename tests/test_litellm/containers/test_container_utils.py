@@ -2,15 +2,15 @@
 import pytest
 
 
-import litellm
-from litellm.containers.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.containers.utils import (
     ContainerRequestUtils,
     decode_managed_container_id_for_request,
 )
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.router import GenericLiteLLMParams
-from litellm.llms.openai.containers.transformation import OpenAIContainerConfig
-from litellm.types.containers.main import (
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
+from token_iq.gateway.types.containers.main import (
     ContainerCreateOptionalRequestParams,
     ContainerListOptionalRequestParams,
     DeleteContainerFileResponse,

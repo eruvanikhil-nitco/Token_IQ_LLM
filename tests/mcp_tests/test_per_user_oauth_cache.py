@@ -19,18 +19,18 @@ for _mod in ("orjson",):
     if _mod not in sys.modules:
         sys.modules[_mod] = MagicMock()
 
-from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (  # noqa: E402
+from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (  # noqa: E402
     MCPPerUserTokenCache,
     _compute_per_user_token_ttl,
     mcp_per_user_token_cache,
 )
-from litellm.types.mcp import MCPAuth, MCPTransport  # noqa: E402
-from litellm.types.mcp_server.mcp_server_manager import MCPServer  # noqa: E402
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport  # noqa: E402
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer  # noqa: E402
 
 
 def _import_validate():
     """Lazy import to avoid pulling orjson at collection time."""
-    from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
         _validate_token_response,
     )
 
@@ -230,7 +230,7 @@ class TestComputePerUserTokenTtl:
         assert ttl == 1
 
     def test_default_ttl_when_expires_in_none(self):
-        from litellm.constants import MCP_PER_USER_TOKEN_DEFAULT_TTL
+        from token_iq.gateway.constants import MCP_PER_USER_TOKEN_DEFAULT_TTL
 
         server = _make_server()
         ttl = _compute_per_user_token_ttl(server, expires_in=None)
@@ -263,9 +263,9 @@ class TestMCPPerUserTokenCache:
     async def test_get_returns_none_on_miss(self, cache, mock_dual_cache):
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper"
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper"
             ) as mock_decrypt,
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             mock_dual_cache.async_get_cache.return_value = None
             result = await cache.get("alice", "slack-test")
@@ -278,10 +278,10 @@ class TestMCPPerUserTokenCache:
         fake_plaintext = "xoxb-slack-token"
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper",
                 return_value=fake_plaintext,
             ) as mock_decrypt,
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             mock_dual_cache.async_get_cache.return_value = fake_encrypted
             result = await cache.get("alice", "slack-test")
@@ -298,10 +298,10 @@ class TestMCPPerUserTokenCache:
         fake_encrypted = "encrypted_blob_xyz"
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
                 return_value=fake_encrypted,
             ) as mock_encrypt,
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             await cache.set("alice", "slack-test", "xoxb-token", ttl=3540)
 
@@ -315,10 +315,10 @@ class TestMCPPerUserTokenCache:
     async def test_set_uses_correct_cache_key(self, cache, mock_dual_cache):
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
                 return_value="enc",
             ),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             await cache.set("bob", "github-server", "ghp_token", ttl=3600)
 
@@ -328,7 +328,7 @@ class TestMCPPerUserTokenCache:
     @pytest.mark.asyncio
     async def test_delete_calls_async_delete_cache(self, cache, mock_dual_cache):
         mock_dual_cache.async_delete_cache = AsyncMock()
-        with patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache):
+        with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache):
             await cache.delete("alice", "slack-test")
 
         mock_dual_cache.async_delete_cache.assert_called_once_with(
@@ -341,10 +341,10 @@ class TestMCPPerUserTokenCache:
         """Cache misses and decrypt errors should both return None without raising."""
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.decrypt_value_helper",
                 return_value=None,  # decrypt returns None on failure
             ),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             mock_dual_cache.async_get_cache.return_value = "bad_encrypted_data"
             result = await cache.get("alice", "slack-test")
@@ -357,10 +357,10 @@ class TestMCPPerUserTokenCache:
         mock_dual_cache.async_set_cache.side_effect = RuntimeError("Redis down")
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.encrypt_value_helper",
                 return_value="enc",
             ),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_dual_cache),
         ):
             # Should not raise
             await cache.set("alice", "slack-test", "token", ttl=3600)
@@ -387,7 +387,7 @@ class TestRefreshUserOauthToken:
 
     @pytest.mark.asyncio
     async def test_returns_none_when_no_refresh_token(self, server):
-        from litellm.proxy._experimental.mcp_server.db import refresh_user_oauth_token
+        from token_iq.gateway.proxy._experimental.mcp_server.db import refresh_user_oauth_token
 
         cred = {"type": "oauth2", "access_token": "OLD"}  # no refresh_token
         result = await refresh_user_oauth_token(
@@ -400,7 +400,7 @@ class TestRefreshUserOauthToken:
 
     @pytest.mark.asyncio
     async def test_returns_none_when_no_token_url(self, cred):
-        from litellm.proxy._experimental.mcp_server.db import refresh_user_oauth_token
+        from token_iq.gateway.proxy._experimental.mcp_server.db import refresh_user_oauth_token
 
         server = _make_server(token_url=None)
         result = await refresh_user_oauth_token(
@@ -413,13 +413,13 @@ class TestRefreshUserOauthToken:
 
     @pytest.mark.asyncio
     async def test_returns_none_on_http_error(self, server, cred):
-        from litellm.proxy._experimental.mcp_server.db import refresh_user_oauth_token
+        from token_iq.gateway.proxy._experimental.mcp_server.db import refresh_user_oauth_token
 
         mock_client = AsyncMock()
         mock_client.post.side_effect = Exception("Connection refused")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await refresh_user_oauth_token(
@@ -432,7 +432,7 @@ class TestRefreshUserOauthToken:
 
     @pytest.mark.asyncio
     async def test_stores_and_returns_new_credential(self, server, cred):
-        from litellm.proxy._experimental.mcp_server.db import refresh_user_oauth_token
+        from token_iq.gateway.proxy._experimental.mcp_server.db import refresh_user_oauth_token
 
         new_token_response = MagicMock()
         new_token_response.json.return_value = {
@@ -455,15 +455,15 @@ class TestRefreshUserOauthToken:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.get_async_httpx_client",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.store_user_oauth_credential",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.store_user_oauth_credential",
                 new_callable=AsyncMock,
             ) as mock_store,
             patch(
-                "litellm.proxy._experimental.mcp_server.db.get_user_oauth_credential",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.get_user_oauth_credential",
                 new_callable=AsyncMock,
                 return_value=stored_cred,
             ),
@@ -488,7 +488,7 @@ class TestRefreshUserOauthToken:
     @pytest.mark.asyncio
     async def test_falls_back_to_old_refresh_token_when_not_rotated(self, server, cred):
         """When provider doesn't return a new refresh_token, keep the old one."""
-        from litellm.proxy._experimental.mcp_server.db import refresh_user_oauth_token
+        from token_iq.gateway.proxy._experimental.mcp_server.db import refresh_user_oauth_token
 
         new_token_response = MagicMock()
         new_token_response.json.return_value = {
@@ -503,15 +503,15 @@ class TestRefreshUserOauthToken:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.get_async_httpx_client",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.store_user_oauth_credential",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.store_user_oauth_credential",
                 new_callable=AsyncMock,
             ) as mock_store,
             patch(
-                "litellm.proxy._experimental.mcp_server.db.get_user_oauth_credential",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.get_user_oauth_credential",
                 new_callable=AsyncMock,
                 return_value={"type": "oauth2", "access_token": "NEW_TOKEN"},
             ),

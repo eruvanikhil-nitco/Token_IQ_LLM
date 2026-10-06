@@ -14,13 +14,13 @@ import pytest
 from jinja2.exceptions import SecurityError
 from jinja2.sandbox import ImmutableSandboxedEnvironment
 
-from litellm.integrations.arize.arize_phoenix_prompt_manager import (
+from token_iq.gateway.integrations.arize.arize_phoenix_prompt_manager import (
     ArizePhoenixTemplateManager,
 )
-from litellm.integrations.bitbucket.bitbucket_prompt_manager import (
+from token_iq.gateway.integrations.bitbucket.bitbucket_prompt_manager import (
     BitBucketTemplateManager,
 )
-from litellm.integrations.gitlab.gitlab_prompt_manager import GitLabTemplateManager
+from token_iq.gateway.integrations.gitlab.gitlab_prompt_manager import GitLabTemplateManager
 
 # Classic Jinja2 SSTI payloads. Any one of these rendering as anything other
 # than the literal string (or raising) means the sandbox isn't engaged.
@@ -44,7 +44,7 @@ def _build_gitlab_manager() -> GitLabTemplateManager:
 
 def _build_bitbucket_manager(monkeypatch) -> BitBucketTemplateManager:
     # Stub the BitBucket client so we don't need network or real config.
-    from litellm.integrations.bitbucket import bitbucket_prompt_manager
+    from token_iq.gateway.integrations.bitbucket import bitbucket_prompt_manager
 
     monkeypatch.setattr(
         bitbucket_prompt_manager, "BitBucketClient", lambda *a, **kw: MagicMock()
@@ -56,7 +56,7 @@ def _build_bitbucket_manager(monkeypatch) -> BitBucketTemplateManager:
 
 
 def _build_arize_manager(monkeypatch) -> ArizePhoenixTemplateManager:
-    from litellm.integrations.arize import arize_phoenix_prompt_manager
+    from token_iq.gateway.integrations.arize import arize_phoenix_prompt_manager
 
     monkeypatch.setattr(
         arize_phoenix_prompt_manager, "ArizePhoenixClient", lambda *a, **kw: MagicMock()

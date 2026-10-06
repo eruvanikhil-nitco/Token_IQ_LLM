@@ -3,8 +3,8 @@ import pytest
 
 # Ensure the project root is on the import path
 
-from litellm import completion
-from litellm.types.utils import ModelResponse, Usage, Choices, Message
+from token_iq.gateway import completion
+from token_iq.gateway.types.utils import ModelResponse, Usage, Choices, Message
 
 
 def _has_api_key() -> bool:

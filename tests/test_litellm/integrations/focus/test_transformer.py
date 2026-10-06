@@ -7,7 +7,7 @@ from datetime import date
 
 import polars as pl
 
-from litellm.integrations.focus.transformer import FocusTransformer
+from token_iq.gateway.integrations.focus.transformer import FocusTransformer
 
 
 def test_should_include_organization_fields_in_tags():

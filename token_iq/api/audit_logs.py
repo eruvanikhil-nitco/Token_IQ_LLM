@@ -20,8 +20,8 @@ import fastapi
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.audit_log_diff import FieldChange, diff_snapshots, summarise
 
 router: Final = fastapi.APIRouter(tags=["audit"])
@@ -126,7 +126,7 @@ async def list_audit_logs(
     """
     if user_api_key_dict.user_role not in (LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
         raise HTTPException(status_code=403, detail={"error": "Only proxy admins can read the audit trail"})
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
         raise HTTPException(status_code=500, detail={"error": "No database connected"})

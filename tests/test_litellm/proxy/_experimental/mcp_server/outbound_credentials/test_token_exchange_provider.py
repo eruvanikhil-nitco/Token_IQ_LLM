@@ -8,17 +8,17 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchange_provider import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchange_provider import (
     _post_exchange_endpoint,
     build_token_exchanger,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
     OboTokenExchanger,
     SubjectTokenRejected,
     TokenExchangeClientError,
 )
 
-_HTTP_CLIENT = "litellm.llms.custom_httpx.http_handler.get_async_httpx_client"
+_HTTP_CLIENT = "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client"
 
 
 def _client_raising_4xx(body: object):

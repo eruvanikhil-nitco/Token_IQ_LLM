@@ -12,9 +12,9 @@ import pytest
 from typing import List, Literal, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Cache, Router
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import Cache, Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 # Test Scenarios (test across completion, streaming, embedding)
 ## 1: Pre-API-Call
@@ -763,7 +763,7 @@ async def test_rate_limit_error_callback():
 
     Relevant issue: https://github.com/BerriAI/litellm/issues/4096
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     customHandler = CompletionCustomHandler()
     litellm.callbacks = [customHandler]

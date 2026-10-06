@@ -4,11 +4,11 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from litellm.passthrough.main import allm_passthrough_route
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.utils import ProviderConfigManager
-from litellm.types.utils import LlmProviders
-from litellm.llms.vllm.passthrough.transformation import (
+from token_iq.gateway.passthrough.main import allm_passthrough_route
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.llms.vllm.passthrough.transformation import (
     VLLMPassthroughConfig,
 )
 
@@ -31,7 +31,7 @@ async def test_allm_passthrough_route_with_hosted_vllm_model_does_not_raise():
 
     # Mock the provider resolution to ensure we use hosted_vllm and provide api_base
     with patch(
-        "litellm.passthrough.main.get_llm_provider",
+        "token_iq.gateway.passthrough.main.get_llm_provider",
         return_value=(
             "my-deployment",  # normalized model name
             "hosted_vllm",  # provider

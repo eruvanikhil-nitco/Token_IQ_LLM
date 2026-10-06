@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.constants import LOGGING_WORKER_AGGRESSIVE_CLEAR_COOLDOWN_SECONDS
-from litellm.litellm_core_utils.logging_worker import LoggingWorker
+from token_iq.gateway.constants import LOGGING_WORKER_AGGRESSIVE_CLEAR_COOLDOWN_SECONDS
+from token_iq.gateway.core_utils.logging_worker import LoggingWorker
 
 
 class TestLoggingWorker:
@@ -196,7 +196,7 @@ class TestLoggingWorker:
         """Test that the worker handles cancellation without throwing exceptions."""
         # Mock verbose_logger to capture debug messages
         with patch(
-            "litellm.litellm_core_utils.logging_worker.verbose_logger"
+            "token_iq.gateway.core_utils.logging_worker.verbose_logger"
         ) as mock_logger:
             # Start the worker
             logging_worker.start()
@@ -265,7 +265,7 @@ class TestLoggingWorker:
 
         # Mock verbose_logger to capture exception messages
         with patch(
-            "litellm.litellm_core_utils.logging_worker.verbose_logger"
+            "token_iq.gateway.core_utils.logging_worker.verbose_logger"
         ) as mock_logger:
             # Fill the queue beyond capacity
             mock_coro = AsyncMock()

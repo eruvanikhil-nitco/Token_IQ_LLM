@@ -10,13 +10,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy import proxy_server
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.router_settings_endpoints import (
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.router_settings_endpoints import (
     get_router_settings,
 )
-from litellm.proxy.proxy_server import app
-from litellm.router import Router
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.router import Router
 
 client = TestClient(app)
 

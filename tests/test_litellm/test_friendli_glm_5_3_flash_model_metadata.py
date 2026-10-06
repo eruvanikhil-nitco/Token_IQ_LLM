@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 
 def test_friendli_glm_5_3_flash_model_info():

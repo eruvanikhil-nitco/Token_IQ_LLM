@@ -1,11 +1,11 @@
 import os
 
-import litellm
-from litellm.llms.vertex_ai.gemini.cost_calculator import cost_per_web_search_request
-from litellm.llms.vertex_ai.image_generation.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.gemini.cost_calculator import cost_per_web_search_request
+from token_iq.gateway.llms.vertex_ai.image_generation.cost_calculator import (
     cost_calculator as vertex_image_generation_cost_calculator,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ImageObject,
     ImageResponse,
     ImageUsage,

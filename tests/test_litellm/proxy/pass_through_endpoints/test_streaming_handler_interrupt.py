@@ -8,12 +8,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 
 
 def _make_streaming_response(chunks):
@@ -339,7 +339,7 @@ async def test_chunk_processor_does_not_reset_completion_start_time_on_later_chu
 @pytest.mark.asyncio
 async def test_chunk_processor_stamps_completion_start_time_on_cost_injection_path():
     """The cost-injection branch runs alongside a hot path; both must stamp TTFT."""
-    import litellm as litellm_mod
+    from token_iq import gateway as litellm_mod
 
     chunks = [b"event: message_start\ndata: {}\n\n"]
     response = _make_streaming_response(chunks)
@@ -536,8 +536,8 @@ async def test_chunk_processor_defers_logging_until_fire_when_armed():
     guardrail_information as null. With deferred dispatch armed, the completed
     stream must park the logging coroutine on logging_obj and only enqueue it
     when ProxyLogging._fire_deferred_stream_logging fires after the scan."""
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     chunks = [b"event-1", b"event-2"]
     response = _make_streaming_response(chunks)

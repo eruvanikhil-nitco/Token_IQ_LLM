@@ -9,12 +9,12 @@ import pytest
 import json
 from unittest.mock import patch, AsyncMock
 
-import litellm
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
     TOOL_CALLS_CACHE,
 )
-from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
 
 def test_fix_ensures_tool_calls_for_tool_results():

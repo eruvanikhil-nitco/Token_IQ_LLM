@@ -13,10 +13,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 
 class MockStreamingCallback(CustomLogger):

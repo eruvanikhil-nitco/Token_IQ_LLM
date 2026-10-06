@@ -7,24 +7,24 @@ from unittest.mock import AsyncMock, MagicMock, patch
 # Add project root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from litellm.proxy.auth.user_api_key_auth import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _resolve_jwt_to_virtual_key,
 )
-from litellm.proxy.auth.handle_jwt import JWTHandler
-from litellm.proxy._types import (
+from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
+from token_iq.gateway.proxy._types import (
     JWTKeyMappingResponse,
     LiteLLM_JWTAuth,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.jwt_key_mapping_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.jwt_key_mapping_endpoints import (
     _to_response,
     create_jwt_key_mapping,
     delete_jwt_key_mapping,
     info_jwt_key_mapping,
     update_jwt_key_mapping,
 )
-from litellm.caching.caching import DualCache
+from token_iq.gateway.caching.caching import DualCache
 from fastapi import HTTPException
 
 # ──────────────────────────────────────────────
@@ -60,7 +60,7 @@ async def test_jwt_to_virtual_key_mapping_resolution():
 
     # Use patch to mock get_key_object in the module where it's used
     with patch(
-        "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+        "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
         new_callable=AsyncMock,
     ) as mock_get_key:
         mock_get_key.return_value = mock_key_obj
@@ -106,7 +106,7 @@ async def test_jwt_to_virtual_key_mapping_no_mapping():
 
     # Mock get_key_object just in case
     with patch(
-        "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+        "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
         new_callable=AsyncMock,
     ):
         user_api_key_cache = DualCache()
@@ -299,7 +299,7 @@ def _mock_mapping(
 @pytest.mark.asyncio
 async def test_create_returns_409_on_unique_violation():
     """Duplicate mapping should return 409, not 500."""
-    from litellm.proxy._types import CreateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import CreateJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.create.side_effect = Exception(
@@ -314,8 +314,8 @@ async def test_create_returns_409_on_unique_violation():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await create_jwt_key_mapping(
@@ -328,7 +328,7 @@ async def test_create_returns_409_on_unique_violation():
 @pytest.mark.asyncio
 async def test_create_returns_400_on_foreign_key_violation():
     """Non-existent key should return 400, not 500."""
-    from litellm.proxy._types import CreateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import CreateJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.create.side_effect = Exception(
@@ -343,8 +343,8 @@ async def test_create_returns_400_on_foreign_key_violation():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await create_jwt_key_mapping(
@@ -357,7 +357,7 @@ async def test_create_returns_400_on_foreign_key_violation():
 @pytest.mark.asyncio
 async def test_create_non_admin_returns_403():
     """Non-admin users should get 403."""
-    from litellm.proxy._types import CreateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import CreateJWTKeyMappingRequest
 
     data = CreateJWTKeyMappingRequest(
         jwt_claim_name="email",
@@ -375,7 +375,7 @@ async def test_create_non_admin_returns_403():
 @pytest.mark.asyncio
 async def test_delete_returns_404_when_not_found():
     """Deleting non-existent mapping should return 404."""
-    from litellm.proxy._types import DeleteJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import DeleteJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.find_unique.return_value = None
@@ -384,8 +384,8 @@ async def test_delete_returns_404_when_not_found():
     data = DeleteJWTKeyMappingRequest(id="nonexistent-id")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await delete_jwt_key_mapping(
@@ -397,7 +397,7 @@ async def test_delete_returns_404_when_not_found():
 @pytest.mark.asyncio
 async def test_update_returns_404_when_not_found():
     """Updating non-existent mapping should return 404."""
-    from litellm.proxy._types import UpdateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import UpdateJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.find_unique.return_value = None
@@ -406,8 +406,8 @@ async def test_update_returns_404_when_not_found():
     data = UpdateJWTKeyMappingRequest(id="nonexistent-id", description="test")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await update_jwt_key_mapping(
@@ -423,7 +423,7 @@ async def test_update_returns_404_when_row_deleted_before_write():
     Prisma's update returns None when the row is gone, and the endpoint used to
     dereference it for the cache key.
     """
-    from litellm.proxy._types import UpdateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import UpdateJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.find_unique.return_value = _mock_mapping()
@@ -433,8 +433,8 @@ async def test_update_returns_404_when_row_deleted_before_write():
     data = UpdateJWTKeyMappingRequest(id="mapping-1", description="test")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
     ):
         with pytest.raises(HTTPException) as exc_info:
             await update_jwt_key_mapping(
@@ -450,7 +450,7 @@ async def test_info_returns_404_when_not_found():
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.find_unique.return_value = None
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         with pytest.raises(HTTPException) as exc_info:
             await info_jwt_key_mapping(
                 id="nonexistent-id", user_api_key_dict=_make_admin_auth()
@@ -461,7 +461,7 @@ async def test_info_returns_404_when_not_found():
 @pytest.mark.asyncio
 async def test_create_success_returns_response_without_token():
     """Successful create should return JWTKeyMappingResponse without hashed token."""
-    from litellm.proxy._types import CreateJWTKeyMappingRequest
+    from token_iq.gateway.proxy._types import CreateJWTKeyMappingRequest
 
     mock_prisma = _mock_prisma()
     mock_prisma.db.litellm_jwtkeymapping.create.return_value = _mock_mapping()
@@ -474,8 +474,8 @@ async def test_create_success_returns_response_without_token():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_cache),
     ):
         result = await create_jwt_key_mapping(
             data=data, user_api_key_dict=_make_admin_auth()
@@ -496,7 +496,7 @@ async def test_reject_behavior_raises_403_on_no_mapping():
     When unregistered_jwt_client_behavior='reject' and no mapping exists,
     _resolve_jwt_to_virtual_key must raise HTTP 403.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -511,7 +511,7 @@ async def test_reject_behavior_raises_403_on_no_mapping():
     user_api_key_cache = DualCache()
 
     with patch(
-        "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+        "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
         new_callable=AsyncMock,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -534,7 +534,7 @@ async def test_reject_behavior_caches_sentinel_after_db_miss():
     to cache so that subsequent rejected requests are served from cache and do
     not re-query the DB.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -550,7 +550,7 @@ async def test_reject_behavior_caches_sentinel_after_db_miss():
     user_api_key_cache = DualCache()
 
     with patch(
-        "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+        "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
         new_callable=AsyncMock,
     ):
         # First call — DB miss, should raise 403 and write sentinel
@@ -592,7 +592,7 @@ async def test_reject_behavior_raises_403_on_cached_no_mapping():
     When the negative-cache sentinel __NO_MAPPING__ is present and behavior is
     'reject', the function must also raise HTTP 403 (not return None silently).
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -610,7 +610,7 @@ async def test_reject_behavior_raises_403_on_cached_no_mapping():
     await user_api_key_cache.async_set_cache(cache_key, "__NO_MAPPING__")
 
     with patch(
-        "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+        "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
         new_callable=AsyncMock,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -637,8 +637,8 @@ async def test_auto_register_returns_pending_signal_without_creating_key():
     custom_validate, user_allowed_email_domain) FIRST. Creating the key here
     would bypass every JWT policy beyond signature verification.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
-    from litellm.proxy.auth.user_api_key_auth import _PendingAutoRegister
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _PendingAutoRegister
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -655,7 +655,7 @@ async def test_auto_register_returns_pending_signal_without_creating_key():
     user_api_key_cache = DualCache()
 
     with patch(
-        "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
         new_callable=AsyncMock,
     ) as mock_gen_key:
         result = await _resolve_jwt_to_virtual_key(
@@ -684,8 +684,8 @@ async def test_auto_register_creates_key_and_mapping_when_helper_invoked():
     returns a UserAPIKeyAuth. The mapping row stores the hashed token (FK to
     LiteLLM_VerificationToken), not the plaintext key.
     """
-    from litellm.proxy._types import hash_token
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy._types import hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -704,11 +704,11 @@ async def test_auto_register_creates_key_and_mapping_when_helper_invoked():
 
     with (
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_gen_key,
     ):
@@ -752,8 +752,8 @@ async def test_auto_register_returns_pending_signal_on_stale_no_mapping_sentinel
     caller can run auth_builder before creating the key) — not silently return
     None and not create the key on the spot.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
-    from litellm.proxy.auth.user_api_key_auth import _PendingAutoRegister
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _PendingAutoRegister
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -773,7 +773,7 @@ async def test_auto_register_returns_pending_signal_on_stale_no_mapping_sentinel
     )
 
     with patch(
-        "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
         new_callable=AsyncMock,
     ) as mock_gen_key:
         result = await _resolve_jwt_to_virtual_key(
@@ -806,8 +806,8 @@ async def test_auto_register_race_condition_unique_conflict():
       2) fall back to the winner's mapping,
       3) not surface an error.
     """
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
-    from litellm.proxy._types import UnregisteredJWTClientBehavior, hash_token
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior, hash_token
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -836,11 +836,11 @@ async def test_auto_register_race_condition_unique_conflict():
 
     with (
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value={"token": loser_plaintext, "key": loser_plaintext},
         ),
@@ -880,7 +880,7 @@ async def test_reject_behavior_enforced_when_prisma_client_is_none():
     When prisma_client is None and behavior is REJECT, a 403 must be raised —
     not silently fallen through to team auth.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -912,7 +912,7 @@ async def test_reject_raises_403_when_claim_field_missing_from_jwt():
     return None` branch ran before the policy check, letting a caller who knows
     the configured claim-field name silently fall through to team-based auth.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -944,7 +944,7 @@ async def test_auto_register_raises_403_when_claim_field_missing_from_jwt():
     silently falling through (which would bypass the unregistered-client policy)
     or creating a sentinel-keyed record.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -973,7 +973,7 @@ async def test_fallback_team_mapping_returns_none_when_claim_field_missing_from_
     without the configured claim field must still fall through to team-based
     JWT auth — not raise. This preserves the pre-existing contract.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -999,7 +999,7 @@ async def test_fallback_team_mapping_returns_none_when_prisma_client_is_none():
     When prisma_client is None and behavior is FALLBACK_TEAM_MAPPING, the
     function must return None (fall through to team auth) — not raise.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1025,7 +1025,7 @@ async def test_auto_register_raises_500_when_prisma_client_is_none():
     AUTO_REGISTER without a DB connection must raise HTTP 500 with a clear
     message — it cannot create keys without a database.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1055,7 +1055,7 @@ async def test_auto_register_raises_500_when_sentinel_cached_and_no_db():
     silently returned None and let the request fall through to team auth,
     creating different access-control outcomes under identical configuration.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1091,8 +1091,8 @@ async def test_auto_register_race_conflict_tolerates_delete_failure():
     (e.g. transient DB error), the request must still succeed by returning the
     winner's mapping — the orphan is unmapped and inert.
     """
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1120,11 +1120,11 @@ async def test_auto_register_race_conflict_tolerates_delete_failure():
 
     with (
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value={"token": "sk-loser", "key": "sk-loser"},
         ),
@@ -1157,8 +1157,8 @@ async def test_auto_register_raises_503_when_winner_mapping_vanishes():
     AUTO_REGISTER policy). Must now raise HTTP 503 so the caller retries
     rather than getting unintended fallback access.
     """
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1179,7 +1179,7 @@ async def test_auto_register_raises_503_when_winner_mapping_vanishes():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value={"token": "sk-loser", "key": "sk-loser"},
         ),
@@ -1211,7 +1211,7 @@ async def test_proxy_admin_sentinel_skips_db_lookup_on_cache_hit():
     would re-query get_jwt_key_mapping_object — a cache-miss regression
     introduced by the deferred-auto-register refactor.
     """
-    from litellm.proxy._types import UnregisteredJWTClientBehavior
+    from token_iq.gateway.proxy._types import UnregisteredJWTClientBehavior
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1260,7 +1260,7 @@ async def test_auto_register_helper_stamps_validated_identity_context():
     them — the cached future-request path then inherits the same team/user/org
     limits the auth_builder path would have applied.
     """
-    from litellm.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _auto_register_jwt_mapping
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
@@ -1276,11 +1276,11 @@ async def test_auto_register_helper_stamps_validated_identity_context():
 
     with (
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
         ) as mock_get_key,
         patch(
-            "litellm.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_gen_key,
     ):

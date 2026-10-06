@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 
-import litellm
-from litellm.exceptions import BadRequestError
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import BadRequestError
 
 from .grid_spec import (
     BUDGET_MODE_MAX_TOKENS,

@@ -8,12 +8,12 @@ from typing import NamedTuple
 import pytest
 
 
-import litellm
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.llms.bedrock.common_utils import BedrockModelInfo
-from litellm.utils import _get_model_info_helper
-from litellm.cost_calculator import completion_cost
-from litellm.types.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
+from token_iq.gateway.utils import _get_model_info_helper
+from token_iq.gateway.cost_calculator import completion_cost
+from token_iq.gateway.types.utils import (
     Choices,
     Message,
     ModelResponse,

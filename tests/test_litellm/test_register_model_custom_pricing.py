@@ -15,9 +15,9 @@ import os
 import pytest
 
 
-import litellm
-from litellm.main import _build_custom_pricing_entry
-from litellm.utils import _invalidate_model_cost_lowercase_map
+from token_iq import gateway as litellm
+from token_iq.gateway.main import _build_custom_pricing_entry
+from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
 
 def _snapshot_model_cost_entries(keys):
@@ -214,7 +214,7 @@ def test_register_model_strips_none_litellm_provider():
 
     Regression test for https://github.com/BerriAI/litellm/issues/28336.
     """
-    from litellm.utils import _check_provider_match
+    from token_iq.gateway.utils import _check_provider_match
 
     model_key = "test-custom-pricing-no-provider-28336"
     litellm.model_cost.pop(model_key, None)
@@ -257,8 +257,8 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
 
     Regression test for https://github.com/BerriAI/litellm/issues/28336.
     """
-    from litellm import utils as litellm_utils
-    from litellm.utils import _check_provider_match
+    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway.utils import _check_provider_match
 
     model_key = "test-strip-none-provider-from-get-model-info-28336"
     litellm.model_cost.pop(model_key, None)
@@ -330,8 +330,8 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
 
     Regression for the cache-pricing dropout under partial overrides.
     """
-    from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     original_model_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
@@ -396,7 +396,7 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
         litellm.model_cost.pop(registered_key, None)
         litellm.model_cost = original_model_cost
         os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
-        from litellm.utils import _invalidate_model_cost_lowercase_map
+        from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
         _invalidate_model_cost_lowercase_map()
 
@@ -409,7 +409,7 @@ def test_register_model_warns_when_no_builtin_match_for_cache_pricing(caplog):
     """
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     registered_key = "bedrock/totally-made-up-model-alias-xyz"
     litellm.model_cost.pop(registered_key, None)
@@ -442,7 +442,7 @@ def test_register_model_no_warning_without_custom_pricing(caplog):
     """
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     registered_key = "azure/lit6318-deployment-without-pricing"
     litellm.model_cost.pop(registered_key, None)
@@ -472,7 +472,7 @@ def test_register_model_no_warning_for_tiered_pricing_without_cache_costs(caplog
     """
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     registered_key = "bedrock/lit6318-tiered-priced-model"
     litellm.model_cost.pop(registered_key, None)
@@ -508,8 +508,8 @@ def test_router_deployment_without_custom_pricing_registers_silently(caplog):
     """
     import logging
 
-    from litellm import Router
-    from litellm._logging import verbose_logger
+    from token_iq.gateway import Router
+    from token_iq.gateway._logging import verbose_logger
 
     deployment_model = "azure/lit6318-my-deployment-name"
     deployment_id = "lit6318-no-pricing-deployment"
@@ -547,8 +547,8 @@ def test_router_custom_priced_deployment_warning_names_model_not_hash(caplog):
     """
     import logging
 
-    from litellm import Router
-    from litellm._logging import verbose_logger
+    from token_iq.gateway import Router
+    from token_iq.gateway._logging import verbose_logger
 
     deployment_model = "bedrock/lit6318-totally-made-up-model"
     deployment_id = "lit6318-custom-priced-deployment-hash"
@@ -587,7 +587,7 @@ def test_register_model_router_add_deployment_custom_pricing_applies():
     ``litellm_provider``. Cost calculation must still pick up the custom
     pricing instead of falling back to the default provider price.
     """
-    from litellm import Router
+    from token_iq.gateway import Router
 
     model_key = "router-add-deployment-custom-pricing-28336"
     deployment_model = f"openai/{model_key}"
@@ -613,7 +613,7 @@ def test_register_model_router_add_deployment_custom_pricing_applies():
         # ``add_deployment`` runs as part of ``Router.__init__``; the
         # registered entry must not block ``_check_provider_match`` for
         # the deployment's provider.
-        from litellm.utils import _check_provider_match
+        from token_iq.gateway.utils import _check_provider_match
 
         registered_keys = [
             k for k in (deployment_model, model_key) if k in litellm.model_cost
@@ -800,7 +800,7 @@ def test_update_dictionary_merges_nested_dicts_without_aliasing():
     object stays untouched, and the caller's incoming nested dict is never
     inserted by reference into the merged result.
     """
-    from litellm.utils import _update_dictionary
+    from token_iq.gateway.utils import _update_dictionary
 
     existing_nested = {"hours_utc": "01:00-02:00"}
     existing = {"off_peak_pricing": existing_nested}
@@ -831,7 +831,7 @@ def test_router_deployments_sharing_backend_keep_their_own_off_peak_pricing():
     deployment's registration merged its keys into that same object, corrupting
     the first deployment's schedule and polluting the built-in entry.
     """
-    from litellm import Router
+    from token_iq.gateway import Router
 
     active_block = {
         "windows": [{"hours_utc": "16:00-19:00", "weekdays": [2]}],
@@ -899,7 +899,7 @@ def test_router_off_peak_only_deployment_inherits_builtin_base_rates():
     inherited from the backend model's built-in cost map entry, since the
     shared backend key deliberately never carries the off-peak block.
     """
-    from litellm import Router
+    from token_iq.gateway import Router
 
     block = {
         "hours_utc": "00:00-00:00",
@@ -939,7 +939,7 @@ def test_router_off_peak_only_deployment_inherits_builtin_base_rates():
 
 
 def test_use_custom_pricing_for_model_sees_off_peak_only_model_info():
-    from litellm.litellm_core_utils.litellm_logging import use_custom_pricing_for_model
+    from token_iq.gateway.core_utils.litellm_logging import use_custom_pricing_for_model
 
     block = {"hours_utc": "00:00-00:00", "input_cost_per_token": 5e-05}
     assert use_custom_pricing_for_model({"metadata": {"model_info": {"off_peak_pricing": block}}}) is True
@@ -952,8 +952,8 @@ def test_completion_cost_applies_off_peak_only_deployment_pricing():
     a ``router_model_id`` whose entry carries only an always-on off-peak block,
     the request bills at the block's rates rather than the shared backend rate.
     """
-    from litellm import Router
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway import Router
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     block = {
         "hours_utc": "00:00-00:00",

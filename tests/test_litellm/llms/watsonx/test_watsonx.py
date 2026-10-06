@@ -5,9 +5,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 @pytest.fixture
@@ -320,7 +320,7 @@ async def test_watsonx_gpt_oss_uses_async_http_handler():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from litellm.litellm_core_utils.prompt_templates.huggingface_template_handler import (
+    from token_iq.gateway.core_utils.prompt_templates.huggingface_template_handler import (
         _aget_chat_template_file,
     )
 
@@ -337,7 +337,7 @@ async def test_watsonx_gpt_oss_uses_async_http_handler():
 
     # Test the async function directly
     with patch(
-        "litellm.litellm_core_utils.prompt_templates.huggingface_template_handler.get_async_httpx_client",
+        "token_iq.gateway.core_utils.prompt_templates.huggingface_template_handler.get_async_httpx_client",
         return_value=mock_async_client,
     ):
         result = await _aget_chat_template_file(hf_model_name="test/model")

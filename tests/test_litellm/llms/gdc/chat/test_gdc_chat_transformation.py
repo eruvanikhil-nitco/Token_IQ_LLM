@@ -4,8 +4,8 @@ import pytest
 
 # Adds the parent directory to the system path
 
-import litellm
-from litellm.llms.gdc.chat.transformation import GDCGeminiConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gdc.chat.transformation import GDCGeminiConfig
 
 TEST_API_KEY = '{"type": "gdch_service_account", "project_id": "test-project"}'
 TEST_MODEL = "gdc/gemini-2.5-flash"
@@ -684,9 +684,9 @@ class TestGDCGeminiConfig:
 
 
 class TestCompleteGDC:
-    @patch("litellm.main.base_llm_http_handler.completion")
+    @patch("token_iq.gateway.main.base_llm_http_handler.completion")
     def test_complete_gdc_resolves_key_and_base(self, mock_completion, monkeypatch):
-        from litellm.main import gdc_transformation
+        from token_iq.gateway.main import gdc_transformation
 
         mock_completion.return_value = MagicMock()
         monkeypatch.setattr(litellm, "gdc_key", "resolved-key", raising=False)
@@ -709,7 +709,7 @@ class TestCompleteGDC:
         assert kwargs["api_base"] == "https://resolved-base.com"
         assert kwargs["provider_config"] is gdc_transformation
 
-    @patch("litellm.main.base_llm_http_handler.completion")
+    @patch("token_iq.gateway.main.base_llm_http_handler.completion")
     def test_complete_gdc_prefers_gdc_api_base_over_global(
         self, mock_completion, monkeypatch
     ):

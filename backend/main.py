@@ -14,11 +14,11 @@ from fastapi.routing import Mount
 
 # See gateway/main.py for why we assemble DATABASE_URL(s) here before
 # importing proxy_server.
-from litellm.proxy.db.db_url_settings import DatabaseURLSettings
+from token_iq.gateway.proxy.db.db_url_settings import DatabaseURLSettings
 
 DatabaseURLSettings.from_env().apply_to_env()
 
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 from backend.routes.allowlist import (
     BACKEND_EXACT_PATHS,

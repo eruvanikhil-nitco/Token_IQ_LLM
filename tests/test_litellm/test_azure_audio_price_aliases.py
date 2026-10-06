@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 pytestmark = pytest.mark.usefixtures("local_model_cost_map")
 

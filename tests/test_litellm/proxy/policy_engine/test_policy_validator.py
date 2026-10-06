@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy.policy_engine.policy_validator import PolicyValidator
-from litellm.types.proxy.policy_engine import (
+from token_iq.gateway.proxy.policy_engine.policy_validator import PolicyValidator
+from token_iq.gateway.types.proxy.policy_engine import (
     Policy,
     PolicyGuardrails,
     PolicyValidationErrorType,

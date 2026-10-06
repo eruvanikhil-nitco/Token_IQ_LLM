@@ -1,4 +1,4 @@
-from litellm import completion, completion_cost
+from token_iq.gateway import completion, completion_cost
 import time
 import click
 from tqdm import tqdm

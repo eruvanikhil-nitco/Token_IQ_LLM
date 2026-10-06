@@ -7,7 +7,7 @@ doesn't corrupt the original default_deployment instance.
 
 
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 def test_default_deployment_isolation():

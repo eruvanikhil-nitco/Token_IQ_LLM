@@ -14,11 +14,11 @@ from unittest.mock import AsyncMock, patch, Mock, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm import completion, acompletion
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.llms.snowflake.chat.transformation import SnowflakeConfig
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, acompletion
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.snowflake.chat.transformation import SnowflakeConfig
+from token_iq.gateway.types.utils import ModelResponse
 
 
 class TestSnowflakeToolTransformation:
@@ -338,7 +338,7 @@ class TestSnowFlakeCompletion:
         "usage": {"prompt_tokens": 16, "completion_tokens": 18, "total_tokens": 34},
     }
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_snowflake_jwt_account_id(self, mock_post):
         mock_post().json.return_value = copy.deepcopy(self.response)
 
@@ -364,7 +364,7 @@ class TestSnowFlakeCompletion:
         # uses native endpoint
         assert post_kwargs["url"].endswith("cortex/v1/chat/completions")
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_snowflake_pat_key_account_id(self, mock_post):
         mock_post().json.return_value = copy.deepcopy(self.response)
 
@@ -388,7 +388,7 @@ class TestSnowFlakeCompletion:
         # account id was used
         assert "AAAA-BBBB" in post_kwargs["url"]
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_snowflake_env(self, mock_post):
         mock_post().json.return_value = copy.deepcopy(self.response)
 

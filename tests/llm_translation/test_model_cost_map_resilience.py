@@ -18,8 +18,8 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-import litellm
-from litellm.litellm_core_utils.get_model_cost_map import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_model_cost_map import (
     GetModelCostMap,
     get_model_cost_map,
 )

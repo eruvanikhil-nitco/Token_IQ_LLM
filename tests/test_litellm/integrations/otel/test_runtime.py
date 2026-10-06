@@ -9,7 +9,7 @@ import lock. These tests pin the import to a single resolution.
 
 import builtins
 
-import litellm.integrations.otel.runtime as runtime
+import token_iq.gateway.integrations.otel.runtime as runtime
 
 
 def test_logger_not_reimported_after_first_resolution(monkeypatch):

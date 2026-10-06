@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm import completion
-from litellm.llms.minimax.chat.transformation import MinimaxChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.minimax.chat.transformation import MinimaxChatConfig
 
 
 def test_minimax_chat_config():
@@ -84,7 +84,7 @@ def test_minimax_chat_config_url_variations():
 
 def test_minimax_provider_routing():
     """Test that minimax provider is properly routed"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     # Test with minimax/ prefix
     model, provider, api_key, api_base = get_llm_provider(
@@ -96,8 +96,8 @@ def test_minimax_provider_routing():
 
 def test_minimax_provider_config_manager():
     """Test that ProviderConfigManager returns MinimaxChatConfig"""
-    from litellm.types.utils import LlmProviders
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_chat_config(
         model="MiniMax-M2.1", provider=LlmProviders.MINIMAX

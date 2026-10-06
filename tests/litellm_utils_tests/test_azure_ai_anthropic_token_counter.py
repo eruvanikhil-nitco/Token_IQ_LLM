@@ -10,8 +10,8 @@ from typing import Any, Dict, List
 import pytest
 
 
-from litellm.llms.azure_ai.anthropic.count_tokens import AzureAIAnthropicTokenCounter
-from litellm.llms.base_llm.base_utils import BaseTokenCounter
+from token_iq.gateway.llms.azure_ai.anthropic.count_tokens import AzureAIAnthropicTokenCounter
+from token_iq.gateway.llms.base_llm.base_utils import BaseTokenCounter
 from tests.litellm_utils_tests.base_token_counter_test import BaseTokenCounterTest
 
 

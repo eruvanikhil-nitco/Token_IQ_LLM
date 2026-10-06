@@ -52,7 +52,7 @@ _CLAUDE_PLATFORM_ACTIONS = {
 def _captured_policy() -> dict:
     """Run _auth_with_web_identity_token under mocks + return the parsed
     Policy dict that was actually sent to STS."""
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     base = BaseAWSLLM()
 
@@ -70,7 +70,7 @@ def _captured_policy() -> dict:
     with (
         patch("boto3.client", return_value=mock_sts),
         patch(
-            "litellm.llms.bedrock.base_aws_llm.get_secret",
+            "token_iq.gateway.llms.bedrock.base_aws_llm.get_secret",
             return_value="oidc-jwt-token",
         ),
     ):
@@ -241,7 +241,7 @@ class TestInvalidIdentityTokenSurfacesAudience:
     )
 
     def _raise_invalid_identity_token(self) -> Exception:
-        from litellm.llms.bedrock.base_aws_llm import AwsAuthError, BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import AwsAuthError, BaseAWSLLM
 
         token = _make_jwt({"aud": self._AUD, "iss": self._ISS, "sub": "svc-account"})
 
@@ -260,7 +260,7 @@ class TestInvalidIdentityTokenSurfacesAudience:
         with (
             patch("boto3.client", return_value=mock_sts),
             patch(
-                "litellm.llms.bedrock.base_aws_llm.get_secret",
+                "token_iq.gateway.llms.bedrock.base_aws_llm.get_secret",
                 return_value=token,
             ),
             pytest.raises(AwsAuthError) as exc_info,

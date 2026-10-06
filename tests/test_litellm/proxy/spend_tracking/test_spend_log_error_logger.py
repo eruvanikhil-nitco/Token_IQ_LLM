@@ -16,8 +16,8 @@ import logging
 
 import pytest
 
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy.spend_tracking.spend_log_error_logger import (
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy.spend_tracking.spend_log_error_logger import (
     SUPPRESS_SPEND_LOG_TRACEBACKS_ENV,
     should_suppress_spend_log_tracebacks,
     spend_log_error,

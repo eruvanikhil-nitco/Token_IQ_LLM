@@ -4,12 +4,12 @@ Test Azure AI cost calculator, especially Model Router flat cost.
 
 import pytest
 
-from litellm.llms.azure_ai.cost_calculator import (
+from token_iq.gateway.llms.azure_ai.cost_calculator import (
     _is_azure_model_router,
     cost_per_token,
 )
-from litellm.types.utils import Usage
-from litellm.utils import get_model_info
+from token_iq.gateway.types.utils import Usage
+from token_iq.gateway.utils import get_model_info
 
 # Get the flat cost from model_prices_and_context_window.json
 _model_info = get_model_info(model="model_router", custom_llm_provider="azure_ai")
@@ -74,7 +74,7 @@ class TestAzureModelRouterPrefix:
         The pattern is: model_router/<deployment-name>
         where deployment-name is the Azure deployment (e.g., 'azure-model-router', 'prod-router')
         """
-        from litellm.llms.azure_ai.common_utils import AzureFoundryModelInfo
+        from token_iq.gateway.llms.azure_ai.common_utils import AzureFoundryModelInfo
 
         result = AzureFoundryModelInfo.strip_model_router_prefix(model)
         assert result == expected
@@ -252,7 +252,7 @@ class TestAzureModelRouterCostBreakdown:
 
     def test_flat_cost_calculation_helper(self):
         """Test that flat cost can be calculated using the helper function."""
-        from litellm.llms.azure_ai.cost_calculator import (
+        from token_iq.gateway.llms.azure_ai.cost_calculator import (
             calculate_azure_model_router_flat_cost,
         )
 
@@ -275,9 +275,9 @@ class TestAzureModelRouterCostBreakdown:
 
     def test_flat_cost_integration_with_completion_cost(self):
         """Test that flat cost is properly integrated into completion_cost calculation."""
-        import litellm
-        from litellm.cost_calculator import completion_cost
-        from litellm.types.utils import Choices, Message, ModelResponse, Usage
+        from token_iq import gateway as litellm
+        from token_iq.gateway.cost_calculator import completion_cost
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
         # Create a mock response for azure_ai model router
         response = ModelResponse(
@@ -328,9 +328,9 @@ class TestAzureModelRouterCostBreakdown:
         """Test that Azure Model Router flat cost appears in additional_costs dict."""
         from datetime import datetime
 
-        from litellm.cost_calculator import completion_cost
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.types.utils import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.cost_calculator import completion_cost
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
         # Create logging object with required parameters
         logging_obj = Logging(
@@ -401,9 +401,9 @@ class TestAzureModelRouterCostBreakdown:
         """additional_costs populated when response has actual model but request was via model router (hidden_params)."""
         from datetime import datetime
 
-        from litellm.cost_calculator import completion_cost
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.types.utils import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.cost_calculator import completion_cost
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
         logging_obj = Logging(
             model="gpt-4.1-nano-2025-04-14",
@@ -458,7 +458,7 @@ class TestAzureAIServiceTierCostCalculation:
 
     @pytest.fixture(autouse=True)
     def register_test_model(self):
-        import litellm
+        from token_iq import gateway as litellm
         litellm.register_model(model_cost={
             "test-azure-ai-model": {
                 "input_cost_per_token": 0.001,

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.db.db_transaction_queue.spend_logs_partition_manager import (
+from token_iq.gateway.proxy.db.db_transaction_queue.spend_logs_partition_manager import (
     SpendLogsPartitionManager,
     next_period_start,
     parse_partition_upper_bound,

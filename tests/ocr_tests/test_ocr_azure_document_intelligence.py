@@ -10,8 +10,8 @@ import os
 import pytest
 
 from base_ocr_unit_tests import BaseOCRTest
-from litellm.constants import AZURE_DOCUMENT_INTELLIGENCE_API_VERSION
-from litellm.llms.azure_ai.ocr.document_intelligence.transformation import (
+from token_iq.gateway.constants import AZURE_DOCUMENT_INTELLIGENCE_API_VERSION
+from token_iq.gateway.llms.azure_ai.ocr.document_intelligence.transformation import (
     AzureDocumentIntelligenceOCRConfig,
 )
 

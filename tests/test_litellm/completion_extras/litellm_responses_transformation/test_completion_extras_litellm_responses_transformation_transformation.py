@@ -8,8 +8,8 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.completion_extras.litellm_responses_transformation.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
     LiteLLMResponsesTransformationHandler,
 )
 
@@ -17,12 +17,12 @@ if TYPE_CHECKING:
     from openai.types.responses import ResponseOutputItem
     from openai.types.responses.response_reasoning_item import ResponseReasoningItem
 
-    from litellm.types.llms.openai import ResponsesAPIResponse
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_convert_chat_completion_messages_to_responses_api_image_input():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -72,7 +72,7 @@ def test_convert_chat_completion_messages_to_responses_api_tool_result_with_imag
     Responses API format:
         {"type": "input_image", "image_url": "data:image/png;base64,..."}
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -162,7 +162,7 @@ def test_convert_chat_completion_messages_to_responses_api_tool_result_with_text
     Responses API format should use input_text, not output_text:
         {"type": "function_call_output", "call_id": "call_abc123", "output": [{"type": "input_text", "text": "15 degrees"}]}
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -229,10 +229,10 @@ def test_convert_chat_completion_messages_to_responses_api_tool_result_with_text
 
 
 def test_openai_responses_chunk_parser_reasoning_summary():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
     iterator = OpenAiResponsesToChatCompletionStreamIterator(
         streaming_response=None, sync_stream=True
@@ -263,10 +263,10 @@ def test_openai_responses_chunk_parser_reasoning_summary():
 
 
 def test_chunk_parser_string_output_text_delta_produces_text():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway.types.utils import ModelResponseStream
 
     iterator = OpenAiResponsesToChatCompletionStreamIterator(
         streaming_response=None, sync_stream=True
@@ -285,11 +285,11 @@ def test_chunk_parser_string_output_text_delta_produces_text():
 
 
 def test_chunk_parser_enum_output_text_delta_produces_text():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
-    from litellm.types.llms.openai import ResponsesAPIStreamEvents
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
+    from token_iq.gateway.types.utils import ModelResponseStream
 
     iterator = OpenAiResponsesToChatCompletionStreamIterator(
         streaming_response=None, sync_stream=True
@@ -308,11 +308,11 @@ def test_chunk_parser_enum_output_text_delta_produces_text():
 
 
 def test_chunk_parser_function_call_added_produces_tool_use():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
-    from litellm.types.llms.openai import ResponsesAPIStreamEvents
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
+    from token_iq.gateway.types.utils import ModelResponseStream
 
     iterator = OpenAiResponsesToChatCompletionStreamIterator(
         streaming_response=None, sync_stream=True
@@ -349,16 +349,16 @@ def test_transform_response_with_reasoning_and_output():
         Summary,
     )
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
         ResponsesAPIResponse,
     )
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -515,7 +515,7 @@ and I learn to carry this small calm home."""
 
 
 def _make_empty_responses_api_response(model: str = "gpt-5.4"):
-    from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
     return ResponsesAPIResponse(
         id="resp_from_stream",
@@ -559,7 +559,7 @@ def _make_empty_responses_api_response(model: str = "gpt-5.4"):
 
 
 def _make_empty_model_response():
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     return ModelResponse(
         id="chatcmpl-test-recovered",
@@ -573,7 +573,7 @@ def _make_empty_model_response():
 
 
 def test_transform_response_recovers_empty_output_from_raw_sse():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -610,7 +610,7 @@ def test_transform_response_recovers_empty_output_from_raw_sse():
 
 
 def test_transform_response_recovers_output_item_done_from_raw_sse():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -647,7 +647,7 @@ def test_transform_response_recovers_output_item_done_from_raw_sse():
 
 
 def test_transform_response_recovers_output_item_done_from_whitespace_padded_raw_sse():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -712,7 +712,7 @@ def test_transform_response_recovers_output_item_done_from_whitespace_padded_raw
 
 
 def test_transform_response_preserves_output_item_when_text_done_arrives_later():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -753,7 +753,7 @@ def test_recover_output_items_merges_text_only_items_at_distinct_indices():
     """When OUTPUT_ITEM_DONE covers some indices and OUTPUT_TEXT_DONE covers
     others, both must be preserved instead of treating them as mutually
     exclusive fallbacks."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -780,7 +780,7 @@ def test_recover_output_items_merges_text_only_items_at_distinct_indices():
 
 
 def test_transform_response_prefers_completed_output_from_raw_sse():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -817,7 +817,7 @@ def test_transform_response_prefers_completed_output_from_raw_sse():
 
 
 def test_convert_tools_to_responses_format():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -832,7 +832,7 @@ def test_convert_tools_to_responses_format():
 
 def test_extract_extra_body_params_reasoning_effort_override():
     """Test that reasoning_effort from extra_body overrides top-level reasoning_effort"""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -908,7 +908,7 @@ def test_transform_request_single_char_keys_not_matched():
     - So "m" in ("metadata") returns True (character in string)
     - This caused single-char keys like "m", "e", "t", etc. to incorrectly match
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -982,7 +982,7 @@ def test_message_done_does_not_emit_is_finished():
     Before fix: message completion emitted is_finished=True, causing tool_calls
     that came after to be dropped.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1010,7 +1010,7 @@ def test_response_completed_emits_is_finished():
     Test that response.completed DOES emit is_finished=True.
     This ensures streaming ends properly after ALL output items are sent.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1041,7 +1041,7 @@ def test_response_completed_with_function_calls_emits_tool_calls_finish_reason()
     the finish_reason should be 'tool_calls' to signal the client that tools need
     to be executed.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1082,7 +1082,7 @@ def test_response_completed_with_message_only_emits_stop_finish_reason():
     """
     Test that response.completed with only message output (no function_call) emits finish_reason='stop'.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1126,7 +1126,7 @@ def test_response_completed_preserves_usage_with_cached_tokens():
     use the Responses API bridge (e.g. gpt-5.2-codex) would drop
     prompt_tokens_details, causing cached_tokens to always be None.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1182,7 +1182,7 @@ def test_function_call_done_emits_is_finished():
     Emitting finish_reason here would prematurely terminate the stream in multi-tool
     scenarios (same fix as #17246 for the message-type branch).
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1221,7 +1221,7 @@ def test_text_plus_tool_calls_sequence():
     Expected: is_finished=True should NOT appear until function_call is done,
     not when message is done.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -1308,7 +1308,7 @@ def test_tool_message_output_uses_input_text_not_output_text():
     The incorrect format caused OpenAI to reject with:
         "Invalid value: 'output_text'. Supported values are: 'input_text', 'input_image', and 'input_file'."
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -1382,16 +1382,16 @@ def test_multiple_tool_calls_in_single_choice():
 
     from openai.types.responses import ResponseFunctionToolCall
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
         ResponsesAPIResponse,
     )
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -1515,8 +1515,8 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
     When flag is enabled (flag=True or env var), summary="detailed" is added.
     """
 
-    import litellm
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -1587,7 +1587,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
 
         # Test 5: every REASONING_EFFORT level reaches the provider, and anything else (a typo, an
         # unshipped level, "default") is dropped so the request still succeeds at the provider default
-        from litellm.types.llms.openai import Reasoning
+        from token_iq.gateway.types.llms.openai import Reasoning
 
         for effort in ("max", "xhigh", "none"):
             result_passthrough = handler._map_reasoning_effort(effort)
@@ -1623,16 +1623,16 @@ def test_transform_response_preserves_annotations():
 
     from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
         ResponsesAPIResponse,
     )
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -1820,16 +1820,16 @@ def test_apply_patch_tool_call_converted_to_chat_completion_tool_call():
         ResponseApplyPatchToolCall,
     )
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
         ResponsesAPIResponse,
     )
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -1954,7 +1954,7 @@ def test_multi_tool_call_stream_no_premature_finish():
       response.output_item.done    (function_call: list_dir)    <- must NOT end stream
       response.completed           (response with 2 function_call outputs)  <- terminal
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2106,7 +2106,7 @@ def test_streaming_parallel_tool_calls_have_distinct_indices():
     Regression test for issue #21331 where all tool calls were emitted with
     index=0, making it impossible to distinguish parallel calls.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2216,7 +2216,7 @@ def test_parallel_tool_calls_comprehensive_streaming_integration():
     4. Exactly one finish event, at the final response.completed chunk
     5. Two parallel tool calls have distinct indices (output_index 0 and 1)
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2415,10 +2415,10 @@ def test_map_optional_params_preserves_reasoning_summary():
     Regression test for: User reported that summary field was being dropped
     when routing to Responses API. The dict format should be fully preserved.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -2447,7 +2447,7 @@ def test_map_optional_params_preserves_reasoning_summary():
 @pytest.mark.parametrize("reasoning_effort", ["max", "high"])
 def test_transform_request_bedrock_mantle_tools_keeps_reasoning_effort(monkeypatch, reasoning_effort):
     """Regression for reasoning_effort=max being dropped on the chat -> Responses bridge (issue #38084)."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -2472,10 +2472,10 @@ def test_transform_request_bedrock_mantle_tools_keeps_reasoning_effort(monkeypat
 
 def test_map_optional_params_tool_choice_chat_nested_to_responses_api():
     """Chat tool_choice must become Responses ToolChoiceFunction (top-level name)."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     handler = LiteLLMResponsesTransformationHandler()
     responses_api_request = ResponsesAPIOptionalRequestParams()
@@ -2523,7 +2523,7 @@ def test_map_optional_params_tool_choice_chat_nested_to_responses_api():
     ],
 )
 def test_normalize_tool_choice_for_responses_api(tool_choice, expected):
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -2538,7 +2538,7 @@ def test_convert_chat_completion_file_type_to_input_file():
 
     Regression test for https://github.com/BerriAI/litellm/issues/23588
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -2589,7 +2589,7 @@ def test_convert_chat_completion_file_type_with_file_id():
     """
     Test that Chat Completion content with type 'file' using file_id is correctly mapped.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -2641,16 +2641,16 @@ def test_reasoning_items_non_streaming_round_trip():
         Summary,
     )
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
         ResponsesAPIResponse,
     )
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     handler = LiteLLMResponsesTransformationHandler()
 
@@ -2803,7 +2803,7 @@ def test_reasoning_items_streaming_emitted_on_response_completed():
     on the delta of the response.completed chunk, enabling the caller to
     round-trip them in subsequent requests.
     """
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2873,7 +2873,7 @@ def test_streaming_function_call_tool_id_for_degenerate_call_id():
     streaming agents don't collapse every tool call to the same id (which makes the
     agent loop). A normal (unique) ``call_id`` must be preserved. Regression for the
     bedrock-mantle gpt-5.5 streaming path."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2906,7 +2906,7 @@ def test_streaming_chunks_share_one_chat_completion_id():
     so without a stream-scoped id each chunk got a new ``chatcmpl-<uuid>`` and clients
     that validate id consistency (openai-go's ChatCompletionAccumulator) silently
     dropped every chunk after the first. Regression for #32854."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -2950,7 +2950,7 @@ async def test_acompletion_bridge_normalizes_stream_options_on_the_wire(
     """include_usage must be stripped from the /v1/responses body; include_obfuscation must survive as a dict."""
     from unittest.mock import AsyncMock
 
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     responses_payload = {
         "id": "resp_bridge_stream_options",
@@ -3018,7 +3018,7 @@ def test_chunk_parser_custom_tool_call_stream_sequence():
     finish_reason="tool_calls". Before the fix every one of these events fell through
     to an empty-content chunk and the completed event said "stop", so Cursor never saw
     the tool call and agent mode stalled."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3098,7 +3098,7 @@ def test_chunk_parser_remaps_tool_call_indices_sequentially():
     own sequential indices for the same reason). The iterator must remap each distinct
     output_index to the next sequential slot and route argument deltas to the mapped
     slot."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3162,7 +3162,7 @@ def test_convert_response_output_custom_tool_call_to_tool_calls_choice():
     dropped, which left Cursor agent mode with an empty assistant message."""
     from openai.types.responses import ResponseCustomToolCall
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3191,7 +3191,7 @@ def test_convert_response_output_accumulates_raw_tool_calls_into_one_choice():
     call (the old raw-dict behavior) hid every call after choices[0] from chat
     clients, which read only the first choice; a multi-tool agent turn through the
     completion bridge lost all but one call."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3238,10 +3238,10 @@ def test_convert_response_output_generic_pydantic_message_item():
     raw-dict handler instead of dropping them; dropping them made transform_response
     raise 'Unknown items in responses API response' on an otherwise-successful
     completion (hit live via /cursor/chat/completions multi-turn tool round trips)."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
-    from litellm.types.responses.main import GenericResponseOutputItem, OutputText
+    from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
 
     handler = LiteLLMResponsesTransformationHandler()
     item = GenericResponseOutputItem(
@@ -3263,7 +3263,7 @@ def test_convert_response_output_generic_pydantic_message_item():
 
 
 def test_convert_tools_to_responses_format_flattens_nested_custom_tool():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3287,7 +3287,7 @@ def test_convert_tools_to_responses_format_flattens_nested_custom_tool():
 
 
 def test_convert_tools_to_responses_format_flattens_custom_tool_without_optional_keys():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3297,7 +3297,7 @@ def test_convert_tools_to_responses_format_flattens_custom_tool_without_optional
 
 
 def test_convert_tools_to_responses_format_unwraps_nested_grammar_format():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3324,7 +3324,7 @@ def test_convert_tools_to_responses_format_unwraps_nested_grammar_format():
 
 
 def test_convert_tools_to_responses_format_text_format_passes_through():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3336,7 +3336,7 @@ def test_convert_tools_to_responses_format_text_format_passes_through():
 
 
 def test_convert_chat_completion_messages_maps_custom_tool_call_history():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3381,7 +3381,7 @@ def test_convert_chat_completion_messages_maps_custom_tool_call_history():
 def test_convert_chat_completion_messages_still_rejects_unknown_tool_call_shape():
     import pytest
 
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 
@@ -3393,7 +3393,7 @@ def test_convert_chat_completion_messages_still_rejects_unknown_tool_call_shape(
 
 
 def test_output_item_done_stateless_emits_complete_tool_call():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3422,7 +3422,7 @@ def test_output_item_done_stateless_emits_complete_tool_call():
 
 
 def test_output_item_done_with_stream_map_keeps_empty_delta():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3456,7 +3456,7 @@ async def test_acompletion_bridge_normalizes_tool_choice_on_the_wire(
     """Object-wrapped tool_choice must never reach /v1/responses."""
     from unittest.mock import AsyncMock
 
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     responses_payload = {
         "id": "resp_bridge_tool_choice",
@@ -3527,7 +3527,7 @@ def _make_incomplete_responses_api_response(
     status: Literal["completed", "incomplete"] = "incomplete",
     empty_incomplete_details: bool = False,
 ) -> "ResponsesAPIResponse":
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
         OutputTokensDetails,
         ResponseAPIUsage,
@@ -3711,7 +3711,7 @@ def test_transform_response_incomplete_partial_text_overrides_finish_reason_to_l
 
 
 def test_response_incomplete_stream_event_emits_length_and_usage():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3754,7 +3754,7 @@ def test_response_incomplete_stream_event_emits_length_and_usage():
 
 
 def test_response_incomplete_stream_event_content_filter_maps_finish_reason():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3778,7 +3778,7 @@ def test_response_incomplete_stream_event_content_filter_maps_finish_reason():
 
 
 def test_response_incomplete_stream_event_without_details_defaults_to_length():
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         OpenAiResponsesToChatCompletionStreamIterator,
     )
 
@@ -3907,7 +3907,7 @@ def test_stored_reasoning_items_win_over_thinking_blocks():
 
 def test_convert_chat_completion_messages_to_responses_api_tool_result_with_tool_reference():
     """Tool-search tool_reference blocks have no Responses API equivalent: skip them, never stringify them."""
-    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+    from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
 

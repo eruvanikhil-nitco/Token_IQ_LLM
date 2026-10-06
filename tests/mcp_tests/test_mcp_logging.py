@@ -8,19 +8,19 @@ from typing import Optional
 from unittest.mock import AsyncMock, patch
 
 
-import litellm
-from litellm.types.utils import StandardLoggingPayload
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._experimental.mcp_server.server import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._experimental.mcp_server.server import (
     mcp_server_tool_call,
     set_auth_context,
 )
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
     MCPServerManager,
 )
-from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
-from litellm.types.mcp import MCPPostCallResponseObject
-from litellm.types.utils import HiddenParams
+from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+from token_iq.gateway.types.mcp import MCPPostCallResponseObject
+from token_iq.gateway.types.utils import HiddenParams
 from mcp.types import Tool as MCPTool, CallToolResult, TextContent
 
 
@@ -89,7 +89,7 @@ async def test_mcp_cost_tracking():
     local_mcp_server_manager = MCPServerManager()
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
         mock_client_constructor,
     ):
         # Load the server config
@@ -116,11 +116,11 @@ async def test_mcp_cost_tracking():
         # Patch the global manager in both modules where it's used
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
         ):
@@ -222,7 +222,7 @@ async def test_mcp_cost_tracking_per_tool():
     local_mcp_server_manager = MCPServerManager()
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
         mock_client_constructor,
     ):
         # Load the server config with per-tool costs
@@ -267,11 +267,11 @@ async def test_mcp_cost_tracking_per_tool():
         # Patch the global manager in both modules where it's used
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
         ):
@@ -395,7 +395,7 @@ async def test_mcp_tool_call_hook():
     local_mcp_server_manager = MCPServerManager()
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient",
         mock_client_constructor,
     ):
         # Load the server config
@@ -425,11 +425,11 @@ async def test_mcp_tool_call_hook():
         # Patch the global manager in both modules where it's used
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager",
                 local_mcp_server_manager,
             ),
         ):
@@ -466,7 +466,7 @@ async def test_mcp_tool_call_hook():
 _QUEUED_LOGGING_OUTLIVES_TEST = '''
 import time
 
-from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
 ran_at = []
 

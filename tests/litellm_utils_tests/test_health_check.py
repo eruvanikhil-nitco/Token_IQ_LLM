@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import asyncio
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -249,7 +249,7 @@ def test_update_litellm_params_for_health_check():
     2. Updates model name when health_check_model is provided
     3. Updates voice when health_check_voice is provided for audio_speech mode
     """
-    from litellm.proxy.health_check import _update_litellm_params_for_health_check
+    from token_iq.gateway.proxy.health_check import _update_litellm_params_for_health_check
 
     # Test with health_check_model
     model_info = {"health_check_model": "gpt-5-mini"}
@@ -449,7 +449,7 @@ async def test_perform_health_check_filters_by_model_id():
     When model_id is passed, only that deployment is checked (not all deployments
     that share the same model name).
     """
-    from litellm.proxy.health_check import perform_health_check
+    from token_iq.gateway.proxy.health_check import perform_health_check
 
     # Two deployments with same model_name but different ids
     model_list = [
@@ -476,7 +476,7 @@ async def test_perform_health_check_filters_by_model_id():
         )
 
     with patch(
-        "litellm.proxy.health_check._perform_health_check",
+        "token_iq.gateway.proxy.health_check._perform_health_check",
         side_effect=mock_perform_health_check,
     ):
         healthy_endpoints, unhealthy_endpoints, _ = await perform_health_check(
@@ -493,7 +493,7 @@ async def test_perform_health_check_filters_by_model_id():
 
 @pytest.mark.asyncio
 async def test_perform_health_check_skip_disabled_background_models():
-    from litellm.proxy.health_check import perform_health_check
+    from token_iq.gateway.proxy.health_check import perform_health_check
 
     model_list = [
         {
@@ -517,7 +517,7 @@ async def test_perform_health_check_skip_disabled_background_models():
         return [], [], {}
 
     with patch(
-        "litellm.proxy.health_check._perform_health_check",
+        "token_iq.gateway.proxy.health_check._perform_health_check",
         side_effect=mock_inner,
     ):
         await perform_health_check(
@@ -537,7 +537,7 @@ async def test_perform_health_check_with_health_check_model():
     1. Verifies that health_check_model overrides the original model when model=`openai/*`
     2. Ensures the health check is performed with the override model
     """
-    from litellm.proxy.health_check import _perform_health_check
+    from token_iq.gateway.proxy.health_check import _perform_health_check
 
     # Mock model list with health_check_model specified
     model_list = [
@@ -557,7 +557,7 @@ async def test_perform_health_check_with_health_check_model():
         health_check_calls.append(litellm_params["model"])
         return {"status": "healthy"}
 
-    with patch("litellm.ahealth_check", side_effect=mock_health_check):
+    with patch("token_iq.gateway.ahealth_check", side_effect=mock_health_check):
         healthy_endpoints, unhealthy_endpoints, _ = await _perform_health_check(
             model_list
         )
@@ -574,7 +574,7 @@ async def test_perform_health_check_with_health_check_model():
 
 @pytest.mark.asyncio
 async def test_health_check_bad_model():
-    from litellm.proxy.health_check import _perform_health_check
+    from token_iq.gateway.proxy.health_check import _perform_health_check
     import time
 
     model_list = [
@@ -610,7 +610,7 @@ async def test_health_check_bad_model():
         return {"status": "healthy"}
 
     with patch(
-        "litellm.ahealth_check", side_effect=mock_health_check
+        "token_iq.gateway.ahealth_check", side_effect=mock_health_check
     ) as mock_health_check:
         start_time = time.time()
         healthy_endpoints, unhealthy_endpoints, _ = await _perform_health_check(
@@ -627,7 +627,7 @@ async def test_health_check_bad_model():
 
 @pytest.mark.asyncio
 async def test_health_check_respects_concurrency_limit():
-    from litellm.proxy.health_check import _perform_health_check
+    from token_iq.gateway.proxy.health_check import _perform_health_check
 
     model_list = [
         {"litellm_params": {"model": f"openai/gpt-4o-mini-{i}", "api_key": "fake-key"}}
@@ -645,7 +645,7 @@ async def test_health_check_respects_concurrency_limit():
         active -= 1
         return {"status": "healthy"}
 
-    with patch("litellm.ahealth_check", side_effect=mock_health_check):
+    with patch("token_iq.gateway.ahealth_check", side_effect=mock_health_check):
         await _perform_health_check(model_list, max_concurrency=2)
 
     assert max_active <= 2
@@ -653,7 +653,7 @@ async def test_health_check_respects_concurrency_limit():
 
 @pytest.mark.asyncio
 async def test_health_check_creates_only_bounded_initial_tasks():
-    from litellm.proxy.health_check import _perform_health_check
+    from token_iq.gateway.proxy.health_check import _perform_health_check
 
     model_list = [
         {"litellm_params": {"model": f"openai/gpt-4o-mini-{i}", "api_key": "fake-key"}}
@@ -673,9 +673,9 @@ async def test_health_check_creates_only_bounded_initial_tasks():
         return real_create_task(coro)
 
     with (
-        patch("litellm.ahealth_check", side_effect=mock_health_check),
+        patch("token_iq.gateway.ahealth_check", side_effect=mock_health_check),
         patch(
-            "litellm.proxy.health_check.asyncio.create_task",
+            "token_iq.gateway.proxy.health_check.asyncio.create_task",
             side_effect=tracked_create_task,
         ),
     ):
@@ -690,7 +690,7 @@ async def test_health_check_creates_only_bounded_initial_tasks():
 
 @pytest.mark.asyncio
 async def test_timeout_does_not_cancel_other_health_checks():
-    from litellm.proxy.health_check import _perform_health_check
+    from token_iq.gateway.proxy.health_check import _perform_health_check
 
     model_list = [
         {
@@ -710,7 +710,7 @@ async def test_timeout_does_not_cancel_other_health_checks():
         await asyncio.sleep(0.01)
         return {"status": "healthy"}
 
-    with patch("litellm.ahealth_check", side_effect=mock_health_check):
+    with patch("token_iq.gateway.ahealth_check", side_effect=mock_health_check):
         healthy_endpoints, unhealthy_endpoints, _ = await _perform_health_check(
             model_list, max_concurrency=1
         )
@@ -741,8 +741,8 @@ async def test_image_generation_health_check_prompt(monkeypatch):
     """Health checks should respect default and environment-configured prompts."""
 
     import importlib
-    import litellm.constants as litellm_constants
-    import litellm.proxy.health_check as health_check
+    import token_iq.gateway.constants as litellm_constants
+    import token_iq.gateway.proxy.health_check as health_check
 
     def reload_modules():
         reloaded_constants = importlib.reload(litellm_constants)
@@ -772,7 +772,7 @@ async def test_image_generation_health_check_prompt(monkeypatch):
         ]
 
         with patch(
-            "litellm.proxy.health_check.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_check.litellm.ahealth_check",
             side_effect=mock_health_check,
         ):
             await health_check_module._perform_health_check(model_list)
@@ -817,7 +817,7 @@ async def test_health_check_with_custom_llm_provider():
     mock_response = MagicMock()
     mock_response._hidden_params = {"headers": {"x-ratelimit-remaining-tokens": "1000"}}
 
-    with patch("litellm.acompletion", return_value=mock_response):
+    with patch("token_iq.gateway.acompletion", return_value=mock_response):
         # Test with a custom model name that wouldn't be recognized without custom_llm_provider
         response = await litellm.ahealth_check(
             model_params={

@@ -18,8 +18,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.seats import (
     SeatBody,
     SeatDeletedResponse,
@@ -154,7 +154,7 @@ async def _costs_for(prisma_client: object, *, start: datetime, end: datetime, c
 @router.get("/seats", response_model=SeatListResponse)
 async def list_seats(user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth)) -> SeatListResponse:
     """Every subscription an admin has entered."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -170,7 +170,7 @@ async def upsert_seat(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> SeatResponse:
     """Assign a subscription to a person for a period, or correct the one already there."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     start: Final = _day_or_400(body.period_start, "period_start")
@@ -206,7 +206,7 @@ async def delete_seat(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> SeatDeletedResponse:
     """Remove a subscription, after which it stops counting toward that person's cost."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -226,7 +226,7 @@ async def all_user_costs(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> UserCostListResponse:
     """What every person cost over the period. Admin only, because it is everyone's cost."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     start: Final = _day_or_400(period_start, "period_start")
@@ -256,7 +256,7 @@ async def user_cost(
     A person with no gateway traffic and no subscription still gets an answer, with zeroes,
     rather than a 404: "you cost nothing this month" is a fact, and a missing page is not.
     """
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _self_or_admin_or_403(user_api_key_dict, user_id)
     start: Final = _day_or_400(period_start, "period_start")

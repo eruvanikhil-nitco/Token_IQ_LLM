@@ -8,8 +8,8 @@ Regression tests for the /v1/messages request-parse fast paths:
 
 import pytest
 
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.messages.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.utils import (
     AnthropicMessagesRequestUtils,
     _anthropic_messages_optional_param_keys,
 )

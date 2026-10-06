@@ -13,12 +13,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-import litellm.proxy.proxy_server
-import litellm.utils
-from litellm import Router
-from litellm.proxy._types import TokenCountRequest
-from litellm.proxy.proxy_server import token_counter
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server
+from token_iq import gateway as litellm
+import token_iq.gateway.utils
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.proxy._types import TokenCountRequest
+from token_iq.gateway.proxy.proxy_server import token_counter
 
 
 def _fake_hf_tokenizer(num_tokens: int) -> MagicMock:

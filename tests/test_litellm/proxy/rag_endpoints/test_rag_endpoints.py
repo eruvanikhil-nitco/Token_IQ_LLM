@@ -12,9 +12,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.fixture
@@ -82,7 +82,7 @@ def test_internal_user_viewer_rag_ingest_with_vector_store_id_passes_check(
     (Actual ingest may fail due to missing API keys, but we get past 403.)
     """
     with patch(
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aingest",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aingest",
         new_callable=AsyncMock,
         return_value={"vector_store_id": "vs_existing", "file_id": "file_123"},
     ):
@@ -106,7 +106,7 @@ def test_internal_user_rag_ingest_without_vector_store_id_allowed(client_interna
     internal_user can create new vector stores (no vector_store_id required).
     """
     with patch(
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aingest",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aingest",
         new_callable=AsyncMock,
         return_value={"vector_store_id": "vs_new", "file_id": "file_123"},
     ):
@@ -221,7 +221,7 @@ class TestRagIngestSSRFBlocked:
 
     def test_clean_bedrock_ingest_options_not_rejected(self, client_internal_user):
         with patch(
-            "litellm.proxy.rag_endpoints.endpoints.litellm.aingest",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aingest",
             new_callable=AsyncMock,
             return_value={"vector_store_id": "vs_bedrock", "file_id": "file_123"},
         ):
@@ -244,7 +244,7 @@ def test_rag_query_returns_response_cost_header(client_internal_user):
     /v1/rag/query must surface the completion cost via the
     x-litellm-response-cost response header, like /v1/chat/completions does.
     """
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     mock_response = ModelResponse(
         id="chatcmpl-test",
@@ -261,11 +261,11 @@ def test_rag_query_returns_response_cost_header(client_internal_user):
     mock_response._hidden_params["response_cost"] = 3.45e-06
 
     with patch(
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aquery",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
         new_callable=AsyncMock,
         return_value=mock_response,
-    ), patch("litellm.vector_store_registry", None), patch(
-        "litellm.proxy.proxy_server.prisma_client", None
+    ), patch("token_iq.gateway.vector_store_registry", None), patch(
+        "token_iq.gateway.proxy.proxy_server.prisma_client", None
     ):
         response = client_internal_user.post(
             "/v1/rag/query",
@@ -290,7 +290,7 @@ def test_rag_query_stream_returns_event_stream(client_internal_user):
     every streaming RAG query into a 500; the stream then never drains, so its
     single billing event (which carries the folded sub-call costs) never fires.
     """
-    import litellm as litellm_module
+    from token_iq import gateway as litellm_module
 
     async def fake_aquery(**kwargs):
         return await litellm_module.acompletion(
@@ -302,9 +302,9 @@ def test_rag_query_stream_returns_event_stream(client_internal_user):
         )
 
     with patch(
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aquery",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
         new=AsyncMock(side_effect=fake_aquery),
-    ), patch("litellm.vector_store_registry", None), patch("litellm.proxy.proxy_server.prisma_client", None):
+    ), patch("token_iq.gateway.vector_store_registry", None), patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         response = client_internal_user.post(
             "/v1/rag/query",
             json={
@@ -332,8 +332,8 @@ def test_rag_query_merges_managed_store_params(client_internal_user):
     retrieval_config. Pre-fix the registry was never read, so managed S3
     Vectors stores failed with "aws_region_name is required".
     """
-    import litellm
-    from litellm.types.utils import ModelResponse
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.utils import ModelResponse
 
     mock_vector_store = {
         "vector_store_id": "s3-store",
@@ -354,11 +354,11 @@ def test_rag_query_merges_managed_store_params(client_internal_user):
     )
 
     with patch(  # test-quality-ok: aquery is the endpoint's downstream boundary; the forwarded config is what the test asserts
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aquery",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
         new_callable=AsyncMock,
         return_value=mock_response,
     ) as mock_aquery, patch.object(litellm, "vector_store_registry", mock_registry), patch(  # test-quality-ok: seeds the managed-store registry the merge under test reads and grants access so real store resolution runs
-        "litellm.proxy.vector_store_endpoints.utils.can_user_access_vector_store",
+        "token_iq.gateway.proxy.vector_store_endpoints.utils.can_user_access_vector_store",
         new=AsyncMock(return_value=True),
     ):
         response = client_internal_user.post(
@@ -382,8 +382,8 @@ def test_rag_query_merges_managed_store_params(client_internal_user):
 
 def test_rag_query_store_params_win_over_user_retrieval_config(client_internal_user):
     """Registry values must win over user-supplied retrieval_config keys so callers cannot override store credentials."""
-    import litellm
-    from litellm.types.utils import ModelResponse
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.utils import ModelResponse
 
     mock_vector_store = {
         "vector_store_id": "s3-store",
@@ -400,11 +400,11 @@ def test_rag_query_store_params_win_over_user_retrieval_config(client_internal_u
     )
 
     with patch(  # test-quality-ok: aquery is the endpoint's downstream boundary; the forwarded config is what the test asserts
-        "litellm.proxy.rag_endpoints.endpoints.litellm.aquery",
+        "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
         new_callable=AsyncMock,
         return_value=mock_response,
     ) as mock_aquery, patch.object(litellm, "vector_store_registry", mock_registry), patch(  # test-quality-ok: seeds the managed-store registry the merge under test reads and grants access so real store resolution runs
-        "litellm.proxy.vector_store_endpoints.utils.can_user_access_vector_store",
+        "token_iq.gateway.proxy.vector_store_endpoints.utils.can_user_access_vector_store",
         new=AsyncMock(return_value=True),
     ):
         response = client_internal_user.post(
@@ -514,8 +514,8 @@ class TestVectorStoreUploadControls:
         assert response.json()["detail"]["reason"] == "archive_not_allowed"
 
     async def test_clean_text_upload_gets_server_generated_filename(self):
-        from litellm.proxy.rag_endpoints.endpoints import parse_rag_ingest_request
-        from litellm.proxy.rag_endpoints.upload_security import EicarTestMalwareScanner
+        from token_iq.gateway.proxy.rag_endpoints.endpoints import parse_rag_ingest_request
+        from token_iq.gateway.proxy.rag_endpoints.upload_security import EicarTestMalwareScanner
 
         request = _multipart_ingest_request(
             filename="../../etc/passwd",

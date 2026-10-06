@@ -5,9 +5,9 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 
-import litellm
-from litellm import completion
-from litellm.utils import get_optional_params
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.utils import get_optional_params
 
 
 class TestPerplexityReasoning:
@@ -140,7 +140,7 @@ class TestPerplexityReasoning:
         """
         Test that Perplexity Sonar reasoning models are correctly identified as supporting reasoning
         """
-        from litellm.utils import supports_reasoning
+        from token_iq.gateway.utils import supports_reasoning
 
         # Set up local model cost map
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
@@ -158,7 +158,7 @@ class TestPerplexityReasoning:
         """
         Test that non-reasoning Perplexity models don't support reasoning
         """
-        from litellm.utils import supports_reasoning
+        from token_iq.gateway.utils import supports_reasoning
 
         # Set up local model cost map
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
@@ -194,7 +194,7 @@ class TestPerplexityReasoning:
         """
         Test that Perplexity reasoning models use the correct API base
         """
-        from litellm.llms.perplexity.chat.transformation import PerplexityChatConfig
+        from token_iq.gateway.llms.perplexity.chat.transformation import PerplexityChatConfig
 
         config = PerplexityChatConfig()
         api_base, _ = config._get_openai_compatible_provider_info(
@@ -207,7 +207,7 @@ class TestPerplexityReasoning:
         """
         Test that reasoning_effort is in the list of supported parameters for Perplexity
         """
-        from litellm.llms.perplexity.chat.transformation import PerplexityChatConfig
+        from token_iq.gateway.llms.perplexity.chat.transformation import PerplexityChatConfig
 
         config = PerplexityChatConfig()
         supported_params = config.get_supported_openai_params(

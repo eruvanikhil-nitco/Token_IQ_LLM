@@ -146,7 +146,7 @@ _WEATHER_TOOL = {
 
 @pytest.mark.parametrize("m", CHAT_MODELS)
 def test_basic_completion(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{m.model}",
@@ -162,7 +162,7 @@ def test_basic_completion(m: _M, oci_params):
 
 @pytest.mark.parametrize("m", CHAT_MODELS)
 def test_usage_populated(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{m.model}",
@@ -176,7 +176,7 @@ def test_usage_populated(m: _M, oci_params):
 
 @pytest.mark.parametrize("m", CHAT_MODELS)
 def test_system_message(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{m.model}",
@@ -192,7 +192,7 @@ def test_system_message(m: _M, oci_params):
 
 @pytest.mark.parametrize("m", CHAT_MODELS)
 def test_streaming(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     chunks = list(
         litellm.completion(
@@ -223,7 +223,7 @@ def test_cohere_streaming_no_doubling(model, oci_params):
     Reported by @gotsysdba on PR #25177. Fix: drop terminal text when
     `chatHistory` is present in `handle_cohere_stream_chunk`.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     streamed = "".join(
         (c.choices[0].delta.content or "")
@@ -272,7 +272,7 @@ def test_cohere_streaming_no_doubling(model, oci_params):
 
 @pytest.mark.parametrize("m", CHAT_MODELS)
 def test_multi_turn(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{m.model}",
@@ -298,7 +298,7 @@ def test_multi_turn(m: _M, oci_params):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("m", CHAT_MODELS)
 async def test_async_completion(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = await litellm.acompletion(
         model=f"oci/{m.model}",
@@ -315,7 +315,7 @@ async def test_async_completion(m: _M, oci_params):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("m", CHAT_MODELS)
 async def test_async_streaming(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     chunks = []
     async for chunk in await litellm.acompletion(
@@ -350,7 +350,7 @@ def _assert_tool_call(resp, expected_tool: str = "get_weather"):
 
 @pytest.mark.parametrize("m", TOOL_USE_MODELS)
 def test_tool_use(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     call_kwargs = dict(
         model=f"oci/{m.model}",
@@ -369,7 +369,7 @@ def test_tool_use(m: _M, oci_params):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("m", TOOL_USE_MODELS)
 async def test_async_tool_use(m: _M, oci_params):
-    import litellm
+    from token_iq import gateway as litellm
 
     call_kwargs = dict(
         model=f"oci/{m.model}",
@@ -399,7 +399,7 @@ _REASONING_MODEL = "xai.grok-3-mini"
 def test_reasoning_effort_lowercase_accepted(effort, oci_params):
     """OpenAI clients send lowercase reasoning_effort; OCI requires uppercase.
     The transform layer should uppercase it transparently."""
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{_REASONING_MODEL}",
@@ -415,7 +415,7 @@ def test_reasoning_effort_lowercase_accepted(effort, oci_params):
 def test_reasoning_effort_disable_mapped_to_none(oci_params):
     """OpenAI's 'disable' maps to OCI's 'NONE'. Without this mapping the
     request 400s."""
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{_REASONING_MODEL}",
@@ -430,7 +430,7 @@ def test_reasoning_effort_disable_mapped_to_none(oci_params):
 def test_reasoning_tokens_in_usage(oci_params):
     """OCI returns completionTokensDetails.reasoningTokens on reasoning models;
     LiteLLM should surface it on Usage.completion_tokens_details."""
-    import litellm
+    from token_iq import gateway as litellm
 
     resp = litellm.completion(
         model=f"oci/{_REASONING_MODEL}",
@@ -452,7 +452,7 @@ def test_reasoning_tokens_in_usage(oci_params):
 class TestOCIEmbeddings:
 
     def test_english_v3_basic(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-english-v3.0",
@@ -465,7 +465,7 @@ class TestOCIEmbeddings:
         assert resp.usage.prompt_tokens > 0
 
     def test_english_v3_batch(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         texts = [
             "The quick brown fox",
@@ -484,7 +484,7 @@ class TestOCIEmbeddings:
             assert len(item["embedding"]) == 1024
 
     def test_multilingual_v3(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-multilingual-v3.0",
@@ -496,7 +496,7 @@ class TestOCIEmbeddings:
         assert len(resp.data[0]["embedding"]) == 1024
 
     def test_search_query_input_type(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-english-v3.0",
@@ -508,7 +508,7 @@ class TestOCIEmbeddings:
 
     def test_semantic_similarity(self, oci_params):
         """Semantically similar texts should have higher cosine similarity."""
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-english-v3.0",
@@ -537,7 +537,7 @@ class TestOCIEmbeddings:
         ), f"Expected similar sentences to score higher ({sim_cats:.3f} vs {sim_diff:.3f})"
 
     def test_embed_v4(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-v4.0",
@@ -549,7 +549,7 @@ class TestOCIEmbeddings:
         assert len(resp.data[0]["embedding"]) == 1536
 
     def test_usage_tokens(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-english-v3.0",
@@ -570,7 +570,7 @@ class TestOCIAsyncEmbeddings:
 
     @pytest.mark.asyncio
     async def test_async_embedding_basic(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = await litellm.aembedding(
             model="oci/cohere.embed-english-v3.0",
@@ -584,7 +584,7 @@ class TestOCIAsyncEmbeddings:
 
     @pytest.mark.asyncio
     async def test_async_embedding_batch(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         texts = ["The quick brown fox", "jumps over the lazy dog"]
         resp = await litellm.aembedding(
@@ -598,7 +598,7 @@ class TestOCIAsyncEmbeddings:
 
     @pytest.mark.asyncio
     async def test_async_embedding_multilingual(self, oci_params):
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = await litellm.aembedding(
             model="oci/cohere.embed-multilingual-v3.0",
@@ -633,7 +633,7 @@ class TestOCIEnvVarCredentials:
         monkeypatch.setenv("OCI_KEY", key_pem)
         monkeypatch.setenv("OCI_COMPARTMENT_ID", config["tenancy"])
 
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.completion(
             model="oci/meta.llama-3.3-70b-instruct",
@@ -657,7 +657,7 @@ class TestOCIEnvVarCredentials:
         monkeypatch.setenv("OCI_KEY", key_pem)
         monkeypatch.setenv("OCI_COMPARTMENT_ID", config["tenancy"])
 
-        import litellm
+        from token_iq import gateway as litellm
 
         resp = litellm.embedding(
             model="oci/cohere.embed-english-v3.0",

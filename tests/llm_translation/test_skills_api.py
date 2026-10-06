@@ -12,8 +12,8 @@ from typing import Optional
 import pytest
 
 
-import litellm
-from litellm.types.llms.anthropic_skills import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.llms.anthropic_skills import (
     DeleteSkillResponse,
     ListSkillsResponse,
     Skill,

@@ -5,8 +5,8 @@ Unit tests for OpenAI Evals API transformation
 import httpx
 import pytest
 
-from litellm.llms.openai.evals.transformation import OpenAIEvalsConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.openai.evals.transformation import OpenAIEvalsConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 @pytest.fixture()

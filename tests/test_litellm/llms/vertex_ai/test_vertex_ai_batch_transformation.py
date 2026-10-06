@@ -2,9 +2,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.vertex_ai.batches.handler import VertexAIBatchPrediction
-from litellm.llms.vertex_ai.batches.transformation import VertexAIBatchTransformation
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.batches.handler import VertexAIBatchPrediction
+from token_iq.gateway.llms.vertex_ai.batches.transformation import VertexAIBatchTransformation
 
 
 def test_output_file_id_uses_predictions_jsonl_with_output_info():
@@ -65,7 +65,7 @@ def test_vertex_ai_cancel_batch():
     }
 
     with patch(
-        "litellm.llms.vertex_ai.batches.handler._get_httpx_client"
+        "token_iq.gateway.llms.vertex_ai.batches.handler._get_httpx_client"
     ) as mock_client:
         mock_client.return_value.post.return_value = mock_response
         mock_client.return_value.get.return_value = mock_response
@@ -110,7 +110,7 @@ def test_vertex_ai_cancel_batch_encodes_batch_id():
     }
 
     with patch(
-        "litellm.llms.vertex_ai.batches.handler._get_httpx_client"
+        "token_iq.gateway.llms.vertex_ai.batches.handler._get_httpx_client"
     ) as mock_client:
         mock_client.return_value.post.return_value = mock_response
         mock_client.return_value.get.return_value = mock_response
@@ -163,7 +163,7 @@ def test_vertex_ai_cancel_batch_custom_proxy_retrieve_url():
     }
 
     with patch(
-        "litellm.llms.vertex_ai.batches.handler._get_httpx_client"
+        "token_iq.gateway.llms.vertex_ai.batches.handler._get_httpx_client"
     ) as mock_client:
         mock_client.return_value.post.return_value = mock_response
         mock_client.return_value.get.return_value = mock_response
@@ -199,7 +199,7 @@ async def test_litellm_cancel_batch_vertex_ai():
     mock_response.id = "batch_123"
     mock_response.status = "cancelling"
 
-    with patch("litellm.batches.main.vertex_ai_batches_instance") as mock_instance:
+    with patch("token_iq.gateway.batches.main.vertex_ai_batches_instance") as mock_instance:
         mock_instance.cancel_batch.return_value = mock_response
 
         response = litellm.cancel_batch(

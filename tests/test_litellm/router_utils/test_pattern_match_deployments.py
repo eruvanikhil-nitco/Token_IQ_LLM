@@ -1,9 +1,9 @@
-"""Behavior pins for ``litellm/router_utils/pattern_match_deployments.py``."""
+"""Behavior pins for ``token_iq/gateway/router_utils/pattern_match_deployments.py``."""
 
 from __future__ import annotations
 
-from litellm.router_utils import pattern_match_deployments
-from litellm.router_utils.pattern_match_deployments import PatternMatchRouter
+from token_iq.gateway.router_utils import pattern_match_deployments
+from token_iq.gateway.router_utils.pattern_match_deployments import PatternMatchRouter
 
 
 def _wildcard_deployment(model_name: str) -> dict:

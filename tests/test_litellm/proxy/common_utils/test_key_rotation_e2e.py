@@ -19,12 +19,12 @@ from uuid import uuid4
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     GenerateKeyResponse,
     LiteLLM_VerificationToken,
 )
-from litellm.proxy.common_utils.key_rotation_manager import KeyRotationManager
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.common_utils.key_rotation_manager import KeyRotationManager
+from token_iq.gateway.proxy.utils import (
     PrismaClient,
     _deprecated_key_cache,
     _lookup_deprecated_key,
@@ -233,7 +233,7 @@ class TestKeyRotationErrorResilience:
         )
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
             side_effect=Exception("regenerate failed: DB timeout"),
         ):
@@ -246,7 +246,7 @@ class TestKeyRotationErrorResilience:
         manager._find_keys_needing_rotation = AsyncMock(return_value=[key])
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
             side_effect=Exception("regenerate failed: DB timeout"),
         ):
@@ -275,12 +275,12 @@ class TestKeyRotationErrorResilience:
         )
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
                 side_effect=Exception("Hook failed: secret manager down"),
             ):
@@ -363,12 +363,12 @@ class TestKeyRotationFullFlow:
         mock_prisma.db.litellm_verificationtoken.find_many.return_value = [key]
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
             ):
                 await manager.process_rotations()
@@ -421,12 +421,12 @@ class TestKeyRotationFullFlow:
             mock_prisma.db.litellm_verificationtoken.update.reset_mock()
 
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
                 new_callable=AsyncMock,
                 return_value=mock_response,
             ):
                 with patch(
-                    "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                    "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                     new_callable=AsyncMock,
                 ):
                     await manager._rotate_key(key)
@@ -486,12 +486,12 @@ class TestKeyRotationFullFlow:
         )
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
             return_value=mock_response,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
             ):
                 await manager._rotate_key(key)
@@ -558,7 +558,7 @@ class TestKeyRotationInitialization:
         assert "cronjob_id" in release_call.kwargs or len(release_call.args) > 0
 
         # Both should use the same job name
-        from litellm.constants import KEY_ROTATION_JOB_NAME
+        from token_iq.gateway.constants import KEY_ROTATION_JOB_NAME
 
         assert acquire_call.kwargs.get("cronjob_id") == KEY_ROTATION_JOB_NAME
         assert release_call.kwargs.get("cronjob_id") == KEY_ROTATION_JOB_NAME

@@ -14,18 +14,18 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from litellm.constants import MCP_TOOL_LISTING_TIMEOUT
-from litellm.proxy._experimental.mcp_server import rest_endpoints
-from litellm.proxy._experimental.mcp_server.auth import (
+from token_iq.gateway.constants import MCP_TOOL_LISTING_TIMEOUT
+from token_iq.gateway.proxy._experimental.mcp_server import rest_endpoints
+from token_iq.gateway.proxy._experimental.mcp_server.auth import (
     user_api_key_auth_mcp as auth_mcp,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     NewMCPServerRequest,
     UpdateMCPServerRequest,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.mcp import MCPAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.types.mcp import MCPAuth
 
 
 def _rendered_log_message(call):
@@ -618,7 +618,7 @@ class TestTestToolsList:
             credentials={"auth_value": "secret-key"},
         )
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -653,7 +653,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -692,7 +692,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -737,7 +737,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -799,7 +799,7 @@ class TestTestToolsList:
             auth_type=MCPAuth.oauth2,
         )
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -853,7 +853,7 @@ class TestTestToolsList:
             auth_type=auth_type,
         )
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -896,7 +896,7 @@ class TestTestToolsList:
             auth_type=auth_type,
         )
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -1016,7 +1016,7 @@ class TestListToolsRestAPI:
         """LIT-4861: a non-admin dashboard session must act as the admitted subject on this
         route, so server reachability AND tool ceilings bind to the user's grants exactly as
         they do for a gateway session, never to the bare session key."""
-        from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
+        from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
         session_auth = UserAPIKeyAuth(team_id=UI_SESSION_TOKEN_TEAM_ID, user_id="grant-user", user_role="internal_user")
         admitted_auth = UserAPIKeyAuth(user_id="grant-user", org_id="admitted-org")
@@ -1026,7 +1026,7 @@ class TestListToolsRestAPI:
             return admitted_auth
 
         monkeypatch.setattr(
-            "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+            "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
             fake_reload,
         )
 
@@ -1095,8 +1095,8 @@ class TestListToolsRestAPI:
         carries none of the caller's own object_permission, so a toolset narrowing layered on top
         would evaporate on every team-granted server. A toolset-scoped request therefore stays on
         the caller's own credential, exactly as it did before the acting-as-user swap."""
-        from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         session_auth = UserAPIKeyAuth(team_id=UI_SESSION_TOKEN_TEAM_ID, user_id="grant-user", user_role="internal_user")
         scoped_auth = UserAPIKeyAuth(
@@ -1140,11 +1140,11 @@ class TestListToolsRestAPI:
             return ["toolset-tool-1"]
 
         monkeypatch.setattr(
-            "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+            "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
             record_reload,
         )
         monkeypatch.setattr(
-            "litellm.proxy.utils.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.utils.get_prisma_client_or_throw",
             lambda *args, **kwargs: MagicMock(),
         )
         monkeypatch.setattr(
@@ -1185,12 +1185,12 @@ class TestListToolsRestAPI:
         monkeypatch,
     ):
         """The REST tools/list path should include tools beyond the upstream first page."""
-        import litellm.experimental_mcp_client.client as mcp_client_module
+        import token_iq.gateway.experimental_mcp_client.client as mcp_client_module
         from mcp.types import ListToolsResult, PaginatedRequestParams
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         async def fake_contexts(user_api_key_auth):
             return [user_api_key_auth]
@@ -1301,7 +1301,7 @@ class TestListToolsRestAPI:
         """include_disabled_tools skips the allowlist filter only for PROXY_ADMIN;
         a non-admin passing it stays filtered so the REST endpoint can't be used
         to enumerate deliberately-disabled tools."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         async def fake_contexts(user_api_key_auth):
             return [user_api_key_auth]
@@ -1372,7 +1372,7 @@ class TestListToolsRestAPI:
         """A single-server pass-through request whose upstream rejects the token
         must surface the upstream status (401 or 403) plus its WWW-Authenticate
         challenge, not collapse into a 200 ``unexpected_error`` body."""
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -1441,10 +1441,10 @@ class TestListToolsRestAPI:
         """A single-server listing whose upstream breaks (5xx, timeout, unreachable) must answer
         with the truthful gateway status instead of masking the failure as an empty-success
         {"tools": [], "error": null} body a caller cannot distinguish from a toolless server."""
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPServerListError,
         )
-        from litellm.proxy._experimental.mcp_server.faults.list_outcomes import (
+        from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import (
             ServerListFault,
         )
 
@@ -1503,7 +1503,7 @@ class TestListToolsRestAPI:
         caller can tell "needs upstream auth" apart from "has no tools"."""
         from pydantic import TypeAdapter
 
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -1577,8 +1577,8 @@ class TestListToolsRestAPI:
     async def test_name_resolution_finds_server_by_uuid(self, monkeypatch):
         """When server_id is a name string, it should be resolved to its UUID
         and used for the tools lookup when the UUID is in allowed_server_ids."""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="uuid-abc-123",
@@ -1658,8 +1658,8 @@ class TestListToolsRestAPI:
     async def test_name_not_in_allowed_returns_access_denied(self, monkeypatch):
         """When name resolves to a server whose UUID is NOT in allowed_server_ids,
         the result should be an access_denied error (not a crash or silent pass)."""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="uuid-xyz-999",
@@ -1714,8 +1714,8 @@ class TestListToolsRestAPI:
     async def test_mcp_server_name_query_param_resolves_to_server(self, monkeypatch):
         """mcp_server_name is a name-based alias for server_id: it should
         resolve to the matching server and scope the response to it."""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="uuid-abc-123",
@@ -1793,9 +1793,9 @@ class TestListToolsRestAPI:
         assert result["error"] is None
 
     async def test_mcp_server_name_filter_uses_real_catalog_with_tool_search(self, monkeypatch):
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="uuid-search-123",
@@ -1877,7 +1877,7 @@ class TestListToolsRestAPI:
         """toolset_name should resolve the toolset, apply its scope to the
         caller's UserAPIKeyAuth via _apply_toolset_scope, and only list tools
         from servers the scoped auth is allowed to see."""
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         scoped_auth = UserAPIKeyAuth(
             object_permission=LiteLLM_ObjectPermissionTable(
@@ -1919,7 +1919,7 @@ class TestListToolsRestAPI:
             return ["toolset-tool-1"]
 
         monkeypatch.setattr(
-            "litellm.proxy.utils.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.utils.get_prisma_client_or_throw",
             lambda *args, **kwargs: MagicMock(),
         )
         monkeypatch.setattr(
@@ -1975,7 +1975,7 @@ class TestListToolsRestAPI:
             return None
 
         monkeypatch.setattr(
-            "litellm.proxy.utils.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.utils.get_prisma_client_or_throw",
             lambda *args, **kwargs: MagicMock(),
         )
         monkeypatch.setattr(
@@ -2000,8 +2000,8 @@ class TestListToolsRestAPI:
     async def test_oauth2_user_token_injected_for_single_server(self, monkeypatch):
         """For a single-server OAuth2 request, _get_user_oauth_extra_headers is called
         and the returned headers are forwarded to _get_tools_for_single_server."""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="oauth-server-id",
@@ -2108,7 +2108,7 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             fake_add_litellm_data_to_request,
             raising=False,
         )
@@ -2200,12 +2200,12 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             fake_add_litellm_data_to_request,
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.proxy_config",
+            "token_iq.gateway.proxy.proxy_server.proxy_config",
             {},
             raising=False,
         )
@@ -2287,11 +2287,11 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             fake_add_litellm_data_to_request,
             raising=False,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", {}, raising=False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
         monkeypatch.setattr(rest_endpoints, "execute_mcp_tool", fake_execute_mcp_tool, raising=False)
         masked_result = {"content": [{"type": "text", "text": "<EMAIL_ADDRESS>"}]}
         monkeypatch.setattr(
@@ -2314,7 +2314,7 @@ class TestCallToolRestAPI:
     async def test_success_logging_guardrail_rejection_propagates(self, monkeypatch):
         """A guardrail rejecting the tool result must not be swallowed as a logging failure,
         otherwise the unguarded result would still be returned to the caller."""
-        from litellm.exceptions import BlockedPiiEntityError
+        from token_iq.gateway.exceptions import BlockedPiiEntityError
 
         fire_logging = AsyncMock(
             side_effect=BlockedPiiEntityError(entity_type="EMAIL_ADDRESS", guardrail_name="presidio-mcp")
@@ -2334,7 +2334,7 @@ class TestCallToolRestAPI:
         MCPUpstreamAuthError) must reach the REST caller as that status with the upstream
         WWW-Authenticate preserved, so an MCP client can run the upstream OAuth flow, instead of the
         generic 500 the catch-all would otherwise produce."""
-        from litellm.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
 
         async def fake_contexts(user_api_key_auth):
             return [user_api_key_auth]
@@ -2380,11 +2380,11 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             fake_add_litellm_data_to_request,
             raising=False,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", {}, raising=False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
         monkeypatch.setattr(rest_endpoints, "execute_mcp_tool", fake_execute_mcp_tool, raising=False)
 
         mock_logger = MagicMock()
@@ -2459,9 +2459,9 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request", fake_add_litellm_data_to_request, raising=False
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request", fake_add_litellm_data_to_request, raising=False
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", {}, raising=False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
         monkeypatch.setattr(rest_endpoints, "execute_mcp_tool", fake_execute_mcp_tool, raising=False)
         mock_logger = MagicMock()
         monkeypatch.setattr(rest_endpoints, "verbose_logger", mock_logger, raising=False)
@@ -2503,9 +2503,9 @@ class TestCallToolRestAPI:
         without the direct branch's relay wrapper, so an MCPUpstreamAuthError from it must be relayed
         by the endpoint-level handler (a real 401/403 + WWW-Authenticate) rather than falling through
         the catch-all into a generic 500."""
-        import litellm.proxy._experimental.mcp_server.tool_search as tool_search_mod
-        from litellm.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        import token_iq.gateway.proxy._experimental.mcp_server.tool_search as tool_search_mod
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         challenge = 'Bearer resource_metadata="https://gw.example.com/.well-known/oauth-protected-resource"'
 
@@ -2525,12 +2525,12 @@ class TestCallToolRestAPI:
         monkeypatch.setattr(rest_endpoints, "build_effective_auth_contexts", fake_contexts, raising=False)
         monkeypatch.setattr(tool_search_mod, "handle_mcp_tool_call", fake_handle_mcp_tool_call, raising=False)
         monkeypatch.setattr(
-            "litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
+            "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
             _FakePreCall,
             raising=False,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", {}, raising=False)
-        monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {}, raising=False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {}, raising=False)
 
         user_api_key_dict = UserAPIKeyAuth(
             object_permission=LiteLLM_ObjectPermissionTable(
@@ -2559,9 +2559,9 @@ class TestGetToolsForSingleServer:
 
     async def test_filters_tools_by_object_permission_mcp_tool_permissions(self, monkeypatch):
         """Test that tools are filtered by user_api_key_auth.object_permission.mcp_tool_permissions"""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.types.mcp import MCPTransport
 
         # Create mock tools
         class MockTool:
@@ -2622,8 +2622,8 @@ class TestGetToolsForSingleServer:
 
     async def test_no_filtering_when_object_permission_is_none(self, monkeypatch):
         """Test that all tools are returned when object_permission is None"""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         class MockTool:
             def __init__(self, name, description):
@@ -2669,9 +2669,9 @@ class TestGetToolsForSingleServer:
 
     async def test_no_filtering_when_mcp_tool_permissions_is_none(self, monkeypatch):
         """Test that all tools are returned when mcp_tool_permissions is None"""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.types.mcp import MCPTransport
 
         class MockTool:
             def __init__(self, name, description):
@@ -2722,9 +2722,9 @@ class TestGetToolsForSingleServer:
 
     async def test_no_filtering_when_server_not_in_mcp_tool_permissions(self, monkeypatch):
         """Test that all tools are returned when server is not in mcp_tool_permissions"""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.types.mcp import MCPTransport
 
         class MockTool:
             def __init__(self, name, description):
@@ -2775,9 +2775,9 @@ class TestGetToolsForSingleServer:
 
     async def test_combines_server_allowed_tools_and_object_permission_filters(self, monkeypatch):
         """Test that both server.allowed_tools and object_permission.mcp_tool_permissions filters are applied"""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.types.mcp import MCPTransport
 
         class MockTool:
             def __init__(self, name, description):
@@ -2838,8 +2838,8 @@ class TestGetToolsForSingleServer:
     async def test_apply_tool_filters_false_returns_full_catalog(self, monkeypatch):
         """apply_tool_filters=False returns the raw catalog without the server
         allowed_tools gate, so the config UI can render disabled tools as off."""
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         class MockTool:
             def __init__(self, name):
@@ -2991,7 +2991,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_connection_rejects_non_admin(self):
         """Non-admin users should get 403 from test_connection."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         payload = NewMCPServerRequest(
             server_name="test",
@@ -3016,7 +3016,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_tools_list_rejects_non_admin(self):
         """Non-admin users should get 403 from test_tools_list."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         payload = NewMCPServerRequest(
             server_name="test",
@@ -3041,7 +3041,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_connection_allows_admin(self, monkeypatch):
         """PROXY_ADMIN should pass the role check."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         async def fake_execute(*args, **kwargs):
             return {"status": "ok"}
@@ -3104,7 +3104,7 @@ class TestPreviewOpenAPITools:
                 }
             }
 
-        from litellm.proxy._experimental.mcp_server import (
+        from token_iq.gateway.proxy._experimental.mcp_server import (
             openapi_to_mcp_generator,
         )
 
@@ -3122,7 +3122,7 @@ class TestPreviewOpenAPITools:
         )
         request = _build_request()
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -3144,7 +3144,7 @@ class TestPreviewOpenAPITools:
         suffixes (_2, _3, ...) get assigned to different operations and the
         dashboard shows names that differ from what's actually registered.
         """
-        from litellm.proxy._experimental.mcp_server import (
+        from token_iq.gateway.proxy._experimental.mcp_server import (
             openapi_to_mcp_generator,
         )
 
@@ -3179,7 +3179,7 @@ class TestPreviewOpenAPITools:
             transport="http",
         )
         request = _build_request()
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
@@ -3278,8 +3278,8 @@ class TestToolResponseMcpInfoEnrichment:
     def test_enriches_mcp_info_with_alias_and_server_id(self):
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         server = MCPServer(
             server_id="a1b2c3d4",
@@ -3308,8 +3308,8 @@ class TestToolResponseMcpInfoEnrichment:
     def test_alias_none_is_explicit_in_mcp_info(self):
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         server = MCPServer(
             server_id="server-uuid",
@@ -3347,11 +3347,11 @@ class TestRestListToolsetFiltering:
 
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         stub_server = MCPServer(
             server_id="server-a",
@@ -3391,7 +3391,7 @@ class TestRestListToolsetFiltering:
             patch.object(MCPRequestHandler, "_get_key_object_permission", return_value=key_object_permission),
             patch.object(MCPRequestHandler, "_get_team_object_permission", AsyncMock(return_value=None)),
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -3416,8 +3416,8 @@ class TestV1ResolvedOauth2Gate:
 
     @staticmethod
     def _oauth2_server(*, delegate_auth_to_upstream: bool) -> Any:
-        from litellm.proxy._experimental.mcp_server.server import MCPServer
-        from litellm.types.mcp import MCPTransport
+        from token_iq.gateway.proxy._experimental.mcp_server.server import MCPServer
+        from token_iq.gateway.types.mcp import MCPTransport
 
         return MCPServer(
             server_id="oauth2-srv",
@@ -3439,7 +3439,7 @@ class TestV1ResolvedOauth2Gate:
     async def test_user_oauth_headers_skip_v2_owned_servers(
         self, delegate_auth_to_upstream, expected_headers, expected_lookups, monkeypatch
     ):
-        from litellm.proxy._experimental.mcp_server import db as mcp_db
+        from token_iq.gateway.proxy._experimental.mcp_server import db as mcp_db
 
         server = self._oauth2_server(delegate_auth_to_upstream=delegate_auth_to_upstream)
         resolve_token = AsyncMock(return_value={"access_token": "stored-token"})

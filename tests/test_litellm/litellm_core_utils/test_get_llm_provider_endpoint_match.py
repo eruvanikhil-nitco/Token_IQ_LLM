@@ -15,7 +15,7 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.litellm_core_utils.get_llm_provider_logic import (
+from token_iq.gateway.core_utils.get_llm_provider_logic import (
     _endpoint_matches_api_base,
     get_llm_provider,
 )
@@ -94,10 +94,10 @@ class TestGetLlmProviderRejectsAttackerSmuggledApiBase:
         # raise BadRequestError because the model can't be identified.
         # The invariant under test is that ``GROQ_API_KEY`` is never
         # looked up against an attacker-controlled hostname.
-        import litellm
+        from token_iq import gateway as litellm
 
         with patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_secret_str",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_secret_str",
             return_value="server-real-groq-key",
         ) as mocked_secret:
             try:
@@ -123,7 +123,7 @@ class TestGetLlmProviderRejectsAttackerSmuggledApiBase:
 
     def test_legitimate_groq_api_base_still_resolves(self):
         with patch(
-            "litellm.litellm_core_utils.get_llm_provider_logic.get_secret_str",
+            "token_iq.gateway.core_utils.get_llm_provider_logic.get_secret_str",
             return_value="server-real-groq-key",
         ):
             _, provider, dynamic_api_key, _ = get_llm_provider(

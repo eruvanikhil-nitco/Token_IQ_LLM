@@ -6,14 +6,14 @@ import httpx
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler import (
     GeminiPassthroughLoggingHandler,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
 
@@ -91,7 +91,7 @@ class TestGeminiPassthroughLoggingHandler:
 
     def test_is_gemini_route(self):
         """Test that Gemini routes are correctly identified"""
-        from litellm.proxy.pass_through_endpoints.success_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
             PassThroughEndpointLogging,
         )
 
@@ -138,9 +138,9 @@ class TestGeminiPassthroughLoggingHandler:
         )
         assert model == "gemini-1.5-pro"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     @patch(
-        "litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload"
+        "token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload"
     )
     def test_gemini_passthrough_handler_success(
         self, mock_get_standard_logging, mock_completion_cost
@@ -189,7 +189,7 @@ class TestGeminiPassthroughLoggingHandler:
         assert mock_logging_obj.model_call_details["model"] == "gemini-1.5-flash"
         assert mock_logging_obj.model_call_details["custom_llm_provider"] == "gemini"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_gemini_passthrough_handler_streaming(self, mock_completion_cost):
         """Test cost tracking for Gemini streaming endpoint"""
         # Arrange
@@ -270,7 +270,7 @@ class TestGeminiPassthroughLoggingHandler:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler.litellm.completion_cost",
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler.litellm.completion_cost",
         return_value=0.000050,
     )
     async def test_pass_through_success_handler_gemini_routing(
@@ -321,7 +321,7 @@ class TestGeminiPassthroughLoggingHandler:
         assert call_kwargs["model"] == "gemini-2.0-flash"
         assert call_kwargs["custom_llm_provider"] == "gemini"
 
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_veo3_passthrough_cost_tracking(self, mock_completion_cost):
         """Test Veo3 video generation cost tracking for passthrough requests"""
         # Mock the completion_cost to return the expected video generation cost

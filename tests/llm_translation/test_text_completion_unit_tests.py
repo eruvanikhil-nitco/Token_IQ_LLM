@@ -7,8 +7,8 @@ from respx import MockRouter
 from unittest.mock import patch, MagicMock
 
 
-import litellm
-from litellm.types.utils import TextCompletionResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import TextCompletionResponse
 
 
 def test_convert_dict_to_text_completion_response():
@@ -75,7 +75,7 @@ async def test_huggingface_text_completion_logprobs():
     litellm.disable_aiohttp_transport = (
         True  # since this uses respx, we need to set use_aiohttp_transport to False
     )
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     mock_response = [
         {
@@ -148,8 +148,8 @@ async def test_acompletion_uses_optimized_http_client():
 
     Related issue: https://github.com/BerriAI/litellm/issues/17676
     """
-    from litellm.llms.openai.completion.handler import OpenAITextCompletion
-    from litellm.llms.openai.common_utils import BaseOpenAILLM
+    from token_iq.gateway.llms.openai.completion.handler import OpenAITextCompletion
+    from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM
 
     mock_http_client = MagicMock()
     mock_async_openai = AsyncMock()
@@ -186,7 +186,7 @@ async def test_acompletion_uses_optimized_http_client():
         BaseOpenAILLM, "_get_async_http_client", return_value=mock_http_client
     ) as mock_get_client:
         with patch(
-            "litellm.llms.openai.completion.handler.AsyncOpenAI",
+            "token_iq.gateway.llms.openai.completion.handler.AsyncOpenAI",
             return_value=mock_async_openai,
         ) as mock_openai_class:
             handler = OpenAITextCompletion()

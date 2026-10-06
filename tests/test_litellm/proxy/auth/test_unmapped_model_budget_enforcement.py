@@ -9,9 +9,9 @@ See: https://github.com/BerriAI/litellm/issues/24770
 
 import copy
 
-import litellm
-from litellm.proxy.auth.auth_checks import _is_model_cost_zero
-from litellm.router import Router
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.auth.auth_checks import _is_model_cost_zero
+from token_iq.gateway.router import Router
 
 
 class TestUnmappedModelBudgetEnforcement:
@@ -113,7 +113,7 @@ class TestUnmappedModelBudgetEnforcement:
         cached ``_is_model_cost_zero=True`` answer so budget checks resume
         immediately — not after the next proxy restart.
         """
-        from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+        from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
         router = Router(
             model_list=[
@@ -169,7 +169,7 @@ class TestUnmappedModelBudgetEnforcement:
         compute a correct answer, just without caching."""
         from unittest.mock import MagicMock
 
-        from litellm.types.router import ModelGroupInfo
+        from token_iq.gateway.types.router import ModelGroupInfo
 
         mock_router = MagicMock(spec=Router)
         mock_router.model_list = []

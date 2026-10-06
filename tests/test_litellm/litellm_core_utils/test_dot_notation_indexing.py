@@ -1,10 +1,10 @@
 """
-Tests for litellm.litellm_core_utils.dot_notation_indexing module.
+Tests for litellm.core_utils.dot_notation_indexing module.
 """
 
 import pytest
 
-from litellm.litellm_core_utils.dot_notation_indexing import (
+from token_iq.gateway.core_utils.dot_notation_indexing import (
     get_nested_value,
     delete_nested_value,
 )

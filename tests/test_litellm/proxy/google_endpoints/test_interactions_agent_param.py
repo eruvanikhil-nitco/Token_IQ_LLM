@@ -37,17 +37,17 @@ class TestInteractionsAgentParameter:
 class TestInteractionsAgentOnlyProviderRouting:
     """SDK: agent-only create must not call get_llm_provider on the agent name."""
 
-    @patch("litellm.interactions.main.interactions_http_handler")
-    @patch("litellm.interactions.main.get_provider_interactions_api_config")
-    @patch("litellm.get_llm_provider")
+    @patch("token_iq.gateway.interactions.main.interactions_http_handler")
+    @patch("token_iq.gateway.interactions.main.get_provider_interactions_api_config")
+    @patch("token_iq.gateway.get_llm_provider")
     def test_agent_only_skips_get_llm_provider(
         self,
         mock_get_llm_provider,
         mock_get_config,
         mock_handler,
     ):
-        from litellm.interactions.main import create
-        from litellm.types.interactions import InteractionsAPIResponse
+        from token_iq.gateway.interactions.main import create
+        from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
         mock_get_config.return_value = MagicMock()
         mock_handler.create_interaction.return_value = InteractionsAPIResponse(
@@ -70,9 +70,9 @@ class TestInteractionsAgentOnlyProviderRouting:
         assert call_kwargs["model"] is None
         assert call_kwargs["custom_llm_provider"] == "gemini"
 
-    @patch("litellm.interactions.main.interactions_http_handler")
-    @patch("litellm.interactions.main.get_provider_interactions_api_config")
-    @patch("litellm.get_llm_provider")
+    @patch("token_iq.gateway.interactions.main.interactions_http_handler")
+    @patch("token_iq.gateway.interactions.main.get_provider_interactions_api_config")
+    @patch("token_iq.gateway.get_llm_provider")
     def test_proxy_mistake_model_equals_agent_is_corrected(
         self,
         mock_get_llm_provider,
@@ -80,8 +80,8 @@ class TestInteractionsAgentOnlyProviderRouting:
         mock_handler,
     ):
         """If model was wrongly set to the agent name, clear it before the HTTP call."""
-        from litellm.interactions.main import create
-        from litellm.types.interactions import InteractionsAPIResponse
+        from token_iq.gateway.interactions.main import create
+        from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
         mock_get_config.return_value = MagicMock()
         mock_handler.create_interaction.return_value = InteractionsAPIResponse(

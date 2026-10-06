@@ -84,7 +84,7 @@ def test_init_registers_on_both_callbacks_and_success_callback(monkeypatch):
     )
 
     def _has_our_guardrail(callback_list):
-        from litellm.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
             CiscoAIDefenseGuardrail,
         )
 
@@ -191,7 +191,7 @@ class TestCiscoAIDefenseFlattenedConfig:
         assert cb.timeout == 10.0
 
     def test_grayswan_optional_params_survive_cisco_mro(self):
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         params = LitellmParams(
             guardrail="grayswan",
@@ -268,7 +268,7 @@ class TestCiscoAIDefenseGuardrailInit:
         assert g.inspect_path == "/api/v1/inspect/mcp"
 
     def test_event_hooks_include_both_surfaces(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         for inspection_type in ("chat", "mcp"):
             g = _make_guardrail(inspection_type=inspection_type)
@@ -408,8 +408,8 @@ class TestCiscoAIDefenseResponsesAPIOutput:
 
     @staticmethod
     def _make_responses_api_response(text: str):
-        from litellm.types.llms.openai import ResponsesAPIResponse
-        from litellm.types.responses.main import (
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.responses.main import (
             GenericResponseOutputItem,
             OutputText,
         )
@@ -467,8 +467,8 @@ class TestCiscoAIDefenseResponsesAPIOutput:
 
     @pytest.mark.asyncio
     async def test_post_call_scans_responses_api_function_call_arguments(self):
-        from litellm.types.llms.openai import ResponsesAPIResponse
-        from litellm.types.responses.main import OutputFunctionToolCall
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.responses.main import OutputFunctionToolCall
 
         g = _make_guardrail(event_hook="post_call")
         data = {"input": [{"role": "user", "content": "anything"}]}
@@ -769,7 +769,7 @@ class TestCiscoAIDefenseRedactionEdgeCases:
     ):
         g = _make_guardrail(event_hook="post_call", on_flagged_action="monitor")
         if response_shape == "chat":
-            from litellm.types.utils import ChatCompletionMessageToolCall, Function
+            from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
             response = ModelResponse(
                 choices=[
@@ -798,8 +798,8 @@ class TestCiscoAIDefenseRedactionEdgeCases:
                 return result.choices[0].message.tool_calls[0].function.arguments
 
         else:
-            from litellm.types.llms.openai import ResponsesAPIResponse
-            from litellm.types.responses.main import OutputFunctionToolCall
+            from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+            from token_iq.gateway.types.responses.main import OutputFunctionToolCall
 
             response = ResponsesAPIResponse(
                 id="resp_1",
@@ -849,7 +849,7 @@ class TestCiscoAIDefenseRedactionEdgeCases:
 
     @pytest.mark.asyncio
     async def test_redact_applies_to_all_choices_for_n_gt_1(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         g = _make_guardrail(event_hook="post_call", on_flagged_action="monitor")
         response = ModelResponse(
@@ -923,7 +923,7 @@ class TestCiscoAIDefenseRedactionEdgeCases:
 
     @pytest.mark.asyncio
     async def test_redact_sanitized_messages_clears_extra_choices(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         g = _make_guardrail(event_hook="post_call", on_flagged_action="monitor")
         response = ModelResponse(
@@ -1024,8 +1024,8 @@ class TestCiscoAIDefenseRedactionEdgeCases:
                 return result.choices[0].message.content or ""
 
         else:
-            from litellm.types.llms.openai import ResponsesAPIResponse
-            from litellm.types.responses.main import (
+            from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+            from token_iq.gateway.types.responses.main import (
                 GenericResponseOutputItem,
                 OutputText,
             )
@@ -1110,7 +1110,7 @@ class TestCiscoAIDefenseRedactionEdgeCases:
     @pytest.mark.asyncio
     async def test_block_payload_canonical(self, surface, direction, transport):
         import json as _json
-        from litellm.types.mcp import MCPPostCallResponseObject
+        from token_iq.gateway.types.mcp import MCPPostCallResponseObject
 
         url = MCP_URL if surface == "mcp" else CHAT_URL
         if surface == "mcp":
@@ -1269,7 +1269,7 @@ class TestCiscoAIDefenseEdgeCases:
         post_mock = AsyncMock(return_value=_safe_response())
 
         with patch(
-            "litellm.main.stream_chunk_builder",
+            "token_iq.gateway.main.stream_chunk_builder",
             return_value=assembled_text_completion,
         ):
             with _patch_inspection_post(g, post_mock):
@@ -1363,7 +1363,7 @@ class TestCiscoAIDefenseEdgeCases:
 
     @pytest.mark.asyncio
     async def test_handle_api_error_uses_output_event_type_for_response_scan(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         g = _make_guardrail(event_hook="post_call", fallback_on_error="allow")
         data = {"messages": [{"role": "user", "content": "hi"}]}
@@ -1400,7 +1400,7 @@ class TestCiscoAIDefenseEdgeCases:
         )
 
     def test_config_model_no_mcp_api_key_reference(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
             CiscoAIDefenseGuardrailConfigModel,
             CiscoAIDefenseGuardrailConfigModelOptionalParams,
         )
@@ -1445,7 +1445,7 @@ class TestCiscoAIDefenseEnabledRulesPydanticShape:
 
     @pytest.mark.asyncio
     async def test_enabled_rules_from_pydantic_model_does_not_500(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
             CiscoAIDefenseGuardrailConfigModelOptionalParams,
             CiscoAIDefenseRule,
         )
@@ -1496,7 +1496,7 @@ class TestCiscoAIDefenseEnabledRulesPydanticShape:
         )
 
     def test_normalize_rule_handles_pydantic_basemodel_directly(self):
-        from litellm.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
             CiscoAIDefenseRule,
         )
 
@@ -1726,7 +1726,7 @@ class TestCiscoAIDefenseToolCallBypass:
     async def test_post_call_scans_tool_call_payloads(
         self, message_kwargs, expected_text_in_scan
     ):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         g = _make_guardrail(event_hook="post_call")
 
@@ -2405,7 +2405,7 @@ class TestCiscoAIDefenseEventTypeDirection:
     async def test_direction_logs_as_expected_event_type(
         self, inspection_type, direction, expected_event_attr
     ):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         if inspection_type == "chat":
             event_hook = (
@@ -2831,7 +2831,7 @@ class TestCiscoAIDefenseStandardLogging:
 
 
 def test_config_model_exposed():
-    from litellm.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
         CiscoAIDefenseGuardrailConfigModel,
     )
 

@@ -1,6 +1,6 @@
 """
 Tests for the provider-agnostic chat completion agentic loop dispatcher
-(`litellm/litellm_core_utils/chat_completion_agentic_loop.py`) and the
+(`token_iq/gateway/core_utils/chat_completion_agentic_loop.py`) and the
 code-interpreter interception integration that drives it.
 
 The load-bearing regression here protects a reviewer requirement: the internal
@@ -26,19 +26,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.integrations.code_interpreter_interception.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.code_interpreter_interception.handler import (
     CodeInterpreterInterceptionLogger,
 )
-from litellm.litellm_core_utils.chat_completion_agentic_loop import (
+from token_iq.gateway.core_utils.chat_completion_agentic_loop import (
     maybe_run_chat_completion_agentic_loop,
 )
-from litellm.types.integrations.custom_logger import (
+from token_iq.gateway.types.integrations.custom_logger import (
     AgenticLoopPlan,
     AgenticLoopRequestPatch,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     Choices,
     Function,
     ChatCompletionMessageToolCall,

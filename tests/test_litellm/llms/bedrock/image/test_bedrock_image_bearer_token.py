@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
 # Mock response for Bedrock image generation
 mock_image_response = {"images": ["base64_encoded_image_data"], "error": None}
@@ -19,7 +19,7 @@ class TestBedrockImageGeneration:
         prompt = "A cute baby sea otter"
 
         with patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
         ) as mock_bedrock_image_gen:
             # Setup mock response
             mock_image_response_obj = litellm.ImageResponse()
@@ -56,7 +56,7 @@ class TestBedrockImageGeneration:
         with (
             patch.dict(os.environ, {"AWS_BEARER_TOKEN_BEDROCK": test_api_key}),
             patch(
-                "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
+                "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
             ) as mock_bedrock_image_gen,
         ):
 
@@ -89,7 +89,7 @@ class TestBedrockImageGeneration:
         prompt = "A cute baby sea otter"
 
         with patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.async_image_generation"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.async_image_generation"
         ) as mock_async_bedrock_image_gen:
             mock_image_response_obj = litellm.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]
@@ -122,7 +122,7 @@ class TestBedrockImageGeneration:
         prompt = "A cute baby sea otter"
 
         with patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
         ) as mock_bedrock_image_gen:
             mock_image_response_obj = litellm.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]

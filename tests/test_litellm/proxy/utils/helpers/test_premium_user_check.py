@@ -1,7 +1,7 @@
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.utils import _premium_user_check
+from token_iq.gateway.proxy.utils import _premium_user_check
 
 
 def normalize(value):
@@ -9,7 +9,7 @@ def normalize(value):
 
 
 def test_premium_user_check_happy_path_no_raise_when_premium(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "premium_user", True, raising=False)
     summary = {
@@ -25,7 +25,7 @@ def test_premium_user_check_happy_path_no_raise_when_premium(monkeypatch):
 
 
 def test_premium_user_check_happy_path_with_feature_no_raise(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "premium_user", True, raising=False)
     summary = {
@@ -41,7 +41,7 @@ def test_premium_user_check_happy_path_with_feature_no_raise(monkeypatch):
 
 
 def test_premium_user_check_raises_when_not_premium(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "premium_user", False, raising=False)
     with pytest.raises(HTTPException) as exc_info:
@@ -59,7 +59,7 @@ def test_premium_user_check_raises_when_not_premium(monkeypatch):
 
 
 def test_premium_user_check_raises_with_feature_message(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "premium_user", False, raising=False)
     with pytest.raises(HTTPException) as exc_info:

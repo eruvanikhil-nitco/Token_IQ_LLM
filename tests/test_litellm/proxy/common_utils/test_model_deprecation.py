@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 
 
 
-import litellm
-from litellm.proxy.common_utils.model_deprecation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.common_utils.model_deprecation import (
     _classify,
     _parse_deprecation_date,
     collect_model_deprecations,

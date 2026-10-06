@@ -7,9 +7,9 @@ from unittest import mock
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.llms.v0.chat.transformation import V0ChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.v0.chat.transformation import V0ChatConfig
 
 
 def test_v0_config_initialization():
@@ -49,7 +49,7 @@ def test_v0_get_openai_compatible_provider_info():
 
 def test_get_llm_provider_v0():
     """Test that get_llm_provider correctly identifies v0"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     # Test with v0/model-name format
     model, provider, api_key, api_base = get_llm_provider("v0/gpt-4-turbo")
@@ -115,7 +115,7 @@ def test_v0_supported_params():
 
 def test_v0_models_configuration():
     """Test that v0 models are configured correctly"""
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"

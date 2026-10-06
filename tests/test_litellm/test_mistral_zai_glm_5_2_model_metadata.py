@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.types.utils import PromptTokensDetailsWrapper, Usage
-from litellm.utils import supports_prompt_caching, supports_reasoning
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
+from token_iq.gateway.utils import supports_prompt_caching, supports_reasoning
 
 REPO_ROOT = Path(__file__).parents[2]
 MAIN_PATH = REPO_ROOT / "model_prices_and_context_window.json"

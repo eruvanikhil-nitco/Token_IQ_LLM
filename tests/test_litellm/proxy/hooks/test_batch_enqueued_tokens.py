@@ -15,10 +15,10 @@ from typing import Final
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.constants import BATCH_ENQUEUED_TOKEN_TTL_SECONDS
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.batch_enqueued_tokens import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.constants import BATCH_ENQUEUED_TOKEN_TTL_SECONDS
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
     BatchEnqueuedTokenOverLimit,
     BatchEnqueuedTokenReservation,
     BatchEnqueuedTokenScope,
@@ -27,7 +27,7 @@ from litellm.proxy.hooks.batch_enqueued_tokens import (
     canonical_provider_batch_id,
     resolve_batch_enqueued_token_scopes,
 )
-from litellm.proxy.utils import InternalUsageCache
+from token_iq.gateway.proxy.utils import InternalUsageCache
 
 
 def _in_memory_store() -> BatchEnqueuedTokenStore:
@@ -385,7 +385,7 @@ def test_canonical_provider_batch_id_decodes_unified_batch_ids():
 
 
 def test_canonical_provider_batch_id_decodes_model_embedded_ids():
-    from litellm.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
 
     encoded = encode_file_id_with_model(file_id="batch_prov_7", model="my-alias", id_type="batch")
     assert canonical_provider_batch_id(encoded) == "batch_prov_7"
@@ -412,7 +412,7 @@ def _local_redis_port() -> int | None:
 @pytest.mark.asyncio
 @pytest.mark.skipif(_local_redis_port() is None, reason="requires a local Redis on 6379 for the Lua script path")
 async def test_redis_lua_path_full_lifecycle():
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     port = _local_redis_port()
     redis_cache = RedisCache(host="127.0.0.1", port=port)

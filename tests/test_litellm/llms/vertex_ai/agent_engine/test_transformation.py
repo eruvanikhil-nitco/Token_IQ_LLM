@@ -8,10 +8,10 @@ Tests the request transformation and streaming chunk parsing without making real
 import pytest
 
 
-from litellm.llms.vertex_ai.agent_engine.sse_iterator import (
+from token_iq.gateway.llms.vertex_ai.agent_engine.sse_iterator import (
     VertexAgentEngineResponseIterator,
 )
-from litellm.llms.vertex_ai.agent_engine.transformation import VertexAgentEngineConfig
+from token_iq.gateway.llms.vertex_ai.agent_engine.transformation import VertexAgentEngineConfig
 
 
 class TestVertexAgentEngineTransformRequest:

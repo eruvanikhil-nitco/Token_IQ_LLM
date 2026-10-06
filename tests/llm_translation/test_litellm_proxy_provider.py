@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock
 
 
 import httpx
-import litellm
-from litellm import completion, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, embedding
 import pytest
 from unittest.mock import MagicMock, patch
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 import pytest_asyncio
 from openai import AsyncOpenAI
 
@@ -211,7 +211,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
         mock_async_client.images.generate = AsyncMock(return_value=mock_openai_response)
 
         with patch(
-            "litellm.llms.openai.openai.AsyncOpenAI", return_value=mock_async_client
+            "token_iq.gateway.llms.openai.openai.AsyncOpenAI", return_value=mock_async_client
         ) as mock_async_constructor:
             response = await litellm.aimage_generation(
                 model="litellm_proxy/dall-e-3",
@@ -238,7 +238,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
         mock_sync_client.images.generate.return_value = mock_openai_response
 
         with patch(
-            "litellm.llms.openai.openai.OpenAI", return_value=mock_sync_client
+            "token_iq.gateway.llms.openai.openai.OpenAI", return_value=mock_sync_client
         ) as mock_sync_constructor:
             response = litellm.image_generation(
                 model="litellm_proxy/dall-e-3",

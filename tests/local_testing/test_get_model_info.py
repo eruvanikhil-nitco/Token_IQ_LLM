@@ -9,8 +9,8 @@ from typing import List, Dict, Any
 
 import pytest
 
-import litellm
-from litellm import get_model_info
+from token_iq import gateway as litellm
+from token_iq.gateway import get_model_info
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -84,7 +84,7 @@ def test_get_model_info_gemini_pro():
 
 
 def test_get_model_info_ollama_chat():
-    from litellm.llms.ollama.completion.transformation import OllamaConfig
+    from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
     with patch.object(
         litellm.module_level_client,
@@ -218,8 +218,8 @@ def test_model_info_bedrock_converse_enforcement(monkeypatch):
 
 def test_get_model_info_custom_provider():
     # Custom provider example copied from https://docs.litellm.ai/docs/providers/custom_llm_server:
-    import litellm
-    from litellm import CustomLLM, completion, get_llm_provider
+    from token_iq import gateway as litellm
+    from token_iq.gateway import CustomLLM, completion, get_llm_provider
 
     class MyCustomLLM(CustomLLM):
         def completion(self, *args, **kwargs) -> litellm.ModelResponse:
@@ -247,7 +247,7 @@ def test_get_model_info_custom_provider():
     litellm.register_model(model_info)
 
     # Get registered model info
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     get_model_info(
         model="my-custom-llm/my-fake-model"
@@ -255,8 +255,8 @@ def test_get_model_info_custom_provider():
 
 
 def test_get_model_info_custom_model_router():
-    from litellm import Router
-    from litellm import get_model_info
+    from token_iq.gateway import Router
+    from token_iq.gateway import get_model_info
 
     litellm._turn_on_debug()
 
@@ -285,7 +285,7 @@ def test_get_model_info_bedrock_models():
     """
     Check for drift in base model info for bedrock models and regional model info for bedrock models.
     """
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
@@ -356,8 +356,8 @@ def test_get_model_info_bedrock_cross_region_capability_parity():
 
 
 def test_get_model_info_huggingface_models(monkeypatch):
-    from litellm import Router
-    from litellm.types.router import ModelGroupInfo
+    from token_iq.gateway import Router
+    from token_iq.gateway.types.router import ModelGroupInfo
 
     monkeypatch.setenv("HUGGINGFACE_API_KEY", "hf_abc123")
 
@@ -473,7 +473,7 @@ def test_get_model_info_case_insensitive_supports_function_calling(monkeypatch):
     )
 
     # Test that supports_function_calling works with lowercase model name
-    from litellm.utils import supports_function_calling
+    from token_iq.gateway.utils import supports_function_calling
 
     # Exact case
     assert (

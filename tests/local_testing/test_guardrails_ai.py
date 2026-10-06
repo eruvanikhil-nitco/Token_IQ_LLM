@@ -1,7 +1,7 @@
 import traceback
 
-import litellm
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_guardrails_ai():

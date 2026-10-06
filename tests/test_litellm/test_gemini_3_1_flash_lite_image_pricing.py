@@ -3,18 +3,18 @@ from pathlib import Path
 
 import pytest
 
-import litellm
-from litellm import completion_cost
-from litellm.cost_calculator import cost_per_token
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.llms.gemini.image_generation.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion_cost
+from token_iq.gateway.cost_calculator import cost_per_token
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.llms.gemini.image_generation.cost_calculator import (
     cost_calculator as gemini_image_generation_cost_calculator,
 )
-from litellm.llms.vertex_ai.image_generation.cost_calculator import (
+from token_iq.gateway.llms.vertex_ai.image_generation.cost_calculator import (
     cost_calculator as vertex_image_generation_cost_calculator,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     ImageObject,
     ImageResponse,

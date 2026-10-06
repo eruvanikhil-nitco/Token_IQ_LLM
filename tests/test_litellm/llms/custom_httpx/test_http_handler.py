@@ -13,9 +13,9 @@ import httpx
 import pytest
 from aiohttp import ClientSession, TCPConnector
 
-import litellm
-from litellm.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
-from litellm.llms.custom_httpx.http_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.http_handler import (
     _CLIENT_REFCOUNT_WHEN_HANDLER_IS_SOLE_REFERRER,
     AsyncHTTPHandler,
     HTTPHandler,
@@ -50,7 +50,7 @@ async def test_async_post_streaming_status_error_should_not_wait_forever_for_bod
         )
 
     monkeypatch.setattr(
-        "litellm.llms.custom_httpx.http_handler._STREAMING_ERROR_BODY_READ_TIMEOUT_SECONDS",
+        "token_iq.gateway.llms.custom_httpx.http_handler._STREAMING_ERROR_BODY_READ_TIMEOUT_SECONDS",
         0.01,
     )
 
@@ -102,7 +102,7 @@ def test_sync_post_streaming_status_error_should_not_wait_forever_for_body(
         )
 
     monkeypatch.setattr(
-        "litellm.llms.custom_httpx.http_handler._STREAMING_ERROR_BODY_READ_TIMEOUT_SECONDS",
+        "token_iq.gateway.llms.custom_httpx.http_handler._STREAMING_ERROR_BODY_READ_TIMEOUT_SECONDS",
         0.01,
     )
 
@@ -281,7 +281,7 @@ async def test_ssl_context_with_shared_session(monkeypatch: pytest.MonkeyPatch):
 def test_get_ssl_configuration():
     """Test that get_ssl_configuration() returns a proper SSL context with certifi CA bundle
     when no environment variables are set."""
-    from litellm.llms.custom_httpx.http_handler import _ssl_context_cache
+    from token_iq.gateway.llms.custom_httpx.http_handler import _ssl_context_cache
 
     # Clear cache to ensure ssl.create_default_context is called
     _ssl_context_cache.clear()
@@ -329,7 +329,7 @@ class MockClientSession:
 @pytest.mark.asyncio
 async def test_create_aiohttp_transport_with_shared_session():
     """Test that _create_aiohttp_transport reuses shared session when provided"""
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Create a mock shared session that's not callable
     mock_session = MockClientSession()
@@ -347,7 +347,7 @@ async def test_create_aiohttp_transport_with_shared_session():
 @pytest.mark.asyncio
 async def test_async_handler_with_shared_session():
     """Test AsyncHTTPHandler initialization with shared session"""
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Create a mock shared session
     mock_session = MockClientSession()
@@ -363,11 +363,11 @@ async def test_async_handler_with_shared_session():
 @pytest.mark.asyncio
 async def test_get_async_httpx_client_with_shared_session():
     """Test get_async_httpx_client with shared session"""
-    from litellm.llms.custom_httpx.http_handler import (
+    from token_iq.gateway.llms.custom_httpx.http_handler import (
         get_async_httpx_client,
         AsyncHTTPHandler as AsyncHTTPHandlerReload,
     )
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Create a mock shared session
     mock_session = MockClientSession()
@@ -387,11 +387,11 @@ async def test_get_async_httpx_client_with_shared_session():
 @pytest.mark.asyncio
 async def test_get_async_httpx_client_without_shared_session():
     """Test get_async_httpx_client without shared session (backward compatibility)"""
-    from litellm.llms.custom_httpx.http_handler import (
+    from token_iq.gateway.llms.custom_httpx.http_handler import (
         get_async_httpx_client,
         AsyncHTTPHandler as AsyncHTTPHandlerReload,
     )
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Test without shared session
     client = get_async_httpx_client(llm_provider=LlmProviders.ANTHROPIC, shared_session=None)
@@ -405,7 +405,7 @@ async def test_get_async_httpx_client_without_shared_session():
 @pytest.mark.asyncio
 async def test_session_reuse_chain():
     """Test that session is properly passed through the entire call chain"""
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Create a mock shared session
     mock_session = MockClientSession()
@@ -426,7 +426,7 @@ async def test_session_reuse_chain():
 def test_shared_session_parameter_in_acompletion():
     """Test that acompletion function accepts shared_session parameter"""
     import inspect
-    from litellm.main import acompletion
+    from token_iq.gateway.main import acompletion
 
     # Get the function signature
     sig = inspect.signature(acompletion)
@@ -443,7 +443,7 @@ def test_shared_session_parameter_in_acompletion():
 def test_shared_session_parameter_in_completion():
     """Test that completion function accepts shared_session parameter"""
     import inspect
-    from litellm.main import completion
+    from token_iq.gateway.main import completion
 
     # Get the function signature
     sig = inspect.signature(completion)
@@ -460,11 +460,11 @@ def test_shared_session_parameter_in_completion():
 @pytest.mark.asyncio
 async def test_session_reuse_integration():
     """Integration test for session reuse functionality"""
-    from litellm.llms.custom_httpx.http_handler import (
+    from token_iq.gateway.llms.custom_httpx.http_handler import (
         get_async_httpx_client,
         AsyncHTTPHandler as AsyncHTTPHandlerReload,
     )
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Create a mock session
     mock_session = MockClientSession()
@@ -511,7 +511,7 @@ async def test_session_reuse_integration():
 )
 def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, monkeypatch):
     """Test SSL ECDH curve configuration with valid curves and precedence"""
-    from litellm.llms.custom_httpx.http_handler import _ssl_context_cache
+    from token_iq.gateway.llms.custom_httpx.http_handler import _ssl_context_cache
 
     # Clear cache to ensure fresh SSL context creation
     _ssl_context_cache.clear()
@@ -539,8 +539,8 @@ def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, m
 
 
 def test_default_user_agent_is_litellm_version(monkeypatch):
-    from litellm._version import version
-    from litellm.llms.custom_httpx.http_handler import get_default_headers
+    from token_iq.gateway._version import version
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_default_headers
 
     monkeypatch.delenv("LITELLM_USER_AGENT", raising=False)
 
@@ -548,7 +548,7 @@ def test_default_user_agent_is_litellm_version(monkeypatch):
 
 
 def test_user_agent_can_be_overridden_via_env_var(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import get_default_headers
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_default_headers
 
     monkeypatch.setenv("LITELLM_USER_AGENT", "Claude Code")
 
@@ -556,7 +556,7 @@ def test_user_agent_can_be_overridden_via_env_var(monkeypatch):
 
 
 def test_user_agent_env_var_can_be_empty_string(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import get_default_headers
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_default_headers
 
     monkeypatch.setenv("LITELLM_USER_AGENT", "")
 
@@ -564,7 +564,7 @@ def test_user_agent_env_var_can_be_empty_string(monkeypatch):
 
 
 def test_user_agent_override_is_not_appended_to_default(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     monkeypatch.delenv("LITELLM_USER_AGENT", raising=False)
 
@@ -582,7 +582,7 @@ def test_user_agent_override_is_not_appended_to_default(monkeypatch):
 
 
 def test_sync_http_handler_uses_env_user_agent(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     monkeypatch.setenv("LITELLM_USER_AGENT", "Claude Code")
 
@@ -596,7 +596,7 @@ def test_sync_http_handler_uses_env_user_agent(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_http_handler_uses_env_user_agent(monkeypatch):
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     monkeypatch.setenv("LITELLM_USER_AGENT", "Claude Code")
 
@@ -610,7 +610,7 @@ async def test_async_http_handler_uses_env_user_agent(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_httpx_handler_uses_env_user_agent(monkeypatch):
-    from litellm.llms.custom_httpx.httpx_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.httpx_handler import HTTPHandler
 
     monkeypatch.setenv("LITELLM_USER_AGENT", "Claude Code")
 
@@ -707,7 +707,7 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
     """
 
     def test_default_when_request_timeout_unset(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.llms.custom_httpx.http_handler import (
+        from token_iq.gateway.llms.custom_httpx.http_handler import (
             _DEFAULT_TIMEOUT,
             _default_cached_client_timeout,
         )
@@ -717,7 +717,7 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
         assert _default_cached_client_timeout() is _DEFAULT_TIMEOUT
 
     def test_uses_explicit_request_timeout(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.llms.custom_httpx.http_handler import (
+        from token_iq.gateway.llms.custom_httpx.http_handler import (
             _default_cached_client_timeout,
         )
 
@@ -728,9 +728,9 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
         assert resolved.connect == 5.0
 
     def test_cached_async_client_built_with_explicit_request_timeout(self, monkeypatch: pytest.MonkeyPatch):
-        from litellm.caching.llm_caching_handler import LLMClientCache
-        from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+        from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+        from token_iq.gateway.types.utils import LlmProviders
 
         monkeypatch.setattr(litellm, "request_timeout", 300)
         monkeypatch.setattr(litellm, "request_timeout_explicitly_set", True)
@@ -784,8 +784,8 @@ async def test_init_held_async_handler_survives_external_client_close():
 
 @pytest.mark.asyncio
 async def test_init_held_async_handler_survives_evicted_client_close():
-    from litellm.caching.evicted_client_closer import EvictedClientCloser
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     cache = LLMClientCache(evicted_client_closer=EvictedClientCloser(grace_seconds=0))
     handler = AsyncHTTPHandler(timeout=42.5)
@@ -906,7 +906,7 @@ def test_concurrent_sync_heal_creates_exactly_one_replacement():
 
 @pytest.fixture
 def fresh_llm_client_cache():
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     previous = getattr(litellm, "in_memory_llm_clients_cache", None)
     litellm.in_memory_llm_clients_cache = LLMClientCache()
@@ -917,7 +917,7 @@ def fresh_llm_client_cache():
 
 
 def test_sole_referrer_handler_may_close_but_a_sharing_one_may_not():
-    from litellm.llms.custom_httpx.http_handler import _handler_may_close_client
+    from token_iq.gateway.llms.custom_httpx.http_handler import _handler_may_close_client
 
     assert _handler_may_close_client(_CLIENT_REFCOUNT_WHEN_HANDLER_IS_SOLE_REFERRER, owns_client=True)
     assert not _handler_may_close_client(_CLIENT_REFCOUNT_WHEN_HANDLER_IS_SOLE_REFERRER + 1, owns_client=True)
@@ -1071,7 +1071,7 @@ async def test_async_close_leaves_assigned_client_open():
 
 
 def test_client_handed_out_by_sync_cache_survives_eviction_and_collection(fresh_llm_client_cache):
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     handler = _get_httpx_client()
     consumer_client = handler.client
@@ -1093,9 +1093,9 @@ def test_client_handed_out_by_sync_cache_survives_eviction_and_collection(fresh_
 
 @pytest.mark.asyncio
 async def test_client_handed_out_by_async_cache_survives_eviction_and_collection(fresh_llm_client_cache):
-    from litellm.caching.llm_caching_handler import LLMClientCache
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+    from token_iq.gateway.types.utils import LlmProviders
 
     handler = get_async_httpx_client(llm_provider=LlmProviders.OPENAI)
     consumer_client = handler.client

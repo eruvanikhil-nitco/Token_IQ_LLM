@@ -24,8 +24,8 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
-from litellm.proxy.guardrails.guardrail_hooks.compresr.compresr import (
+from token_iq.gateway.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr import (
     COMPRESR_RETRIEVE_TOOL_NAME,
     CompresrGuardrail,
     _content_hash,
@@ -33,7 +33,7 @@ from litellm.proxy.guardrails.guardrail_hooks.compresr.compresr import (
     _scoped_store_key,
     has_compresr_retrieve_tool,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 FAKE_API_BASE = "https://compresr.example.com"
 FAKE_API_KEY = "cmp_test-key"
@@ -179,7 +179,7 @@ def _logging_obj(call_id: str) -> SimpleNamespace:
     # Default fixture models a proxy with per-key auth enabled (the production
     # shape). Recovery requires a caller scope; tests that need the no-auth
     # path should build the object explicitly.
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     return SimpleNamespace(
         litellm_call_id=call_id,
@@ -193,7 +193,7 @@ def _logging_obj_with_key(call_id: str, user_api_key: str, meta_key: str = "meta
     """Logging object carrying the server-set UserAPIKeyAuth object, the way the
     proxy populates it for an authenticated request (the bare user_api_key
     string alone is never trusted — a client could forge that)."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     return SimpleNamespace(
         litellm_call_id=call_id,
@@ -1083,7 +1083,7 @@ def test_extract_compresr_tool_calls_tolerates_missing_keys():
     # A retrieve call missing id/arguments must not KeyError in the post-call
     # hook; it extracts with safe defaults and resolves to a rejection later.
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.compresr.compresr.get_tool_calls_from_response",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr.get_tool_calls_from_response",
         return_value=[{"name": COMPRESR_RETRIEVE_TOOL_NAME}, {"id": "x"}],
     ):
         extracted = _extract_compresr_tool_calls(object())
@@ -1342,7 +1342,7 @@ def test_display_hash_strips_control_characters():
     """The compresr_retrieve `hash` argument is model/tool-output-influenced, so
     control characters (newlines, ANSI escapes) must be stripped — not just
     length-capped — before it is echoed into logs or the fallback message."""
-    from litellm.proxy.guardrails.guardrail_hooks.compresr.compresr import _display_hash
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr import _display_hash
 
     assert _display_hash("a" * 24) == "a" * 24  # a real marker hash passes through
     assert "\n" not in _display_hash("abc\ndef\rFORGED LOG LINE")
@@ -1571,7 +1571,7 @@ def test_originals_store_byte_cap_survives_lone_surrogates():
 def test_originals_store_caps_total_bytes_across_calls(monkeypatch: pytest.MonkeyPatch):
     # Global byte budget: many distinct call ids must not retain unbounded memory.
     monkeypatch.setattr(
-        "litellm.proxy.guardrails.guardrail_hooks.compresr.compresr._MAX_TOTAL_STORE_BYTES",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr._MAX_TOTAL_STORE_BYTES",
         10_000,
     )
     guardrail = _make_guardrail(max_bytes_per_call=4_000)
@@ -1596,7 +1596,7 @@ def test_originals_store_global_cap_keeps_current_when_single_call_is_large(
     # One call over the global cap is still kept (only max_bytes_per_call trims it);
     # global eviction never empties the store.
     monkeypatch.setattr(
-        "litellm.proxy.guardrails.guardrail_hooks.compresr.compresr._MAX_TOTAL_STORE_BYTES",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr._MAX_TOTAL_STORE_BYTES",
         1_000,
     )
     guardrail = _make_guardrail(max_bytes_per_call=5_000)
@@ -2026,7 +2026,7 @@ async def test_recovery_disabled_without_call_id():
 
 
 def test_config_model_exposes_unreachable_fallback():
-    from litellm.types.proxy.guardrails.guardrail_hooks.compresr import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.compresr import (
         CompresrGuardrailConfigModel,
     )
 
@@ -2133,7 +2133,7 @@ async def test_warns_once_per_interval_when_recovery_skipped_without_scope():
         return [c for c in mock_log.warning.call_args_list if "no per-key auth scope" in str(c)]
 
     with patch.object(guardrail.async_handler, "post", mock_post):
-        with patch("litellm.proxy.guardrails.guardrail_hooks.compresr.compresr.verbose_proxy_logger") as mock_log:
+        with patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.compresr.compresr.verbose_proxy_logger") as mock_log:
             for _ in range(3):
                 await guardrail.apply_guardrail(
                     inputs=_apply_inputs(AGENT_MESSAGES),

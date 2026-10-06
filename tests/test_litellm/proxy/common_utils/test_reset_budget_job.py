@@ -12,15 +12,15 @@ import prisma
 import pytest
 
 
-from litellm.proxy._types import LiteLLM_VerificationToken
-from litellm.proxy.common_utils import reset_budget_job as reset_budget_job_module
-from litellm.constants import (
+from token_iq.gateway.proxy._types import LiteLLM_VerificationToken
+from token_iq.gateway.proxy.common_utils import reset_budget_job as reset_budget_job_module
+from token_iq.gateway.constants import (
     PROXY_BUDGET_RESCHEDULER_MIN_TIME,
     RESET_BUDGET_JOB_LOCK_TTL_SECONDS,
     RESET_BUDGET_JOB_NAME,
 )
-from litellm.proxy.common_utils.reset_budget_job import ResetBudgetJob
-from litellm.proxy.common_utils.timezone_utils import BudgetResetSettings
+from token_iq.gateway.proxy.common_utils.reset_budget_job import ResetBudgetJob
+from token_iq.gateway.proxy.common_utils.timezone_utils import BudgetResetSettings
 
 
 # Mock classes for testing
@@ -565,7 +565,7 @@ def _run_reset_at_fixed_now(job, fixed_now):
     """Run the budget-table reset with `now` pinned for reset-time math."""
     from unittest.mock import patch
 
-    with patch("litellm.proxy.common_utils.timezone_utils.datetime") as mock_dt:
+    with patch("token_iq.gateway.proxy.common_utils.timezone_utils.datetime") as mock_dt:
         mock_dt.now.return_value = fixed_now
         mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
         asyncio.run(job.reset_budget_for_litellm_budget_table())
@@ -653,7 +653,7 @@ def test_reset_budget_resets_endusers_with_null_budget_id(reset_budget_job, mock
     reset.  These users were implicitly created and have no budget_id persisted,
     but are enforced against the default budget in-memory.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     now = datetime.now(timezone.utc)
     default_budget_id = "default-enduser-budget"
@@ -742,7 +742,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_configured(
     When litellm.max_end_user_budget_id is NOT configured, end users with
     budget_id=NULL should NOT be fetched or reset.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     now = datetime.now(timezone.utc)
     litellm.max_end_user_budget_id = None
@@ -778,7 +778,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_in_reset_li
     budget is NOT in the budgets-to-reset list (not yet expired), end users
     with budget_id=NULL should NOT be reset.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     now = datetime.now(timezone.utc)
     litellm.max_end_user_budget_id = "default-budget-not-expired"
@@ -844,9 +844,9 @@ def _make_reset_budget_windows_job(
     spend_counter_cache.in_memory_cache.set_cache = MagicMock()
     spend_counter_cache.redis_cache = None  # skip the async redis branch
 
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     job = ResetBudgetJob(proxy_logging_obj=MagicMock(), prisma_client=prisma_client)
     return job, prisma_client, spend_counter_cache
@@ -1148,9 +1148,9 @@ def test_reset_budget_windows_query_error_does_not_break_team_path(monkeypatch):
     spend_counter_cache = MagicMock()
     spend_counter_cache.in_memory_cache.set_cache = MagicMock()
     spend_counter_cache.redis_cache = None
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     job = ResetBudgetJob(proxy_logging_obj=MagicMock(), prisma_client=prisma_client)
 
@@ -1179,10 +1179,10 @@ def _make_counter_invalidation_job(monkeypatch):
     user_api_key_cache = MagicMock()
     user_api_key_cache.async_delete_cache = AsyncMock()
 
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
     fake_module.user_api_key_cache = user_api_key_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     spend_counter_cache.user_api_key_cache = user_api_key_cache
     return spend_counter_cache
@@ -1746,7 +1746,7 @@ def test_failed_cascade_is_logged_as_a_cascade_failure(monkeypatch):
     _make_counter_invalidation_job(monkeypatch)
     job, _ = _job_with_expired_budget(FailingTeamMembershipDB())
 
-    with patch("litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception") as mock_exception:
+    with patch("token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception") as mock_exception:
         asyncio.run(job.reset_budget_for_litellm_budget_table())
 
     assert mock_exception.call_count == 1
@@ -1796,7 +1796,7 @@ _RESET_TABLE_ATTRS = {
 def _run_reset_query(table_name, **extra):
     """Run ``get_data`` for one table's budget-reset query against a mocked
     prisma handle, and hand back the ``find_many`` mock it drove."""
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     client = PrismaClient.__new__(PrismaClient)
     client.db = MagicMock()
@@ -1845,7 +1845,7 @@ def test_get_data_reset_query_selects_null_budget_reset_at(table_name):
     must select rows with a NULL ``budget_reset_at`` (and a non-NULL
     ``budget_duration``), matching the budget-table query. Without this, users
     auto-created from ``default_internal_user_params`` are never reset."""
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     # Build a PrismaClient without running its heavy __init__; only .db is used.
     client = PrismaClient.__new__(PrismaClient)
@@ -2221,9 +2221,9 @@ def _make_leader_election_job(monkeypatch, pod_lock_manager):
 
     spend_counter_cache = MagicMock()
     spend_counter_cache.redis_cache = None
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     job = ResetBudgetJob(
         proxy_logging_obj=MockProxyLogging(),
@@ -2354,9 +2354,9 @@ def _paginating_window_job(monkeypatch, pages_by_table: Dict[str, List[List[Dict
 
     spend_counter_cache = MagicMock()
     spend_counter_cache.redis_cache = None
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     job = ResetBudgetJob(proxy_logging_obj=MagicMock(), prisma_client=prisma_client)
     return job, calls
@@ -2424,9 +2424,9 @@ def test_reset_budget_windows_survives_one_table_failing(monkeypatch):
     prisma_client.db.query_raw = AsyncMock(side_effect=fake_query_raw)
     spend_counter_cache = MagicMock()
     spend_counter_cache.redis_cache = None
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
     job = ResetBudgetJob(proxy_logging_obj=MagicMock(), prisma_client=prisma_client)
 
     asyncio.run(job.reset_budget_windows())
@@ -2495,9 +2495,9 @@ def _cursor_paginating_window_job(monkeypatch, key_rows: List[Dict[str, Any]]):
 
     spend_counter_cache = MagicMock()
     spend_counter_cache.redis_cache = None
-    fake_module = types.ModuleType("litellm.proxy.proxy_server")
+    fake_module = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_module.spend_counter_cache = spend_counter_cache
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", fake_module)
 
     job = ResetBudgetJob(proxy_logging_obj=MagicMock(), prisma_client=prisma_client)
     return job, visited
@@ -2844,7 +2844,7 @@ def test_ambiguous_commit_replay_does_not_erase_newly_accrued_spend(
 
 @pytest.fixture
 def rollover_enabled(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "budget_rollover", True)
 

@@ -4,9 +4,9 @@ Test Azure OpenAI cost calculator — service_tier pricing.
 
 import pytest
 
-import litellm
-from litellm.llms.azure.cost_calculation import cost_per_token
-from litellm.types.utils import Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.cost_calculation import cost_per_token
+from token_iq.gateway.types.utils import Usage
 
 
 # Register a test model with tier-specific pricing

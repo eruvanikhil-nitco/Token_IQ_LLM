@@ -7,7 +7,7 @@ Verifies that the CountTokens API uses the correct authentication headers.
 
 
 
-from litellm.llms.azure_ai.anthropic.count_tokens.transformation import (
+from token_iq.gateway.llms.azure_ai.anthropic.count_tokens.transformation import (
     AzureAIAnthropicCountTokensConfig,
 )
 

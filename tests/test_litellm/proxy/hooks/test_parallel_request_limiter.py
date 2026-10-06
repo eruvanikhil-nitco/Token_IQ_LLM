@@ -6,12 +6,12 @@ from datetime import datetime
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.proxy.hooks.parallel_request_limiter import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
     _PROXY_MaxParallelRequestsHandler,
 )
-from litellm.proxy.utils import InternalUsageCache, hash_token
-from litellm.types.utils import EmbeddingResponse, TextCompletionResponse, Usage
+from token_iq.gateway.proxy.utils import InternalUsageCache, hash_token
+from token_iq.gateway.types.utils import EmbeddingResponse, TextCompletionResponse, Usage
 
 
 @pytest.mark.parametrize(

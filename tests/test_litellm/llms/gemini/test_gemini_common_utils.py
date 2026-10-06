@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.llms.gemini.common_utils import GeminiModelInfo, GoogleAIStudioTokenCounter
+from token_iq.gateway.llms.gemini.common_utils import GeminiModelInfo, GoogleAIStudioTokenCounter
 
 
 class TestGeminiModelInfo:
@@ -93,7 +93,7 @@ class TestGoogleAIStudioTokenCounter:
 
     def test_should_use_token_counting_api(self):
         """Test should_use_token_counting_api method with different provider values"""
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         token_counter = GoogleAIStudioTokenCounter()
 
@@ -117,7 +117,7 @@ class TestGoogleAIStudioTokenCounter:
     @pytest.mark.asyncio
     async def test_count_tokens(self):
         """Test count_tokens method with mocked API response"""
-        from litellm.types.utils import TokenCountResponse
+        from token_iq.gateway.types.utils import TokenCountResponse
 
         token_counter = GoogleAIStudioTokenCounter()
 
@@ -129,7 +129,7 @@ class TestGoogleAIStudioTokenCounter:
         }
 
         with patch(
-            "litellm.llms.gemini.count_tokens.handler.GoogleAIStudioTokenCounter.acount_tokens",
+            "token_iq.gateway.llms.gemini.count_tokens.handler.GoogleAIStudioTokenCounter.acount_tokens",
             new_callable=AsyncMock,
         ) as mock_acount_tokens:
             mock_acount_tokens.return_value = mock_response
@@ -163,7 +163,7 @@ class TestGoogleAIStudioTokenCounter:
 
     def test_clean_contents_for_gemini_api_removes_id_field(self):
         """Test that _clean_contents_for_gemini_api removes unsupported 'id' field from function responses"""
-        from litellm.llms.gemini.count_tokens.handler import GoogleAIStudioTokenCounter
+        from token_iq.gateway.llms.gemini.count_tokens.handler import GoogleAIStudioTokenCounter
 
         token_counter = GoogleAIStudioTokenCounter()
 
@@ -204,7 +204,7 @@ class TestGoogleAIStudioTokenCounter:
 
     def test_clean_contents_for_gemini_api_preserves_other_fields(self):
         """Test that _clean_contents_for_gemini_api preserves other fields and structure"""
-        from litellm.llms.gemini.count_tokens.handler import GoogleAIStudioTokenCounter
+        from token_iq.gateway.llms.gemini.count_tokens.handler import GoogleAIStudioTokenCounter
 
         token_counter = GoogleAIStudioTokenCounter()
 

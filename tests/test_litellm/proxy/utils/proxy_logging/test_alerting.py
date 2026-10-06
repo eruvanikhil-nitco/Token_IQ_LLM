@@ -13,8 +13,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.proxy._types import AlertType, CallInfo
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import AlertType, CallInfo
 
 
 # ---------------------------------------------------------------------------

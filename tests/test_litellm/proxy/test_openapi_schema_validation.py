@@ -16,7 +16,7 @@ class TestSpendCalculateOpenAPISchema:
 
     def test_response_schema_has_description(self):
         """The 200 response must have a 'description' field per OpenAPI 3.x spec."""
-        from litellm.proxy.spend_tracking.spend_management_endpoints import router
+        from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import router
 
         for route in router.routes:
             if hasattr(route, "path") and route.path == "/spend/calculate":
@@ -31,7 +31,7 @@ class TestSpendCalculateOpenAPISchema:
 
     def test_response_schema_has_content_wrapper(self):
         """The 200 response must use 'content' wrapper, not bare properties."""
-        from litellm.proxy.spend_tracking.spend_management_endpoints import router
+        from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import router
 
         for route in router.routes:
             if hasattr(route, "path") and route.path == "/spend/calculate":
@@ -62,7 +62,7 @@ class TestCredentialEndpointsOpenAPISchema:
         /credentials/by_name/{credential_name} and /credentials/by_model/{model_id}
         must be separate handler functions so each only declares its own path params.
         """
-        from litellm.proxy.credential_endpoints.endpoints import router
+        from token_iq.gateway.proxy.credential_endpoints.endpoints import router
 
         by_name_routes = []
         by_model_routes = []
@@ -91,7 +91,7 @@ class TestCredentialEndpointsOpenAPISchema:
         credential_name as a parameter.
         """
         import inspect
-        from litellm.proxy.credential_endpoints.endpoints import (
+        from token_iq.gateway.proxy.credential_endpoints.endpoints import (
             get_credential_by_model,
         )
 
@@ -107,7 +107,7 @@ class TestCredentialEndpointsOpenAPISchema:
         model_id as a parameter.
         """
         import inspect
-        from litellm.proxy.credential_endpoints.endpoints import (
+        from token_iq.gateway.proxy.credential_endpoints.endpoints import (
             get_credential_by_name,
         )
 
@@ -120,7 +120,7 @@ class TestCredentialEndpointsOpenAPISchema:
     def test_by_model_has_model_id_path_param(self):
         """The by_model handler must accept model_id as a path parameter."""
         import inspect
-        from litellm.proxy.credential_endpoints.endpoints import (
+        from token_iq.gateway.proxy.credential_endpoints.endpoints import (
             get_credential_by_model,
         )
 
@@ -132,7 +132,7 @@ class TestCredentialEndpointsOpenAPISchema:
     def test_by_name_has_credential_name_path_param(self):
         """The by_name handler must accept credential_name as a path parameter."""
         import inspect
-        from litellm.proxy.credential_endpoints.endpoints import (
+        from token_iq.gateway.proxy.credential_endpoints.endpoints import (
             get_credential_by_name,
         )
 
@@ -162,7 +162,7 @@ class TestWebSocketStubInjection:
         When a WebSocket route shares its path with an existing POST operation,
         the POST must survive — the WebSocket stub is added alongside, not on top.
         """
-        from litellm.proxy.proxy_server import (
+        from token_iq.gateway.proxy.proxy_server import (
             _inject_websocket_stubs_into_openapi_schema,
         )
 
@@ -194,7 +194,7 @@ class TestWebSocketStubInjection:
         creates a fresh entry — preserving the original behavior for WebSocket-only
         paths.
         """
-        from litellm.proxy.proxy_server import (
+        from token_iq.gateway.proxy.proxy_server import (
             _inject_websocket_stubs_into_openapi_schema,
         )
 
@@ -213,7 +213,7 @@ class TestWebSocketStubInjection:
         skipped — a real operation always wins over the synthetic stub. This
         closes the same trap for future GET-vs-WebSocket collisions.
         """
-        from litellm.proxy.proxy_server import (
+        from token_iq.gateway.proxy.proxy_server import (
             _inject_websocket_stubs_into_openapi_schema,
         )
 
@@ -237,7 +237,7 @@ class TestWebSocketStubInjection:
         Sanity check: the three POST routes for the responses API are still wired
         on the responses router. Guards against accidental removal at the source.
         """
-        from litellm.proxy.response_api_endpoints.endpoints import router
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import router
 
         post_paths = {
             route.path

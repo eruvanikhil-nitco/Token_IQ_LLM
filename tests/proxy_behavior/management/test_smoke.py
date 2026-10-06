@@ -11,7 +11,7 @@ async def test_liveliness(proxy_client):
 
 
 async def test_key_generate_lands_in_db(proxy_client, prisma, scratch):
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy.utils import hash_token
 
     resp = await proxy_client.post(
         "/key/generate",

@@ -7,7 +7,7 @@ so that header-dependent guardrails, routing hooks, and trace correlation
 function correctly.
 """
 
-from litellm.proxy._experimental.mcp_server.sampling_handler import (
+from token_iq.gateway.proxy._experimental.mcp_server.sampling_handler import (
     _build_sampling_request,
 )
 

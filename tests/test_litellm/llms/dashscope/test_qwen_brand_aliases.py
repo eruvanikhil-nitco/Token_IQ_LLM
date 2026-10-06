@@ -2,17 +2,17 @@ import math
 
 import pytest
 
-import litellm
-from litellm import completion, get_llm_provider
-from litellm.llms.dashscope.chat.transformation import DashScopeChatConfig
-from litellm.llms.dashscope.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, get_llm_provider
+from token_iq.gateway.llms.dashscope.chat.transformation import DashScopeChatConfig
+from token_iq.gateway.llms.dashscope.cost_calculator import (
     cost_per_token as dashscope_cost_per_token,
 )
-from litellm.llms.dashscope.embed.transformation import DashScopeEmbeddingConfig
-from litellm.llms.dashscope.image_generation.transformation import (
+from token_iq.gateway.llms.dashscope.embed.transformation import DashScopeEmbeddingConfig
+from token_iq.gateway.llms.dashscope.image_generation.transformation import (
     DashScopeImageGenerationConfig,
 )
-from litellm.llms.dashscope.qwen_ai_platform import (
+from token_iq.gateway.llms.dashscope.qwen_ai_platform import (
     QWEN_AI_PLATFORM_API_BASE,
     QWEN_AI_PLATFORM_IMAGE_API_BASE,
     QWEN_AI_PLATFORM_RERANK_API_BASE,
@@ -21,7 +21,7 @@ from litellm.llms.dashscope.qwen_ai_platform import (
     QwenAIPlatformImageGenerationConfig,
     QwenAIPlatformRerankConfig,
 )
-from litellm.llms.dashscope.qwencloud import (
+from token_iq.gateway.llms.dashscope.qwencloud import (
     QWENCLOUD_API_BASE,
     QWENCLOUD_IMAGE_API_BASE,
     QWENCLOUD_RERANK_API_BASE,
@@ -30,9 +30,9 @@ from litellm.llms.dashscope.qwencloud import (
     QwenCloudImageGenerationConfig,
     QwenCloudRerankConfig,
 )
-from litellm.llms.dashscope.rerank.transformation import DashScopeRerankConfig
-from litellm.types.utils import LlmProviders, Usage
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.llms.dashscope.rerank.transformation import DashScopeRerankConfig
+from token_iq.gateway.types.utils import LlmProviders, Usage
+from token_iq.gateway.utils import ProviderConfigManager
 
 DASHSCOPE_FAMILY_ENV_VARS = [
     "DASHSCOPE_API_KEY",

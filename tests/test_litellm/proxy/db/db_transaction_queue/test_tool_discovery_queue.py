@@ -6,7 +6,7 @@ Unit tests for ToolDiscoveryQueue.
 import pytest
 
 
-from litellm.proxy.db.db_transaction_queue.tool_discovery_queue import (
+from token_iq.gateway.proxy.db.db_transaction_queue.tool_discovery_queue import (
     ToolDiscoveryQueue,
 )
 

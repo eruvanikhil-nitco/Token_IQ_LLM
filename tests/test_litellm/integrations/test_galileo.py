@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.integrations.galileo import GalileoObserve
-from litellm.types.llms.openai import HttpxBinaryResponseContent, ResponsesAPIResponse
-from litellm.types.rerank import RerankResponse
-from litellm.types.utils import (
+from token_iq.gateway.integrations.galileo import GalileoObserve
+from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent, ResponsesAPIResponse
+from token_iq.gateway.types.rerank import RerankResponse
+from token_iq.gateway.types.utils import (
     Choices,
     EmbeddingResponse,
     ImageObject,

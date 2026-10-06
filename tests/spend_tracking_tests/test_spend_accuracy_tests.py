@@ -3,8 +3,8 @@ import asyncio
 import aiohttp
 import time
 
-import litellm
-from litellm._uuid import uuid
+from token_iq import gateway as litellm
+from token_iq.gateway._uuid import uuid
 
 """
 Tests to run
@@ -103,7 +103,7 @@ async def generate_key(session, user_id: str, team_id: str):
 async def chat_completion(session, key: str):
     """Make a chat completion request"""
     from openai import AsyncOpenAI
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     client = AsyncOpenAI(api_key=key, base_url="http://0.0.0.0:4000/v1")
 

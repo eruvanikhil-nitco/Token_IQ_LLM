@@ -7,9 +7,9 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from litellm.litellm_core_utils.cli_token_utils import CliTokenRecord
-from litellm.proxy.client.cli import cli
-from litellm.proxy.client.cli.commands.claude_settings import (
+from token_iq.gateway.core_utils.cli_token_utils import CliTokenRecord
+from token_iq.gateway.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli.commands.claude_settings import (
     AUTOROUTE_BACKUP_PATH,
     BACKUP_PATH,
     SETTINGS_FILE_OWNERS,
@@ -24,8 +24,8 @@ def _owners(*backup_paths):
     """Stand-in owners for the real `lite up` / `lite autoroute up` registry."""
     return tuple(SettingsFileOwner(path, "lite up", "lite down") for path in backup_paths)
 
-CLAUDE_SETTINGS_MODULE = "litellm.proxy.client.cli.commands.claude_settings"
-AUTH_MODULE = "litellm.proxy.client.cli.commands.auth"
+CLAUDE_SETTINGS_MODULE = "token_iq.gateway.proxy.client.cli.commands.claude_settings"
+AUTH_MODULE = "token_iq.gateway.proxy.client.cli.commands.auth"
 WINDOWS_LITE_EXE = "C:\\Users\\u\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\lite.EXE"
 
 CMD_METACHARACTERS = frozenset("&|<>^()")
@@ -320,7 +320,7 @@ class TestConflictingOwnersOfTheSettingsFile:
 
     def test_the_registry_matches_the_paths_the_commands_actually_use(self):
         """A second definition of the autoroute dir must not drift from this one."""
-        from litellm.proxy.client.cli.commands.autoroute.process import AUTOROUTE_DIR
+        from token_iq.gateway.proxy.client.cli.commands.autoroute.process import AUTOROUTE_DIR
 
         assert AUTOROUTE_BACKUP_PATH == AUTOROUTE_DIR / "claude_settings_backup.json"
         assert {o.backup_path for o in SETTINGS_FILE_OWNERS} == {BACKUP_PATH, AUTOROUTE_BACKUP_PATH}

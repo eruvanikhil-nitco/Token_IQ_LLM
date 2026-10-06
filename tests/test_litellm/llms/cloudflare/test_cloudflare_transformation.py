@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.llms.cloudflare.chat.transformation import CloudflareChatConfig
+from token_iq.gateway.llms.cloudflare.chat.transformation import CloudflareChatConfig
 
 
 def test_supported_params_include_tools_and_tool_choice():

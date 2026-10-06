@@ -12,30 +12,30 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
-from litellm.llms.chatgpt.responses.transformation import ChatGPTResponsesAPIConfig
-from litellm.llms.databricks.responses.transformation import (
+from token_iq.gateway.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
+from token_iq.gateway.llms.chatgpt.responses.transformation import ChatGPTResponsesAPIConfig
+from token_iq.gateway.llms.databricks.responses.transformation import (
     DatabricksResponsesAPIConfig,
 )
-from litellm.llms.github_copilot.responses.transformation import (
+from token_iq.gateway.llms.github_copilot.responses.transformation import (
     GithubCopilotResponsesAPIConfig,
 )
-from litellm.llms.hosted_vllm.responses.transformation import (
+from token_iq.gateway.llms.hosted_vllm.responses.transformation import (
     HostedVLLMResponsesAPIConfig,
 )
-from litellm.llms.litellm_proxy.responses.transformation import (
+from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
     LiteLLMProxyResponsesAPIConfig,
 )
-from litellm.llms.manus.responses.transformation import ManusResponsesAPIConfig
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.llms.openrouter.responses.transformation import (
+from token_iq.gateway.llms.manus.responses.transformation import ManusResponsesAPIConfig
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.llms.openrouter.responses.transformation import (
     OpenRouterResponsesAPIConfig,
 )
-from litellm.llms.perplexity.responses.transformation import PerplexityResponsesConfig
-from litellm.llms.volcengine.responses.transformation import (
+from token_iq.gateway.llms.perplexity.responses.transformation import PerplexityResponsesConfig
+from token_iq.gateway.llms.volcengine.responses.transformation import (
     VolcEngineResponsesAPIConfig,
 )
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
 
 
 class TestResponsesAPIWebSocketSupport:
@@ -181,8 +181,8 @@ class TestManagedWebSocketHandlerIntegration:
         """Test that ManagedResponsesWebSocketHandler can be instantiated"""
         from unittest.mock import MagicMock
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -226,9 +226,9 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -286,9 +286,9 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -348,9 +348,9 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -424,7 +424,7 @@ class TestChunkTransformation:
 
     def test_serialize_chunk_with_dict(self):
         """Test serialization of dict chunks"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -440,7 +440,7 @@ class TestChunkTransformation:
 
     def test_serialize_chunk_handles_invalid_json(self):
         """Test that chunks with circular references are handled"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -453,7 +453,7 @@ class TestChunkTransformation:
 
     def test_extract_output_messages_with_text_content(self):
         """Test extraction of output messages with text content"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -481,7 +481,7 @@ class TestChunkTransformation:
 
     def test_extract_output_messages_with_multiple_content_parts(self):
         """Test extraction with multiple content parts"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -510,7 +510,7 @@ class TestChunkTransformation:
 
     def test_extract_output_messages_with_function_calls(self):
         """Test that function calls are preserved"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -539,7 +539,7 @@ class TestChunkTransformation:
 
     def test_extract_output_messages_filters_empty_text(self):
         """Test that messages with empty text are filtered out"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -570,7 +570,7 @@ class TestChunkTransformation:
 
     def test_extract_output_messages_handles_non_dict_items(self):
         """Test that non-dict items are skipped"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -599,7 +599,7 @@ class TestChunkTransformation:
 
     def test_input_to_messages_with_string(self):
         """Test conversion of string input to messages"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -612,7 +612,7 @@ class TestChunkTransformation:
 
     def test_input_to_messages_with_list(self):
         """Test conversion of list input to messages"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -631,7 +631,7 @@ class TestChunkTransformation:
 
     def test_input_to_messages_filters_non_dict_items(self):
         """Test that non-dict items in list input are filtered"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -651,7 +651,7 @@ class TestChunkTransformation:
 
     def test_input_to_messages_handles_empty_input(self):
         """Test that empty input returns empty list"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -665,7 +665,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_response_created_event_dict(self):
         """Test serialization of response.created event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -687,7 +687,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_response_in_progress_event_dict(self):
         """Test serialization of response.in_progress event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -699,7 +699,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_output_item_added_event_dict(self):
         """Test serialization of response.output_item.added event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -718,7 +718,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_output_text_delta_event_dict(self):
         """Test serialization of response.output_text.delta event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -738,7 +738,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_output_text_done_event_dict(self):
         """Test serialization of response.output_text.done event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -758,7 +758,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_content_part_done_event_dict(self):
         """Test serialization of response.content_part.done event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -777,7 +777,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_output_item_done_event_dict(self):
         """Test serialization of response.output_item.done event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -796,7 +796,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_response_completed_event_dict(self):
         """Test serialization of response.completed event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -822,7 +822,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_response_failed_event_dict(self):
         """Test serialization of response.failed event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -843,7 +843,7 @@ class TestWebSocketEventTypes:
 
     def test_serialize_response_incomplete_event_dict(self):
         """Test serialization of response.incomplete event as dict"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -868,7 +868,7 @@ class TestMultiTurnSessionHistory:
 
     def test_extract_output_messages_preserves_multiple_messages(self):
         """Test that multiple output messages are all preserved"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -907,7 +907,7 @@ class TestMultiTurnSessionHistory:
 
     def test_input_to_messages_with_mixed_content_types(self):
         """Test input conversion with mixed content types"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -930,7 +930,7 @@ class TestMultiTurnSessionHistory:
 
     def test_extract_output_messages_with_mixed_text_types(self):
         """Test that both 'output_text' and 'text' types are extracted"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -959,7 +959,7 @@ class TestMultiTurnSessionHistory:
 
     def test_extract_response_id_from_completed_event(self):
         """Test extraction of response ID from completed event"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -975,7 +975,7 @@ class TestMultiTurnSessionHistory:
 
     def test_extract_response_id_handles_missing_response(self):
         """Test that missing response dict returns None"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -995,8 +995,8 @@ class TestWebSocketErrorHandling:
         """Test that invalid JSON in response.create is handled gracefully"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -1040,10 +1040,10 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_managed_handler_blocks_frame_rejected_by_quota_callback(self, monkeypatch):
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm
-        from litellm.exceptions import RateLimitError
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.exceptions import RateLimitError
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -1090,9 +1090,9 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_managed_handler_forwards_frame_allowed_by_quota_callback(self, monkeypatch):
         from unittest.mock import AsyncMock, MagicMock
 
-        import litellm
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.responses.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -1140,8 +1140,8 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_native_handler_blocks_frame_rejected_by_quota_callback(self):
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.exceptions import RateLimitError
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.exceptions import RateLimitError
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         quota_callback = MagicMock()
         quota_callback.enforce_project_io_token_quota_for_frame = AsyncMock(
@@ -1174,7 +1174,7 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_native_handler_forwards_frame_allowed_by_quota_callback(self):
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         quota_callback = MagicMock()
         quota_callback.enforce_project_io_token_quota_for_frame = AsyncMock(return_value=None)
@@ -1201,7 +1201,7 @@ class TestNativeWebSocketGuardrails:
         import json
         from unittest.mock import MagicMock
 
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         handler = ResponsesWebSocketStreaming(
             websocket=MagicMock(),
@@ -1226,7 +1226,7 @@ class TestNativeWebSocketGuardrails:
     async def test_completed_event_with_null_response_passes_through(self):
         from unittest.mock import MagicMock
 
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         class Guardrail:
             def get_presidio_settings_from_request_data(self, request_data):
@@ -1256,7 +1256,7 @@ class TestNativeWebSocketGuardrails:
 
         import websockets.exceptions
 
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         class RecordingGuardrail:
             def __init__(self):
@@ -1330,7 +1330,7 @@ class TestNativeWebSocketGuardrails:
 
         import websockets.exceptions
 
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         class MaskingGuardrail:
             def __init__(self):
@@ -1458,7 +1458,7 @@ class _FakeWSGuardrail:
 def _make_streaming(**kwargs):
     from unittest.mock import MagicMock
 
-    from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+    from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
     kwargs.setdefault("websocket", MagicMock())
     kwargs.setdefault("backend_ws", MagicMock())
@@ -2273,7 +2273,7 @@ class TestWebSocketChunkTypes:
 
     def test_serialize_function_call_chunk(self):
         """Test serialization of function call chunks"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2294,7 +2294,7 @@ class TestWebSocketChunkTypes:
 
     def test_serialize_function_call_arguments_delta(self):
         """Test serialization of function call arguments delta"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2314,7 +2314,7 @@ class TestWebSocketChunkTypes:
 
     def test_serialize_function_call_arguments_done(self):
         """Test serialization of function call arguments done"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2334,7 +2334,7 @@ class TestWebSocketChunkTypes:
 
     def test_serialize_reasoning_content_delta(self):
         """Test serialization of reasoning content delta"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2354,7 +2354,7 @@ class TestWebSocketChunkTypes:
 
     def test_serialize_reasoning_content_done(self):
         """Test serialization of reasoning content done"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2374,7 +2374,7 @@ class TestWebSocketChunkTypes:
 
     def test_extract_output_messages_preserves_multiple_messages(self):
         """Test that multiple output messages are all preserved"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2413,7 +2413,7 @@ class TestWebSocketChunkTypes:
 
     def test_input_to_messages_with_mixed_content_types(self):
         """Test input conversion with mixed content types"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2436,7 +2436,7 @@ class TestWebSocketChunkTypes:
 
     def test_extract_output_messages_with_mixed_text_types(self):
         """Test that both 'output_text' and 'text' types are extracted"""
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -2497,7 +2497,7 @@ class TestNativeWebSocketUrlConstruction:
         mock_logging = MagicMock()
         mock_logging.pre_call = MagicMock()
 
-        from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
         handler = BaseLLMHTTPHandler()
 
@@ -2548,7 +2548,7 @@ class TestNativeWebSocketUrlConstruction:
         mock_logging = MagicMock()
         mock_logging.pre_call = MagicMock()
 
-        from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
         handler = BaseLLMHTTPHandler()
         mock_ws = MagicMock()
@@ -2589,7 +2589,7 @@ class TestNativeWebSocketUrlConstruction:
         mock_logging = MagicMock()
         mock_logging.pre_call = MagicMock()
 
-        from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
         handler = BaseLLMHTTPHandler()
         mock_ws = MagicMock()

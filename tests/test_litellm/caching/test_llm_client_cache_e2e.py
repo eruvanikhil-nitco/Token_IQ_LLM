@@ -17,9 +17,9 @@ import asyncio
 
 import pytest
 
-import litellm
-from litellm.caching.llm_caching_handler import LLMClientCache
-from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
 
 @pytest.fixture(autouse=True)

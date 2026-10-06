@@ -9,8 +9,8 @@ import pytest
 import respx
 from respx import MockRouter
 
-import litellm
-from litellm import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse
 
 
 @pytest.mark.respx()
@@ -186,7 +186,7 @@ def test_compactifai_authentication_error(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_provider_detection(respx_mock):
     """Test that CompactifAI provider is properly detected from model name"""
-    from litellm.utils import get_llm_provider
+    from token_iq.gateway.utils import get_llm_provider
 
     model, provider, dynamic_api_key, api_base = get_llm_provider(
         model="compactifai/cai-llama-3-1-8b-slim"

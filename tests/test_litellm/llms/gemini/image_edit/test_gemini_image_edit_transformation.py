@@ -7,9 +7,9 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
-from litellm.llms.gemini.image_edit.transformation import GeminiImageEditConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
+from token_iq.gateway.llms.gemini.image_edit.transformation import GeminiImageEditConfig
 
 
 class TestGeminiImageEditTransformation:

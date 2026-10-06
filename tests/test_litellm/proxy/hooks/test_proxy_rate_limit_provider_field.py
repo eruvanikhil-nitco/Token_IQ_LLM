@@ -38,36 +38,36 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.exceptions import RateLimitError
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.batch_rate_limiter import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import RateLimitError
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
     BatchFileUsage,
     _PROXY_BatchRateLimiter,
 )
-from litellm.proxy.hooks.dynamic_rate_limiter import _PROXY_DynamicRateLimitHandler
-from litellm.proxy.hooks.dynamic_rate_limiter_v3 import (
+from token_iq.gateway.proxy.hooks.dynamic_rate_limiter import _PROXY_DynamicRateLimitHandler
+from token_iq.gateway.proxy.hooks.dynamic_rate_limiter_v3 import (
     _PROXY_DynamicRateLimitHandlerV3,
 )
-from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
-from litellm.proxy.hooks.max_budget_per_session_limiter import (
+from token_iq.gateway.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
+from token_iq.gateway.proxy.hooks.max_budget_per_session_limiter import (
     _PROXY_MaxBudgetPerSessionHandler,
 )
-from litellm.proxy.hooks.max_iterations_limiter import _PROXY_MaxIterationsHandler
-from litellm.proxy.hooks.parallel_request_limiter import (
+from token_iq.gateway.proxy.hooks.max_iterations_limiter import _PROXY_MaxIterationsHandler
+from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
     _PROXY_MaxParallelRequestsHandler,
 )
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     _PROXY_MaxParallelRequestsHandler_v3,
 )
-from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-from litellm.proxy.hooks.rate_limiter_utils import (
+from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+from token_iq.gateway.proxy.hooks.rate_limiter_utils import (
     PROXY_LLM_PROVIDER_FALLBACK,
     resolve_llm_provider_for_rate_limit,
 )
-from litellm.proxy.utils import InternalUsageCache
-from litellm.types.agents import AgentResponse
+from token_iq.gateway.proxy.utils import InternalUsageCache
+from token_iq.gateway.types.agents import AgentResponse
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ class TestResolveLLMProviderForRateLimit:
         # to surface to the user.
         # Pin llm_router to None so the alias-fallback path doesn't pick up
         # a router left behind by another test in the session.
-        with patch("litellm.proxy.proxy_server.llm_router", None):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
             resolved_model, provider = resolve_llm_provider_for_rate_limit(model)
         assert provider == PROXY_LLM_PROVIDER_FALLBACK
         # Resolver returns the input model verbatim on the unknown branch so
@@ -164,7 +164,7 @@ class TestResolveLLMProviderForRateLimit:
             side_effect=RuntimeError("boom"),
         ):
             with patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 None,
             ):
                 resolved_model, provider = resolve_llm_provider_for_rate_limit(
@@ -203,7 +203,7 @@ class TestResolveLLMProviderForRateLimit:
             ]
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             _FakeRouter(),
         ):
             resolved_model, provider = resolve_llm_provider_for_rate_limit("tpm-locked")
@@ -241,7 +241,7 @@ class TestResolveLLMProviderForRateLimit:
             ]
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             _FakeRouter(),
         ):
             _, provider = resolve_llm_provider_for_rate_limit("claude-pool")
@@ -263,7 +263,7 @@ class TestResolveLLMProviderForRateLimit:
             ]
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             _FakeRouter(),
         ):
             resolved_model, provider = resolve_llm_provider_for_rate_limit(
@@ -291,7 +291,7 @@ class TestResolveLLMProviderForRateLimit:
             ]
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             _FakeRouter(),
         ):
             resolved_model, provider = resolve_llm_provider_for_rate_limit("broken")
@@ -654,7 +654,7 @@ async def test_dynamic_rate_limiter_v3_model_capacity_path_populates_provider():
     path — that's the most common production trip — and confirm the
     raised exception carries provider info.
     """
-    from litellm.types.router import ModelGroupInfo
+    from token_iq.gateway.types.router import ModelGroupInfo
 
     handler = _PROXY_DynamicRateLimitHandlerV3(internal_usage_cache=DualCache())
     handler.v3_limiter.atomic_check_and_increment_by_n = AsyncMock(
@@ -703,7 +703,7 @@ async def test_dynamic_rate_limiter_v3_model_capacity_path_populates_provider():
 @pytest.mark.asyncio
 async def test_dynamic_rate_limiter_v3_unknown_descriptor_path_populates_provider():
     """Fail-closed unknown-descriptor branch must still attribute provider."""
-    from litellm.types.router import ModelGroupInfo
+    from token_iq.gateway.types.router import ModelGroupInfo
 
     handler = _PROXY_DynamicRateLimitHandlerV3(internal_usage_cache=DualCache())
     handler.v3_limiter.atomic_check_and_increment_by_n = AsyncMock(
@@ -845,7 +845,7 @@ async def test_max_budget_limiter_populates_provider():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=10.0),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -873,7 +873,7 @@ async def test_max_budget_limiter_no_model_falls_back():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=10.0),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -911,7 +911,7 @@ async def test_max_iterations_limiter_populates_provider():
     user_api_key_dict = UserAPIKeyAuth(api_key="sk-iter", agent_id="agent-iter")
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = _make_iter_agent(max_iterations=1)
 
@@ -952,7 +952,7 @@ async def test_max_iterations_limiter_unknown_model_falls_back():
     user_api_key_dict = UserAPIKeyAuth(api_key="sk-iter", agent_id="agent-iter")
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = _make_iter_agent(max_iterations=1)
 
@@ -1004,7 +1004,7 @@ async def test_max_budget_per_session_limiter_populates_provider():
     )
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = _make_session_budget_agent(
             max_budget=1.0
@@ -1039,7 +1039,7 @@ async def test_max_budget_per_session_limiter_unknown_model_falls_back():
     )
 
     with patch(
-        "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+        "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
     ) as mock_registry:
         mock_registry.get_agent_by_id.return_value = _make_session_budget_agent(
             max_budget=1.0
@@ -1080,7 +1080,7 @@ def test_prometheus_exception_class_name_back_compat_for_proxy_rate_limit_error(
     ``rate_limit_category`` / ``rate_limit_type`` labels — this test pins
     the back-compat shim itself.
     """
-    from litellm.integrations.prometheus import PrometheusLogger
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     exc = ProxyRateLimitError(
         detail="over limit",
@@ -1104,7 +1104,7 @@ def test_prometheus_exception_class_name_back_compat_for_budget_exceeded_error()
     ``"Openai.BudgetExceededError"`` and break dashboards keyed on the
     historical value. Pin the literal label here.
     """
-    from litellm.integrations.prometheus import PrometheusLogger
+    from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     err = litellm.BudgetExceededError(
         current_cost=1.0,

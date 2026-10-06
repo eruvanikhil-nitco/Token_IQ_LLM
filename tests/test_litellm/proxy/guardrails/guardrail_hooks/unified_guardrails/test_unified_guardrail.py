@@ -4,42 +4,42 @@ import logging
 
 import pytest
 
-import litellm
-from litellm.caching import DualCache
-from litellm.integrations.custom_guardrail import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
 )
-from litellm.litellm_core_utils.api_route_to_call_types import get_call_types_for_route
-from litellm.llms import load_guardrail_translation_mappings
-from litellm.llms.base_llm.guardrail_translation.base_translation import BaseTranslation
-from litellm.llms.base_llm.guardrail_translation.utils import (
+from token_iq.gateway.core_utils.api_route_to_call_types import get_call_types_for_route
+from token_iq.gateway.llms import load_guardrail_translation_mappings
+from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import BaseTranslation
+from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
     effective_skip_system_message_for_guardrail,
     effective_skip_tool_message_for_guardrail,
     openai_messages_without_system,
     openai_messages_without_tool,
 )
-from litellm.llms.openai.chat.guardrail_translation.handler import (
+from token_iq.gateway.llms.openai.chat.guardrail_translation.handler import (
     OpenAIChatCompletionsHandler,
 )
-from litellm.llms.openai.responses.guardrail_translation.handler import (
+from token_iq.gateway.llms.openai.responses.guardrail_translation.handler import (
     OpenAIResponsesHandler,
 )
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse
-from litellm.llms.mistral.ocr.guardrail_translation.handler import OCRHandler
-from litellm.proxy._experimental.mcp_server.guardrail_translation.handler import (
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse
+from token_iq.gateway.llms.mistral.ocr.guardrail_translation.handler import OCRHandler
+from token_iq.gateway.proxy._experimental.mcp_server.guardrail_translation.handler import (
     MCPGuardrailTranslationHandler,
 )
-from litellm.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail import (
+from token_iq.gateway.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail import (
     unified_guardrail as unified_module,
 )
-from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
     UnifiedLLMGuardrails,
 )
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.llms.openai import ResponsesAPIResponse
-from litellm.types.utils import CallTypes, Delta, ModelResponseStream, StreamingChoices
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.utils import CallTypes, Delta, ModelResponseStream, StreamingChoices
 
 
 class RecordingGuardrail(CustomGuardrail):
@@ -1253,7 +1253,7 @@ class TestStreamingTransform:
     async def test_tool_call_blocking_guardrail_is_enforced(self):
         """A guardrail that blocks on tool calls must terminate the incremental_diff
         stream: tool calls go through the block decision, not bypass it."""
-        from litellm.exceptions import GuardrailRaisedException
+        from token_iq.gateway.exceptions import GuardrailRaisedException
 
         class _ToolCallBlocker(_StreamingTextGuardrail):
             async def apply_guardrail(self, inputs, request_data, input_type, **kwargs):
@@ -1693,7 +1693,7 @@ class _SelfLoggingGuardrail(CustomGuardrail):
     @log_guardrail_information
     async def apply_guardrail(self, inputs, request_data, input_type, **kwargs):
         if self._self_add:
-            from litellm.proxy.common_utils.callback_utils import (
+            from token_iq.gateway.proxy.common_utils.callback_utils import (
                 add_guardrail_to_applied_guardrails_header,
             )
 
@@ -2084,7 +2084,7 @@ class TestStreamingScanDedup:
 
     @pytest.mark.asyncio
     async def test_chat_finish_chunk_carrying_tool_calls_is_still_scanned(self):
-        from litellm.types.utils import ChatCompletionDeltaToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionDeltaToolCall, Function
 
         guardrail = _ScanCountingGuardrail(sampling_rate=3)
         tool_call = ChatCompletionDeltaToolCall(

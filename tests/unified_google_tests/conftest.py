@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import litellm  # noqa: E402,F401
+from token_iq import gateway as litellm  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -41,7 +41,7 @@ PROXY_START_TIMEOUT_S = 30.0
 def _start_proxy_server(
     config_path: str,
 ) -> Tuple[str, uvicorn.Server, threading.Thread, socket.socket]:
-    from litellm.proxy.proxy_server import (
+    from token_iq.gateway.proxy.proxy_server import (
         app as proxy_app,
         cleanup_router_config_variables,
         initialize,

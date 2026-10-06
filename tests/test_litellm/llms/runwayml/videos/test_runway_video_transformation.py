@@ -7,14 +7,14 @@ from unittest.mock import Mock
 import httpx
 import pytest
 
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
-from litellm.llms.runwayml.videos.transformation import (
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.llms.runwayml.videos.transformation import (
     RunwayMLError,
     RunwayMLVideoConfig,
     _ratio_to_resolution,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.videos.main import VideoObject
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.videos.main import VideoObject
 
 
 class TestRunwayMLVideoTransformation:
@@ -208,7 +208,7 @@ class TestRunwayMLVideoTransformation:
 
     def test_transform_video_status_with_timestamp_handling(self):
         """Test status retrieval handles RunwayML's ISO 8601 timestamps correctly."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         # Test status request URL construction
         video_id = encode_video_id_with_provider(
@@ -257,7 +257,7 @@ class TestRunwayMLVideoTransformation:
 
     def test_transform_video_content_extraction(self):
         """Test content retrieval extracts video URL from RunwayML response correctly."""
-        from litellm.types.videos.utils import encode_video_id_with_provider
+        from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
 
         # Test content request URL
         video_id = encode_video_id_with_provider(

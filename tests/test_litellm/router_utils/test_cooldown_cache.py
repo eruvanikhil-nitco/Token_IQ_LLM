@@ -9,10 +9,10 @@ import pytest
 
 # Add the parent directory to the system path
 
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.litellm_core_utils.sensitive_data_masker import SensitiveDataMasker
-from litellm.router_utils.cooldown_cache import CooldownCache, CooldownCacheValue
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
+from token_iq.gateway.router_utils.cooldown_cache import CooldownCache, CooldownCacheValue
 
 
 class TestCooldownCacheExceptionMasking:

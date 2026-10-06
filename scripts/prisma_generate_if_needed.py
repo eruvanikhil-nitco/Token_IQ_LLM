@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run ``prisma generate`` only when its inputs changed since the last run.
 
-The generated client is a pure function of ``litellm/proxy/schema.prisma`` and
+The generated client is a pure function of ``token_iq/gateway/proxy/schema.prisma`` and
 the installed prisma package version, so a stamp of those two written next to
 the venv is enough to prove the client is current. The stamp lives under
 ``sys.prefix`` so recreating the venv discards it, and a missing generated

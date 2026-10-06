@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from litellm.proxy._types import LiteLLM_BudgetTableFull
+from token_iq.gateway.proxy._types import LiteLLM_BudgetTableFull
 
 
-from litellm.proxy.common_utils.reset_budget_job import ResetBudgetJob
+from token_iq.gateway.proxy.common_utils.reset_budget_job import ResetBudgetJob
 
 # Note: In our "fake" items we use dicts with fields that our fake reset functions modify.
 # In a real-world scenario, these would be instances of LiteLLM_VerificationToken, LiteLLM_UserTable, etc.
@@ -665,7 +665,7 @@ async def test_service_logger_keys_success():
         side_effect=fake_reset_key,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_keys()
             # Allow async logging task to complete
@@ -723,7 +723,7 @@ async def test_service_logger_keys_failure():
         side_effect=fake_reset_key,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_keys()
             await asyncio.sleep(0.1)
@@ -788,7 +788,7 @@ async def test_service_logger_users_success():
         side_effect=fake_reset_user,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_users()
             await asyncio.sleep(0.1)
@@ -842,7 +842,7 @@ async def test_service_logger_users_failure():
         side_effect=fake_reset_user,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_users()
             await asyncio.sleep(0.1)
@@ -904,7 +904,7 @@ async def test_service_logger_teams_success():
         side_effect=fake_reset_team,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_teams()
             await asyncio.sleep(0.1)
@@ -958,7 +958,7 @@ async def test_service_logger_teams_failure():
         side_effect=fake_reset_team,
     ):
         with patch(
-            "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
         ) as mock_verbose_exc:
             await job.reset_budget_for_litellm_teams()
             await asyncio.sleep(0.1)
@@ -1023,7 +1023,7 @@ async def test_service_logger_endusers_success():
     job = ResetBudgetJob(proxy_logging_obj, prisma_client)
 
     with patch(
-        "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+        "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
     ) as mock_verbose_exc:
         await job.reset_budget_for_litellm_budget_table()
         await asyncio.sleep(0.1)
@@ -1088,7 +1088,7 @@ async def test_service_logger_endusers_failure():
     job = ResetBudgetJob(proxy_logging_obj, prisma_client)
 
     with patch(
-        "litellm.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
+        "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
     ) as mock_verbose_exc:
         await job.reset_budget_for_litellm_budget_table()
         await asyncio.sleep(0.1)

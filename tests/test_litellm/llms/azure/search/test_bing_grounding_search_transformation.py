@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from litellm.llms.azure.search.transformation import BingGroundingSearchConfig
+from token_iq.gateway.llms.azure.search.transformation import BingGroundingSearchConfig
 
 REAL_FIXTURE = json.loads((Path(__file__).parent / "foundry_responses_web_search_fixture.json").read_text())
 

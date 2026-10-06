@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app
-from litellm.types.utils import CredentialItem
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.utils import CredentialItem
 
 client = TestClient(app)
 
@@ -40,8 +40,8 @@ def test_update_credential_answers_404_when_the_credential_does_not_exist():
     the exception the response body and lets FastAPI answer 200, so a write the handler
     rejected read as a success to every caller that checks the status. The dashboard's API
     client branches on the status, so it reported a failed edit as applied."""
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository:
         repository.return_value.find_by_name = AsyncMock(return_value=None)
 
@@ -56,7 +56,7 @@ def test_update_credential_answers_404_when_the_credential_does_not_exist():
 
 def test_update_credential_answers_500_when_the_database_is_not_connected():
     """The other rejection this handler raises must carry its own status too."""
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         response = _patch_credential(
             "any-name",
             {"credential_name": "any-name", "credential_values": {"api_key": "sk-x"}, "credential_info": {}},
@@ -73,9 +73,9 @@ def test_update_credential_still_answers_200_on_a_successful_write():
         credential_values={"api_key": "sk-old"},
         credential_info={"custom_llm_provider": "openai"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository:
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
         repository.return_value.update_by_name = AsyncMock(return_value=None)
 
@@ -103,8 +103,8 @@ def _as_admin_request(method: str, path: str, body: dict | None = None):
 
 def test_creating_a_billing_credential_with_an_ordinary_key_is_refused_before_anything_is_stored():
     """An ordinary OpenAI key saves fine and then fails every cost sync with a 401."""
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository:
         repository.return_value.create = AsyncMock(return_value=None)
 
@@ -126,10 +126,10 @@ def test_creating_a_billing_credential_with_an_ordinary_key_is_refused_before_an
 
 
 def test_creating_a_billing_credential_with_an_admin_key_is_stored():
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
     ):
         repository.return_value.create = AsyncMock(return_value=None)
 
@@ -152,10 +152,10 @@ def test_creating_a_credential_whose_name_is_already_taken_answers_409():
     credential was already stored, so the duplicate has to be distinguishable from a 500."""
     from prisma.errors import UniqueViolationError
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
     ) as upsert:
         repository.return_value.create = AsyncMock(
             side_effect=UniqueViolationError({}, message="Unique constraint failed")
@@ -182,8 +182,8 @@ def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
         credential_values={"api_key": "encrypted-stored-value"},
         credential_info={"purpose": "billing_ingestion", "provider": "openai"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository:
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
         repository.return_value.update_by_name = AsyncMock(return_value=None)
@@ -202,11 +202,11 @@ def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
 
 
 def _patch_stored_credential(stored: CredentialItem, body: dict):
-    import litellm
+    from token_iq import gateway as litellm
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch.object(
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch.object(
         litellm, "credential_list", []
     ):
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
@@ -304,7 +304,7 @@ def test_resending_the_same_purpose_and_provider_with_a_new_admin_key_is_accepte
 def test_listing_credentials_never_returns_any_part_of_a_billing_key():
     """Billing keys read a whole organisation's costs. Even a masked prefix narrows a
     leaked key down, so the list returns nothing for them."""
-    import litellm
+    from token_iq import gateway as litellm
 
     billing = CredentialItem(
         credential_name="anthropic-billing",
@@ -354,7 +354,7 @@ def test_the_credential_list_leaves_out_billing_credentials_altogether():
     which is the thing the purpose marker exists to prevent. The billing pages read
     `/provider/connections`, which enumerates them, so nothing needs this list to carry them.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     billing, model_access = _billing_and_model_credentials()
     with patch.object(litellm, "credential_list", [billing, model_access]):
@@ -368,7 +368,7 @@ def test_the_credential_list_leaves_out_billing_credentials_altogether():
 def test_a_billing_credential_is_still_readable_by_name():
     """Excluding them from the list must not hide them from the connect flow, which reads one
     back by name to show its state. A filter that hides them from everything is not a tidy-up."""
-    import litellm
+    from token_iq import gateway as litellm
 
     billing, model_access = _billing_and_model_credentials()
     with patch.object(litellm, "credential_list", [billing, model_access]):
@@ -382,7 +382,7 @@ def test_a_billing_credential_is_still_readable_by_name():
 def test_the_credential_list_still_carries_an_ordinary_credential_with_no_purpose_at_all():
     """Most stored credentials have no `purpose` key. Reading a missing key as "billing" would
     empty the list the model pages depend on."""
-    import litellm
+    from token_iq import gateway as litellm
 
     plain = CredentialItem(
         credential_name="plain",
@@ -415,12 +415,12 @@ def _as_team_admin_request(method: str, path: str, body: dict | None = None):
 def test_a_team_admin_creating_a_credential_gets_their_team_recorded_on_it():
     """Condition 2 of the spec: a team admin's credential belongs to their team, so the
     list can show them only their own."""
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
         repository.return_value.create = AsyncMock(return_value=None)
 
         response = _as_team_admin_request(
@@ -443,12 +443,12 @@ def test_a_team_admin_cannot_create_a_billing_credential():
     """A billing credential is what the installation's cost ingestion runs on, and the lookup
     that picks one ignores team_id, so a team admin's row could become the key every provider
     bill is read with. Only a proxy admin may mark one."""
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
         repository.return_value.create = AsyncMock(return_value=None)
 
         response = _as_team_admin_request(
@@ -467,10 +467,10 @@ def test_a_team_admin_cannot_create_a_billing_credential():
 
 
 def test_a_team_admin_who_administers_no_team_cannot_create_a_credential():
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset()),
     ):
         repository.return_value.create = AsyncMock(return_value=None)
@@ -490,10 +490,10 @@ def test_a_team_admin_who_administers_no_team_cannot_create_a_credential():
 
 
 def test_a_team_admin_cannot_put_a_credential_in_another_team():
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
     ):
         repository.return_value.create = AsyncMock(return_value=None)
@@ -513,7 +513,7 @@ def test_a_team_admin_cannot_put_a_credential_in_another_team():
 
 
 def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials():
-    import litellm
+    from token_iq import gateway as litellm
 
     mine = CredentialItem(
         credential_name="team-a-openai",
@@ -530,10 +530,10 @@ def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials()
         credential_values={"api_key": "sk-test-not-real"},
         credential_info={"custom_llm_provider": "openai"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
         litellm, "credential_list", [mine, theirs, shared]
     ), patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
     ):
         response = _as_team_admin_request("GET", "/credentials")
@@ -544,17 +544,17 @@ def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials()
 
 
 def test_a_team_admin_cannot_read_another_team_s_credential_by_name():
-    import litellm
+    from token_iq import gateway as litellm
 
     theirs = CredentialItem(
         credential_name="team-b-openai",
         credential_values={"api_key": "sk-test-not-real"},
         credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
         litellm, "credential_list", [theirs]
     ), patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
     ):
         response = _as_team_admin_request("GET", "/credentials/by_name/team-b-openai")
@@ -569,10 +569,10 @@ def test_a_team_admin_cannot_change_a_shared_credential():
         credential_values={"api_key": "sk-test-not-real"},
         credential_info={"custom_llm_provider": "openai"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository"
     ) as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
     ):
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
@@ -598,10 +598,10 @@ def test_a_team_admin_may_change_their_own_team_s_credential():
         credential_values={"api_key": "sk-test-not-real"},
         credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
     )
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
     ):
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
@@ -620,10 +620,10 @@ def test_a_team_admin_may_change_their_own_team_s_credential():
 def test_a_credential_with_connection_details_and_no_secret_is_accepted():
     """Condition 3 of the spec: Bedrock and Vertex on cloud permissions, and a local
     Ollama, carry a base URL or a region but no key."""
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
-        "litellm.proxy.proxy_server.master_key", "sk-test-master"
-    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
-        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
     ):
         repository.return_value.create = AsyncMock(return_value=None)
 

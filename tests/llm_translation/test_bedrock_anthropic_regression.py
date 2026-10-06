@@ -16,8 +16,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 
 # Large document for caching tests (needs 1024+ tokens for Claude models)
@@ -104,10 +104,10 @@ class TestBedrockAnthropicPromptCachingRegression:
         - bedrock/invoke uses cache_control directly in the Anthropic Messages API format
         - bedrock/converse should transform to cachePoint format
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 
@@ -201,10 +201,10 @@ class TestBedrockAnthropicPromptCachingRegression:
         This was a critical bug where litellm was incorrectly adding the Anthropic API
         beta header to Bedrock requests.
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 
@@ -282,10 +282,10 @@ class TestBedrockAnthropic1MContextRegression:
 
         This test verifies the transformation layer directly to avoid async complexity.
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 
@@ -353,10 +353,10 @@ class TestBedrockAnthropic1MContextRegression:
         This is a unit test that verifies the transformation logic directly without
         making actual API calls.
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 
@@ -407,10 +407,10 @@ class TestBedrockAnthropic1MContextRegression:
         Ensures that multiple anthropic-beta values (comma-separated) are all
         correctly passed through.
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 
@@ -467,10 +467,10 @@ class TestBedrockAnthropicCombinedRegressions:
         This is a real-world scenario where a user might want to use both features
         simultaneously.
         """
-        from litellm.llms.bedrock.chat.converse_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.converse_transformation import (
             AmazonConverseConfig,
         )
-        from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
             AmazonAnthropicClaudeConfig,
         )
 

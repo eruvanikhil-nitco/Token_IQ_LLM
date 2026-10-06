@@ -5,12 +5,12 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.integrations.datadog.datadog import DataDogLogger
-from litellm.integrations.datadog.datadog_handler import get_datadog_tags, normalize_datadog_tag_value
-from litellm.integrations.datadog.datadog_cost_management import (
+from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
+from token_iq.gateway.integrations.datadog.datadog_handler import get_datadog_tags, normalize_datadog_tag_value
+from token_iq.gateway.integrations.datadog.datadog_cost_management import (
     DatadogCostManagementLogger,
 )
-from litellm.types.utils import StandardLoggingPayload, StandardLoggingMetadata
+from token_iq.gateway.types.utils import StandardLoggingPayload, StandardLoggingMetadata
 
 
 class TestDatadogTagsRegression:

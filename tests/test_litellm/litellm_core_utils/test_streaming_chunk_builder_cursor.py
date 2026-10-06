@@ -23,8 +23,8 @@ text-based fallback to estimate from the real completion text.
 import pytest
 
 
-from litellm.litellm_core_utils.streaming_chunk_builder_utils import ChunkProcessor
-from litellm.types.utils import (
+from token_iq.gateway.core_utils.streaming_chunk_builder_utils import ChunkProcessor
+from token_iq.gateway.types.utils import (
     Delta,
     ModelResponseStream,
     StreamingChoices,
@@ -54,7 +54,7 @@ def _make_chunk(
         usage=usage,
     )
     # The cursor reset is now gated on provider; populate the same field the
-    # real streaming_handler sets (see litellm/litellm_core_utils/streaming_handler.py).
+    # real streaming_handler sets (see token_iq/gateway/core_utils/streaming_handler.py).
     chunk._hidden_params = {"custom_llm_provider": custom_llm_provider}
     return chunk
 

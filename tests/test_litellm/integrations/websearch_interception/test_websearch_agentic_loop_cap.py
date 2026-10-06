@@ -16,18 +16,18 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.integrations.websearch_interception.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
     FakeAnthropicMessagesStreamIterator,
 )
-from litellm.litellm_core_utils.agentic_loop_settings import DEFAULT_MAX_AGENTIC_LOOPS
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.secret_managers.main import get_secret
-from litellm.types.integrations.custom_logger import (
+from token_iq.gateway.core_utils.agentic_loop_settings import DEFAULT_MAX_AGENTIC_LOOPS
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.secret_managers.main import get_secret
+from token_iq.gateway.types.integrations.custom_logger import (
     AgenticLoopPlan,
     AgenticLoopRequestPatch,
     AgenticLoopSafetyError,
@@ -475,7 +475,7 @@ class TestOuterFramePostHookStillRuns:
                 },
             )
 
-        monkeypatch.setattr("litellm.anthropic_interface.messages.acreate", fake_acreate)
+        monkeypatch.setattr("token_iq.gateway.anthropic_interface.messages.acreate", fake_acreate)
 
         result = await _run_hooks(
             handler,

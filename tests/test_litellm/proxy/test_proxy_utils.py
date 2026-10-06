@@ -4,16 +4,16 @@ import smtplib
 import pytest
 from fastapi import HTTPException
 
-from litellm.caching.caching import DualCache
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.proxy._types import ProxyErrorTypes
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.proxy._types import ProxyErrorTypes
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 from unittest.mock import MagicMock, patch
 
-from litellm.proxy.utils import get_custom_url, join_paths
+from token_iq.gateway.proxy.utils import get_custom_url, join_paths
 
 
 def test_get_custom_url(monkeypatch):
@@ -74,8 +74,8 @@ async def test_proxy_only_error_log_marks_no_upstream_llm_call():
     ``LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL`` so tracing callbacks don't fabricate
     an LLM-call span for a request that never reached a provider (root cause of the
     misplaced gen-AI span on auth failure)."""
-    from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     captured = {}
@@ -83,7 +83,7 @@ async def test_proxy_only_error_log_marks_no_upstream_llm_call():
     def fake_pre_call(self, *args, **kwargs):
         captured["flag"] = self.model_call_details.get(LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL)
 
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     orig_pre_call = Logging.pre_call
     orig_async_failure = Logging.async_failure_handler
@@ -116,7 +116,7 @@ async def test_proxy_only_error_log_keeps_litellm_metadata_in_litellm_params():
     (not ``metadata``). It must land in litellm_params so
     ``merge_litellm_metadata`` can surface ``guardrail_information`` in the
     spend-log failure row, matching the chat completions path."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     captured = {}
@@ -126,7 +126,7 @@ async def test_proxy_only_error_log_keeps_litellm_metadata_in_litellm_params():
         captured["litellm_params"] = kwargs.get("litellm_params")
         captured["optional_params"] = kwargs.get("optional_params")
 
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     orig_update_env = Logging.update_environment_variables
     orig_pre_call = Logging.pre_call
@@ -159,8 +159,8 @@ async def test_proxy_only_error_log_keeps_litellm_metadata_in_litellm_params():
 
 
 def test_get_model_group_info_order():
-    from litellm import Router
-    from litellm.proxy.proxy_server import _get_model_group_info
+    from token_iq.gateway import Router
+    from token_iq.gateway.proxy.proxy_server import _get_model_group_info
 
     router = Router(
         model_list=[
@@ -238,11 +238,11 @@ def _patch_today(monkeypatch, year, month, day):
         def today(cls):
             return real_datetime.date(year, month, day)
 
-    monkeypatch.setattr("litellm.proxy.utils.date", PatchedDate)
+    monkeypatch.setattr("token_iq.gateway.proxy.utils.date", PatchedDate)
 
 
 def test_get_projected_spend_over_limit_day_one(monkeypatch):
-    from litellm.proxy.utils import _get_projected_spend_over_limit
+    from token_iq.gateway.proxy.utils import _get_projected_spend_over_limit
 
     _patch_today(monkeypatch, 2026, 1, 1)
     result = _get_projected_spend_over_limit(100.0, 1.0)
@@ -254,7 +254,7 @@ def test_get_projected_spend_over_limit_day_one(monkeypatch):
 
 
 def test_get_projected_spend_over_limit_december(monkeypatch):
-    from litellm.proxy.utils import _get_projected_spend_over_limit
+    from token_iq.gateway.proxy.utils import _get_projected_spend_over_limit
 
     _patch_today(monkeypatch, 2026, 12, 15)
     result = _get_projected_spend_over_limit(100.0, 1.0)
@@ -266,7 +266,7 @@ def test_get_projected_spend_over_limit_december(monkeypatch):
 
 
 def test_get_projected_spend_over_limit_includes_current_spend(monkeypatch):
-    from litellm.proxy.utils import _get_projected_spend_over_limit
+    from token_iq.gateway.proxy.utils import _get_projected_spend_over_limit
 
     _patch_today(monkeypatch, 2026, 4, 11)
     result = _get_projected_spend_over_limit(100.0, 200.0)
@@ -285,7 +285,7 @@ def test_get_projected_spend_over_limit_includes_current_spend(monkeypatch):
 
 def test_enrich_http_exception_with_guardrail_context_dict_detail():
     """L2: dict-detail HTTPException is enriched with guardrail_name and mode."""
-    from litellm.proxy.utils import _enrich_http_exception_with_guardrail_context
+    from token_iq.gateway.proxy.utils import _enrich_http_exception_with_guardrail_context
 
     class StubCallback:
         guardrail_name = "bedrock-pii-guard"
@@ -299,7 +299,7 @@ def test_enrich_http_exception_with_guardrail_context_dict_detail():
 
 def test_enrich_http_exception_string_detail_noop():
     """L2: string-detail HTTPException is not mutated (can't add fields to a str)."""
-    from litellm.proxy.utils import _enrich_http_exception_with_guardrail_context
+    from token_iq.gateway.proxy.utils import _enrich_http_exception_with_guardrail_context
 
     class StubCallback:
         guardrail_name = "x"
@@ -312,7 +312,7 @@ def test_enrich_http_exception_string_detail_noop():
 
 def test_enrich_http_exception_setdefault_does_not_overwrite():
     """L2: a guardrail that already populates guardrail_name explicitly wins."""
-    from litellm.proxy.utils import _enrich_http_exception_with_guardrail_context
+    from token_iq.gateway.proxy.utils import _enrich_http_exception_with_guardrail_context
 
     class StubCallback:
         guardrail_name = "inferred-name"
@@ -328,7 +328,7 @@ def test_enrich_http_exception_setdefault_does_not_overwrite():
 
 def test_enrich_http_exception_non_http_exception_noop():
     """L2: non-HTTPException is left alone and the helper does not raise."""
-    from litellm.proxy.utils import _enrich_http_exception_with_guardrail_context
+    from token_iq.gateway.proxy.utils import _enrich_http_exception_with_guardrail_context
 
     class StubCallback:
         guardrail_name = "x"
@@ -341,7 +341,7 @@ def test_enrich_http_exception_non_http_exception_noop():
 
 def test_enrich_http_exception_callback_without_guardrail_name_noop():
     """L2: callback without guardrail_name attribute leaves detail alone."""
-    from litellm.proxy.utils import _enrich_http_exception_with_guardrail_context
+    from token_iq.gateway.proxy.utils import _enrich_http_exception_with_guardrail_context
 
     class StubCallback:
         pass
@@ -363,7 +363,7 @@ class TestPostCallFailureHookLiftsFirstApiCallStartTime:
     async def _run(self, request_data):
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = []  # skip alerting branch
@@ -419,7 +419,7 @@ class TestPostCallFailureHookLiftsRecoveredPartialSpend:
     async def _run(self, request_data):
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = []
@@ -432,7 +432,7 @@ class TestPostCallFailureHookLiftsRecoveredPartialSpend:
 
     @pytest.mark.asyncio
     async def test_lifts_recovered_usage_and_cost(self):
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         recovered_usage = Usage(prompt_tokens=30, completion_tokens=1, total_tokens=31)
         logging_obj = MagicMock()
@@ -449,7 +449,7 @@ class TestPostCallFailureHookLiftsRecoveredPartialSpend:
 
     @pytest.mark.asyncio
     async def test_recovered_usage_without_cost_clobbers_client_cost_with_zero(self):
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         recovered_usage = Usage(prompt_tokens=30, completion_tokens=1, total_tokens=31)
         logging_obj = MagicMock()
@@ -484,7 +484,7 @@ class TestPostCallFailureHookLiftsStandardLoggingObject:
     async def _run(self, request_data):
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = []
@@ -542,8 +542,8 @@ class TestPostCallFailureHookLiftsStandardLoggingObject:
 
         from fastapi import HTTPException
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         logging_obj = Logging(
             model="claude-haiku-4-5",
@@ -590,7 +590,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
     async def _run(self, request_data):
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = []
@@ -610,7 +610,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
     async def test_dispatched_failure_estimates_input_tokens_with_zero_cost(self):
         from datetime import datetime
 
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         request_data = {
             "litellm_logging_obj": self._logging_obj(
@@ -653,7 +653,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
     async def test_proxy_only_error_never_dispatched_stays_zero(self):
         from datetime import datetime
 
-        from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+        from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
 
         request_data = {
             "litellm_logging_obj": self._logging_obj(
@@ -675,7 +675,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
     async def test_recovered_partial_usage_wins_over_estimate(self):
         from datetime import datetime
 
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         recovered_usage = Usage(prompt_tokens=30, completion_tokens=7, total_tokens=37)
         request_data = {
@@ -700,7 +700,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
     async def test_dispatched_failure_with_text_completion_prompt(self):
         from datetime import datetime
 
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         request_data = {
             "litellm_logging_obj": self._logging_obj(
@@ -738,8 +738,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_image_message_estimated_without_fetching_image(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         messages = [
             {
@@ -766,8 +766,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_embedding_string_list_input_counted_in_estimate(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         embedding_input = ["first embedding text", "second embedding text"]
         request_data = self._dispatched_request_data(embedding_input, {}, call_type="aembedding")
@@ -788,8 +788,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_anthropic_system_prompt_counted_in_estimate(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         system_prompt = "You are a verbose historian who narrates every fact in exhaustive detail."
         messages = [{"role": "user", "content": "write a short essay"}]
@@ -805,8 +805,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_anthropic_system_text_blocks_counted_in_estimate(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         system_blocks = [
             {"type": "text", "text": "part one of the system prompt. "},
@@ -827,8 +827,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_responses_instructions_counted_in_estimate(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         instructions = "Answer every question as a meticulous archivist."
         request_data = self._dispatched_request_data("summarize the archive", {"instructions": instructions})
@@ -843,8 +843,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_request_body_system_counted_when_optional_params_empty(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         system_prompt = "You are a meticulous cartographer who labels every landmark."
         messages = [{"role": "user", "content": "draw me a map"}]
@@ -863,8 +863,8 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_optional_params_system_wins_over_request_body_system(self):
-        import litellm as litellm_module
-        from litellm.types.utils import Usage
+        from token_iq import gateway as litellm_module
+        from token_iq.gateway.types.utils import Usage
 
         dispatched_system = "short dispatched system prompt"
         messages = [{"role": "user", "content": "hello"}]
@@ -884,9 +884,9 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
 from typing import cast
 
-import litellm
-from litellm.proxy.utils import create_model_info_response
-from litellm.types.utils import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.utils import create_model_info_response
+from token_iq.gateway.types.utils import ModelInfo
 
 
 def _fake_model_info(**fields: object) -> ModelInfo:
@@ -958,7 +958,7 @@ def test_create_model_info_response_deployment_limits_override_cost_map():
 
 
 def test_create_model_info_response_survives_malformed_configured_limits():
-    from litellm import Router
+    from token_iq.gateway import Router
 
     router = Router(
         model_list=[
@@ -1012,7 +1012,7 @@ def test_create_model_info_response_survives_malformed_limits_registered_by_rout
     """A deployment's model_info is registered into litellm.model_cost verbatim, so a
     malformed configured limit reaches the listing through the real cost-map lookup and
     not just the router index. Guarding only the index path still 500s the whole listing."""
-    from litellm import Router
+    from token_iq.gateway import Router
 
     saved_model_cost = dict(litellm.model_cost)
     try:
@@ -1145,7 +1145,7 @@ class TestPostCallFailureHookLLMExceptionAlerting:
         import asyncio
         from unittest.mock import AsyncMock
 
-        from litellm.proxy._types import AlertType, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import AlertType, UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = [AlertType.llm_exceptions]
@@ -1164,7 +1164,7 @@ class TestPostCallFailureHookLLMExceptionAlerting:
 
     @pytest.mark.asyncio
     async def test_proxy_exception_does_not_alert(self):
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         exc = ProxyException(
             message="content blocked",
@@ -1194,7 +1194,7 @@ class TestPostCallFailureHookProxyExceptionLogging:
     async def _logged(self, exc, *, request_route) -> bool:
         from unittest.mock import AsyncMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
         proxy_logging_obj.alert_types = []
@@ -1215,7 +1215,7 @@ class TestPostCallFailureHookProxyExceptionLogging:
         return handle_mock.await_count > 0
 
     def _block(self):
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         return ProxyException(
             message="content blocked",
@@ -1237,19 +1237,19 @@ class TestPostCallFailureHookProxyExceptionLogging:
 
 class TestShouldUseSmtpSsl:
     def test_port_465_uses_ssl(self, monkeypatch):
-        from litellm.proxy.utils import _should_use_smtp_ssl
+        from token_iq.gateway.proxy.utils import _should_use_smtp_ssl
 
         monkeypatch.delenv("SMTP_USE_SSL", raising=False)
         assert _should_use_smtp_ssl(smtp_port=465) is True
 
     def test_smtp_use_ssl_env_var_forces_ssl_on_any_port(self, monkeypatch):
-        from litellm.proxy.utils import _should_use_smtp_ssl
+        from token_iq.gateway.proxy.utils import _should_use_smtp_ssl
 
         monkeypatch.setenv("SMTP_USE_SSL", "True")
         assert _should_use_smtp_ssl(smtp_port=2465) is True
 
     def test_port_587_uses_plain_smtp(self, monkeypatch):
-        from litellm.proxy.utils import _should_use_smtp_ssl
+        from token_iq.gateway.proxy.utils import _should_use_smtp_ssl
 
         monkeypatch.delenv("SMTP_USE_SSL", raising=False)
         assert _should_use_smtp_ssl(smtp_port=587) is False
@@ -1259,7 +1259,7 @@ class TestCreateSmtpConnection:
     def test_port_465_creates_smtp_ssl_with_verified_context(self, monkeypatch):
         import ssl
 
-        from litellm.proxy.utils import _create_smtp_connection
+        from token_iq.gateway.proxy.utils import _create_smtp_connection
 
         monkeypatch.delenv("SMTP_USE_SSL", raising=False)
         with (
@@ -1280,7 +1280,7 @@ class TestCreateSmtpConnection:
         assert context.check_hostname is True
 
     def test_port_587_creates_plain_smtp(self, monkeypatch):
-        from litellm.proxy.utils import _create_smtp_connection
+        from token_iq.gateway.proxy.utils import _create_smtp_connection
 
         monkeypatch.delenv("SMTP_USE_SSL", raising=False)
         with (
@@ -1299,7 +1299,7 @@ class TestSendEmailStartTls:
     async def test_starttls_uses_verified_context(self, monkeypatch):
         import ssl
 
-        from litellm.proxy.utils import send_email
+        from token_iq.gateway.proxy.utils import send_email
 
         monkeypatch.setenv("SMTP_HOST", "mail.example.com")
         monkeypatch.setenv("SMTP_PORT", "587")
@@ -1308,7 +1308,7 @@ class TestSendEmailStartTls:
         monkeypatch.delenv("SMTP_USE_SSL", raising=False)
 
         mock_server = MagicMock(spec=smtplib.SMTP)
-        with patch("litellm.proxy.utils._create_smtp_connection") as mock_create_connection:
+        with patch("token_iq.gateway.proxy.utils._create_smtp_connection") as mock_create_connection:
             mock_create_connection.return_value.__enter__.return_value = mock_server
             await send_email(
                 receiver_email="receiver@example.com",
@@ -1441,7 +1441,7 @@ async def test_post_mcp_call_hook_propagates_guardrail_block(restore_callbacks):
     """A guardrail rejecting the tool result must raise out of the hook."""
     from mcp.types import CallToolResult, TextContent
 
-    from litellm.exceptions import BlockedPiiEntityError
+    from token_iq.gateway.exceptions import BlockedPiiEntityError
 
     guardrail = _RecordingMCPGuardrail(
         event_hook=GuardrailEventHooks.post_mcp_call,
@@ -1471,7 +1471,7 @@ async def test_prisma_health_check_failure_names_itself_at_operator_visible_leve
     from functools import partial
     from unittest.mock import AsyncMock
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(side_effect=Exception("connection refused"))
@@ -1497,7 +1497,7 @@ async def test_prisma_connect_failure_is_reported_at_operator_visible_level(capl
     import logging
     from unittest.mock import AsyncMock
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     client = MagicMock()
     client.db.is_connected = MagicMock(return_value=False)
@@ -1521,7 +1521,7 @@ async def test_prisma_health_check_failure_redacts_database_credentials(caplog):
     from functools import partial
     from unittest.mock import AsyncMock
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -1550,7 +1550,7 @@ async def test_update_data_key_branch_stamps_settings_updated_at():
     from datetime import datetime, timezone
     from unittest.mock import AsyncMock
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     client = MagicMock()
     client.jsonify_object = MagicMock(side_effect=lambda data: dict(data))
@@ -1616,13 +1616,13 @@ class _LoggingObj:
     ],
 )
 def test_a_system_prompt_reads_the_same_whatever_shape_it_arrived_in(system_input, expected):
-    from litellm.proxy.utils import _system_prompt_text
+    from token_iq.gateway.proxy.utils import _system_prompt_text
 
     assert _system_prompt_text(system_input) == expected
 
 
 def test_a_system_prompt_is_counted_on_top_of_the_request():
-    from litellm.proxy.utils import _count_request_input_tokens
+    from token_iq.gateway.proxy.utils import _count_request_input_tokens
 
     without = _count_request_input_tokens(FAILURE_USAGE_MODEL, "hello world", None)
     with_system = _count_request_input_tokens(FAILURE_USAGE_MODEL, "hello world", "be brief")
@@ -1632,14 +1632,14 @@ def test_a_system_prompt_is_counted_on_top_of_the_request():
 
 
 def test_a_request_with_nothing_in_it_counts_zero():
-    from litellm.proxy.utils import _count_request_input_tokens
+    from token_iq.gateway.proxy.utils import _count_request_input_tokens
 
     assert _count_request_input_tokens(FAILURE_USAGE_MODEL, [], None) == 0
     assert _count_request_input_tokens(FAILURE_USAGE_MODEL, None, None) == 0
 
 
 def test_a_failed_dispatch_is_estimated_as_input_only():
-    from litellm.proxy.utils import _count_request_input_tokens, _estimate_dispatched_failure_usage
+    from token_iq.gateway.proxy.utils import _count_request_input_tokens, _estimate_dispatched_failure_usage
 
     usage = _estimate_dispatched_failure_usage(FAILURE_USAGE_MODEL, ONE_USER_MESSAGE, None)
 
@@ -1651,14 +1651,14 @@ def test_a_failed_dispatch_is_estimated_as_input_only():
 
 @pytest.mark.parametrize("request_input", [[], object()])
 def test_nothing_is_estimated_when_there_is_nothing_to_count(request_input):
-    from litellm.proxy.utils import _estimate_dispatched_failure_usage
+    from token_iq.gateway.proxy.utils import _estimate_dispatched_failure_usage
 
     assert _estimate_dispatched_failure_usage(FAILURE_USAGE_MODEL, request_input, None) is None
 
 
 def test_usage_the_stream_already_recovered_beats_an_estimate():
-    from litellm.proxy.utils import _failure_usage_to_lift
-    from litellm.types.utils import Usage
+    from token_iq.gateway.proxy.utils import _failure_usage_to_lift
+    from token_iq.gateway.types.utils import Usage
 
     recovered = Usage(prompt_tokens=5, completion_tokens=7, total_tokens=12)
 
@@ -1672,7 +1672,7 @@ def test_usage_the_stream_already_recovered_beats_an_estimate():
 
 
 def test_a_request_that_reached_a_provider_bills_its_input_at_no_cost():
-    from litellm.proxy.utils import _failure_usage_to_lift
+    from token_iq.gateway.proxy.utils import _failure_usage_to_lift
 
     lifted = _failure_usage_to_lift(
         model_call_details={
@@ -1709,19 +1709,19 @@ def test_a_request_that_reached_a_provider_bills_its_input_at_no_cost():
     ids=["never dispatched", "no upstream call", "call type has no input to price"],
 )
 def test_a_failure_that_cost_the_provider_nothing_lifts_nothing(model_call_details, dispatched):
-    from litellm.proxy.utils import _failure_usage_to_lift
+    from token_iq.gateway.proxy.utils import _failure_usage_to_lift
 
     assert _failure_usage_to_lift(model_call_details=model_call_details, request_body={}, dispatched=dispatched) is None
 
 
 def test_the_no_upstream_call_key_the_module_uses_is_the_one_asserted_above():
-    from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+    from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
 
     assert LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL == "litellm_no_upstream_llm_call"
 
 
 def test_the_dispatched_system_prompt_wins_over_the_one_in_the_request_body():
-    from litellm.proxy.utils import _failure_usage_to_lift
+    from token_iq.gateway.proxy.utils import _failure_usage_to_lift
 
     def lift(model_call_details, request_body):
         lifted = _failure_usage_to_lift(
@@ -1746,14 +1746,14 @@ def test_the_dispatched_system_prompt_wins_over_the_one_in_the_request_body():
 
 
 def test_a_failure_with_no_logging_object_lifts_nothing():
-    from litellm.proxy.utils import _failure_fields_to_lift
+    from token_iq.gateway.proxy.utils import _failure_fields_to_lift
 
     assert dict(_failure_fields_to_lift({})) == {}
     assert dict(_failure_fields_to_lift({"litellm_logging_obj": _LoggingObj({})})) == {}
 
 
 def test_a_dispatched_failure_lifts_the_four_fields_the_spend_log_needs():
-    from litellm.proxy.utils import _failure_fields_to_lift
+    from token_iq.gateway.proxy.utils import _failure_fields_to_lift
 
     lifted = _failure_fields_to_lift(
         {
@@ -1787,9 +1787,9 @@ async def test_proxy_only_error_expected_4xx_skips_traceback_for_both_handlers(m
     either the async or the threaded sync failure handler."""
     import asyncio
 
-    import litellm
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     monkeypatch.setattr(litellm, "failure_callback", [])
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
@@ -1836,9 +1836,9 @@ async def test_proxy_only_error_5xx_keeps_traceback_and_runs_sync_callbacks(monk
     sync-only failure callback still gets its threaded handler."""
     import asyncio
 
-    import litellm
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     def _custom_sync_callback(kwargs, completion_response, start_time, end_time):
         pass

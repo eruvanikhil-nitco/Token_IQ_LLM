@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm.files.main as files_main
-from litellm.llms.bedrock.files.handler import BedrockFilesHandler
-from litellm.types.utils import SpecialEnums
+import token_iq.gateway.files.main as files_main
+from token_iq.gateway.llms.bedrock.files.handler import BedrockFilesHandler
+from token_iq.gateway.types.utils import SpecialEnums
 
 
 def _encode_unified_file_id(s3_uri: str) -> str:

@@ -1,17 +1,17 @@
 import os
 import pytest
-from litellm import mock_completion
+from token_iq.gateway import mock_completion
 from unittest.mock import patch
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
     PresidioPerRequestConfig,
 )
-from litellm.types.guardrails import PiiEntityType, PiiAction
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
-from litellm.exceptions import BlockedPiiEntityError
+from token_iq.gateway.types.guardrails import PiiEntityType, PiiAction
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import BlockedPiiEntityError
 
 
 @pytest.mark.asyncio
@@ -412,7 +412,7 @@ async def test_presidio_pii_masking_input_b():
 
 @pytest.mark.asyncio
 async def test_presidio_pii_masking_logging_output_only_no_pre_api_hook():
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     pii_masking = _OPTIONAL_PresidioPIIMasking(
         logging_only=True,
@@ -451,9 +451,9 @@ async def test_presidio_pii_masking_logging_output_only_no_pre_api_hook():
 async def test_presidio_pii_masking_logging_output_only_logged_response_guardrails_config():
     from typing import Dict, List, Optional
 
-    import litellm
-    from litellm.proxy.guardrails.init_guardrails import initialize_guardrails
-    from litellm.types.guardrails import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.guardrails.init_guardrails import initialize_guardrails
+    from token_iq.gateway.types.guardrails import (
         GuardrailItemSpec,
         GuardrailEventHooks,
     )

@@ -1,6 +1,6 @@
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 
@@ -11,33 +11,33 @@ import random
 
 import pytest
 
-import litellm
-from litellm import aembedding, completion, embedding, aresponses, responses
-from litellm.caching.caching import Cache
-from litellm.responses.streaming_iterator import CachedResponsesAPIStreamingIterator
+from token_iq import gateway as litellm
+from token_iq.gateway import aembedding, completion, embedding, aresponses, responses
+from token_iq.gateway.caching.caching import Cache
+from token_iq.gateway.responses.streaming_iterator import CachedResponsesAPIStreamingIterator
 
 from unittest.mock import AsyncMock, patch, MagicMock
-from litellm.caching.caching_handler import (
+from token_iq.gateway.caching.caching_handler import (
     LLMCachingHandler,
     CachingHandlerResponse,
     _is_chat_completion_cached_dict,
     _should_defer_streaming_cache_hit_callbacks,
 )
-from litellm.caching.caching import LiteLLMCacheType
-from litellm.types.utils import CallTypes
-from litellm.types.rerank import RerankResponse
-from litellm.types.utils import (
+from token_iq.gateway.caching.caching import LiteLLMCacheType
+from token_iq.gateway.types.utils import CallTypes
+from token_iq.gateway.types.rerank import RerankResponse
+from token_iq.gateway.types.utils import (
     ModelResponse,
     EmbeddingResponse,
     TextCompletionResponse,
     TranscriptionResponse,
     Embedding,
 )
-from litellm.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 from datetime import timedelta, datetime
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-from litellm._logging import verbose_logger
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+from token_iq.gateway._logging import verbose_logger
 import logging
 
 

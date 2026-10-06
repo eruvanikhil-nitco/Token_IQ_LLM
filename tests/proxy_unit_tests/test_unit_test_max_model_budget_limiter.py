@@ -5,21 +5,21 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.caching.redis_cache import RedisCache
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.caching.redis_cache import RedisCache
 from datetime import datetime, timezone
 
-from litellm.litellm_core_utils.duration_parser import duration_in_seconds
-from litellm.proxy._types import Litellm_EntityType
-from litellm.proxy.hooks.model_max_budget_limiter import (
+from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
+from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
     _budget_model_candidates,
     _PROXY_VirtualKeyModelMaxBudgetLimiter,
     build_model_max_budget_usage,
     resolve_model_budget,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.utils import BudgetConfig as GenericBudgetInfo
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.utils import BudgetConfig as GenericBudgetInfo
 
 
 # Test class setup
@@ -148,7 +148,7 @@ async def test_is_key_within_model_budget(budget_limiter):
 async def test_get_spend_for_model_budget_reads_the_configured_model_key(
     budget_limiter,
 ):
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -180,7 +180,7 @@ async def test_async_log_success_event_uses_per_model_budget_duration(budget_lim
     async_log_success_event must use the per-model budget_duration for the cache key
     so spend is tracked per model correctly. Regression test for per-model budget implementation.
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -250,7 +250,7 @@ async def test_is_end_user_within_model_budget(budget_limiter):
 # Test _get_spend_for_model_budget for the end-user scope
 @pytest.mark.asyncio
 async def test_get_spend_for_end_user_model_budget(budget_limiter):
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         END_USER_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -287,7 +287,7 @@ async def test_async_log_success_event_uses_model_group_for_cache_key(budget_lim
     "vertex_ai/claude-opus-4-6@default") track spend under a different cache
     key than enforcement reads, silently disabling budget limits.
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -333,7 +333,7 @@ async def test_async_log_success_event_falls_back_to_model_when_no_model_group(
     When model_group is None (non-proxy / non-router usage), spend tracking
     must fall back to using the model field so existing behaviour is preserved.
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -374,7 +374,7 @@ async def test_async_log_success_event_end_user_uses_model_group(budget_limiter)
     End-user model budget tracking must also use model_group when available,
     matching the enforcement path in is_end_user_within_model_budget.
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         END_USER_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -418,7 +418,7 @@ async def test_async_log_success_event_uses_end_user_model_budget_duration(
     """
     async_log_success_event must use the per-model budget_duration for the end user cache key
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         END_USER_SPEND_CACHE_KEY_PREFIX,
     )
 
@@ -888,7 +888,7 @@ async def test_user_model_budget_window_resets_when_the_period_elapses():
     and the window start must be scoped to that one budget model so a second
     model on a shorter period cannot drag it forward.
     """
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         model_budget_spend_cache_key,
         model_budget_start_time_cache_key,
     )
@@ -1165,7 +1165,7 @@ def test_documented_budget_spelling_survives_model_validate():
     quietly disable every budget written in the documented spelling. Pinned here
     so that becomes a red test instead of an outage.
     """
-    from litellm.types.utils import BudgetConfig
+    from token_iq.gateway.types.utils import BudgetConfig
 
     validated = BudgetConfig.model_validate({"budget_limit": 5, "time_period": "1d"})
     assert validated.max_budget == 5.0
@@ -1294,7 +1294,7 @@ async def test_the_pre_upgrade_counter_is_no_longer_read_a_window_after_start_up
     already open when this process replaced it, so once a full window has passed
     since start-up there is nothing left for the lookup to find.
     """
-    import litellm.proxy.hooks.model_max_budget_limiter as limiter_module
+    import token_iq.gateway.proxy.hooks.model_max_budget_limiter as limiter_module
 
     limiter = _PROXY_VirtualKeyModelMaxBudgetLimiter(dual_cache=DualCache())
     model_max_budget = {"gpt-4": {"budget_limit": 10.0, "time_period": "1d"}}

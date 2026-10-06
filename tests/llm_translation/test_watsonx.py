@@ -1,8 +1,8 @@
 import json
 
-import litellm
-from litellm import completion, embedding
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway import completion, embedding
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import patch, Mock
 import pytest
 from typing import Optional

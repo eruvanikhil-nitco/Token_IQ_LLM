@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.types.utils import Embedding
-from litellm.main import bedrock_embedding, embedding, EmbeddingResponse, Usage
+from token_iq.gateway.types.utils import Embedding
+from token_iq.gateway.main import bedrock_embedding, embedding, EmbeddingResponse, Usage
 
 
 _mock_model_id = (
@@ -56,7 +56,7 @@ def test_bedrock_embedding_titan_app_profile(model: str):
 )
 def test_bedrock_embedding_cohere_app_profile(model: str):
     with patch(
-        "litellm.llms.bedrock.embed.embedding.cohere_embedding"
+        "token_iq.gateway.llms.bedrock.embed.embedding.cohere_embedding"
     ) as mock_cohere_embedding:
         mock_cohere_embedding.return_value = _get_mock_embedding_response(model=model)
         resp = embedding(

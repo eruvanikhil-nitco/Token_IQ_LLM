@@ -5,7 +5,7 @@ from typing import Final
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.recommendations import recommendations_response
 from token_iq.types.recommendation import Evidence, Recommendation
 

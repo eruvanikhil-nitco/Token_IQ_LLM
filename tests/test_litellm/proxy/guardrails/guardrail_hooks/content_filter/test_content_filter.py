@@ -11,16 +11,16 @@ import pytest
 
 from fastapi import HTTPException
 
-from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
     ContentFilterGuardrail,
 )
-from litellm.types.guardrails import (
+from token_iq.gateway.types.guardrails import (
     BlockedWord,
     ContentFilterAction,
     ContentFilterPattern,
     GuardrailEventHooks,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.litellm_content_filter import (
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.litellm_content_filter import (
     ContentFilterCategoryConfig,
 )
 
@@ -391,7 +391,7 @@ class TestContentFilterGuardrail:
         Test streaming hook with MASK action.
         This now works with the 50-char sliding window buffer.
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -452,7 +452,7 @@ class TestContentFilterGuardrail:
 
     @pytest.mark.asyncio
     async def test_streaming_hook_mask_checks_all_choices(self):
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -521,7 +521,7 @@ class TestContentFilterGuardrail:
         Test streaming hook with BLOCK action
         """
 
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -573,7 +573,7 @@ class TestContentFilterGuardrail:
         never produced a `standard_logging_object.guardrail_information` entry on
         streaming responses (Branch 1 dispatcher + iterator hook had no log write).
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -632,7 +632,7 @@ class TestContentFilterGuardrail:
         Streaming post-call with a MASK pattern: writes a success row with the
         detection in guardrail_response and a non-zero masked_entity_count.
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -704,7 +704,7 @@ class TestContentFilterGuardrail:
         but the `finally` block still writes a log row with
         guardrail_status == "guardrail_intervened".
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -760,7 +760,7 @@ class TestContentFilterGuardrail:
         be appended once per chunk after it first appears, inflating
         masked_entity_count and guardrail_response in the log.
         """
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         patterns = [
             ContentFilterPattern(
@@ -1880,7 +1880,7 @@ class TestContentFilterGuardrail:
 
         Regression test for GitHub issue #20441.
         """
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
             PREBUILT_PATTERNS,
             get_compiled_pattern,
         )
@@ -2621,7 +2621,7 @@ class TestContentFilterMCPPreCall:
         """
         Arguments nested beyond DEFAULT_MAX_RECURSE_DEPTH block fail-closed instead of passing unscanned
         """
-        from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
+        from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 
         guardrail = ContentFilterGuardrail(
             guardrail_name="test-mcp-depth-cap",
@@ -2852,8 +2852,8 @@ class TestContentFilterMCPPreCall:
 @pytest.fixture
 def restore_callbacks():
     """Restore the process-wide callback state post_mcp_call_hook reads."""
-    import litellm
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     original = list(litellm.callbacks)
     yield
@@ -2882,9 +2882,9 @@ class TestContentFilterMCPPostCall:
 
     @staticmethod
     def _proxy_logging(guardrail):
-        import litellm
-        from litellm.caching.caching import DualCache
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq import gateway as litellm
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         litellm.callbacks = [guardrail]
         ProxyLogging._callback_capabilities_cache.clear()

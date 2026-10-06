@@ -1,7 +1,7 @@
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.utils import (
     construct_database_url_from_env_vars,
     get_prisma_client_or_throw,
     is_valid_api_key,
@@ -14,7 +14,7 @@ def normalize(value):
 
 def test_get_prisma_client_or_throw_happy_path_returns_client(monkeypatch):
     sentinel = object()
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", sentinel, raising=False)
     result = get_prisma_client_or_throw("some message")
@@ -31,7 +31,7 @@ def test_get_prisma_client_or_throw_happy_path_returns_client(monkeypatch):
 
 
 def test_get_prisma_client_or_throw_raises_when_client_none(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", None, raising=False)
     with pytest.raises(HTTPException) as exc_info:

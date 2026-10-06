@@ -1,8 +1,8 @@
 import jwt
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles
-from litellm.proxy.management_endpoints.ui_sso import MicrosoftSSOHandler
+from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy.management_endpoints.ui_sso import MicrosoftSSOHandler
 
 
 def _id_token(**claims) -> str:

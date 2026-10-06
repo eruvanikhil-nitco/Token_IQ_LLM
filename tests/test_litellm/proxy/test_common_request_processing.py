@@ -11,12 +11,12 @@ import pytest
 from fastapi import HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-import litellm
-from litellm._uuid import uuid
-from litellm.constants import RETURN_RAW_MODEL_NAME_METADATA_KEY
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.integrations.opentelemetry import UserAPIKeyAuth
-from litellm.proxy.common_request_processing import (
+from token_iq import gateway as litellm
+from token_iq.gateway._uuid import uuid
+from token_iq.gateway.constants import RETURN_RAW_MODEL_NAME_METADATA_KEY
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.opentelemetry import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import (
     ProxyBaseLLMRequestProcessing,
     ProxyConfig,
     _await_llm_call_cancelling_on_disconnect,
@@ -38,10 +38,10 @@ from litellm.proxy.common_request_processing import (
     _UpstreamClosingStreamingResponse,
     create_response,
 )
-from litellm.proxy.dd_span_tagger import DDSpanTagger
-from litellm.proxy._types import ProxyException
-from litellm.proxy._types import UserAPIKeyAuth as ProxyUserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy.dd_span_tagger import DDSpanTagger
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy._types import UserAPIKeyAuth as ProxyUserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 
 class TestProxyBaseLLMRequestProcessing:
@@ -378,7 +378,8 @@ class TestProxyBaseLLMRequestProcessing:
 
     def test_add_dd_apm_tags_for_litellm_call_id_uses_dd_tracing_helper(self, monkeypatch):
         mock_set_active_span_tag = MagicMock(return_value=True)
-        import litellm.proxy.dd_span_tagger
+        import token_iq.gateway.proxy.dd_span_tagger
+        from token_iq import gateway as litellm
 
         monkeypatch.setattr(
             litellm.proxy.dd_span_tagger,
@@ -433,7 +434,7 @@ class TestProxyBaseLLMRequestProcessing:
 
         mock_prisma_client = MagicMock()
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             mock_prisma_client,
         )
 
@@ -477,7 +478,7 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test that x-litellm-stream-timeout header gets processed and added to request data as stream_timeout.
         """
-        from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
 
         # Test with stream timeout header
         headers_with_timeout = {"x-litellm-stream-timeout": "30.5"}
@@ -633,7 +634,7 @@ class TestProxyBaseLLMRequestProcessing:
         Test that x-litellm-stream-timeout header gets processed and added to request data
         when calling add_litellm_data_to_request.
         """
-        from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
+        from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
         # Create test data with a basic completion request
         test_data = {
@@ -699,7 +700,7 @@ class TestProxyBaseLLMRequestProcessing:
         Test that discount information is correctly extracted from logging object
         and included in response headers.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -754,7 +755,7 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test that when no discount is applied, discount headers are not included.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -804,7 +805,7 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test that margin headers are included when margin is applied.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -855,7 +856,7 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test that when no margin is applied, margin headers are not included.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -902,7 +903,7 @@ class TestProxyBaseLLMRequestProcessing:
         input + cache_read + cache_creation + output + tool_usage == total, with
         reasoning remaining a subset of output.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -981,7 +982,7 @@ class TestProxyBaseLLMRequestProcessing:
 
     def test_get_custom_headers_without_cost_breakdown_omits_component_headers(self):
         """Test that when litellm_logging_obj has no cost_breakdown, component headers are omitted."""
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -1017,7 +1018,7 @@ class TestProxyBaseLLMRequestProcessing:
 
     def test_get_custom_headers_per_component_with_discount_and_margin(self):
         """Test that component headers co-exist accurately with discount and margin headers."""
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -1128,7 +1129,7 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test the helper function that extracts cost breakdown information.
         """
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
 
@@ -1658,7 +1659,7 @@ class TestCommonRequestProcessingHelpers:
 
     async def test_serialize_http_exception_detail_helper(self):
         """Direct unit coverage for the L1 helper across all branches."""
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             serialize_http_exception_detail,
         )
         import json as _json
@@ -1687,7 +1688,7 @@ class TestCommonRequestProcessingHelpers:
         """The shared HTTPException -> ProxyException conversion keeps a clean
         message, merges structured detail over existing provider_specific_fields,
         and passes headers through."""
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             proxy_exception_from_http_exception,
         )
 
@@ -1827,9 +1828,9 @@ class TestCommonRequestProcessingHelpers:
         # import from the real tracer, a NullTracer by default), so enable it
         # explicitly to exercise the tracing path.
         with (
-            patch("litellm.proxy.common_request_processing.tracer", mock_tracer),
+            patch("token_iq.gateway.proxy.common_request_processing.tracer", mock_tracer),
             patch(
-                "litellm.proxy.common_request_processing._DD_STREAMING_TRACE_ENABLED",
+                "token_iq.gateway.proxy.common_request_processing._DD_STREAMING_TRACE_ENABLED",
                 True,
             ),
         ):
@@ -1873,9 +1874,9 @@ class TestCommonRequestProcessingHelpers:
             yield "data: [DONE]\n\n"
 
         with (
-            patch("litellm.proxy.common_request_processing.tracer", mock_tracer),
+            patch("token_iq.gateway.proxy.common_request_processing.tracer", mock_tracer),
             patch(
-                "litellm.proxy.common_request_processing._DD_STREAMING_TRACE_ENABLED",
+                "token_iq.gateway.proxy.common_request_processing._DD_STREAMING_TRACE_ENABLED",
                 False,
             ),
         ):
@@ -1914,7 +1915,7 @@ class TestCommonRequestProcessingHelpers:
             yield "data: [DONE]\n\n"
 
         # Patch the tracer in the common_request_processing module
-        with patch("litellm.proxy.common_request_processing.tracer", mock_tracer):
+        with patch("token_iq.gateway.proxy.common_request_processing.tracer", mock_tracer):
             response = await create_response(mock_generator(), "text/event-stream", {})
 
             # Should return JSONResponse instead of StreamingResponse
@@ -2327,7 +2328,7 @@ class TestOverrideOpenAIResponseModel:
         name check alone only fires when the operator happened to put "model-router" in the
         alias. With the stamp on the response the actual model survives whatever it is named.
         """
-        from litellm.llms.azure_ai.common_utils import (
+        from token_iq.gateway.llms.azure_ai.common_utils import (
             AZURE_MODEL_ROUTER_SELECTED_MODEL_KEY,
         )
 
@@ -2445,7 +2446,7 @@ class TestOverrideOpenAIResponseModel:
         assert response_obj.model == requested_model
 
     def test_skips_model_override_when_response_has_no_model_attribute(self):
-        from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+        from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
         response_obj = SearchResponse(
             results=[SearchResult(title="t", url="http://x.com", snippet="s")],
@@ -2551,7 +2552,7 @@ class TestStreamingOverheadHeader:
 
     @staticmethod
     def _timing_logging_obj(timing_metrics):
-        from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
         logging_obj = LiteLLMLoggingObj(
             model="openai/gpt-4o-mini",
@@ -2732,7 +2733,7 @@ class TestStreamingOverheadHeader:
         update_response_metadata() sets litellm_overhead_time_ms on
         a streaming response's _hidden_params when llm_api_duration_ms is available.
         """
-        from litellm.litellm_core_utils.llm_response_utils.response_metadata import (
+        from token_iq.gateway.core_utils.llm_response_utils.response_metadata import (
             update_response_metadata,
         )
 
@@ -2857,7 +2858,7 @@ class TestDDSpanTaggerTagRequest:
     """Tests for DDSpanTagger.tag_request - key/model DD span tagging."""
 
     def _make_user_api_key_dict(self, key_alias=None, token=None):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         d = UserAPIKeyAuth()
         d.key_alias = key_alias
@@ -2868,7 +2869,7 @@ class TestDDSpanTaggerTagRequest:
         """key_alias and requested_model are set on the span when present."""
         user_key = self._make_user_api_key_dict(key_alias="my-prod-key", token="hashed123")
 
-        with patch("litellm.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
+        with patch("token_iq.gateway.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
             DDSpanTagger.tag_request(
                 user_api_key_dict=user_key,
                 requested_model="gpt-4o",
@@ -2882,7 +2883,7 @@ class TestDDSpanTaggerTagRequest:
         """No key tags are set when key_alias and token are None (e.g. 401 path)."""
         user_key = self._make_user_api_key_dict(key_alias=None, token=None)
 
-        with patch("litellm.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
+        with patch("token_iq.gateway.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
             DDSpanTagger.tag_request(
                 user_api_key_dict=user_key,
                 requested_model=None,
@@ -2894,7 +2895,7 @@ class TestDDSpanTaggerTagRequest:
         """requested_model is tagged even when there's no key info."""
         user_key = self._make_user_api_key_dict(key_alias=None, token=None)
 
-        with patch("litellm.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
+        with patch("token_iq.gateway.proxy.dd_span_tagger.set_active_span_tag") as mock_set_tag:
             DDSpanTagger.tag_request(
                 user_api_key_dict=user_key,
                 requested_model="claude-3-5-sonnet",
@@ -2960,7 +2961,7 @@ class TestHandleLLMApiExceptionDictDetail:
     """
 
     async def _invoke(self, exc: Exception, callback_headers: Optional[dict] = None):
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         processor = ProxyBaseLLMRequestProcessing(data={})
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
@@ -3001,7 +3002,7 @@ class TestHandleLLMApiExceptionDictDetail:
 
     async def test_not_found_error_preserves_404(self):
         """NotFoundError with status_code=404 should map to ProxyException code=404."""
-        from litellm.exceptions import NotFoundError
+        from token_iq.gateway.exceptions import NotFoundError
 
         exc = NotFoundError(
             message="Model gemini-3.1-flash-lite-preview not found",
@@ -3014,7 +3015,7 @@ class TestHandleLLMApiExceptionDictDetail:
 
     async def test_exception_with_status_code_propagates(self):
         """Exception with a statically-set status_code should propagate it and its message."""
-        from litellm.llms.vertex_ai.common_utils import VertexAIError
+        from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
         exc = VertexAIError(
             status_code=429,
@@ -3052,7 +3053,7 @@ class TestHandleLLMApiExceptionDictDetail:
         the OpenAI wire format. The funnel must re-raise it untouched instead of
         re-deriving the status from a (nonexistent) status_code attribute and
         defaulting to 500. Regression for LIT-3751."""
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         exc = ProxyException(
             message='"Leroy Jenkins" detected as name',
@@ -3473,7 +3474,7 @@ class TestHandleLLMApiExceptionRetryAfter:
     """RouterRateLimitError cooldown_time must surface as a retry-after header."""
 
     async def _invoke(self, exc: Exception, callback_headers: Optional[dict] = None):
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         processor = ProxyBaseLLMRequestProcessing(data={})
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
@@ -3494,7 +3495,7 @@ class TestHandleLLMApiExceptionRetryAfter:
         raise AssertionError("ProxyException was not raised")
 
     async def test_handle_llm_api_exception_sets_retry_after_from_cooldown_time(self):
-        from litellm.types.router import RouterRateLimitError
+        from token_iq.gateway.types.router import RouterRateLimitError
 
         exc = RouterRateLimitError(
             model="gpt-4",
@@ -3509,7 +3510,7 @@ class TestHandleLLMApiExceptionRetryAfter:
     async def test_handle_llm_api_exception_skips_retry_after_when_cooldown_is_zero(
         self,
     ):
-        from litellm.types.router import RouterRateLimitError
+        from token_iq.gateway.types.router import RouterRateLimitError
 
         exc = RouterRateLimitError(
             model="gpt-4",
@@ -3525,7 +3526,7 @@ class TestHandleLLMApiExceptionRetryAfter:
         assert "retry-after" not in proxy_exc.headers
 
     async def test_handle_llm_api_exception_retry_after_survives_callback_headers(self):
-        from litellm.types.router import RouterRateLimitError
+        from token_iq.gateway.types.router import RouterRateLimitError
 
         exc = RouterRateLimitError(
             model="gpt-4",
@@ -3546,7 +3547,7 @@ class TestHandleLLMApiExceptionFramingHeaders:
     itself sets. Non-framing headers must survive unchanged."""
 
     async def _invoke(self, exc: Exception, callback_headers: Optional[dict] = None):
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         processor = ProxyBaseLLMRequestProcessing(data={})
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
@@ -3585,7 +3586,7 @@ class TestHandleLLMApiExceptionFramingHeaders:
         assert proxy_exc.headers["x-request-id"] == "abc-123"
 
     async def test_strips_framing_headers_on_existing_proxy_exception(self):
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         exc = ProxyException(
             message="Resource exhausted",
@@ -3737,8 +3738,8 @@ class TestDisconnectGatherCleanup:
         """With cancel_on_disconnect enabled, base_process_llm_request returns 499."""
         import asyncio
 
-        import litellm.proxy.common_request_processing as cpr
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        import token_iq.gateway.proxy.common_request_processing as cpr
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         async def slow_llm():
             await asyncio.sleep(9999)
@@ -3787,8 +3788,8 @@ class TestDisconnectGatherCleanup:
     ):
         import asyncio
 
-        import litellm.proxy.common_request_processing as cpr
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        import token_iq.gateway.proxy.common_request_processing as cpr
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         async def fake_gather(*_tasks, **_kwargs):
             raise asyncio.CancelledError()
@@ -3837,8 +3838,8 @@ class TestDisconnectGatherCleanup:
     async def test_disconnect_cancels_during_call_hook_task(self, monkeypatch):
         import asyncio
 
-        import litellm.proxy.common_request_processing as cpr
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        import token_iq.gateway.proxy.common_request_processing as cpr
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         hook_cancelled = False
 
@@ -3894,7 +3895,7 @@ class TestDisconnectGatherCleanup:
     async def test_cancel_pending_gather_tasks_skips_already_done_tasks(self):
         import asyncio
 
-        from litellm.proxy.common_request_processing import _cancel_pending_gather_tasks
+        from token_iq.gateway.proxy.common_request_processing import _cancel_pending_gather_tasks
 
         async def failing_task():
             raise ValueError("llm api error")
@@ -3911,7 +3912,7 @@ class TestDisconnectGatherCleanup:
     ):
         import asyncio
 
-        from litellm.proxy.common_request_processing import _cancel_pending_gather_tasks
+        from token_iq.gateway.proxy.common_request_processing import _cancel_pending_gather_tasks
 
         async def hook_converts_cancel_to_runtime_error():
             try:
@@ -3928,8 +3929,8 @@ class TestDisconnectGatherCleanup:
     async def test_base_process_llm_request_preserves_llm_error_after_gather(
         self, monkeypatch
     ):
-        import litellm.proxy.common_request_processing as cpr
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        import token_iq.gateway.proxy.common_request_processing as cpr
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         async def failing_llm():
             raise ValueError("llm api error")
@@ -3980,7 +3981,7 @@ class TestDisconnectGatherCleanup:
 class TestStreamingClientDisconnectLogging:
     @pytest.mark.asyncio
     async def test_record_streaming_client_disconnect_sets_error_information(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _record_streaming_client_disconnect_if_needed,
         )
 
@@ -4013,7 +4014,7 @@ class TestStreamingClientDisconnectLogging:
 
     @pytest.mark.asyncio
     async def test_record_streaming_client_disconnect_no_op_when_connected(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _record_streaming_client_disconnect_if_needed,
         )
 
@@ -4030,7 +4031,7 @@ class TestStreamingClientDisconnectLogging:
 
     @pytest.mark.asyncio
     async def test_record_streaming_client_disconnect_handles_none_metadata(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _record_streaming_client_disconnect_if_needed,
         )
 
@@ -4067,7 +4068,7 @@ class TestStreamingClientDisconnectLogging:
 
     @pytest.mark.asyncio
     async def test_record_streaming_client_disconnect_handles_none_request_data_metadata(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _record_streaming_client_disconnect_if_needed,
         )
 
@@ -4091,7 +4092,7 @@ class TestStreamingClientDisconnectLogging:
 
     @pytest.mark.asyncio
     async def test_apply_client_disconnect_metadata_none_returns_early(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _apply_client_disconnect_metadata,
         )
 
@@ -4101,13 +4102,13 @@ class TestStreamingClientDisconnectLogging:
     async def test_finalize_streaming_generator_cleanup_fires_deferred_logging(
         self, monkeypatch
     ):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
         fire_spy = MagicMock()
         monkeypatch.setattr(
-            "litellm.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
+            "token_iq.gateway.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
             fire_spy,
         )
 
@@ -4135,13 +4136,13 @@ class TestStreamingClientDisconnectLogging:
     async def test_finalize_streaming_generator_cleanup_skips_disconnect_after_completion(
         self, monkeypatch
     ):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
         fire_spy = MagicMock()
         monkeypatch.setattr(
-            "litellm.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
+            "token_iq.gateway.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
             fire_spy,
         )
 
@@ -4167,12 +4168,12 @@ class TestStreamingClientDisconnectLogging:
     async def test_async_streaming_data_generator_records_499_on_early_aclose(
         self, monkeypatch
     ):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
         monkeypatch.setattr(
-            "litellm.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
+            "token_iq.gateway.proxy.utils.ProxyLogging._fire_deferred_stream_logging",
             MagicMock(),
         )
 
@@ -4296,7 +4297,7 @@ class TestCancelOnDisconnect:
     async def _drive_base_process_llm_request(
         self, monkeypatch, general_settings: dict, llm_call, request: Request
     ):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         logging_obj = MagicMock()
         logging_obj.litellm_call_id = "test-cancel-on-disconnect"
@@ -4386,7 +4387,7 @@ class TestCancelOnDisconnect:
         """Regression guard: the 499 path must NOT bypass post_call_failure_hook,
         which releases max_parallel_requests slots and fires spend/alerting
         callbacks (cf. #14457; P1 review finding on #25776/#27146)."""
-        from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
         processor = ProxyBaseLLMRequestProcessing(data={})
         proxy_logging_obj = MagicMock()
@@ -4415,8 +4416,8 @@ class TestAllmPassthroughRoutePostCallGuardrails:
     """
 
     def _make_guardrail_cb(self, name: str = "presidio-pre-guard") -> MagicMock:
-        from litellm.integrations.custom_guardrail import CustomGuardrail
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         cb = MagicMock(spec=CustomGuardrail)
         cb.guardrail_name = name
@@ -4654,7 +4655,7 @@ class TestEventStreamAllmPassthroughRoute:
         user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
 
         with patch(
-            "litellm.llms.bedrock.passthrough.guardrail_translation.handler.BedrockPassthroughGuardrailHandler.de_anonymize_event_stream",
+            "token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler.BedrockPassthroughGuardrailHandler.de_anonymize_event_stream",
             new=AsyncMock(return_value=expected_bytes),
         ) as mock_handler:
             processing_obj = ProxyBaseLLMRequestProcessing(data={"custom_llm_provider": "bedrock"})
@@ -4749,8 +4750,8 @@ class TestAllmPassthroughStreamingProviderGate:
         return ProxyBaseLLMRequestProcessing(data=data)
 
     async def _run(self, processing_obj, monkeypatch, chunks, stream=None):
-        import litellm.proxy.common_request_processing as crp
-        from litellm.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
+        import token_iq.gateway.proxy.common_request_processing as crp
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
 
         async def streaming_response():
             for chunk in chunks:
@@ -4977,8 +4978,8 @@ class TestResponseCostHeaderForTypedDictResponses:
     async def _drive_non_streaming(
         self, *, monkeypatch, response, logging_obj, route_type, return_result=False, client_model=None
     ):
-        import litellm.proxy.common_request_processing as crp
-        from litellm.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
+        import token_iq.gateway.proxy.common_request_processing as crp
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
 
         async def fake_route_request(**kwargs):
             async def _llm_call():
@@ -5025,7 +5026,7 @@ class TestResponseCostHeaderForTypedDictResponses:
 
     @pytest.mark.asyncio
     async def test_messages_typeddict_emits_cost_header_from_stored_cost(self, monkeypatch):
-        from litellm.types.utils import AnthropicMessagesResponse
+        from token_iq.gateway.types.utils import AnthropicMessagesResponse
 
         response = AnthropicMessagesResponse(
             id="msg_1",
@@ -5060,7 +5061,7 @@ class TestResponseCostHeaderForTypedDictResponses:
         while recorded spend used the registry rate. The recompute must see the
         provider-reported model; the body must still return the client alias.
         """
-        from litellm.types.utils import AnthropicMessagesResponse
+        from token_iq.gateway.types.utils import AnthropicMessagesResponse
 
         response = AnthropicMessagesResponse(
             id="msg_1",
@@ -5095,7 +5096,7 @@ class TestResponseCostHeaderForTypedDictResponses:
 
     @pytest.mark.asyncio
     async def test_generate_content_typeddict_emits_cost_header_via_recompute(self, monkeypatch):
-        from litellm.types.llms.vertex_ai import GenerateContentResponseBody
+        from token_iq.gateway.types.llms.vertex_ai import GenerateContentResponseBody
 
         response = GenerateContentResponseBody(
             candidates=[{"content": {"parts": [{"text": "hi"}], "role": "model"}}],
@@ -5131,9 +5132,9 @@ class TestResponseCostHeaderForTypedDictResponses:
         cost was 0.0 and the header was dropped even though the async logging path
         billed a real non-zero amount. The header must now carry the true cost.
         """
-        from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-        from litellm.types.llms.vertex_ai import GenerateContentResponseBody
-        from litellm.types.utils import ModelResponse, Usage
+        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.types.llms.vertex_ai import GenerateContentResponseBody
+        from token_iq.gateway.types.utils import ModelResponse, Usage
 
         response = GenerateContentResponseBody(
             candidates=[{"content": {"parts": [{"text": "hi"}], "role": "model"}, "finishReason": "STOP"}],
@@ -5296,7 +5297,7 @@ class TestResponseCostHeaderForTypedDictResponses:
         response_cost/model_id/api_base/fallback errors. base_process_llm_request
         must strip it before returning the response to the endpoint layer.
         """
-        from litellm.types.utils import AnthropicMessagesResponse
+        from token_iq.gateway.types.utils import AnthropicMessagesResponse
 
         response = AnthropicMessagesResponse(
             id="msg_1",
@@ -5341,7 +5342,7 @@ class TestCostHeadersForCallsPricedAtZero:
 
     @staticmethod
     def _responses_read(*, background=False):
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         return ResponsesAPIResponse(
             id="resp_lit5602",
@@ -5368,8 +5369,8 @@ class TestCostHeadersForCallsPricedAtZero:
         return logging_obj
 
     async def _drive(self, *, monkeypatch, response, logging_obj, route_type):
-        import litellm.proxy.common_request_processing as crp
-        from litellm.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
+        import token_iq.gateway.proxy.common_request_processing as crp
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth as RealUserAPIKeyAuth
 
         async def fake_route_request(**kwargs):
             async def _llm_call():
@@ -5496,8 +5497,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_fallback_triggered_on_local_rate_limit(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         primary_model = "gpt-4"
         fallback_model = "gpt-3.5-turbo"
@@ -5548,8 +5549,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_raises_when_no_fallbacks_configured(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         processor = ProxyBaseLLMRequestProcessing(data={"model": "gpt-4"})
 
@@ -5587,8 +5588,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_raises_when_all_fallbacks_also_rate_limited(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         processor = ProxyBaseLLMRequestProcessing(data={"model": "gpt-4"})
 
@@ -5628,8 +5629,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_fallback_uses_key_level_router_settings(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         processor = ProxyBaseLLMRequestProcessing(data={"model": "gpt-4"})
 
@@ -5675,8 +5676,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_disable_fallbacks_flag_respected(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         processor = ProxyBaseLLMRequestProcessing(
             data={"model": "gpt-4", "disable_fallbacks": True}
@@ -5716,8 +5717,8 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
 
     @pytest.mark.asyncio
     async def test_model_restored_on_non_rate_limit_exception(self):
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
-        from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
         primary_model = "gpt-4"
 
@@ -5779,18 +5780,18 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
         to prove the customer's exact knob triggers the gateway fallback instead
         of returning a 429 to the client.
         """
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
-        from litellm.proxy.common_utils.proxy_rate_limit_error import (
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import (
             ProxyRateLimitError,
         )
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
-        from litellm.proxy.utils import InternalUsageCache
+        from token_iq.gateway.proxy.utils import InternalUsageCache
 
         primary_model = "gpt-4"
         fallback_model = "gpt-3.5-turbo"
@@ -5851,7 +5852,7 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
         mock_router.fallbacks = [{primary_model: [fallback_model]}]
 
         with patch(
-            "litellm.proxy.hooks.parallel_request_limiter.datetime", _FrozenClock
+            "token_iq.gateway.proxy.hooks.parallel_request_limiter.datetime", _FrozenClock
         ):
             with patch.object(
                 processor,
@@ -5883,7 +5884,7 @@ class TestPreCallWithFallbacksOnLocalRateLimit:
         # Sanity-check the premise: the limiter genuinely raises a
         # ProxyRateLimitError for the capped primary under the frozen clock.
         with patch(
-            "litellm.proxy.hooks.parallel_request_limiter.datetime", _FrozenClock
+            "token_iq.gateway.proxy.hooks.parallel_request_limiter.datetime", _FrozenClock
         ):
             with pytest.raises(ProxyRateLimitError):
                 await limiter.async_pre_call_hook(
@@ -6220,7 +6221,7 @@ class TestStreamingClientDisconnectBilling:
 
     @pytest.mark.asyncio
     async def test_disconnect_billing_carries_up_openai_style_cached_tokens(self):
-        from litellm.types.utils import (
+        from token_iq.gateway.types.utils import (
             Delta,
             ModelResponseStream,
             PromptTokensDetailsWrapper,
@@ -6262,7 +6263,7 @@ class TestStreamingClientDisconnectBilling:
 
     @pytest.mark.asyncio
     async def test_disconnect_billing_keeps_cache_values_recovered_from_chunks(self):
-        from litellm.types.utils import (
+        from token_iq.gateway.types.utils import (
             Delta,
             ModelResponseStream,
             StreamingChoices,
@@ -6307,7 +6308,7 @@ def _apply_stream_usage_tracking(
     route_type: str,
     supports_stream_options: Callable[[], bool] = lambda: True,
 ) -> None:
-    from litellm.proxy.common_request_processing import _stream_usage_tracking_updates
+    from token_iq.gateway.proxy.common_request_processing import _stream_usage_tracking_updates
 
     data.update(
         _stream_usage_tracking_updates(
@@ -6454,7 +6455,7 @@ class TestApplyStreamUsageTracking:
 
 class TestModelDeploymentsSupportStreamOptions:
     def _support(self, model, llm_router=None, team_id=None) -> bool:
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             _model_deployments_support_stream_options,
         )
 
@@ -6634,7 +6635,7 @@ class TestPerRequestModelGroupAlias:
             "add_litellm_data_to_request",
             mock_add_litellm_data_to_request,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
 
         mock_proxy_config = MagicMock(spec=ProxyConfig)
         mock_proxy_config._get_hierarchical_router_settings = AsyncMock(
@@ -6664,7 +6665,7 @@ class TestPerRequestModelGroupAlias:
         settings are looked up on the team only when the key carries none. Runs
         the real hierarchical lookup rather than mocking it, so this covers the
         team half of the fix end to end."""
-        from litellm.proxy.proxy_server import ProxyConfig as RealProxyConfig
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig as RealProxyConfig
 
         processing_obj = ProxyBaseLLMRequestProcessing(data={"model": "group-a"})
         mock_request = MagicMock(spec=Request)
@@ -6683,9 +6684,9 @@ class TestPerRequestModelGroupAlias:
             "add_litellm_data_to_request",
             mock_add_litellm_data_to_request,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.get_team_object",
+            "token_iq.gateway.proxy.proxy_server.get_team_object",
             AsyncMock(return_value=SimpleNamespace(router_settings={"model_group_alias": {"group-a": "group-b"}})),
         )
 
@@ -6722,7 +6723,7 @@ class TestPerRequestModelGroupAlias:
             "add_litellm_data_to_request",
             mock_add_litellm_data_to_request,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
 
         merged_for: list = []
 
@@ -6991,10 +6992,10 @@ class TestInjectCostIntoUsageDict:
     def test_pricing_a_frame_leaves_the_real_logging_obj_unchanged(self):
         """Pricing runs against the live logging object, and the pass-through handlers never
         recompute cost_breakdown, so a frame-derived breakdown would reach the spend log."""
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
-        from litellm.types.utils import ModelResponse, Usage
+        from token_iq.gateway.types.utils import ModelResponse, Usage
 
         logging_obj = LiteLLMLoggingObj(
             model="claude-haiku-4-5",
@@ -7019,10 +7020,10 @@ class TestInjectCostIntoUsageDict:
         assert "response_cost_failure_debug_information" not in logging_obj.model_call_details
 
     def test_pricing_a_frame_restores_a_breakdown_the_request_already_had(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             Logging as LiteLLMLoggingObj,
         )
-        from litellm.types.utils import ModelResponse, Usage
+        from token_iq.gateway.types.utils import ModelResponse, Usage
 
         logging_obj = LiteLLMLoggingObj(
             model="claude-haiku-4-5",
@@ -7688,8 +7689,8 @@ async def test_a_broken_hook_does_not_replace_the_real_error_with_its_own_bug():
 def test_log_llm_api_exception_traceback_only_for_unexpected_errors(exc, expect_traceback, caplog):
     """Regression for LIT-6043: expected 4xx errors log without formatting a
     traceback; unexpected errors keep logger.exception behavior."""
-    from litellm._logging import verbose_proxy_logger
-    from litellm.proxy.common_request_processing import _log_llm_api_exception
+    from token_iq.gateway._logging import verbose_proxy_logger
+    from token_iq.gateway.proxy.common_request_processing import _log_llm_api_exception
 
     verbose_proxy_logger.propagate = True
     try:

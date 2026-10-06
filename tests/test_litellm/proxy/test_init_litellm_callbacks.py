@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class FakeCustomLogger(CustomLogger):
@@ -26,14 +26,14 @@ class TestInitLitellmCallbacks:
 
     def _make_proxy_logging(self):
         """Create a ProxyLogging instance with mocked dependencies."""
-        from litellm.proxy.utils import ProxyLogging
+        from token_iq.gateway.proxy.utils import ProxyLogging
 
         mock_cache = MagicMock()
         proxy_logging = ProxyLogging(user_api_key_cache=mock_cache)
         return proxy_logging
 
     @patch(
-        "litellm.proxy.utils.ProxyLogging._add_proxy_hooks",
+        "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
         new_callable=lambda: lambda self, *a, **kw: None,
     )
     def test_should_replace_string_callback_with_instance(self, _mock_hooks):
@@ -50,7 +50,7 @@ class TestInitLitellmCallbacks:
         proxy_logging = self._make_proxy_logging()
 
         with patch(
-            "litellm.litellm_core_utils.litellm_logging._init_custom_logger_compatible_class",
+            "token_iq.gateway.core_utils.litellm_logging._init_custom_logger_compatible_class",
             return_value=fake_logger,
         ):
             proxy_logging._init_litellm_callbacks(llm_router=None)
@@ -73,7 +73,7 @@ class TestInitLitellmCallbacks:
         litellm.callbacks = []  # type: ignore
 
     @patch(
-        "litellm.proxy.utils.ProxyLogging._add_proxy_hooks",
+        "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
         new_callable=lambda: lambda self, *a, **kw: None,
     )
     def test_should_not_duplicate_existing_instance_callbacks(self, _mock_hooks):
@@ -102,7 +102,7 @@ class TestInitLitellmCallbacks:
         litellm.callbacks = []  # type: ignore
 
     @patch(
-        "litellm.proxy.utils.ProxyLogging._add_proxy_hooks",
+        "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
         new_callable=lambda: lambda self, *a, **kw: None,
     )
     def test_should_handle_unrecognized_string_callback(self, _mock_hooks):
@@ -115,7 +115,7 @@ class TestInitLitellmCallbacks:
         proxy_logging = self._make_proxy_logging()
 
         with patch(
-            "litellm.litellm_core_utils.litellm_logging._init_custom_logger_compatible_class",
+            "token_iq.gateway.core_utils.litellm_logging._init_custom_logger_compatible_class",
             return_value=None,
         ):
             proxy_logging._init_litellm_callbacks(llm_router=None)
@@ -127,7 +127,7 @@ class TestInitLitellmCallbacks:
         litellm.callbacks = []  # type: ignore
 
     @patch(
-        "litellm.proxy.utils.ProxyLogging._add_proxy_hooks",
+        "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
         new_callable=lambda: lambda self, *a, **kw: None,
     )
     def test_should_replace_multiple_string_callbacks(self, _mock_hooks):
@@ -152,7 +152,7 @@ class TestInitLitellmCallbacks:
             return fake_logger_b
 
         with patch(
-            "litellm.litellm_core_utils.litellm_logging._init_custom_logger_compatible_class",
+            "token_iq.gateway.core_utils.litellm_logging._init_custom_logger_compatible_class",
             side_effect=mock_init_class,
         ):
             proxy_logging._init_litellm_callbacks(llm_router=None)

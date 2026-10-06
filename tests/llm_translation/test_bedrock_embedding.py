@@ -7,8 +7,8 @@ import base64
 import httpx
 
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
 titan_embedding_response = {"embedding": [0.1, 0.2, 0.3], "inputTextTokenCount": 10}
 
@@ -235,7 +235,7 @@ def test_e2e_bedrock_async_invoke_embedding_twelvelabs_marengo():
 
     # Mock the HTTP call to return async invoke response
     with patch(
-        "litellm.llms.bedrock.embed.embedding.BedrockEmbedding._make_sync_call"
+        "token_iq.gateway.llms.bedrock.embed.embedding.BedrockEmbedding._make_sync_call"
     ) as mock_call:
         mock_call.return_value = {
             "invocationArn": "arn:aws:bedrock:us-east-1:123456789012:async-invoke/test-job-123"
@@ -298,7 +298,7 @@ async def test_e2e_bedrock_async_invoke_embedding_async_twelvelabs_marengo():
 
     # Mock the async HTTP call to return async invoke response
     with patch(
-        "litellm.llms.bedrock.embed.embedding.BedrockEmbedding._make_async_call"
+        "token_iq.gateway.llms.bedrock.embed.embedding.BedrockEmbedding._make_async_call"
     ) as mock_call:
         mock_call.return_value = {
             "invocationArn": "arn:aws:bedrock:us-east-1:123456789012:async-invoke/test-async-job-456"

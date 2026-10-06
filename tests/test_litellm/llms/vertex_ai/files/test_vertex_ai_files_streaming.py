@@ -27,11 +27,11 @@ import tracemalloc
 import httpx
 import pytest
 
-from litellm.litellm_core_utils.litellm_logging import Logging
-from litellm.llms.base_llm.files.transformation import BaseFileUploadStream
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.llms.vertex_ai.files.transformation import (
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.llms.base_llm.files.transformation import BaseFileUploadStream
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.llms.vertex_ai.files.transformation import (
     VertexAIFilesConfig,
     _OpenAIToVertexBatchUploadStream,
     _get_litellm_batch_custom_id_from_labels,
@@ -39,8 +39,8 @@ from litellm.llms.vertex_ai.files.transformation import (
     _iter_openai_jsonl_lines,
     _openai_batch_jsonl_entry_to_vertex_rows,
 )
-from litellm.types.llms.openai import CreateFileRequest
-from litellm.llms.vertex_ai.common_utils import VertexAIError
+from token_iq.gateway.types.llms.openai import CreateFileRequest
+from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
 
 def _upload_stream(transformed) -> BaseFileUploadStream:

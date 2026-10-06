@@ -9,7 +9,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
 

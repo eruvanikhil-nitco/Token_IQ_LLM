@@ -8,12 +8,12 @@ from fastapi import HTTPException
 
 from opentelemetry.trace import Status, StatusCode
 
-import litellm
-from litellm.caching.dual_cache import DualCache
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-from litellm.proxy.utils import ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 from ._helpers import (
     HttpStatusException,

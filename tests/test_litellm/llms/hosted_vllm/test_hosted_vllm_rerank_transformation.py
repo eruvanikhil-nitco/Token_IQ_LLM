@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.hosted_vllm.rerank.transformation import HostedVLLMRerankConfig
-from litellm.rerank_api.rerank_utils import get_optional_rerank_params
-from litellm.types.rerank import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.hosted_vllm.rerank.transformation import HostedVLLMRerankConfig
+from token_iq.gateway.rerank_api.rerank_utils import get_optional_rerank_params
+from token_iq.gateway.types.rerank import (
     OptionalRerankParams,
     RerankBilledUnits,
     RerankResponse,

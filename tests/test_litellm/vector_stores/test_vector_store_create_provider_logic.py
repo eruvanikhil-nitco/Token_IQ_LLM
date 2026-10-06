@@ -3,13 +3,13 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
-from litellm.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
-from litellm.llms.vertex_ai.vector_stores.rag_api.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
+from token_iq.gateway.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
+from token_iq.gateway.llms.vertex_ai.vector_stores.rag_api.transformation import (
     VertexVectorStoreConfig,
 )
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_vector_store_create_with_simple_provider_name():
@@ -67,7 +67,7 @@ def test_vector_store_create_with_provider_api_type():
     - Extract custom_llm_provider as "vertex_ai"
     - Return correct VertexVectorStoreConfig with api_type
     """
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     custom_llm_provider = "vertex_ai/rag_api"
 

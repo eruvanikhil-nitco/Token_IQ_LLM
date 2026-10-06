@@ -11,8 +11,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from starlette.requests import Request
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import (
     _AUTH_CODE_DEBUG_KEY,
     CONNECT_FLOW_COOKIE_PREFIX,
     GATEWAY_AUTH_CODE_PREFIX,
@@ -35,14 +35,14 @@ from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import (
     register_aggregate_client,
     revoke_refresh_token,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.session_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_credentials import (
     SessionBearerAdmitted,
     SessionRefreshOpened,
     open_session_refresh_bearer,
     resolve_session_bearer,
     session_keys_from_master_key,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.session_token import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_token import (
     SESSION_ISSUER,
     SESSION_REFRESH_PREFIX,
     SessionPrincipal,
@@ -120,7 +120,7 @@ def test_pkce_mismatched_challenge_returns_false_never_raises(code_challenge):
     two str with non-ASCII content, but on bytes of unequal length it simply returns False. A
     review flagged this as an unhandled 500 on length mismatch; encoding both sides to bytes is
     exactly what makes that impossible, so the claim is pinned here rather than in a comment."""
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import _pkce_verifier_matches
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import _pkce_verifier_matches
 
     assert _pkce_verifier_matches("a" * 43, code_challenge) is False
 
@@ -465,7 +465,7 @@ def test_permanent_db_fault_503_does_not_promise_a_retry_will_help():
     """Both DB failures are 503 temporarily_unavailable (the only OAuth error a client reads as a
     server-side outage), so the description is the one place the two are told apart: a transient outage
     says retry, a fault that never heals must say retrying will not help and point at the deployment."""
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import (
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import (
         _consent_lookup_failure_response,
         _mint_failure_response,
         _reload_failure_response,
@@ -584,7 +584,7 @@ async def test_non_ascii_code_challenge_fails_grant_not_500():
 async def test_single_use_guard_in_memory_is_single_use_within_process():
     """No Redis configured (single-replica): the in-memory increment is authoritative — the first claim
     wins, a replay of the same id loses."""
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
 
     guard = _SingleUseGuard(DualCache())  # redis_cache is None
     assert await guard.claim("jti-inmem", 60) == "first"
@@ -597,7 +597,7 @@ async def test_single_use_guard_uses_redis_as_sole_authority_when_configured():
     first caller, >1 → replay), and the per-worker in-memory count is never consulted."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
 
     cache = DualCache()
     cache.redis_cache = MagicMock()
@@ -618,7 +618,7 @@ async def test_single_use_guard_fails_closed_when_redis_errors():
     Cursor/Veria replay-across-workers finding)."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import _SingleUseGuard
 
     cache = DualCache()
     cache.redis_cache = MagicMock()
@@ -833,8 +833,8 @@ async def test_manual_delivery_page_renders_the_url_as_data_never_as_a_shell_com
 
 
 def _scoped_mcp_server(name="github", **kw):
-    from litellm.types.mcp import MCPAuth
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.types.mcp import MCPAuth
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     return MCPServer(
         server_id=f"{name}-id",
@@ -849,7 +849,7 @@ def _scoped_mcp_server(name="github", **kw):
 
 
 SCOPED_RESOURCE = "https://llm.example.com/mcp/github"
-_MANAGER_PATCH = "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+_MANAGER_PATCH = "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
 
 
 def _scoped_authorize(client_id, resource, session_user_id="u1"):
@@ -901,7 +901,7 @@ async def _finish_connect_page(response):
 
 
 def _sealed_wire_json(sealed, prefix, debug_key):
-    from litellm.proxy.common_utils.encrypt_decrypt_utils import decrypt_value_helper
+    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import decrypt_value_helper
 
     raw = decrypt_value_helper(sealed.removeprefix(prefix), debug_key, return_original_value=False)
     assert isinstance(raw, str)
@@ -1043,7 +1043,7 @@ async def test_resolve_scoped_resource_server_matrix():
     modes all return None so nothing outside the served set can enter the scoped flow."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import resolve_scoped_resource_server
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import resolve_scoped_resource_server
 
     request = _request()
     github = _scoped_mcp_server()
@@ -1072,7 +1072,7 @@ async def test_resource_resolution_is_identity_not_ip_filtered_access():
     between authorize and token would turn a matching redemption into invalid_target."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import resolve_scoped_resource_server
+    from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import resolve_scoped_resource_server
 
     with patch(_MANAGER_PATCH) as manager:
         manager.get_mcp_server_by_name.return_value = _scoped_mcp_server()
@@ -1782,8 +1782,8 @@ async def test_introspect_accepts_rs256_signed_tokens_under_configured_signing(m
     from cryptography.hazmat.primitives.asymmetric import rsa
     from pydantic import SecretStr
 
-    from litellm.proxy import proxy_server
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.session_token import AsymmetricSessionKeys
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_token import AsymmetricSessionKeys
 
     private_pem = (
         rsa.generate_private_key(public_exponent=65537, key_size=2048)

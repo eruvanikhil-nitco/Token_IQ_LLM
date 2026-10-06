@@ -8,10 +8,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.google_genai.adapters.handler import GenerateContentToCompletionHandler
-from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
+from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_non_stream_response_when_stream_requested_sync():
@@ -19,7 +19,7 @@ def test_non_stream_response_when_stream_requested_sync():
     Test that when a non-stream response is returned but streaming was requested,
     the sync handler correctly transforms it to generate_content format.
     """
-    from litellm.types.utils import Choices
+    from token_iq.gateway.types.utils import Choices
 
     # Mock a non-stream response (ModelResponse with valid choices)
     mock_response = ModelResponse(
@@ -61,7 +61,7 @@ async def test_non_stream_response_when_stream_requested_async():
     Test that when a non-stream response is returned but streaming was requested,
     the async handler correctly transforms it to generate_content format.
     """
-    from litellm.types.utils import Choices
+    from token_iq.gateway.types.utils import Choices
 
     # Mock a non-stream response (ModelResponse with valid choices)
     mock_response = ModelResponse(
@@ -112,7 +112,7 @@ def test_stream_response_when_stream_requested_sync():
         "translate_completion_output_params_streaming",
         return_value=mock_stream,
     ) as mock_translate:
-        with patch("litellm.completion", return_value=mock_stream):
+        with patch("token_iq.gateway.completion", return_value=mock_stream):
             # Call the handler with stream=True
             result = GenerateContentToCompletionHandler.generate_content_handler(
                 model="gemini-pro",
@@ -145,7 +145,7 @@ async def test_stream_response_when_stream_requested_async():
         "translate_completion_output_params_streaming",
         return_value=mock_stream,
     ) as mock_translate:
-        with patch("litellm.acompletion", return_value=mock_stream):
+        with patch("token_iq.gateway.acompletion", return_value=mock_stream):
             # Call the handler with stream=True
             result = (
                 await GenerateContentToCompletionHandler.async_generate_content_handler(
@@ -177,7 +177,7 @@ def test_stream_transformation_error_sync():
         return_value=None,
     ):
         # Patch litellm.completion directly to prevent real API calls
-        with patch("litellm.completion", return_value=mock_stream):
+        with patch("token_iq.gateway.completion", return_value=mock_stream):
             # Call the handler with stream=True and expect a ValueError
             with pytest.raises(
                 ValueError, match="Failed to transform streaming response"
@@ -207,7 +207,7 @@ async def test_stream_transformation_error_async():
     ):
         # Mock litellm.acompletion at the module level where it's imported
         # We need to patch it in the handler module, not in litellm itself
-        with patch("litellm.google_genai.adapters.handler.litellm") as mock_litellm:
+        with patch("token_iq.gateway.google_genai.adapters.handler.litellm") as mock_litellm:
             # Use AsyncMock for async function
             mock_litellm.acompletion = AsyncMock(return_value=mock_stream)
             # Call the handler with stream=True and expect a ValueError
@@ -231,8 +231,8 @@ def test_citation_metadata_transformation():
 
     import httpx
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.llms.gemini.google_genai.transformation import GoogleGenAIConfig
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
 
     # Create a mock response with citationMetadata.citationSources (the problematic format)
     mock_response_data = {

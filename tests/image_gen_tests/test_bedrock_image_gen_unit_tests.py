@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from openai.types.image import Image
 
 
-from litellm.llms.bedrock.image_generation.amazon_nova_canvas_transformation import (
+from token_iq.gateway.llms.bedrock.image_generation.amazon_nova_canvas_transformation import (
     AmazonNovaCanvasConfig,
 )
 
@@ -14,26 +14,26 @@ load_dotenv()
 import asyncio
 
 import pytest
-from litellm.llms.bedrock.image_generation.cost_calculator import cost_calculator
-from litellm.types.utils import ImageResponse, ImageObject
+from token_iq.gateway.llms.bedrock.image_generation.cost_calculator import cost_calculator
+from token_iq.gateway.types.utils import ImageResponse, ImageObject
 
-import litellm
-from litellm.llms.bedrock.image_generation.amazon_stability3_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.image_generation.amazon_stability3_transformation import (
     AmazonStability3Config,
 )
-from litellm.llms.bedrock.image_generation.amazon_stability1_transformation import (
+from token_iq.gateway.llms.bedrock.image_generation.amazon_stability1_transformation import (
     AmazonStabilityConfig,
 )
-from litellm.types.llms.bedrock import (
+from token_iq.gateway.types.llms.bedrock import (
     AmazonStability3TextToImageRequest,
     AmazonStability3TextToImageResponse,
 )
 from unittest.mock import MagicMock, patch
-from litellm.llms.bedrock.image_generation.image_handler import (
+from token_iq.gateway.llms.bedrock.image_generation.image_handler import (
     BedrockImageGeneration,
     BedrockImagePreparedRequest,
 )
-from litellm.llms.bedrock.common_utils import BedrockError
+from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 
 
 @pytest.mark.parametrize(
@@ -403,8 +403,8 @@ def test_cost_calculator_basic():
 
 
 def test_bedrock_image_gen_with_aws_region_name():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm import image_generation
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import image_generation
 
     client = HTTPHandler()
 
@@ -504,7 +504,7 @@ def test_get_request_body_cross_region_inference_profile():
 
 def test_amazon_nova_canvas_image_gen():
     """Test Amazon Nova Canvas image generation with cost tracking."""
-    from litellm import image_generation
+    from token_iq.gateway import image_generation
 
     model_id = "bedrock/amazon.nova-canvas-v1:0"
 

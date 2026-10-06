@@ -1,7 +1,7 @@
 import pytest
 
 
-from litellm.utils import validate_chat_completion_tool_choice
+from token_iq.gateway.utils import validate_chat_completion_tool_choice
 
 
 def test_validate_tool_choice_none():

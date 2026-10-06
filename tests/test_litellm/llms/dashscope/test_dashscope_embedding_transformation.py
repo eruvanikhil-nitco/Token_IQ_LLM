@@ -9,12 +9,12 @@ import httpx
 import pytest
 
 
-from litellm.llms.dashscope.common_utils import DashScopeError
-from litellm.llms.dashscope.embed.transformation import (
+from token_iq.gateway.llms.dashscope.common_utils import DashScopeError
+from token_iq.gateway.llms.dashscope.embed.transformation import (
     DEFAULT_API_BASE,
     DashScopeEmbeddingConfig,
 )
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 def test_validate_environment_and_url():

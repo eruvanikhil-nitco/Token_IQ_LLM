@@ -14,11 +14,11 @@ import pytest
 # Add litellm to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-import litellm.proxy.guardrails.guardrail_hooks.aim.aim as _aim_module
-import litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks as _cato_networks_module
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.proxy.guardrails.guardrail_hooks.aim.aim import AimGuardrail
-from litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks import CatoNetworksGuardrail
+import token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim as _aim_module
+import token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks as _cato_networks_module
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim import AimGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks import CatoNetworksGuardrail
 
 
 class TestBaseAWSLLMSSLVerify:
@@ -175,8 +175,8 @@ class TestHTTPHandlerSSLVerify:
 
     def test_get_async_httpx_client_accepts_ssl_verify_in_params(self):
         """Test that get_async_httpx_client accepts ssl_verify in params dict."""
-        from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-        from litellm.types.llms.custom_http import httpxSpecialProvider
+        from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
+        from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
         # Call with ssl_verify in params
         cert_path = "/path/to/cert.pem"

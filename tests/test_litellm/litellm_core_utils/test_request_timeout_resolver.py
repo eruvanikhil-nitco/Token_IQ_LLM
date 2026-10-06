@@ -1,4 +1,4 @@
-"""Unit tests for litellm.litellm_core_utils.request_timeout_resolver.
+"""Unit tests for litellm.core_utils.request_timeout_resolver.
 
 The resolver decides whether ``litellm.request_timeout`` was *explicitly configured*
 (env REQUEST_TIMEOUT / litellm_settings, or a non-default runtime value) versus left
@@ -13,9 +13,9 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-import litellm
-from litellm.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
-from litellm.litellm_core_utils.request_timeout_resolver import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
+from token_iq.gateway.core_utils.request_timeout_resolver import (
     get_configured_request_timeout,
 )
 

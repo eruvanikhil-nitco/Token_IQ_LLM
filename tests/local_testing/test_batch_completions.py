@@ -6,10 +6,10 @@ import traceback
 import pytest
 
 from openai import APITimeoutError as Timeout
-import litellm
+from token_iq import gateway as litellm
 
 litellm.num_retries = 0
-from litellm import (
+from token_iq.gateway import (
     batch_completion,
     batch_completion_models,
     completion,

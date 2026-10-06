@@ -52,7 +52,7 @@ async def chat_completion_on_port(
     Accepts an optional prompt string.
     """
     from openai import AsyncOpenAI
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     if prompt is None:
         prompt = f"Say hello! {uuid.uuid4()}" * 100

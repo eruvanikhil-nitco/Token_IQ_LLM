@@ -9,7 +9,7 @@ Foundry's Anthropic deployments honor the default 5-minute ephemeral
 `cache_control` exactly like anthropic.com. The 1-hour `scope: "global"`
 variant is *not* supported on Foundry — LiteLLM strips that field
 before forwarding (see `_remove_scope_from_cache_control` in
-`litellm/llms/azure_ai/anthropic/messages_transformation.py`) — but
+`token_iq/gateway/llms/azure_ai/anthropic/messages_transformation.py`) — but
 this row exercises the 5-minute TTL only, so that quirk does not apply.
 
 The (feature, provider) for this cell is inferred from the file path by

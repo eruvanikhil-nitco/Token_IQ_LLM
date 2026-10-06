@@ -2,17 +2,17 @@
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.proxy.spend_tracking.savings import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.proxy.spend_tracking.savings import (
     _baseline_usage,
     _resolve_model,
     compute_autorouter_savings,
     compute_savings_spend,
     marks_gateway_injection,
 )
-from litellm.router import Router
-from litellm.types.utils import Usage
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.utils import Usage
 
 pytestmark = pytest.mark.usefixtures("local_model_cost_map")
 
@@ -1112,7 +1112,7 @@ def test_a_boolean_is_not_a_recorded_savings_figure():
 def test_rows_written_before_the_field_shipped_recompute():
     """No recorded figure means the row predates the logging-path stamp; the writer
     recomputes exactly what the one shared helper would have recorded."""
-    from litellm.proxy.spend_tracking.savings import autorouter_savings_for_request
+    from token_iq.gateway.proxy.spend_tracking.savings import autorouter_savings_for_request
 
     recomputed = compute_savings_spend(
         model="claude-haiku-4-5",
@@ -1135,7 +1135,7 @@ def test_rows_written_before_the_field_shipped_recompute():
 def test_driver_off_is_none_not_zero_for_the_request_helper():
     """None and 0.0 are different facts on the logging payload: absence means the
     request was never auto-routed, zero is a real figure for a routed request."""
-    from litellm.proxy.spend_tracking.savings import autorouter_savings_for_request
+    from token_iq.gateway.proxy.spend_tracking.savings import autorouter_savings_for_request
 
     assert (
         autorouter_savings_for_request(
@@ -1161,7 +1161,7 @@ def test_logging_payload_never_stamps_internal_calls():
     """Shadow eval and classifier sub-calls carry a real routing decision but are not
     requests the caller made; a stamped figure would report savings for traffic no
     user sent, which the spend writer deliberately zeroes."""
-    from litellm.proxy.spend_tracking.savings import autorouter_savings_for_logging_payload
+    from token_iq.gateway.proxy.spend_tracking.savings import autorouter_savings_for_logging_payload
 
     routed_metadata = {"routing_decision": _routed_decision()}
     stamped = autorouter_savings_for_logging_payload(
@@ -1189,7 +1189,7 @@ def test_savings_are_net_of_a_priced_classifier():
     """The classifier call is part of what routing cost, so the per-request figure
     deducts it; a charge big enough to outweigh the model saving goes negative,
     since the figure is signed on purpose (GH #38816)."""
-    from litellm.proxy.spend_tracking.savings import autorouter_savings_for_request
+    from token_iq.gateway.proxy.spend_tracking.savings import autorouter_savings_for_request
 
     gross = autorouter_savings_for_request(
         model="claude-haiku-4-5",
@@ -1208,7 +1208,7 @@ def test_savings_are_net_of_a_priced_classifier():
 
 @pytest.mark.parametrize("classifier_cost", [0.0, "bogus", True])
 def test_an_unpriced_classifier_deducts_nothing(classifier_cost: object):
-    from litellm.proxy.spend_tracking.savings import autorouter_savings_for_request
+    from token_iq.gateway.proxy.spend_tracking.savings import autorouter_savings_for_request
 
     gross = autorouter_savings_for_request(
         model="claude-haiku-4-5",

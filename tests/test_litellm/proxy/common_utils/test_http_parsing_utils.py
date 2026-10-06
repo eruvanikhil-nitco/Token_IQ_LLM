@@ -9,9 +9,9 @@ from starlette.datastructures import FormData
 
 
 
-import litellm
-from litellm.proxy._types import ProxyException
-from litellm.proxy.common_utils.http_parsing_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
     _is_form_content_type,
     _read_request_body,
     _safe_get_request_headers,
@@ -462,7 +462,7 @@ async def test_surrogate_repair_skipped_above_size_limit(monkeypatch):
     `\\ud83d` is a lone high-surrogate escape: orjson rejects it, the json fallback
     accepts it, so a body containing it is only salvaged when the repair path runs.
     """
-    import litellm.proxy.common_utils.http_parsing_utils as http_parsing_utils
+    import token_iq.gateway.proxy.common_utils.http_parsing_utils as http_parsing_utils
 
     # Cap the repair at ~100 bytes so the test stays fast and independent of the default.
     monkeypatch.setattr(
@@ -860,7 +860,7 @@ class TestGetTagsFromRequestBodyStringCoerce:
     """
 
     def test_json_string_metadata_is_coerced_to_dict(self):
-        from litellm.proxy.common_utils.http_parsing_utils import (
+        from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
             get_tags_from_request_body,
         )
 
@@ -870,7 +870,7 @@ class TestGetTagsFromRequestBodyStringCoerce:
         assert tags == ["a", "b"]
 
     def test_unparseable_string_metadata_is_ignored(self):
-        from litellm.proxy.common_utils.http_parsing_utils import (
+        from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
             get_tags_from_request_body,
         )
 
@@ -881,7 +881,7 @@ class TestGetTagsFromRequestBodyStringCoerce:
         assert tags == ["root-only"]
 
     def test_dict_metadata_still_works(self):
-        from litellm.proxy.common_utils.http_parsing_utils import (
+        from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
             get_tags_from_request_body,
         )
 

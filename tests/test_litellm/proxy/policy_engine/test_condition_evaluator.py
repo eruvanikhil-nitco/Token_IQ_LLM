@@ -9,8 +9,8 @@ Tests:
 
 import pytest
 
-from litellm.proxy.policy_engine.condition_evaluator import ConditionEvaluator
-from litellm.types.proxy.policy_engine import (
+from token_iq.gateway.proxy.policy_engine.condition_evaluator import ConditionEvaluator
+from token_iq.gateway.types.proxy.policy_engine import (
     PolicyCondition,
     PolicyMatchContext,
 )

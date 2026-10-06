@@ -11,15 +11,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.vector_store_endpoints.management_endpoints import (
+from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
     _check_vector_store_access,
 )
-from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
+from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
 
 
 @pytest.mark.asyncio
@@ -107,10 +107,10 @@ async def test_check_vector_store_access_key_object_permission_wrong_store_denie
 @pytest.mark.asyncio
 async def test_delete_vector_store_checks_access():
     """Test that delete endpoint enforces team access control"""
-    from litellm.proxy.vector_store_endpoints.management_endpoints import (
+    from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
         delete_vector_store,
     )
-    from litellm.types.vector_stores import VectorStoreDeleteRequest
+    from token_iq.gateway.types.vector_stores import VectorStoreDeleteRequest
 
     mock_prisma = MagicMock()
     mock_vector_store = MagicMock(
@@ -129,10 +129,10 @@ async def test_delete_vector_store_checks_access():
     request = VectorStoreDeleteRequest(vector_store_id="vs_123")
 
     with patch(
-        "litellm.proxy.proxy_server.prisma_client",
+        "token_iq.gateway.proxy.proxy_server.prisma_client",
         mock_prisma,
     ):
-        with patch("litellm.vector_store_registry", None):
+        with patch("token_iq.gateway.vector_store_registry", None):
             with pytest.raises(HTTPException) as exc_info:
                 await delete_vector_store(
                     data=request, user_api_key_dict=user_api_key_dict

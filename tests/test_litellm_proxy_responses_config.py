@@ -4,13 +4,13 @@ Unit test for LiteLLM Proxy Responses API configuration.
 
 import pytest
 
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_litellm_proxy_responses_api_config():
     """Test that litellm_proxy provider returns correct Responses API config"""
-    from litellm.llms.litellm_proxy.responses.transformation import (
+    from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
         LiteLLMProxyResponsesAPIConfig,
     )
 
@@ -31,7 +31,7 @@ def test_litellm_proxy_responses_api_config():
 def test_litellm_proxy_responses_api_config_get_complete_url():
     """Test that get_complete_url works correctly"""
     import os
-    from litellm.llms.litellm_proxy.responses.transformation import (
+    from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
         LiteLLMProxyResponsesAPIConfig,
     )
 
@@ -61,10 +61,10 @@ def test_litellm_proxy_responses_api_config_get_complete_url():
 
 def test_litellm_proxy_responses_api_config_inherits_from_openai():
     """Test that LiteLLMProxyResponsesAPIConfig extends OpenAI config properly"""
-    from litellm.llms.litellm_proxy.responses.transformation import (
+    from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
         LiteLLMProxyResponsesAPIConfig,
     )
-    from litellm.llms.openai.responses.transformation import (
+    from token_iq.gateway.llms.openai.responses.transformation import (
         OpenAIResponsesAPIConfig,
     )
 

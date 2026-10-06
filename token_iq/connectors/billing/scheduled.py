@@ -13,7 +13,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from litellm._logging import verbose_proxy_logger
+from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.connectors.billing.credential_purpose import is_billing_credential
 from token_iq.types.provider_billing import BillingCredential
 
@@ -64,8 +64,8 @@ def build_billing_credentials_lookup(
     """
 
     async def credentials_for(provider: str) -> tuple[BillingCredential, ...]:
-        from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
-        from litellm.repositories.credentials_repository import CredentialsRepository
+        from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
+        from token_iq.gateway.repositories.credentials_repository import CredentialsRepository
 
         rows: Final = await CredentialsRepository(prisma_client).find_all()
         return tuple(

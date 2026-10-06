@@ -1,6 +1,6 @@
 """Unit tests for the sandbox-tool registry."""
 
-from litellm.sandbox import sandbox_tools
+from token_iq.gateway.sandbox import sandbox_tools
 
 
 def _reset():

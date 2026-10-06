@@ -1,7 +1,7 @@
 import pytest
 
-import litellm
-from litellm.router_utils.reasoning_effort_capability import (
+from token_iq import gateway as litellm
+from token_iq.gateway.router_utils.reasoning_effort_capability import (
     deployment_is_catalog_mapped,
     intersect_supported_reasoning_efforts,
     resolve_supported_reasoning_efforts,
@@ -110,7 +110,7 @@ class TestBareModelNameFallback:
         """azure/gpt-5-mini carries no effort flag while gpt-5-mini carries three, and the request
         path resolves capability flags through that same twin (#20885). Reading only the prefixed
         entry would answer unknown for a model the map fully describes."""
-        from litellm.utils import _get_model_info_helper
+        from token_iq.gateway.utils import _get_model_info_helper
 
         model_info = dict(_get_model_info_helper(model="gpt-5-mini", custom_llm_provider="azure"))
 
@@ -192,8 +192,8 @@ class TestNoneLevelPolarity:
     def test_azure_advertisement_matches_the_azure_request_gate(self, model_key):
         """AzureOpenAIGPT5Config raises UnsupportedParamsError on reasoning_effort='none' for models
         it does not flag, so advertising the level there would offer routing a 400."""
-        from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
-        from litellm.utils import _get_model_info_helper
+        from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
+        from token_iq.gateway.utils import _get_model_info_helper
 
         model_info = dict(_get_model_info_helper(model=model_key.split("/", 1)[1], custom_llm_provider="azure"))
         resolved = resolve_supported_reasoning_efforts(model_info, deployment_is_mapped=True)
@@ -352,7 +352,7 @@ class TestKimiK3AdvertisesItsDocumentedLevels:
     def test_the_declaration_survives_model_info_hydration(self, local_model_cost_map, model, provider):
         """The hydration line is the load-bearing seam: without it the key the map carries never
         reaches the resolver and reads as absent everywhere downstream."""
-        from litellm.utils import _get_model_info_helper
+        from token_iq.gateway.utils import _get_model_info_helper
 
         model_info = dict(_get_model_info_helper(model=model, custom_llm_provider=provider))
 

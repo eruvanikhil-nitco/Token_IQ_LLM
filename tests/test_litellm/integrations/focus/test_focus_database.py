@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from litellm.integrations.focus.database import FocusLiteLLMDatabase
+from token_iq.gateway.integrations.focus.database import FocusLiteLLMDatabase
 
 
 def _setup_db(monkeypatch: pytest.MonkeyPatch, query_return):

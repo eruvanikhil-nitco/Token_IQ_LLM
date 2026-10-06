@@ -1,5 +1,5 @@
 """Unit tests for A2A protocol version normalization in
-litellm/proxy/a2a/version_convert.py.
+token_iq/gateway/proxy/a2a/version_convert.py.
 
 These assert the conversion actually changes wire shape in the right direction and
 preserves core fields on a round trip, so a mutation that no-ops or flips the direction
@@ -8,7 +8,7 @@ fails the suite.
 
 import pytest
 
-from litellm.proxy.a2a.version_convert import (
+from token_iq.gateway.proxy.a2a.version_convert import (
     normalize_agent_card,
     normalize_jsonrpc_response,
     normalize_request_params,
@@ -144,7 +144,7 @@ def test_request_params_lowering_create_push_notification_config_preserves_task_
 
 
 def test_flatten_create_push_notification_drops_redundant_envelope_key():
-    from litellm.proxy.a2a.version_convert import (
+    from token_iq.gateway.proxy.a2a.version_convert import (
         _flatten_create_push_notification_params,
     )
 
@@ -316,7 +316,7 @@ def test_agent_card_same_version_passthrough():
 
 
 def test_detect_card_version_normalizes_semver_protocol_version():
-    from litellm.proxy.a2a.version_convert import _detect_card_version
+    from token_iq.gateway.proxy.a2a.version_convert import _detect_card_version
 
     assert _detect_card_version({"protocolVersion": "1.0.0"}) == "1.0"
     assert (

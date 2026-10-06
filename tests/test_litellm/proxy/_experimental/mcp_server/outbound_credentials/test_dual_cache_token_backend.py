@@ -2,13 +2,13 @@
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.dual_cache_token_backend import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.dual_cache_token_backend import (
     DualCacheTokenCacheBackend,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     OAuthToken,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_cache_codec import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_cache_codec import (
     OAuthTokenCacheCodec,
 )
 

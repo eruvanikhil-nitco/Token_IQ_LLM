@@ -1,7 +1,7 @@
 import json
 
 
-from litellm.litellm_core_utils.realtime_errors import (
+from token_iq.gateway.core_utils.realtime_errors import (
     WEBSOCKET_CLOSE_REASON_MAX_BYTES,
     realtime_error_event,
     websocket_close_reason,

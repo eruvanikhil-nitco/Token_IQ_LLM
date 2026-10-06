@@ -1,13 +1,13 @@
 import os
 from typing import Dict
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     BaseAudioTranscriptionConfig,
 )
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.utils import ProviderConfigManager
 from tests.llm_translation.base_audio_transcription_unit_tests import (
     BaseLLMAudioTranscriptionTest,
 )
@@ -62,7 +62,7 @@ class TestOVHCloudDurationFieldMigration:
 
     def test_seconds_field_mapped_to_duration(self):
         """New `seconds` field should be normalized to `duration`."""
-        from litellm.llms.ovhcloud.audio_transcription.transformation import (
+        from token_iq.gateway.llms.ovhcloud.audio_transcription.transformation import (
             OVHCloudAudioTranscriptionConfig,
         )
         from unittest.mock import MagicMock
@@ -81,7 +81,7 @@ class TestOVHCloudDurationFieldMigration:
 
     def test_legacy_duration_field_still_works(self):
         """Legacy `duration` field should still be accepted."""
-        from litellm.llms.ovhcloud.audio_transcription.transformation import (
+        from token_iq.gateway.llms.ovhcloud.audio_transcription.transformation import (
             OVHCloudAudioTranscriptionConfig,
         )
         from unittest.mock import MagicMock
@@ -102,7 +102,7 @@ class TestOVHCloudDurationFieldMigration:
 
     def test_seconds_zero_mapped_to_duration(self):
         """seconds=0.0 must not be treated as falsy and lost."""
-        from litellm.llms.ovhcloud.audio_transcription.transformation import (
+        from token_iq.gateway.llms.ovhcloud.audio_transcription.transformation import (
             OVHCloudAudioTranscriptionConfig,
         )
         from unittest.mock import MagicMock

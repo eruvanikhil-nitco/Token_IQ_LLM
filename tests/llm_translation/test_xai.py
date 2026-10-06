@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-import litellm
-from litellm import Choices, Message, ModelResponse, EmbeddingResponse, Usage
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse, EmbeddingResponse, Usage
+from token_iq.gateway import completion
 from unittest.mock import patch
-from litellm.llms.xai.chat.transformation import XAIChatConfig, XAI_API_BASE
+from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig, XAI_API_BASE
 from base_llm_unit_tests import BaseReasoningLLMTests, BaseLLMChatTest
 
 
@@ -181,7 +181,7 @@ class TestXAIChat(BaseLLMChatTest):
 
     def test_web_search(self):
         """Web search is only supported for Grok 4 family models"""
-        from litellm.utils import supports_web_search
+        from token_iq.gateway.utils import supports_web_search
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()

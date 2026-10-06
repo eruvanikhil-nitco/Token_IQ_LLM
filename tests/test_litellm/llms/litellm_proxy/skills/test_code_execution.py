@@ -1,13 +1,13 @@
 import pytest
 
-from litellm.llms.litellm_proxy.skills.code_execution import (
+from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
     LITELLM_CODE_EXECUTION_TOOL,
     CodeExecutionHandler,
     LiteLLMInternalTools,
     get_litellm_code_execution_tool,
     get_litellm_code_execution_tool_anthropic,
 )
-from litellm.llms.litellm_proxy.skills.constants import (
+from token_iq.gateway.llms.litellm_proxy.skills.constants import (
     DEFAULT_MAX_ITERATIONS,
     DEFAULT_SANDBOX_TIMEOUT,
 )

@@ -19,11 +19,11 @@ from fastapi.routing import Mount
 # CLI flow does this in proxy_cli.py; we bypass proxy_cli by uvicorn'ing the
 # app directly, so without this Prisma initializes with the placeholder URL
 # and every DB-needing endpoint returns "Database not connected".
-from litellm.proxy.db.db_url_settings import DatabaseURLSettings
+from token_iq.gateway.proxy.db.db_url_settings import DatabaseURLSettings
 
 DatabaseURLSettings.from_env().apply_to_env()
 
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 from gateway.routes.allowlist import (
     GATEWAY_EXACT_PATHS,

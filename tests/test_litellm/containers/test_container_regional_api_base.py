@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestContainerRegionalApiBase:
@@ -33,7 +33,7 @@ class TestContainerRegionalApiBase:
             del os.environ["OPENAI_API_BASE"]
         litellm.api_base = None
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_create_container_uses_regional_api_base(self, mock_post):
         """
         Test that litellm.create_container uses the regional api_base when provided.
@@ -69,7 +69,7 @@ class TestContainerRegionalApiBase:
         ), f"Expected US regional URL, got: {called_url}"
         assert called_url == "https://us.api.openai.com/v1/containers"
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_create_container_uses_env_var_openai_base_url(self, mock_post):
         """
         Test that litellm.create_container uses OPENAI_BASE_URL env var.
@@ -102,7 +102,7 @@ class TestContainerRegionalApiBase:
             "us.api.openai.com" in called_url
         ), f"Expected US regional URL, got: {called_url}"
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_create_container_defaults_to_standard_openai(self, mock_post):
         """
         Test that litellm.create_container defaults to standard OpenAI URL
@@ -132,7 +132,7 @@ class TestContainerRegionalApiBase:
 
         assert called_url == "https://api.openai.com/v1/containers"
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_upload_container_file_uses_regional_api_base(self, mock_post):
         """
         Test that litellm.upload_container_file uses the regional api_base when provided.

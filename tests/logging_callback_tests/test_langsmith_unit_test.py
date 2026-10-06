@@ -11,14 +11,14 @@ import time
 from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 from datetime import datetime, timezone
-from litellm.integrations.langsmith import (
+from token_iq.gateway.integrations.langsmith import (
     LangsmithLogger,
     LangsmithQueueObject,
     CredentialsKey,
     BatchGroup,
 )
 
-import litellm
+from token_iq import gateway as litellm
 
 
 # Test get_credentials_from_env
@@ -222,7 +222,7 @@ async def test_make_dot_order():
 # Test is_serializable
 @pytest.mark.asyncio
 async def test_is_serializable():
-    from litellm.integrations.langsmith import is_serializable
+    from token_iq.gateway.integrations.langsmith import is_serializable
     from pydantic import BaseModel
 
     # Test basic types
@@ -319,7 +319,7 @@ async def test_langsmith_key_based_logging():
         mock_async_httpx_handler.post = AsyncMock(return_value=mock_response)
 
         mock_get_client = patch(
-            "litellm.integrations.langsmith.get_async_httpx_client",
+            "token_iq.gateway.integrations.langsmith.get_async_httpx_client",
             return_value=mock_async_httpx_handler,
         )
         mock_get_client.start()

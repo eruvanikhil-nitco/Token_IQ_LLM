@@ -14,10 +14,10 @@ from concurrent.futures import ThreadPoolExecutor
 import httpx
 from dotenv import load_dotenv
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
 
 load_dotenv()
 

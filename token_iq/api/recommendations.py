@@ -19,8 +19,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.recommendations import (
     DecisionBody,
     DecisionResponse,
@@ -193,7 +193,7 @@ async def recommendations(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> RecommendationsResponse:
     """Everything worth doing about this period, and what was already decided."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     start: Final = _day_or_400(period_start, "period_start")
@@ -214,7 +214,7 @@ async def decide_recommendation(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> DecisionResponse:
     """Mark a card done or dismissed."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:
@@ -234,7 +234,7 @@ async def undo_recommendation_decision(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> DecisionResponse:
     """Bring a card back to the open list."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:

@@ -3,8 +3,8 @@ import httpx
 import pytest
 
 
-from litellm.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
-from litellm.llms.openrouter.chat.transformation import (
+from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
+from token_iq.gateway.llms.openrouter.chat.transformation import (
     OpenRouterChatCompletionStreamingHandler,
     OpenrouterConfig,
     OpenRouterException,
@@ -371,7 +371,7 @@ def test_openrouter_cost_tracking_non_streaming():
     2. Response extracts cost from usage.cost and stores in _hidden_params
     """
     from unittest.mock import Mock, patch
-    from litellm.types.utils import ModelResponse, Choices, Message, Usage
+    from token_iq.gateway.types.utils import ModelResponse, Choices, Message, Usage
 
     config = OpenrouterConfig()
 

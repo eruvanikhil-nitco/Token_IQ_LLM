@@ -1,4 +1,4 @@
-from litellm.proxy.client.cli.commands.autoroute.settings import (
+from token_iq.gateway.proxy.client.cli.commands.autoroute.settings import (
     ANTHROPIC_DEFAULT_MODEL_ENV_KEYS,
     merge_claude_settings_static_token,
 )
@@ -50,7 +50,7 @@ def test_forces_all_claude_code_default_model_tiers_to_the_autorouter():
     # A bare "*" model_name deployment looks like the obvious way to catch every request
     # regardless of which model Claude Code thinks it's using, but Router's auto-router
     # registry is keyed by the literal requested model string with no wildcard resolution
-    # (litellm/router.py:10711-10717) -- so the only reliable way to make every one of Claude
+    # (token_iq/gateway/router.py:10711-10717) -- so the only reliable way to make every one of Claude
     # Code's own tiers hit the auto-router is to override the env vars it reads per tier.
     merged = merge_claude_settings_static_token({}, "http://127.0.0.1:4000", "token-abc")
     for key in ANTHROPIC_DEFAULT_MODEL_ENV_KEYS:

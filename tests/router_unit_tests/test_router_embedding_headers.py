@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 class TestRouterEmbeddingHeaders:
@@ -45,7 +45,7 @@ class TestRouterEmbeddingHeaders:
             "_update_kwargs_before_fallbacks",
             wraps=router._update_kwargs_before_fallbacks,
         ) as mock_update:
-            with patch("litellm.embedding") as mock_litellm_embedding:
+            with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
                 mock_litellm_embedding.return_value = MagicMock(
                     data=[{"embedding": [0.1, 0.2, 0.3]}]
                 )
@@ -84,7 +84,7 @@ class TestRouterEmbeddingHeaders:
             wraps=router._update_kwargs_before_fallbacks,
         ) as mock_update:
             with patch(
-                "litellm.aembedding", new_callable=AsyncMock
+                "token_iq.gateway.aembedding", new_callable=AsyncMock
             ) as mock_litellm_aembedding:
                 mock_litellm_aembedding.return_value = MagicMock(
                     data=[{"embedding": [0.1, 0.2, 0.3]}]
@@ -128,7 +128,7 @@ class TestRouterEmbeddingHeaders:
             },
         )
 
-        with patch("litellm.embedding") as mock_litellm_embedding:
+        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
             mock_litellm_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
@@ -175,7 +175,7 @@ class TestRouterEmbeddingHeaders:
         )
 
         with patch(
-            "litellm.aembedding", new_callable=AsyncMock
+            "token_iq.gateway.aembedding", new_callable=AsyncMock
         ) as mock_litellm_aembedding:
             mock_litellm_aembedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
@@ -216,7 +216,7 @@ class TestRouterEmbeddingHeaders:
 
         router = Router(model_list=model_list)
 
-        with patch("litellm.embedding") as mock_litellm_embedding:
+        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
             mock_litellm_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
@@ -249,7 +249,7 @@ class TestRouterEmbeddingHeaders:
         # Create router with num_retries set
         router = Router(model_list=model_list, num_retries=3)
 
-        with patch("litellm.embedding") as mock_litellm_embedding:
+        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
             mock_litellm_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
@@ -279,7 +279,7 @@ class TestRouterEmbeddingHeaders:
 
         router = Router(model_list=model_list)
 
-        with patch("litellm.embedding") as mock_litellm_embedding:
+        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
             mock_litellm_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
@@ -323,7 +323,7 @@ class TestRouterEmbeddingHeaders:
         )
 
         # Test completion
-        with patch("litellm.completion") as mock_completion:
+        with patch("token_iq.gateway.completion") as mock_completion:
             mock_completion.return_value = MagicMock()
 
             router.completion(
@@ -333,7 +333,7 @@ class TestRouterEmbeddingHeaders:
             completion_kwargs = mock_completion.call_args[1]
 
         # Test embedding
-        with patch("litellm.embedding") as mock_embedding:
+        with patch("token_iq.gateway.embedding") as mock_embedding:
             mock_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )

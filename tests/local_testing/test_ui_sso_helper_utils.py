@@ -15,11 +15,11 @@ load_dotenv()
 
 
 import logging
-from litellm.proxy.management_endpoints.sso_helper_utils import (
+from token_iq.gateway.proxy.management_endpoints.sso_helper_utils import (
     check_is_admin_only_access,
     has_admin_ui_access,
 )
-from litellm.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import LitellmUserRoles
 
 
 def test_check_is_admin_only_access():

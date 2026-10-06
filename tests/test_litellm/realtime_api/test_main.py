@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.realtime_api import main as realtime_main
-from litellm.realtime_api.main import _with_resolved_session_model
+from token_iq import gateway as litellm
+from token_iq.gateway.realtime_api import main as realtime_main
+from token_iq.gateway.realtime_api.main import _with_resolved_session_model
 
 
 class FakeLogging:
@@ -98,7 +98,7 @@ async def _hanging_resolver(credentials, project_id, custom_llm_provider) -> tup
 
 
 async def _thread_offloaded_hanging_resolver(credentials, project_id, custom_llm_provider) -> tuple[str, str]:
-    from litellm.litellm_core_utils.asyncify import asyncify
+    from token_iq.gateway.core_utils.asyncify import asyncify
 
     await asyncify(time.sleep)(30)
     return "", ""

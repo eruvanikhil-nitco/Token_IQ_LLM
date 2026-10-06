@@ -1,11 +1,11 @@
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
-from litellm.proxy.pass_through_endpoints.passthrough_endpoint_router import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
+from token_iq.gateway.proxy.pass_through_endpoints.passthrough_endpoint_router import (
     PassthroughEndpointRouter,
 )
-from litellm.types.utils import CredentialItem
+from token_iq.gateway.types.utils import CredentialItem
 
 
 @pytest.fixture(autouse=True)

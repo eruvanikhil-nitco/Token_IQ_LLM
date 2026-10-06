@@ -18,8 +18,8 @@ MESSAGE: Final = re.compile(
 )
 ALLOWED: Final[Mapping[str, str]] = MappingProxyType(
     {
-        "litellm/proxy/example_config_yaml/custom_auth.py": "sample code a customer copies and edits",
-        "litellm/proxy/post_call_rules.py": "sample rule a customer copies and edits",
+        "token_iq/gateway/proxy/example_config_yaml/custom_auth.py": "sample code a customer copies and edits",
+        "token_iq/gateway/proxy/post_call_rules.py": "sample rule a customer copies and edits",
     }
 )
 

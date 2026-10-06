@@ -1,8 +1,8 @@
 import io
 
-from litellm.llms.openai.videos.transformation import OpenAIVideoConfig
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.videos.utils import encode_character_id_with_provider
+from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.videos.utils import encode_character_id_with_provider
 
 
 def test_video_content_request_encodes_video_id_path_segment():

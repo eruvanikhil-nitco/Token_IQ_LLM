@@ -9,8 +9,8 @@ from unittest import mock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.inception.completion.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.inception.completion.transformation import (
     InceptionTextCompletionConfig,
 )
 
@@ -58,7 +58,7 @@ def test_inception_fim_supported_params_match_schema():
 
 
 def test_text_completion_inception_in_provider_lists():
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     assert LlmProviders.TEXT_COMPLETION_INCEPTION == "text-completion-inception"
     assert "text-completion-inception" in litellm.provider_list
@@ -144,7 +144,7 @@ async def test_inception_fim_async():
 
 
 def test_inception_fim_model_configuration(monkeypatch):
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     litellm.model_cost = litellm.get_model_cost_map()

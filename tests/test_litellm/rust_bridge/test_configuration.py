@@ -9,8 +9,8 @@ from typing import Final
 
 import pytest
 
-from litellm.rust_bridge import configuration
-from litellm.rust_bridge import ocr as rust_ocr
+from token_iq.gateway.rust_bridge import configuration
+from token_iq.gateway.rust_bridge import ocr as rust_ocr
 
 
 class _OcrBridge:

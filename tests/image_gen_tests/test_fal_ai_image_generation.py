@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm import aimage_generation
+from token_iq import gateway as litellm
+from token_iq.gateway import aimage_generation
 
 
 @pytest.mark.parametrize(
@@ -62,7 +62,7 @@ async def test_fal_ai_image_generation_basic(model, expected_endpoint):
 
         return mock_response
 
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.side_effect = capture_post_call
 
         test_api_key = "test-fal-ai-key-12345"

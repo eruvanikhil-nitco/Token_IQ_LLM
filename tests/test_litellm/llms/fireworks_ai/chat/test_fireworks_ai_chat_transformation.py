@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
-from litellm import get_model_info, supports_reasoning, supports_vision
-from litellm.llms.fireworks_ai.chat.transformation import FireworksAIConfig
-from litellm.constants import SESSION_ID_GENERATED_METADATA_KEY
-from litellm.llms.fireworks_ai.common_utils import get_fireworks_session_id
-from litellm.types.utils import (
+from token_iq.gateway import get_model_info, supports_reasoning, supports_vision
+from token_iq.gateway.llms.fireworks_ai.chat.transformation import FireworksAIConfig
+from token_iq.gateway.constants import SESSION_ID_GENERATED_METADATA_KEY
+from token_iq.gateway.llms.fireworks_ai.common_utils import get_fireworks_session_id
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Function,
     Message,
@@ -23,8 +23,8 @@ def force_local_model_cost(monkeypatch):
     """Force local model cost map usage for all tests in this file."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     # Refresh model_cost from local map
-    import litellm
-    from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
     litellm.model_cost = get_model_cost_map()
 
@@ -440,10 +440,10 @@ def test_get_models_url_no_double_v1(api_base, expected_url_prefix):
 
     with (
         patch(
-            "litellm.module_level_client.get", return_value=mock_response
+            "token_iq.gateway.module_level_client.get", return_value=mock_response
         ) as mock_get,
         patch(
-            "litellm.llms.fireworks_ai.chat.transformation.get_secret_str",
+            "token_iq.gateway.llms.fireworks_ai.chat.transformation.get_secret_str",
             side_effect=lambda key: {
                 "FIREWORKS_API_KEY": "test-key",
                 "FIREWORKS_API_BASE": api_base,
@@ -1263,7 +1263,7 @@ def test_streaming_surfaces_fireworks_response_fields():
     litellm.completion(stream=True) path also covers the get_model_response_iterator
     wiring; dropping the Fireworks iterator would leave these fields unset.
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     model = "accounts/fireworks/models/llama-v3p1-8b-instruct"
     raw_output = {"completion": "Hi"}
@@ -1673,7 +1673,7 @@ def test_map_extra_body_params_no_extra_body():
 
 
 def test_nim_vllm_extras_translated_end_to_end_in_request_body():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     model = "accounts/fireworks/models/glm-5p1"
     body = {
@@ -1738,7 +1738,7 @@ def test_in_schema_unsupported_params_still_raise():
 
 
 def test_streaming_preserves_selected_model_for_private_accounting():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     requested_route = (
         "accounts/fireworks/routers/firerouter/"

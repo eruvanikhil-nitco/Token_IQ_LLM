@@ -10,10 +10,10 @@ import threading
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.litellm_core_utils.thread_pool_executor import executor
-from litellm.litellm_core_utils.token_counter import token_counter
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.thread_pool_executor import executor
+from token_iq.gateway.core_utils.token_counter import token_counter
 
 
 # ---------------------------------------------------------------------------

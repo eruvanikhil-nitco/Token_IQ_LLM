@@ -27,7 +27,7 @@ def _install_login_mocks(monkeypatch, raise_on_auth: bool = False) -> None:
     Both /login, /v2/login and /v3/login do a *local* (in-function) import of
     these helpers, so we patch the module they live in.
     """
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     async def _fake_auth(username, password, master_key, prisma_client, general_settings=None):
         if raise_on_auth:
@@ -48,8 +48,8 @@ def _install_login_mocks(monkeypatch, raise_on_auth: bool = False) -> None:
             "key": "sk-fake-ui-key",
         }
 
-    monkeypatch.setattr("litellm.proxy.auth.login_utils.authenticate_user", _fake_auth)
-    monkeypatch.setattr("litellm.proxy.auth.login_utils.create_ui_token_object", _fake_token_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.login_utils.authenticate_user", _fake_auth)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.login_utils.create_ui_token_object", _fake_token_object)
     monkeypatch.setattr(ps, "master_key", "sk-test-master")
     monkeypatch.setattr(ps, "general_settings", {})
     monkeypatch.setattr(ps, "premium_user", False)
@@ -226,7 +226,7 @@ def test_v3_login_without_control_plane_url_404(client, monkeypatch):
     """Pin: /v3/login is gated on general_settings['control_plane_url'] — 404 when absent."""
     _install_login_mocks(monkeypatch)
     # _install_login_mocks sets general_settings to {} — re-affirm
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "general_settings", {})
 
@@ -251,7 +251,7 @@ def test_v3_login_without_control_plane_url_404(client, monkeypatch):
 
 def test_v3_login_success_returns_code(client, monkeypatch):
     """Pin: /v3/login with control_plane_url returns {code, expires_in}."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     _install_login_mocks(monkeypatch)
     monkeypatch.setattr(ps, "general_settings", {"control_plane_url": "https://cp.example.invalid"})
@@ -286,7 +286,7 @@ def test_v3_login_success_returns_code(client, monkeypatch):
 
 def test_v3_login_authenticate_failure_500(client, monkeypatch):
     """Error path: with control_plane_url set, authenticate_user raises -> 500."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     _install_login_mocks(monkeypatch, raise_on_auth=True)
     monkeypatch.setattr(ps, "general_settings", {"control_plane_url": "https://cp.example.invalid"})
@@ -308,7 +308,7 @@ def test_v3_login_authenticate_failure_500(client, monkeypatch):
 
 def test_v3_login_exchange_without_control_plane_url_404(client, monkeypatch):
     """Pin: /v3/login/exchange gated on control_plane_url — 404 when absent."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "general_settings", {})
 
@@ -321,7 +321,7 @@ def test_v3_login_exchange_without_control_plane_url_404(client, monkeypatch):
 
 def test_v3_login_exchange_missing_code_400(client, monkeypatch):
     """Error path: missing 'code' in body -> 400 with 'Missing' message."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "general_settings", {"control_plane_url": "https://cp.example.invalid"})
 
@@ -334,7 +334,7 @@ def test_v3_login_exchange_missing_code_400(client, monkeypatch):
 
 def test_v3_login_exchange_invalid_code_401(client, monkeypatch):
     """Error path: code that isn't in cache -> 401 'Invalid or expired'."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "general_settings", {"control_plane_url": "https://cp.example.invalid"})
     monkeypatch.setattr(ps, "redis_usage_cache", None)
@@ -352,7 +352,7 @@ def test_v3_login_exchange_invalid_code_401(client, monkeypatch):
 
 def test_v3_login_exchange_success_returns_token_and_redirect(client, monkeypatch):
     """Pin: valid code -> JSON {token, redirect_url} + token cookie + cache deleted (single-use)."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "general_settings", {"control_plane_url": "https://cp.example.invalid"})
     monkeypatch.setattr(ps, "redis_usage_cache", None)
@@ -408,7 +408,7 @@ def test_login_form_honors_control_plane_return_to_cookie(client, monkeypatch):
     """/login resumes through the SAME resumer the SSO callback uses, so it honors BOTH shapes
     _persist_return_to_cookie is willing to store. Honoring only the relative one silently dropped
     a control-plane return_to and landed the user on the dashboard."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     _install_login_mocks(monkeypatch)
     monkeypatch.setitem(ps.general_settings, "control_plane_url", "https://cp.example.com")
@@ -430,7 +430,7 @@ def test_login_form_survives_stale_control_plane_return_to(client, monkeypatch):
     """A stale one-shot cookie must NEVER fail a completed sign-in. The resumer rejects a return_to
     that no longer matches control_plane_url (a config change between the cookie's write and this
     read); the user has already authenticated, so land on the dashboard instead of erroring."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     _install_login_mocks(monkeypatch)
     monkeypatch.setitem(ps.general_settings, "control_plane_url", "https://new-cp.example.com")

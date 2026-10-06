@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 
 
-from litellm.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli import cli
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def mock_env():
 @pytest.fixture
 def mock_users_client():
     with patch(
-        "litellm.proxy.client.cli.commands.users.UsersManagementClient"
+        "token_iq.gateway.proxy.client.cli.commands.users.UsersManagementClient"
     ) as MockClient:
         yield MockClient
 

@@ -1,6 +1,6 @@
 import os
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ from fastapi.routing import APIRoute
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
@@ -19,10 +19,10 @@ import logging
 load_dotenv()
 
 import pytest
-import litellm
-from litellm._logging import verbose_proxy_logger
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
 
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     LitellmUserRoles,
     audio_transcriptions,
     chat_completion,
@@ -33,18 +33,18 @@ from litellm.proxy.proxy_server import (
     user_api_key_auth,
 )
 
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 from starlette.datastructures import URL
 
-from litellm.proxy.management_helpers.audit_logs import (
+from token_iq.gateway.proxy.management_helpers.audit_logs import (
     create_audit_log_for_update,
     get_audit_log_changed_by,
 )
-from litellm.proxy._types import LiteLLM_AuditLogs, LitellmTableNames, UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, LitellmTableNames, UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 from unittest.mock import patch, AsyncMock
 
 proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
@@ -132,7 +132,7 @@ def test_get_audit_log_changed_by_honors_header_with_opt_in_when_user_id_missing
 
 @pytest.mark.asyncio
 async def test_create_internal_user_audit_log_uses_changed_by_helper():
-    from litellm.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
+    from token_iq.gateway.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test-key",
@@ -141,9 +141,9 @@ async def test_create_internal_user_audit_log_uses_changed_by_helper():
     )
 
     with (
-        patch("litellm.store_audit_logs", True),
+        patch("token_iq.gateway.store_audit_logs", True),
         patch(
-            "litellm.proxy.hooks.user_management_event_hooks.create_audit_log_for_update",
+            "token_iq.gateway.proxy.hooks.user_management_event_hooks.create_audit_log_for_update",
             new_callable=AsyncMock,
         ) as mock_create_audit_log_for_update,
     ):
@@ -172,9 +172,9 @@ async def test_create_audit_log_for_update_premium_user():
     Test that the audit log is created when a premium user updates a team
     """
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
-        patch("litellm.store_audit_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.store_audit_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
     ):
 
         mock_prisma.db.litellm_auditlog.create = AsyncMock()
@@ -208,7 +208,7 @@ async def test_create_audit_log_for_update_premium_user():
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}

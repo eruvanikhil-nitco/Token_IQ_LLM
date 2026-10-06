@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.auth_checks import _virtual_key_multi_budget_check
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.auth_checks import _virtual_key_multi_budget_check
 
 
 def _make_valid_token(**kwargs) -> UserAPIKeyAuth:
@@ -41,7 +41,7 @@ async def test_under_budget_passes():
         ]
     )
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new_callable=AsyncMock,
         return_value=1.0,  # well under both windows
     ):
@@ -69,7 +69,7 @@ async def test_over_first_window_raises():
         return val
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
+        "token_iq.gateway.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
     ):
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
             await _virtual_key_multi_budget_check(valid_token=token)
@@ -101,7 +101,7 @@ async def test_over_second_window_raises():
         return val
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
+        "token_iq.gateway.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
     ):
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
             await _virtual_key_multi_budget_check(valid_token=token)
@@ -118,7 +118,7 @@ async def test_budget_limit_entry_objects_coerced():
     While budget_limits is normally serialized as List[dict], the auth check must
     tolerate BudgetLimitEntry objects in case they arrive without prior serialization.
     """
-    from litellm.proxy._types import BudgetLimitEntry
+    from token_iq.gateway.proxy._types import BudgetLimitEntry
 
     token = _make_valid_token(budget_limits=[])
     # Bypass Pydantic validation to simulate BudgetLimitEntry objects reaching the check
@@ -129,7 +129,7 @@ async def test_budget_limit_entry_objects_coerced():
     )
 
     with patch(
-        "litellm.proxy.proxy_server.get_current_spend",
+        "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new_callable=AsyncMock,
         return_value=1.0,
     ):

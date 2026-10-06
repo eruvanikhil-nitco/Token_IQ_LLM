@@ -10,14 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-import litellm
-from litellm.proxy.enterprise.enterprise_hooks.banned_keywords import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.enterprise.enterprise_hooks.banned_keywords import (
     _ENTERPRISE_BannedKeywords,
 )
-from litellm import Router, mock_completion
-from litellm.proxy.utils import ProxyLogging, hash_token
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway.proxy.utils import ProxyLogging, hash_token
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 
 
 @pytest.mark.asyncio

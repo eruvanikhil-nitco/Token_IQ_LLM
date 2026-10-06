@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from litellm.exceptions import BadRequestError
-from litellm.llms.vertex_ai.vector_stores.search_api.transformation import (
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.vertex_ai.vector_stores.search_api.transformation import (
     VertexSearchAPIVectorStoreConfig,
 )
 

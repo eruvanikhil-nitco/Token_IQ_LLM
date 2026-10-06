@@ -11,9 +11,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.proxy.proxy_server import ProxyConfig
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_add_deployment_without_master_key():
     Previously, it would raise: "Master key is not initialized or formatted"
     """
     # Set master_key to None
-    with patch("litellm.proxy.proxy_server.master_key", None):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", None):
         # Mock the required dependencies
         mock_prisma_client = MagicMock(spec=PrismaClient)
         mock_prisma_client.db = MagicMock()
@@ -71,7 +71,7 @@ async def test_add_deployment_without_salt_key_or_master_key(monkeypatch):
     monkeypatch.delenv("LITELLM_SALT_KEY", raising=False)
 
     # Set master_key to None
-    with patch("litellm.proxy.proxy_server.master_key", None):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", None):
         # Mock the required dependencies
         mock_prisma_client = MagicMock(spec=PrismaClient)
         mock_prisma_client.db = MagicMock()
@@ -121,8 +121,8 @@ def test_add_deployment_sync_without_master_key():
     This tests the internal method used by add_deployment().
     """
     # Set master_key to None
-    with patch("litellm.proxy.proxy_server.master_key", None):
-        with patch("litellm.proxy.proxy_server.llm_router", None):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", None):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
             # Create ProxyConfig instance
             proxy_config = ProxyConfig()
 

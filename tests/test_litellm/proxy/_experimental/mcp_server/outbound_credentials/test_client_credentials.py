@@ -9,7 +9,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
     ClientCredentialsBearerAuth,
     ClientCredentialsTokenSource,
     TokenEndpointDenied,
@@ -17,8 +17,8 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials.client_credenti
     TokenEndpointSuccess,
     TokenEndpointUnreachable,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Error, Ok
-from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Error, Ok
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
     ClientCredentialsConfig,
 )
 

@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-import litellm
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ModelResponse
 
 
 @pytest.mark.asyncio

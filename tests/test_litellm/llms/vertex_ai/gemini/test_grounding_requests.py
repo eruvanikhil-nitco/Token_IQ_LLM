@@ -1,4 +1,4 @@
-from litellm.llms.vertex_ai.gemini.grounding_requests import (
+from token_iq.gateway.llms.vertex_ai.gemini.grounding_requests import (
     GroundingRequests,
     calculate_grounding_requests,
 )

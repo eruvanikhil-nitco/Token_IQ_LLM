@@ -12,19 +12,19 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from prisma.errors import ClientNotConnectedError, HTTPClientClosedError, PrismaError
 
-import litellm
-import litellm.proxy.health_endpoints._health_endpoints as _health_endpoints_module
-from litellm.litellm_core_utils.health_check_helpers import TEST_IMAGE_BASE64
-from litellm.proxy._types import LitellmUserRoles, ProxyException, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.health_endpoints._health_endpoints import (
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.health_endpoints._health_endpoints as _health_endpoints_module
+from token_iq.gateway.core_utils.health_check_helpers import TEST_IMAGE_BASE64
+from token_iq.gateway.proxy._types import LitellmUserRoles, ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
     _db_health_readiness_check,
     _show_no_redis_warning,
     get_callback_identifier,
     health_license_endpoint,
     health_services_endpoint,
 )
-from litellm.proxy.health_endpoints._health_endpoints import (
+from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
     test_model_connection as health_test_model_connection,
 )
 
@@ -46,7 +46,7 @@ async def test_db_health_cache_hit_returns_cached():
         "last_updated": datetime.now(),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "connected"
@@ -67,7 +67,7 @@ async def test_db_health_cache_expired_calls_health_check():
         "last_updated": datetime.now() - timedelta(seconds=20),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "connected"
@@ -88,7 +88,7 @@ async def test_db_health_non_connected_ignores_cache_ttl():
         "last_updated": datetime.now(),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "connected"
@@ -106,7 +106,7 @@ async def test_db_health_prisma_client_none():
         "last_updated": datetime.now() - timedelta(minutes=5),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "disconnected"
@@ -140,7 +140,7 @@ async def test_db_health_transport_error_never_raises(transport_error):
         "last_updated": datetime.now() - timedelta(seconds=20),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "disconnected"
@@ -174,7 +174,7 @@ async def test_db_health_transport_error_reconnect_succeeds(transport_error):
         "last_updated": datetime.now() - timedelta(seconds=20),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "connected"
@@ -209,7 +209,7 @@ async def test_db_health_transport_error_reconnect_fails(transport_error):
         "last_updated": datetime.now() - timedelta(seconds=20),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "disconnected"
@@ -232,7 +232,7 @@ async def test_db_health_non_transport_error_returns_disconnected():
         "last_updated": datetime.now() - timedelta(seconds=20),
     }
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await _db_health_readiness_check()
 
     assert result["status"] == "disconnected"
@@ -252,7 +252,7 @@ async def test_health_services_endpoint_sqs(status, error_message):
     Verify the /health/services SQS branch returns expected status and message
     based on SQSLogger.async_health_check().
     """
-    with patch("litellm.integrations.sqs.SQSLogger") as MockSQSLogger:
+    with patch("token_iq.gateway.integrations.sqs.SQSLogger") as MockSQSLogger:
         mock_instance = MagicMock()
         mock_instance.async_health_check = AsyncMock(return_value={"status": status, "error_message": error_message})
         MockSQSLogger.return_value = mock_instance
@@ -269,7 +269,7 @@ async def test_health_license_reports_the_installations_token_iq_plan():
     from token_iq.policy.plan import TokenIqPlan
 
     growth = TokenIqPlan(name="growth", unlocks_gated_features=True, max_users=50, max_teams=4)
-    with patch("litellm.proxy.proxy_server.token_iq_plan", growth):
+    with patch("token_iq.gateway.proxy.proxy_server.token_iq_plan", growth):
         response = await health_license_endpoint(user_api_key_dict=MagicMock())
 
     assert response == {
@@ -285,7 +285,7 @@ async def test_health_license_reports_the_installations_token_iq_plan():
 async def test_health_license_shows_no_caps_on_the_standard_plan():
     from token_iq.policy.plan import PLANS
 
-    with patch("litellm.proxy.proxy_server.token_iq_plan", PLANS["standard"]):
+    with patch("token_iq.gateway.proxy.proxy_server.token_iq_plan", PLANS["standard"]):
         response = await health_license_endpoint(user_api_key_dict=MagicMock())
 
     assert response["license_type"] == "standard"
@@ -349,35 +349,35 @@ async def test_test_model_connection_loads_config_from_router():
 
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             mock_prisma_client,
         ),
         patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             mock_router,
         ),
         patch(
-            "litellm.proxy.proxy_server.premium_user",
+            "token_iq.gateway.proxy.proxy_server.premium_user",
             False,
         ),
         patch(
-            "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
             mock_can_user_make_model_call,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.run_with_timeout",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.run_with_timeout",
             mock_run_with_timeout,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
             mock_update_params,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
             mock_reject_os_environ,
         ),
     ):
@@ -433,7 +433,7 @@ async def test_test_model_connection_uses_model_info_id_to_disambiguate_duplicat
     Regression test for: silent fallback to deployments[0] when
     multiple deployments share a wildcard model_name.
     """
-    from litellm.types.router import Deployment, LiteLLM_Params
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
     mock_request = MagicMock()
     mock_user_api_key_dict = MagicMock()
@@ -498,35 +498,35 @@ async def test_test_model_connection_uses_model_info_id_to_disambiguate_duplicat
 
     with (
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             mock_prisma_client,
         ),
         patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             mock_router,
         ),
         patch(
-            "litellm.proxy.proxy_server.premium_user",
+            "token_iq.gateway.proxy.proxy_server.premium_user",
             False,
         ),
         patch(
-            "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
             mock_can_user_make_model_call,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.run_with_timeout",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.run_with_timeout",
             mock_run_with_timeout,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
             mock_update_params,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
             mock_reject_os_environ,
         ),
     ):
@@ -608,27 +608,27 @@ async def test_test_model_connection_falls_back_to_deployments_zero_without_id()
         return None
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.premium_user", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         patch(
-            "litellm.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
+            "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.ModelManagementAuthChecks.can_user_make_model_call",
             mock_can_user_make_model_call,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.run_with_timeout",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.run_with_timeout",
             mock_run_with_timeout,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
             mock_update_params,
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._reject_os_environ_references",
             mock_reject_os_environ,
         ),
     ):
@@ -656,11 +656,11 @@ async def test_test_model_connection_uses_loaded_deployment_team_id():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         ModelManagementAuthChecks,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     mock_request = MagicMock()
 
@@ -714,15 +714,15 @@ async def test_test_model_connection_uses_loaded_deployment_team_id():
         return None
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             ModelManagementAuthChecks,
             "can_user_make_model_call",
             wraps=ModelManagementAuthChecks.can_user_make_model_call,
         ) as spy_auth_check,
-        patch("litellm.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
+        patch("token_iq.gateway.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
     ):
         mock_team_repo_instance = MagicMock()
         mock_team_repo_instance.table.find_unique = AsyncMock(side_effect=fake_find_unique)
@@ -764,8 +764,8 @@ async def test_test_model_connection_uses_loaded_deployment_team_id_via_model_na
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         ModelManagementAuthChecks,
     )
 
@@ -812,15 +812,15 @@ async def test_test_model_connection_uses_loaded_deployment_team_id_via_model_na
         )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             ModelManagementAuthChecks,
             "can_user_make_model_call",
             wraps=ModelManagementAuthChecks.can_user_make_model_call,
         ) as spy_auth_check,
-        patch("litellm.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
+        patch("token_iq.gateway.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
     ):
         mock_team_repo_instance = MagicMock()
         mock_team_repo_instance.table.find_unique = AsyncMock(side_effect=fake_find_unique)
@@ -857,20 +857,20 @@ async def test_test_model_connection_authorizes_on_params_after_health_check_par
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         ModelManagementAuthChecks,
     )
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     marker = "sentinel-from-health-check-params"
     mock_can_user_make_model_call = AsyncMock(side_effect=HTTPException(status_code=403, detail="denied"))
 
     with (
         patch(  # test-quality-ok: proxy module global, no injection seam
-            "litellm.proxy.proxy_server.prisma_client", MagicMock()
+            "token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()
         ),
         patch(  # test-quality-ok: proxy module global, no injection seam
-            "litellm.proxy.proxy_server.llm_router", None
+            "token_iq.gateway.proxy.proxy_server.llm_router", None
         ),
         patch.object(  # test-quality-ok: capturing the params handed to auth is the assertion
             ModelManagementAuthChecks,
@@ -907,11 +907,11 @@ async def test_test_model_connection_authorized_team_admin_passes_real_auth():
     health probe. Guards against a regression that swaps the auth `team_id`
     for something deny-all on the legit path.
     """
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         ModelManagementAuthChecks,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     mock_request = MagicMock()
 
@@ -954,21 +954,21 @@ async def test_test_model_connection_authorized_team_admin_passes_real_auth():
     health_result = {"status": "healthy", "response_time_ms": 50}
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             ModelManagementAuthChecks,
             "can_user_make_model_call",
             wraps=ModelManagementAuthChecks.can_user_make_model_call,
         ) as spy_auth_check,
-        patch("litellm.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
+        patch("token_iq.gateway.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
             AsyncMock(return_value=health_result),
         ),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints.run_with_timeout",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.run_with_timeout",
             AsyncMock(return_value=health_result),
         ),
     ):
@@ -998,7 +998,7 @@ async def test_test_model_connection_authorized_team_admin_passes_real_auth():
     ],
 )
 async def test_health_services_endpoint_galileo(status, error_message):
-    with patch("litellm.integrations.galileo.GalileoObserve") as MockGalileoObserve:
+    with patch("token_iq.gateway.integrations.galileo.GalileoObserve") as MockGalileoObserve:
         mock_instance = MagicMock()
         mock_instance.async_health_check = AsyncMock(return_value={"status": status, "error_message": error_message})
         MockGalileoObserve.return_value = mock_instance
@@ -1023,12 +1023,12 @@ async def test_health_services_endpoint_datadog_llm_observability():
     Regression test for: https://github.com/BerriAI/litellm/issues/XXXX
     The service was missing from the allowed services validation list.
     """
-    from litellm.proxy.health_endpoints._health_endpoints import (
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
         health_services_endpoint,
     )
 
     # Mock datadog_llm_observability to be in success_callback so the generic branch handles it
-    with patch("litellm.success_callback", ["datadog_llm_observability"]):
+    with patch("token_iq.gateway.success_callback", ["datadog_llm_observability"]):
         result = await health_services_endpoint(service="datadog_llm_observability")
 
     # Should not raise HTTPException(400) and should return success
@@ -1041,7 +1041,7 @@ async def test_health_services_endpoint_rejects_unknown_service():
     """
     Verify that an unknown service name is rejected with a 400 error.
     """
-    from litellm.proxy._types import ProxyException
+    from token_iq.gateway.proxy._types import ProxyException
 
     with pytest.raises(ProxyException):
         await health_services_endpoint(service="totally_unknown_service_xyz")
@@ -1065,7 +1065,7 @@ async def test_health_services_endpoint_newrelic_blocks_non_admin(role):
     should be able to trigger it; every other caller must be rejected before
     the external event is recorded.
     """
-    from litellm.proxy._types import ProxyException
+    from token_iq.gateway.proxy._types import ProxyException
 
     user_api_key_dict = UserAPIKeyAuth(
         token="non-admin-token",
@@ -1073,7 +1073,7 @@ async def test_health_services_endpoint_newrelic_blocks_non_admin(role):
         user_role=role,
     )
 
-    with patch("litellm.integrations.newrelic.newrelic.NewRelicLogger") as MockNewRelicLogger:
+    with patch("token_iq.gateway.integrations.newrelic.newrelic.NewRelicLogger") as MockNewRelicLogger:
         mock_instance = MagicMock()
         mock_instance.async_health_check = AsyncMock(return_value={"status": "healthy", "error_message": ""})
         MockNewRelicLogger.return_value = mock_instance
@@ -1104,7 +1104,7 @@ async def test_health_services_endpoint_newrelic_allows_proxy_admin(admin_role):
         user_role=admin_role,
     )
 
-    with patch("litellm.integrations.newrelic.newrelic.NewRelicLogger") as MockNewRelicLogger:
+    with patch("token_iq.gateway.integrations.newrelic.newrelic.NewRelicLogger") as MockNewRelicLogger:
         mock_instance = MagicMock()
         mock_instance.async_health_check = AsyncMock(return_value={"status": "healthy", "error_message": ""})
         MockNewRelicLogger.return_value = mock_instance
@@ -1237,7 +1237,7 @@ def test_health_readiness_details_returns_diagnostic_fields(monkeypatch):
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
     client = TestClient(app)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     response = client.get("/health/readiness/details")
 
@@ -1257,9 +1257,9 @@ def test_health_readiness_allows_explicit_legacy_public_details(monkeypatch):
     app.include_router(_health_endpoints_module.router)
     client = TestClient(app)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"allow_public_health_readiness_details": True},
     )
 
@@ -1313,7 +1313,7 @@ def test_get_callback_identifier_custom_logger_registry_and_fallback():
     - Object with callback_name that matches registry entry
     - Fallback to callback_name() helper function
     """
-    from litellm.litellm_core_utils.custom_logger_registry import CustomLoggerRegistry
+    from token_iq.gateway.core_utils.custom_logger_registry import CustomLoggerRegistry
 
     # Test 1: Object registered in CustomLoggerRegistry (without callback_name attribute)
     # Mock a class that's registered in the registry
@@ -1416,8 +1416,8 @@ async def test_health_endpoint_filters_model_list_by_user_access():
     check. A key scoped to ["model-a"] should only see model-a in the result,
     not other deployments configured on the proxy.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1456,16 +1456,16 @@ async def test_health_endpoint_filters_model_list_by_user_access():
         }
 
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -1486,8 +1486,8 @@ async def test_health_endpoint_keeps_full_model_list_for_all_proxy_models():
     model_name, so the access filter must be skipped entirely; otherwise the
     model list filters down to nothing and /health reports 0/0 counts.
     """
-    from litellm.proxy._types import SpecialModelNames, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import SpecialModelNames, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1519,16 +1519,16 @@ async def test_health_endpoint_keeps_full_model_list_for_all_proxy_models():
         }
 
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -1552,8 +1552,8 @@ async def test_health_endpoint_resolves_all_team_models_to_team_allowlist():
     semantics as get_key_models); otherwise the filter would zero out the
     model list just like the all-proxy-models case.
     """
-    from litellm.proxy._types import SpecialModelNames, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import SpecialModelNames, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1587,16 +1587,16 @@ async def test_health_endpoint_resolves_all_team_models_to_team_allowlist():
         }
 
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -1615,8 +1615,8 @@ async def test_health_endpoint_filters_background_cache_by_user_access():
     scope the cached result to the caller's allowed models rather than
     returning the cache verbatim.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1661,14 +1661,14 @@ async def test_health_endpoint_filters_background_cache_by_user_access():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", True),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", cached_results),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", True),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", cached_results),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
     ):
         from fastapi import Response
 
@@ -1711,8 +1711,8 @@ async def test_health_endpoint_admin_sees_routing_fields_non_admin_does_not():
     """
     from fastapi import Response
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1749,14 +1749,14 @@ async def test_health_endpoint_admin_sees_routing_fields_non_admin_does_not():
     )
 
     common_patches = [
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", True),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", cached_results),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", True),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", cached_results),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
     ]
 
     for p in common_patches:
@@ -1821,8 +1821,8 @@ async def test_health_endpoint_warns_when_scoped_models_lack_model_id():
     """
     from fastapi import Response
 
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1854,14 +1854,14 @@ async def test_health_endpoint_warns_when_scoped_models_lack_model_id():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", True),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", cached_results),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", True),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", cached_results),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
     ):
         result = await health_endpoint(
             response=Response(),
@@ -1890,8 +1890,8 @@ async def test_health_endpoint_blocks_cross_scope_model_id_under_background_cach
     """
     from fastapi import Response
 
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -1926,16 +1926,16 @@ async def test_health_endpoint_blocks_cross_scope_model_id_under_background_cach
 
     response = Response()
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
         # llm_router None here means the model_id 404 lookup short-circuits;
         # we patch _llm_model_list directly instead to drive the cache path.
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", True),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", cached_results),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", True),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", cached_results),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
     ):
         # Calling with model="model-b" rather than model_id="id-b" because
         # the model_id branch raises 404 when llm_router is None. The bug
@@ -1966,8 +1966,8 @@ async def test_health_endpoint_503_for_targeted_unhealthy_model_under_background
     """
     from fastapi import Response
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -2000,14 +2000,14 @@ async def test_health_endpoint_503_for_targeted_unhealthy_model_under_background
 
     response = Response()
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", True),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", cached_results),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", True),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", cached_results),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
     ):
         result = await health_endpoint(
             response=response,
@@ -2033,8 +2033,8 @@ async def test_health_endpoint_returns_503_when_requested_model_has_no_healthy_e
     """
     from fastapi import Response
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -2068,16 +2068,16 @@ async def test_health_endpoint_returns_503_when_requested_model_has_no_healthy_e
 
     response = Response()
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -2100,8 +2100,8 @@ async def test_health_endpoint_returns_200_when_requested_model_has_healthy_endp
     """
     from fastapi import Response
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -2128,16 +2128,16 @@ async def test_health_endpoint_returns_200_when_requested_model_has_healthy_endp
     # Default Response() exposes status_code as None; the endpoint should
     # leave it alone for the healthy path.
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -2159,8 +2159,8 @@ async def test_health_endpoint_no_model_param_returns_200_even_when_zero_healthy
     """
     from fastapi import Response
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.health_endpoints._health_endpoints import health_endpoint
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
         {
@@ -2185,16 +2185,16 @@ async def test_health_endpoint_no_model_param_returns_200_even_when_zero_healthy
 
     response = Response()
     with (
-        patch("litellm.proxy.proxy_server.llm_model_list", full_model_list),
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.prisma_client", None),
-        patch("litellm.proxy.proxy_server.use_background_health_checks", False),
-        patch("litellm.proxy.proxy_server.user_model", None),
-        patch("litellm.proxy.proxy_server.health_check_results", {}),
-        patch("litellm.proxy.proxy_server.health_check_details", True),
-        patch("litellm.proxy.proxy_server.health_check_concurrency", 1),
+        patch("token_iq.gateway.proxy.proxy_server.llm_model_list", full_model_list),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.use_background_health_checks", False),
+        patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_results", {}),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_details", True),
+        patch("token_iq.gateway.proxy.proxy_server.health_check_concurrency", 1),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._perform_health_check_and_save",
             side_effect=fake_perform,
         ),
     ):
@@ -2222,7 +2222,7 @@ async def test_health_readiness_returns_503_when_db_disconnected():
     """
     from fastapi import Response
 
-    from litellm.proxy.health_endpoints._health_endpoints import health_readiness
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_readiness
 
     mock_prisma = MagicMock()
     mock_prisma.health_check = AsyncMock(side_effect=PrismaError("nope"))
@@ -2234,7 +2234,7 @@ async def test_health_readiness_returns_503_when_db_disconnected():
     }
 
     response = Response()
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await health_readiness(response=response)
 
     assert response.status_code == 503
@@ -2253,7 +2253,7 @@ async def test_health_readiness_returns_200_when_db_down_and_allow_requests_on_d
     """
     from fastapi import Response
 
-    from litellm.proxy.health_endpoints._health_endpoints import health_readiness
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_readiness
 
     mock_prisma = MagicMock()
     mock_prisma.health_check = AsyncMock(side_effect=PrismaError("nope"))
@@ -2267,10 +2267,10 @@ async def test_health_readiness_returns_200_when_db_down_and_allow_requests_on_d
     response = Response()
     with (
         patch(  # test-quality-ok: the readiness path reads the proxy-global DB client; it has no injection seam
-            "litellm.proxy.proxy_server.prisma_client", mock_prisma
+            "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma
         ),
         patch.dict(  # test-quality-ok: the fail-open flag lives in the proxy-global general_settings; no injection seam
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": True},
         ),
     ):
@@ -2289,7 +2289,7 @@ async def test_health_readiness_details_returns_200_when_db_down_and_allow_reque
     """
     from fastapi import Response
 
-    from litellm.proxy.health_endpoints._health_endpoints import (
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
         _get_health_readiness_details,
     )
 
@@ -2305,10 +2305,10 @@ async def test_health_readiness_details_returns_200_when_db_down_and_allow_reque
     response = Response()
     with (
         patch(  # test-quality-ok: the readiness path reads the proxy-global DB client; it has no injection seam
-            "litellm.proxy.proxy_server.prisma_client", mock_prisma
+            "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma
         ),
         patch.dict(  # test-quality-ok: the fail-open flag lives in the proxy-global general_settings; no injection seam
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": True},
         ),
     ):
@@ -2325,7 +2325,7 @@ async def test_db_health_readiness_check_bounds_hung_health_check():
     kubelet's timeoutSeconds; the DB round-trip is bounded and reported as
     disconnected instead.
     """
-    from litellm.proxy.health_endpoints._health_endpoints import (
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
         _db_health_readiness_check,
     )
 
@@ -2342,12 +2342,12 @@ async def test_db_health_readiness_check_bounds_hung_health_check():
     }
 
     with patch(  # test-quality-ok: lowers the module-level probe timeout so the hung-call test finishes fast
-        "litellm.proxy.health_endpoints._health_endpoints.DB_READINESS_CHECK_TIMEOUT_SECONDS",
+        "token_iq.gateway.proxy.health_endpoints._health_endpoints.DB_READINESS_CHECK_TIMEOUT_SECONDS",
         0.05,
     ):
         start = time.monotonic()
         with patch(  # test-quality-ok: the readiness path reads the proxy-global DB client; it has no injection seam
-            "litellm.proxy.proxy_server.prisma_client", mock_prisma
+            "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma
         ):
             result = await _db_health_readiness_check()
         elapsed = time.monotonic() - start
@@ -2363,7 +2363,7 @@ async def test_db_health_readiness_check_overall_deadline_bounds_hung_reconnect(
     including reconnect lock waits) runs under one deadline, so a reconnect
     that hangs on the lock still returns disconnected within the deadline.
     """
-    from litellm.proxy.health_endpoints._health_endpoints import (
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
         _db_health_readiness_check,
     )
 
@@ -2380,12 +2380,12 @@ async def test_db_health_readiness_check_overall_deadline_bounds_hung_reconnect(
     }
 
     with patch(  # test-quality-ok: lowers the module-level probe timeout so the hung-call test finishes fast
-        "litellm.proxy.health_endpoints._health_endpoints.DB_READINESS_PROBE_DEADLINE_SECONDS",
+        "token_iq.gateway.proxy.health_endpoints._health_endpoints.DB_READINESS_PROBE_DEADLINE_SECONDS",
         0.05,
     ):
         start = time.monotonic()
         with patch(  # test-quality-ok: the readiness path reads the proxy-global DB client; it has no injection seam
-            "litellm.proxy.proxy_server.prisma_client", mock_prisma
+            "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma
         ):
             result = await _db_health_readiness_check()
         elapsed = time.monotonic() - start
@@ -2399,7 +2399,7 @@ async def test_health_readiness_returns_200_when_db_connected():
     """Happy path: connected DB keeps the legacy 200."""
     from fastapi import Response
 
-    from litellm.proxy.health_endpoints._health_endpoints import health_readiness
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_readiness
 
     mock_prisma = MagicMock()
     mock_prisma.health_check = AsyncMock()
@@ -2410,7 +2410,7 @@ async def test_health_readiness_returns_200_when_db_connected():
     }
 
     response = Response()
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         result = await health_readiness(response=response)
 
     assert response.status_code == 200
@@ -2426,10 +2426,10 @@ async def test_health_readiness_returns_200_when_no_db_configured():
     """
     from fastapi import Response
 
-    from litellm.proxy.health_endpoints._health_endpoints import health_readiness
+    from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_readiness
 
     response = Response()
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         result = await health_readiness(response=response)
 
     assert response.status_code == 200
@@ -2443,7 +2443,7 @@ def test_clean_endpoint_data_strips_credentials_keeps_routing_fields():
     layer based on user role, not in the cleaning helper. This guarantees
     proxy admins continue to see those fields in the /health response.
     """
-    from litellm.proxy.health_check import _clean_endpoint_data
+    from token_iq.gateway.proxy.health_check import _clean_endpoint_data
 
     raw = {
         "model": "openai/gpt-4o",
@@ -2467,7 +2467,7 @@ def test_clean_endpoint_data_strips_extra_headers_and_aws_session_token():
     `extra_headers` / `headers` / `aws_session_token`. Before the fix these
     were returned in plaintext (api_key was stripped, but these were not).
     """
-    from litellm.proxy.health_check import _clean_endpoint_data
+    from token_iq.gateway.proxy.health_check import _clean_endpoint_data
 
     raw = {
         "model": "openai/gpt-4o",
@@ -2513,7 +2513,7 @@ def test_clean_endpoint_data_never_displays_credential_fields(credential_field, 
     LIT-6239 / gh-36898: /health entries, healthy and unhealthy alike, must never
     carry credential-bearing litellm_params, with or without details.
     """
-    from litellm.proxy.health_check import _clean_endpoint_data
+    from token_iq.gateway.proxy.health_check import _clean_endpoint_data
 
     canary = f"CANARY-{credential_field}-VALUE"
     cleaned = _clean_endpoint_data(
@@ -2543,7 +2543,7 @@ class TestConfigBaseForHealthCheck:
     }
 
     def _base(self, config, request, allow_client_side_credentials=False):
-        from litellm.proxy.health_endpoints._health_endpoints import (
+        from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
             _config_base_for_health_check,
         )
 
@@ -2642,9 +2642,9 @@ class TestNoRedisWarning:
     async def test_warns_when_no_redis_and_no_db_to_count_workers(self, monkeypatch):
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         ):
             assert await _show_no_redis_warning() is True
 
@@ -2652,9 +2652,9 @@ class TestNoRedisWarning:
     async def test_warns_when_there_is_no_router_at_all(self, monkeypatch):
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", None),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         ):
             assert await _show_no_redis_warning() is True
 
@@ -2663,9 +2663,9 @@ class TestNoRedisWarning:
         """One live worker needs no cross-worker coordination, so no env var is needed."""
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(1)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(1)),
         ):
             assert await _show_no_redis_warning() is False
 
@@ -2674,9 +2674,9 @@ class TestNoRedisWarning:
     async def test_warns_when_multiple_workers_share_the_db(self, monkeypatch, live_workers):
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(live_workers)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(live_workers)),
         ):
             assert await _show_no_redis_warning() is True
 
@@ -2685,9 +2685,9 @@ class TestNoRedisWarning:
         """Zero rows means the census cannot CONFIRM a single worker, so warn."""
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(0)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(0)),
         ):
             assert await _show_no_redis_warning() is True
 
@@ -2695,10 +2695,10 @@ class TestNoRedisWarning:
     async def test_warns_when_the_worker_census_query_fails(self, monkeypatch):
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 self._prisma_with_workers(error=RuntimeError("db down")),
             ),
         ):
@@ -2709,9 +2709,9 @@ class TestNoRedisWarning:
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         prisma = self._prisma_with_workers(5)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", MagicMock()),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", prisma),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
         ):
             assert await _show_no_redis_warning() is False
         prisma.db.query_raw.assert_not_called()
@@ -2721,9 +2721,9 @@ class TestNoRedisWarning:
         """router_settings.redis_host alone backs cooldowns and usage-based routing."""
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(MagicMock())),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(5)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(MagicMock())),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(5)),
         ):
             assert await _show_no_redis_warning() is False
 
@@ -2732,9 +2732,9 @@ class TestNoRedisWarning:
     async def test_env_var_suppresses_the_warning_despite_multiple_workers(self, monkeypatch, value):
         monkeypatch.setenv("LITELLM_DISABLE_NO_REDIS_WARNING", value)
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(5)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(5)),
         ):
             assert await _show_no_redis_warning() is False
 
@@ -2742,9 +2742,9 @@ class TestNoRedisWarning:
     async def test_env_var_set_false_keeps_the_warning_for_multiple_workers(self, monkeypatch):
         monkeypatch.setenv("LITELLM_DISABLE_NO_REDIS_WARNING", "false")
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(2)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(2)),
         ):
             assert await _show_no_redis_warning() is True
 
@@ -2752,9 +2752,9 @@ class TestNoRedisWarning:
     async def test_env_var_set_false_does_not_force_the_warning_for_a_single_worker(self, monkeypatch):
         monkeypatch.setenv("LITELLM_DISABLE_NO_REDIS_WARNING", "false")
         with (
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
-            patch("litellm.proxy.proxy_server.prisma_client", self._prisma_with_workers(1)),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", self._prisma_with_workers(1)),
         ):
             assert await _show_no_redis_warning() is False
 
@@ -2764,9 +2764,9 @@ class TestNoRedisWarning:
         monkeypatch.delenv("LITELLM_DISABLE_NO_REDIS_WARNING", raising=False)
         prisma_client = self._prisma_with_workers(2) if has_prisma_client else None
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.redis_usage_cache", None),
-            patch("litellm.proxy.proxy_server.llm_router", self._router(None)),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", self._router(None)),
             patch.object(
                 _health_endpoints_module,
                 "_db_health_readiness_check",
@@ -2777,8 +2777,8 @@ class TestNoRedisWarning:
         assert details["show_no_redis_warning"] is True
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", prisma_client),
-            patch("litellm.proxy.proxy_server.redis_usage_cache", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),
+            patch("token_iq.gateway.proxy.proxy_server.redis_usage_cache", MagicMock()),
             patch.object(
                 _health_endpoints_module,
                 "_db_health_readiness_check",
@@ -2799,11 +2799,11 @@ async def test_health_services_endpoint_ms_teams_posts_adaptive_card():
 
     with (
         patch(  # test-quality-ok: endpoint reads proxy_server module globals, same pattern as sibling tests
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"alerting": ["ms_teams"]},
         ),
         patch(  # test-quality-ok: endpoint reads proxy_server module globals, same pattern as sibling tests
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
             mock_proxy_logging,
         ),
         patch.dict("os.environ", {"MS_TEAMS_WEBHOOK_URL": "https://teams.example/webhook"}),
@@ -2828,11 +2828,11 @@ async def test_health_services_endpoint_ms_teams_surfaces_delivery_failure():
 
     with (
         patch(  # test-quality-ok: endpoint reads proxy_server module globals, same pattern as sibling tests
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"alerting": ["ms_teams"]},
         ),
         patch(  # test-quality-ok: endpoint reads proxy_server module globals, same pattern as sibling tests
-            "litellm.proxy.proxy_server.proxy_logging_obj",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
             mock_proxy_logging,
         ),
         patch.dict("os.environ", {"MS_TEAMS_WEBHOOK_URL": "https://teams.example/webhook"}),
@@ -2846,7 +2846,7 @@ async def test_health_services_endpoint_ms_teams_surfaces_delivery_failure():
 @pytest.mark.asyncio
 async def test_health_services_endpoint_ms_teams_requires_alerting_config():
     with patch(  # test-quality-ok: endpoint reads proxy_server module globals, same pattern as sibling tests
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"alerting": ["slack"]},
     ):
         with pytest.raises(ProxyException):
@@ -2869,7 +2869,7 @@ def test_test_model_connection_accepts_image_edit_mode(monkeypatch):
 
     with (
         patch(  # test-quality-ok: the endpoint reads the proxy-global DB client and 500s when it is None; it has no injection seam
-            "litellm.proxy.proxy_server.prisma_client", MagicMock()
+            "token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()
         ),
         respx.mock(assert_all_called=True) as respx_mock,
     ):

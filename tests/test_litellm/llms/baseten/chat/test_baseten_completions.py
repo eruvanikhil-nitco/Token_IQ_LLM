@@ -1,7 +1,7 @@
 import os
 import pytest
 from unittest.mock import patch
-from litellm.llms.baseten.chat import BasetenConfig
+from token_iq.gateway.llms.baseten.chat import BasetenConfig
 
 
 class TestBasetenRouting:

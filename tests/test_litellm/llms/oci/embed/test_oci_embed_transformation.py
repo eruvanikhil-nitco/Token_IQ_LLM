@@ -12,9 +12,9 @@ import httpx
 import pytest
 
 
-from litellm.llms.oci.common_utils import OCIError
-from litellm.llms.oci.embed.transformation import OCI_EMBED_BATCH_LIMIT, OCIEmbedConfig
-from litellm.types.utils import EmbeddingResponse, Usage
+from token_iq.gateway.llms.oci.common_utils import OCIError
+from token_iq.gateway.llms.oci.embed.transformation import OCI_EMBED_BATCH_LIMIT, OCIEmbedConfig
+from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
 # ---------------------------------------------------------------------------
 # Test fixtures

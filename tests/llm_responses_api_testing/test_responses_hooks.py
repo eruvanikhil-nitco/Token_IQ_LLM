@@ -8,21 +8,21 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.responses import streaming_iterator as streaming_module
-from litellm.responses.streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.responses import streaming_iterator as streaming_module
+from token_iq.gateway.responses.streaming_iterator import (
     CachedResponsesAPIStreamingIterator,
     MockResponsesAPIStreamingIterator,
     ResponsesAPIStreamingIterator,
     SyncResponsesAPIStreamingIterator,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 class _FakeLoggingObj:

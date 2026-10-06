@@ -16,8 +16,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.bedrock.embed.amazon_nova_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.embed.amazon_nova_transformation import (
     AmazonNovaEmbeddingConfig,
 )
 
@@ -633,7 +633,7 @@ class TestNovaProviderDetection:
 
     def test_nova_provider_detection(self):
         """Test that Nova provider is correctly detected."""
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         provider = BaseAWSLLM.get_bedrock_embedding_provider(
             "amazon.nova-2-multimodal-embeddings-v1:0"
@@ -645,7 +645,7 @@ class TestNovaProviderDetection:
 
     def test_nova_in_model_name(self):
         """Test that models with 'nova' in the name are detected."""
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         # Test various Nova model name formats
         test_models = [

@@ -6,8 +6,8 @@ Test to verify the Google GenAI transformation logic for generateContent paramet
 
 import pytest
 
-from litellm.llms.gemini.google_genai.transformation import GoogleGenAIConfig
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
 
@@ -159,7 +159,7 @@ def test_map_generate_content_optional_params_response_mime_type():
 
 def test_responses_api_reasoning_dict_format():
     """Test that reasoning parameter with dict format is mapped to reasoning_effort"""
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     responses_api_request: ResponsesAPIOptionalRequestParams = {
         "reasoning": {"effort": "high"},
@@ -179,7 +179,7 @@ def test_responses_api_reasoning_dict_format():
 
 def test_responses_api_reasoning_string_format():
     """Test that reasoning parameter with string format is mapped to reasoning_effort"""
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     responses_api_request: ResponsesAPIOptionalRequestParams = {
         "reasoning": "medium",  # Could be a string directly
@@ -199,7 +199,7 @@ def test_responses_api_reasoning_string_format():
 
 def test_responses_api_reasoning_low_effort():
     """Test that low reasoning effort is correctly mapped"""
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     responses_api_request: ResponsesAPIOptionalRequestParams = {
         "reasoning": {"effort": "low"},
@@ -217,7 +217,7 @@ def test_responses_api_reasoning_low_effort():
 
 def test_responses_api_no_reasoning():
     """Test that no reasoning_effort is included when reasoning is not provided"""
-    from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+    from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
     responses_api_request: ResponsesAPIOptionalRequestParams = {
         "temperature": 1.0,
@@ -488,7 +488,7 @@ def test_response_schema_normalization_parity_across_chat_and_native_paths():
     """
     from copy import deepcopy
 
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 

@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
-from litellm.proxy.auth.auth_checks import check_tools_allowlist
-from litellm.proxy.guardrails.tool_name_extraction import (
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.auth_checks import check_tools_allowlist
+from token_iq.gateway.proxy.guardrails.tool_name_extraction import (
     TOOL_CAPABLE_CALL_TYPES,
     extract_request_tool_names,
 )

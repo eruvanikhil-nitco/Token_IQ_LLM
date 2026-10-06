@@ -21,7 +21,7 @@ def _invoke_connector_factory(http_handler_module):
 
 
 def test_socket_factory_omitted_when_disabled(monkeypatch):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", False)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", True)
@@ -42,7 +42,7 @@ def test_socket_factory_omitted_when_disabled(monkeypatch):
 
 
 def test_socket_factory_attached_when_enabled(monkeypatch):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", True)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", True)
@@ -64,7 +64,7 @@ def test_socket_factory_attached_when_enabled(monkeypatch):
 
 
 def test_socket_factory_skipped_on_old_aiohttp(monkeypatch):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", True)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", False)
@@ -85,7 +85,7 @@ def test_socket_factory_skipped_on_old_aiohttp(monkeypatch):
 
 
 def test_socket_factory_sets_keepalive_options(monkeypatch):
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", True)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", True)
@@ -131,7 +131,7 @@ def test_socket_factory_uses_tcp_keepalive_when_keepidle_unavailable(monkeypatch
     Linux CI runners always have TCP_KEEPIDLE, so we patch socket itself to
     simulate the BSD-derived environment.
     """
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", True)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", True)
@@ -173,7 +173,7 @@ async def test_shared_session_transport_rebuilds_with_socket_factory(monkeypatch
     and the configured keepalive timeout, otherwise AIOHTTP_SO_KEEPALIVE stops
     protecting every later request served by that transport.
     """
-    from litellm.llms.custom_httpx import http_handler as http_handler_module
+    from token_iq.gateway.llms.custom_httpx import http_handler as http_handler_module
 
     monkeypatch.setattr(http_handler_module, "AIOHTTP_SO_KEEPALIVE", True)
     monkeypatch.setattr(http_handler_module, "_AIOHTTP_SUPPORTS_SOCKET_FACTORY", True)

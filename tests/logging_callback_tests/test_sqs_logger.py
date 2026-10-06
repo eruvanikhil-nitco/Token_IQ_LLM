@@ -6,13 +6,13 @@ from copy import deepcopy
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.integrations.sqs import SQSLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.sqs import SQSLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
-from litellm.litellm_core_utils.app_crypto import AppCrypto
+from token_iq.gateway.core_utils.app_crypto import AppCrypto
 
 
 @pytest.mark.asyncio
@@ -160,7 +160,7 @@ async def test_async_send_batch_does_not_await_send_directly(monkeypatch):
     # create_task stays real here: with it mocked out the await_count assertion
     # below would hold trivially. Every task it spawns is cancelled at the end,
     # including the infinite periodic_flush the SQSLogger constructor starts.
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     spawned = []
     real_create_task = asyncio.create_task
 
@@ -210,7 +210,7 @@ def test_appcrypto_invalid_key_length():
 
 
 def test_sqs_logger_init_without_encryption(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     # Patch asyncio.create_task to avoid RuntimeError
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
@@ -219,7 +219,7 @@ def test_sqs_logger_init_without_encryption(monkeypatch):
 
 
 def test_sqs_logger_init_with_encryption(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     key_b64 = base64.b64encode(os.urandom(32)).decode()
 
@@ -235,7 +235,7 @@ def test_sqs_logger_init_with_encryption(monkeypatch):
 
 
 def test_sqs_logger_init_with_encryption_missing_key(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     with pytest.raises(ValueError, match="required when encryption is enabled"):
         SQSLogger(
@@ -252,7 +252,7 @@ def test_sqs_logger_init_with_encryption_missing_key(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_log_success_event_adds_to_queue(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
 
@@ -265,7 +265,7 @@ async def test_async_log_success_event_adds_to_queue(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_log_failure_event_adds_to_queue(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
 
@@ -283,7 +283,7 @@ async def test_async_log_failure_event_adds_to_queue(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_send_batch_triggers_tasks(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
 
@@ -450,7 +450,7 @@ async def test_strip_base64_recursive_redaction():
 
 @pytest.mark.asyncio
 async def test_async_health_check_healthy(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
     logger.async_send_message = AsyncMock(return_value=None)
@@ -462,7 +462,7 @@ async def test_async_health_check_healthy(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_health_check_unhealthy(monkeypatch):
-    monkeypatch.setattr("litellm.aws_sqs_callback_params", {})
+    monkeypatch.setattr("token_iq.gateway.aws_sqs_callback_params", {})
     monkeypatch.setattr(asyncio, "create_task", MagicMock())
     logger = SQSLogger(sqs_queue_url="https://example.com", sqs_region_name="us-west-2")
     logger.async_send_message = AsyncMock(side_effect=Exception("boom"))

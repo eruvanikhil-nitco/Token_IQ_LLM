@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.llms.openai_like.json_loader import JSONProviderRegistry
-from litellm.llms.openai_like.dynamic_config import create_config_class
+from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
+from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
 
 
 class TestPublicAIConfig:
@@ -47,7 +47,7 @@ class TestPublicAIConfig:
         assert result["Authorization"] == f"Bearer {api_key}"
         assert result["Content-Type"] == "application/json"
 
-    @patch("litellm.utils.supports_function_calling", return_value=True)
+    @patch("token_iq.gateway.utils.supports_function_calling", return_value=True)
     def test_get_supported_openai_params(self, mock_supports_fc, config):
         """
         Test that get_supported_openai_params returns correct params.
@@ -66,7 +66,7 @@ class TestPublicAIConfig:
         # Note: JSON-based configs inherit from OpenAIGPTConfig which includes functions
         # This is expected behavior for JSON-based providers
 
-    @patch("litellm.utils.supports_function_calling", return_value=True)
+    @patch("token_iq.gateway.utils.supports_function_calling", return_value=True)
     def test_map_openai_params_includes_functions(self, mock_supports_fc, config):
         """
         Test that functions parameter is mapped (JSON-based configs don't exclude functions).

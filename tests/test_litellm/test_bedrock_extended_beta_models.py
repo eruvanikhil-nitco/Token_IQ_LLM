@@ -14,7 +14,7 @@ os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "true"
 
 import pytest
 
-from litellm import get_model_info
+from token_iq.gateway import get_model_info
 
 # Model configurations: (model_name, regions, max_input, max_output)
 MODEL_CONFIGS = [

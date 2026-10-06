@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.constants import MAX_IN_MEMORY_QUEUE_FLUSH_COUNT
-from litellm.proxy.db.db_transaction_queue.base_update_queue import BaseUpdateQueue
+from token_iq.gateway.constants import MAX_IN_MEMORY_QUEUE_FLUSH_COUNT
+from token_iq.gateway.proxy.db.db_transaction_queue.base_update_queue import BaseUpdateQueue
 
 
 @pytest.mark.asyncio
@@ -47,7 +47,7 @@ def test_misconfigured_queue_thresholds_warns():
     This misconfiguration causes the spend aggregation check in SpendUpdateQueue.add_update()
     to never trigger because asyncio.Queue blocks before qsize() can reach the threshold.
     """
-    import litellm.proxy.db.db_transaction_queue.base_update_queue as bq_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.base_update_queue as bq_module
 
     with (
         patch.object(bq_module, "MAX_SIZE_IN_MEMORY_QUEUE", 2000),

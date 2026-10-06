@@ -1,7 +1,7 @@
 import ast
 import os
 import sys
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 import asyncio
 import aiohttp
 import base64

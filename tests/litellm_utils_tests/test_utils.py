@@ -6,21 +6,21 @@ from unittest import mock
 
 from dotenv import load_dotenv
 
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 load_dotenv()
 import os
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, headers
-from litellm.litellm_core_utils.duration_parser import duration_in_seconds
-from litellm.litellm_core_utils.duration_parser import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, headers
+from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
+from token_iq.gateway.core_utils.duration_parser import (
     get_last_day_of_month,
     _extract_from_regex,
 )
-from litellm.utils import (
+from token_iq.gateway.utils import (
     check_valid_key,
     create_pretrained_tokenizer,
     create_tokenizer,
@@ -33,14 +33,14 @@ from litellm.utils import (
     trim_messages,
     validate_environment,
 )
-from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
 # Assuming your trim_messages, shorten_message_to_fit_limit, and get_token_count functions are all in a module named 'message_utils'
 @pytest.fixture(autouse=True)
 def reset_mock_cache():
-    from litellm.utils import _model_cache
+    from token_iq.gateway.utils import _model_cache
 
     _model_cache.flush_cache()
 
@@ -182,7 +182,7 @@ def test_trimming_with_system_message_exceeding_max_tokens():
 
 
 def test_trimming_with_tool_calls():
-    from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function, Message
 
     messages = [
         {
@@ -284,7 +284,7 @@ def test_trimming_with_model_cost_max_input_tokens(model):
 
 
 def test_trimming_with_untokenizable_field(caplog: pytest.LogCaptureFixture) -> None:
-    from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function, Message
 
     messages = [
         {
@@ -349,8 +349,8 @@ def test_aget_valid_models():
 
 @pytest.mark.parametrize("custom_llm_provider", ["anthropic", "xai"])
 def test_get_valid_models_with_custom_llm_provider(custom_llm_provider):
-    from litellm.utils import ProviderConfigManager
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
 
     provider_config = ProviderConfigManager.get_provider_model_info(
         model=None,
@@ -580,7 +580,7 @@ def test_get_chat_completion_prompt():
     """
     Unit test to ensure get_chat_completion_prompt updates messages in logging object.
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     litellm_logging_obj = Logging(
         model="gpt-5-mini",
@@ -613,8 +613,8 @@ def test_redact_msgs_from_logs():
 
     On the proxy some users were seeing the redaction impact client side responses
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.litellm_core_utils.redact_messages import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.redact_messages import (
         redact_message_input_output_from_logging,
     )
 
@@ -668,8 +668,8 @@ def test_redact_embedding_response():
     3. data field (containing embeddings) is cleared for privacy
     4. original response object is not modified
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.litellm_core_utils.redact_messages import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.redact_messages import (
         redact_message_input_output_from_logging,
     )
 
@@ -739,8 +739,8 @@ def test_redact_msgs_from_logs_with_dynamic_params():
     2. When standard_callback_dynamic_params.turn_off_message_logging is True: Redaction should occur. User has opted in to redaction.
     3. standard_callback_dynamic_params.turn_off_message_logging not set, litellm.turn_off_message_logging is True: Redaction should occur.
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.litellm_core_utils.redact_messages import (
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.redact_messages import (
         redact_message_input_output_from_logging,
     )
 
@@ -914,7 +914,7 @@ def test_logging_trace_id(langfuse_trace_id, langfuse_existing_trace_id):
     """
     - Unit test for `_get_trace_id` function in Logging obj
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     litellm.success_callback = ["langfuse"]
     litellm_call_id = "my-unique-call-id"
@@ -1062,7 +1062,7 @@ def test_supports_response_schema(model, expected_bool):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
 
-    from litellm.utils import supports_response_schema
+    from token_iq.gateway.utils import supports_response_schema
 
     response = supports_response_schema(model=model, custom_llm_provider=None)
 
@@ -1082,7 +1082,7 @@ def test_supports_function_calling_v2(model, expected_bool):
     """
     Unit test for 'supports_function_calling' helper function.
     """
-    from litellm.utils import supports_function_calling
+    from token_iq.gateway.utils import supports_function_calling
 
     response = supports_function_calling(model=model, custom_llm_provider=None)
     assert expected_bool == response
@@ -1102,7 +1102,7 @@ def test_supports_vision(model, expected_bool):
     """
     Unit test for 'supports_vision' helper function.
     """
-    from litellm.utils import supports_vision
+    from token_iq.gateway.utils import supports_vision
 
     response = supports_vision(model=model, custom_llm_provider=None)
     assert expected_bool == response
@@ -1134,7 +1134,7 @@ def test_is_base64_encoded():
     encoded_file = base64.b64encode(file_data).decode("utf-8")
     base64_image = f"data:image/png;base64,{encoded_file}"
 
-    from litellm.utils import is_base64_encoded
+    from token_iq.gateway.utils import is_base64_encoded
 
     assert is_base64_encoded(s=base64_image) is True
 
@@ -1185,7 +1185,7 @@ def test_async_http_handler_force_ipv4(mock_async_client):
     """
     import httpx
     import ssl
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Set force_ipv4 to True
     litellm.force_ipv4 = True
@@ -1228,7 +1228,7 @@ def test_supports_audio_input(model, expected_bool):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
 
-    from litellm.utils import supports_audio_input, supports_audio_output
+    from token_iq.gateway.utils import supports_audio_input, supports_audio_output
 
     supports_pc = supports_audio_input(model=model)
 
@@ -1236,7 +1236,7 @@ def test_supports_audio_input(model, expected_bool):
 
 
 def test_is_base64_encoded_2():
-    from litellm.utils import is_base64_encoded
+    from token_iq.gateway.utils import is_base64_encoded
 
     assert (
         is_base64_encoded(
@@ -1309,7 +1309,7 @@ def test_is_base64_encoded_2():
     ],
 )
 def test_validate_chat_completion_user_messages(messages, expected_bool):
-    from litellm.utils import validate_chat_completion_user_messages
+    from token_iq.gateway.utils import validate_chat_completion_user_messages
 
     if expected_bool:
         ## Valid message
@@ -1331,7 +1331,7 @@ def test_validate_chat_completion_user_messages(messages, expected_bool):
     ],
 )
 def test_validate_chat_completion_tool_choice(tool_choice, expected_bool):
-    from litellm.utils import validate_chat_completion_tool_choice
+    from token_iq.gateway.utils import validate_chat_completion_tool_choice
 
     if expected_bool:
         validate_chat_completion_tool_choice(tool_choice=tool_choice)
@@ -1347,7 +1347,7 @@ def test_models_by_provider():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
 
-    from litellm import models_by_provider
+    from token_iq.gateway import models_by_provider
 
     providers = set()
     for k, v in litellm.model_cost.items():
@@ -1383,7 +1383,7 @@ def test_models_by_provider():
 def test_get_end_user_id_for_cost_tracking(
     litellm_params, disable_end_user_cost_tracking, expected_end_user_id
 ):
-    from litellm.utils import get_end_user_id_for_cost_tracking
+    from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
     litellm.disable_end_user_cost_tracking = disable_end_user_cost_tracking
     assert (
@@ -1403,7 +1403,7 @@ def test_get_end_user_id_for_cost_tracking(
 def test_get_end_user_id_for_cost_tracking_prometheus_only(
     litellm_params, enable_end_user_cost_tracking_prometheus_only, expected_end_user_id
 ):
-    from litellm.utils import get_end_user_id_for_cost_tracking
+    from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
     litellm.enable_end_user_cost_tracking_prometheus_only = (
         enable_end_user_cost_tracking_prometheus_only
@@ -1472,7 +1472,7 @@ def test_get_end_user_id_for_cost_tracking_metadata_handling(
     Test that get_end_user_id_for_cost_tracking correctly handles both metadata and litellm_metadata
     fields using the get_litellm_metadata_from_kwargs helper function.
     """
-    from litellm.utils import get_end_user_id_for_cost_tracking
+    from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
     # Ensure cost tracking is enabled for this test
     litellm.disable_end_user_cost_tracking = False
@@ -1486,7 +1486,7 @@ def test_is_prompt_caching_enabled_error_handling():
     Assert that `is_prompt_caching_valid_prompt` safely handles errors in `token_counter`.
     """
     with patch(
-        "litellm.utils.token_counter",
+        "token_iq.gateway.utils.token_counter",
         side_effect=Exception(
             "Mocked error, This should not raise an error. Instead is_prompt_caching_valid_prompt should return False."
         ),
@@ -1508,7 +1508,7 @@ def test_is_prompt_caching_enabled_return_default_image_dimensions():
 
     IMPORTANT: Ensures Get token counter does not make a GET request to the image url
     """
-    with patch("litellm.utils.token_counter") as mock_token_counter:
+    with patch("token_iq.gateway.utils.token_counter") as mock_token_counter:
         litellm.utils.is_prompt_caching_valid_prompt(
             messages=[
                 {
@@ -1542,8 +1542,8 @@ def test_token_counter_with_image_url_with_detail_high():
 
     PROD TEST this is importat - Can impact latency very badly
     """
-    from litellm.constants import DEFAULT_IMAGE_TOKEN_COUNT
-    from litellm._logging import verbose_logger
+    from token_iq.gateway.constants import DEFAULT_IMAGE_TOKEN_COUNT
+    from token_iq.gateway._logging import verbose_logger
     import logging
 
     verbose_logger.setLevel(logging.DEBUG)
@@ -1579,7 +1579,7 @@ def test_fireworks_ai_vision_capability_from_cost_map(monkeypatch):
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    from litellm.utils import supports_pdf_input, supports_vision
+    from token_iq.gateway.utils import supports_pdf_input, supports_vision
 
     assert supports_vision("fireworks_ai/llama-3.1-8b-instruct") is False
     assert supports_pdf_input("fireworks_ai/llama-3.1-8b-instruct") is False
@@ -1588,7 +1588,7 @@ def test_fireworks_ai_vision_capability_from_cost_map(monkeypatch):
 
 
 def test_logprobs_type():
-    from litellm.types.utils import Logprobs
+    from token_iq.gateway.types.utils import Logprobs
 
     logprobs = {
         "text_offset": None,
@@ -1604,8 +1604,8 @@ def test_logprobs_type():
 
 
 def test_get_valid_models_openai_proxy(monkeypatch):
-    from litellm.utils import get_valid_models
-    import litellm
+    from token_iq.gateway.utils import get_valid_models
+    from token_iq import gateway as litellm
 
     litellm._turn_on_debug()
 
@@ -1639,8 +1639,8 @@ def test_get_valid_models_openai_proxy(monkeypatch):
 
 
 def test_get_valid_models_fireworks_ai(monkeypatch):
-    from litellm.utils import get_valid_models
-    import litellm
+    from token_iq.gateway.utils import get_valid_models
+    from token_iq import gateway as litellm
 
     litellm._turn_on_debug()
 
@@ -1728,8 +1728,8 @@ def test_get_valid_models_default(monkeypatch):
 
     Prevent regression for existing usage.
     """
-    from litellm.utils import get_valid_models
-    import litellm
+    from token_iq.gateway.utils import get_valid_models
+    from token_iq import gateway as litellm
 
     monkeypatch.setenv("FIREWORKS_API_KEY", "sk-1234")
     valid_models = get_valid_models()
@@ -1739,13 +1739,13 @@ def test_get_valid_models_default(monkeypatch):
 def test_supports_vision_gemini():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
-    from litellm.utils import supports_vision
+    from token_iq.gateway.utils import supports_vision
 
     assert supports_vision("gemini-2.5-pro") is True
 
 
 def test_pick_cheapest_chat_model_from_llm_provider():
-    from litellm.litellm_core_utils.llm_request_utils import (
+    from token_iq.gateway.core_utils.llm_request_utils import (
         pick_cheapest_chat_models_from_llm_provider,
     )
 
@@ -1756,7 +1756,7 @@ def test_pick_cheapest_chat_model_from_llm_provider():
 
 @pytest.mark.parametrize("num_retries", [0, 1, 5])
 def test_get_num_retries(num_retries):
-    from litellm.utils import _get_wrapper_num_retries
+    from token_iq.gateway.utils import _get_wrapper_num_retries
 
     assert _get_wrapper_num_retries(
         kwargs={"num_retries": num_retries}, exception=Exception("test")
@@ -1769,7 +1769,7 @@ def test_get_num_retries(num_retries):
 
 
 def test_add_custom_logger_callback_to_specific_event(monkeypatch):
-    from litellm.utils import _add_custom_logger_callback_to_specific_event
+    from token_iq.gateway.utils import _add_custom_logger_callback_to_specific_event
 
     monkeypatch.setattr(litellm, "success_callback", [])
     monkeypatch.setattr(litellm, "failure_callback", [])
@@ -1806,8 +1806,8 @@ def test_custom_logger_exists_in_callbacks_individual_functions(monkeypatch):
     Test _custom_logger_class_exists_in_success_callbacks and _custom_logger_class_exists_in_failure_callbacks helper functions
     Tests if logger is found in different callback lists
     """
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.utils import (
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.utils import (
         _custom_logger_class_exists_in_failure_callbacks,
         _custom_logger_class_exists_in_success_callbacks,
     )
@@ -1885,7 +1885,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates(
     Test that when a callback exists in both success_callback and _async_success_callback,
     it's not added again
     """
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -1925,7 +1925,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_succ
     Test that when a callback exists in both success_callback and _async_success_callback,
     it's not added again
     """
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -1964,7 +1964,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_call
     Test that when a callback exists in both success_callback and _async_success_callback,
     it's not added again
     """
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -2011,7 +2011,7 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_call
 
 
 def test_add_custom_logger_callback_to_specific_event_e2e_failure(monkeypatch):
-    from litellm.integrations.openmeter import OpenMeterLogger
+    from token_iq.gateway.integrations.openmeter import OpenMeterLogger
 
     monkeypatch.setattr(litellm, "success_callback", [])
     monkeypatch.setattr(litellm, "failure_callback", [])
@@ -2040,8 +2040,8 @@ def test_add_custom_logger_callback_to_specific_event_e2e_failure(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_wrapper_kwargs_passthrough():
-    from litellm.utils import client
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.utils import client
+    from token_iq.gateway.core_utils.litellm_logging import (
         Logging as LiteLLMLoggingObject,
     )
 
@@ -2079,7 +2079,7 @@ async def test_wrapper_kwargs_passthrough():
 
 
 def test_dict_to_response_format_helper():
-    from litellm.llms.base_llm.base_utils import _dict_to_response_format_helper
+    from token_iq.gateway.llms.base_llm.base_utils import _dict_to_response_format_helper
 
     args = {
         "response_format": {
@@ -2125,7 +2125,7 @@ def test_dict_to_response_format_helper():
 
 
 def test_validate_user_messages_invalid_content_type():
-    from litellm.utils import validate_chat_completion_user_messages
+    from token_iq.gateway.utils import validate_chat_completion_user_messages
 
     messages = [{"content": [{"type": "invalid_type", "text": "Hello"}]}]
 
@@ -2136,8 +2136,8 @@ def test_validate_user_messages_invalid_content_type():
     print(e)
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.utils import get_applied_guardrails
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.utils import get_applied_guardrails
 from unittest.mock import Mock
 
 
@@ -2242,7 +2242,7 @@ def test_should_use_cohere_v1_client(endpoint, params, expected_bool):
 
 
 def test_add_openai_metadata():
-    from litellm.utils import add_openai_metadata
+    from token_iq.gateway.utils import add_openai_metadata
 
     metadata = {
         "user_api_key_end_user_id": "123",
@@ -2261,7 +2261,7 @@ def test_add_openai_metadata():
 
 
 def test_message_object():
-    from litellm.types.utils import Message
+    from token_iq.gateway.types.utils import Message
 
     message = Message(content="Hello, world!", role="user")
     assert message.content == "Hello, world!"
@@ -2272,7 +2272,7 @@ def test_message_object():
 
 
 def test_delta_object():
-    from litellm.types.utils import Delta
+    from token_iq.gateway.types.utils import Delta
 
     delta = Delta(content="Hello, world!", role="user")
     assert delta.content == "Hello, world!"
@@ -2282,8 +2282,8 @@ def test_delta_object():
 
 
 def test_get_provider_audio_transcription_config():
-    from litellm.utils import ProviderConfigManager
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
 
     for provider in LlmProviders:
         config = ProviderConfigManager.get_provider_audio_transcription_config(
@@ -2299,7 +2299,7 @@ def test_get_provider_audio_transcription_config():
     ],
 )
 def test_claude_sonnet_4_5_supports_pdf_input(model, expected_bool):
-    from litellm.utils import supports_pdf_input
+    from token_iq.gateway.utils import supports_pdf_input
 
     assert supports_pdf_input(model) == expected_bool
 
@@ -2308,7 +2308,7 @@ def test_get_valid_models_from_provider():
     """
     Test that get_valid_models returns the correct models for a given provider
     """
-    from litellm.utils import get_valid_models
+    from token_iq.gateway.utils import get_valid_models
 
     valid_models = get_valid_models(custom_llm_provider="openai")
     assert len(valid_models) > 0
@@ -2327,7 +2327,7 @@ def test_get_valid_models_from_provider_cache_invalidation(monkeypatch):
     """
     Test that get_valid_models returns the correct models for a given provider
     """
-    from litellm.utils import _model_cache
+    from token_iq.gateway.utils import _model_cache
 
     monkeypatch.setenv("OPENAI_API_KEY", "123")
 
@@ -2343,8 +2343,8 @@ def test_get_valid_models_from_dynamic_api_key():
     """
     Test that get_valid_models returns the correct models for a given provider
     """
-    from litellm.utils import get_valid_models
-    from litellm.types.router import CredentialLiteLLMParams
+    from token_iq.gateway.utils import get_valid_models
+    from token_iq.gateway.types.router import CredentialLiteLLMParams
 
     creds = CredentialLiteLLMParams(api_key="123")
 
@@ -2395,7 +2395,7 @@ def test_delta_tool_calls_sequential_indices():
     defaulting all tool calls to index=0.
     """
     import json
-    from litellm.types.utils import Delta
+    from token_iq.gateway.types.utils import Delta
 
     # Simulate tool calls from streaming responses without explicit indices
     tool_calls_without_indices = [
@@ -2452,7 +2452,7 @@ def test_get_base_model_from_metadata():
 
     Related issue: https://github.com/BerriAI/litellm/issues/16772
     """
-    from litellm.utils import _get_base_model_from_metadata
+    from token_iq.gateway.utils import _get_base_model_from_metadata
 
     # Test 1: base_model in metadata (Chat Completions API pattern)
     model_call_details_with_metadata = {

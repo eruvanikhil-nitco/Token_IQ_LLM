@@ -7,17 +7,17 @@ import pytest
 from fastapi.testclient import TestClient
 from prisma.errors import RecordNotFoundError
 
-import litellm
-import litellm.proxy.proxy_server as ps
-from litellm.proxy._types import KeyManagementSystem, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.config_override_endpoints import (
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy._types import KeyManagementSystem, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.config_override_endpoints import (
     CYBERARK_ENV_VAR_MAPPING,
     HASHICORP_ENV_VAR_MAPPING,
     _build_field_schema,
     _set_env_vars,
 )
-from litellm.proxy.proxy_server import app
-from litellm.types.proxy.management_endpoints.config_overrides import (
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.proxy.management_endpoints.config_overrides import (
     CyberArkConfig,
     HashicorpVaultConfig,
 )
@@ -204,7 +204,7 @@ async def test_hashicorp_vault_crud_lifecycle(client, monkeypatch):
         assert len(schema["properties"]["vault_addr"]["description"]) > 0
 
         # 12. encrypt/decrypt roundtrip
-        from litellm.proxy.proxy_server import ProxyConfig
+        from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "sk-test-salt-key")
         pc = ProxyConfig()
@@ -588,7 +588,7 @@ async def test_cyberark_audit_log_redacts_values(client, monkeypatch):
 
     try:
         with patch(  # test-quality-ok: patching proxy-internal collaborator to isolate the endpoint
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ):
             r = client.post(
@@ -618,7 +618,7 @@ async def test_cyberark_audit_log_redacts_values(client, monkeypatch):
 @pytest.mark.asyncio
 async def test_cyberark_test_connection(client, monkeypatch):
     """400 when not configured; success path authenticates and hits /whoami."""
-    from litellm.secret_managers.cyberark_secret_manager import CyberArkSecretManager
+    from token_iq.gateway.secret_managers.cyberark_secret_manager import CyberArkSecretManager
 
     old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
     _set_admin()
@@ -644,7 +644,7 @@ async def test_cyberark_test_connection(client, monkeypatch):
         mock_http = MagicMock()
         mock_http.get = AsyncMock(return_value=mock_response)
         with patch(  # test-quality-ok: patching proxy-internal collaborator to isolate the endpoint
-            "litellm.proxy.management_endpoints.config_override_endpoints.get_async_httpx_client",
+            "token_iq.gateway.proxy.management_endpoints.config_override_endpoints.get_async_httpx_client",
             return_value=mock_http,
         ):
             r = client.post(CYBERARK_URL + "/test_connection")
@@ -691,7 +691,7 @@ class TestHashicorpVaultAuditLog:
 
         try:
             with patch(
-                "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+                "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
                 new=capture,
             ):
                 r = client.post(
@@ -746,7 +746,7 @@ class TestHashicorpVaultAuditLog:
 
         try:
             with patch(
-                "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+                "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
                 new=capture,
             ):
                 r = client.post(
@@ -783,7 +783,7 @@ class TestHashicorpVaultAuditLog:
 
         try:
             with patch(
-                "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+                "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
                 new=capture,
             ):
                 # Idempotent delete on an empty table → no row, no audit log.
@@ -835,7 +835,7 @@ class TestHashicorpVaultAuditLog:
 
         try:
             with patch(
-                "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+                "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
                 new=capture,
             ):
                 r = client.post(

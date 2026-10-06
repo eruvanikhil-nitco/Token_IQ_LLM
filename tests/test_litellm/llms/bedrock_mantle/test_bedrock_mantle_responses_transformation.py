@@ -19,12 +19,12 @@ from botocore.exceptions import (
     ProfileNotFound,
 )
 
-import litellm
-from litellm.llms.bedrock_mantle.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock_mantle.responses.transformation import (
     BedrockMantleResponsesAPIConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
 
 
 class TestBedrockMantleResponsesURL:
@@ -173,8 +173,8 @@ class TestBedrockMantleGetLlmProviderRegion:
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         _, provider, _, api_base = get_llm_provider(
             model="bedrock_mantle/openai.gpt-5.5",
@@ -192,8 +192,8 @@ class TestBedrockMantleGetLlmProviderRegion:
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         params = GenericLiteLLMParams(
             custom_llm_provider="bedrock_mantle",
@@ -281,7 +281,7 @@ class TestBedrockMantleResponsesAuth:
         # Mantle cannot reach OpenAI's vector stores, so a native file_search
         # tool forwarded as-is gets a 400. The config must opt out of native
         # file_search so LiteLLM's emulation handles it instead of forwarding.
-        from litellm.responses.file_search.emulated_handler import (
+        from token_iq.gateway.responses.file_search.emulated_handler import (
             should_use_emulated_file_search,
         )
 
@@ -355,7 +355,7 @@ class TestBedrockMantleResponsesTools:
 
         cfg = BedrockMantleResponsesAPIConfig()
         with patch(
-            "litellm.llms.bedrock_mantle.responses.transformation.verbose_logger.warning"
+            "token_iq.gateway.llms.bedrock_mantle.responses.transformation.verbose_logger.warning"
         ) as mock_warning:
             cfg.map_openai_params(
                 response_api_optional_params={"tools": [{"type": "web_search"}]},
@@ -442,7 +442,7 @@ class TestBedrockMantleServiceTier:
 
         cfg = BedrockMantleResponsesAPIConfig()
         with patch(
-            "litellm.llms.bedrock_mantle.responses.transformation.verbose_logger.warning"
+            "token_iq.gateway.llms.bedrock_mantle.responses.transformation.verbose_logger.warning"
         ) as mock_warning:
             cfg.map_openai_params(
                 response_api_optional_params={"service_tier": "priority"},
@@ -613,7 +613,7 @@ class TestBedrockMantleCodexAdditionalTools:
         from unittest.mock import patch
 
         with patch(
-            "litellm.llms.bedrock_mantle.responses.transformation.verbose_logger.debug"
+            "token_iq.gateway.llms.bedrock_mantle.responses.transformation.verbose_logger.debug"
         ) as mock_debug:
             self._transform(
                 input=[
@@ -805,7 +805,7 @@ class TestBedrockMantleResponsesRegistry:
         # gpt-5.x advertises /v1/responses in supported_endpoints (capability)
         # and use_openai_responses_path (wire path), so it gets the native config
         # on the /openai/v1/responses path. local_cost_map loads the entry.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -815,7 +815,7 @@ class TestBedrockMantleResponsesRegistry:
         assert cfg.use_openai_path is True
 
     def test_registry_returns_config_for_gpt_5_4_enum(self, local_cost_map):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider=LlmProviders.BEDROCK_MANTLE,
@@ -829,7 +829,7 @@ class TestBedrockMantleResponsesRegistry:
         ["openai.gpt-5.6-sol", "openai.gpt-5.6-terra", "openai.gpt-5.6-luna"],
     )
     def test_registry_returns_config_for_gpt_5_6_family(self, local_cost_map, model):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -844,7 +844,7 @@ class TestBedrockMantleResponsesRegistry:
         # STANDARD /v1/responses path -- NOT fall through to None / chat-completions
         # emulation. Driven by /v1/responses in its price-map supported_endpoints.
         # Fails on the old gate, which had no responses entry for gpt-oss.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -854,7 +854,7 @@ class TestBedrockMantleResponsesRegistry:
         assert cfg.use_openai_path is False
 
     def test_registry_returns_native_config_for_gpt_oss_20b(self, local_cost_map):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -868,7 +868,7 @@ class TestBedrockMantleResponsesRegistry:
         # gpt-oss-120b but does NOT support Responses (AWS card), so it must return
         # None. Proves the gate is per-model (supported_endpoints) and not a naive
         # gpt-oss substring match. local_cost_map loads the chat-only entry.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         for model in ("openai.gpt-oss-safeguard-120b", "openai.gpt-oss-safeguard-20b"):
             cfg = ProviderConfigManager.get_provider_responses_api_config(
@@ -884,7 +884,7 @@ class TestBedrockMantleResponsesRegistry:
     def test_registry_returns_native_config_for_gemma_4(self, local_cost_map, model):
         # All three gemma-4 models support Responses (AWS cards) on the /openai/v1
         # base, so each must get the native config with the openai path.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -894,7 +894,7 @@ class TestBedrockMantleResponsesRegistry:
         assert cfg.use_openai_path is True
 
     def test_registry_returns_native_config_for_xai_grok(self, local_cost_map):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -914,7 +914,7 @@ class TestBedrockMantleResponsesRegistry:
         # through to None (chat-completions emulation) rather than being routed
         # natively by a model-name guess. Onboarding it is a JSON / register_model
         # change, never a code change (see the register_model tests below).
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         litellm.model_cost.pop("bedrock_mantle/openai.gpt-6", None)
         litellm.get_model_info.cache_clear()
@@ -931,7 +931,7 @@ class TestBedrockMantleResponsesRegistry:
         # openai.gpt- convention can still be routed to /openai/v1/responses by
         # declaring use_openai_responses_path in its price-map entry, with no code
         # change. The string fallback alone could never catch this name.
-        from litellm.utils import ProviderConfigManager, register_model
+        from token_iq.gateway.utils import ProviderConfigManager, register_model
 
         register_model(
             {
@@ -979,7 +979,7 @@ class TestBedrockMantleResponsesRegistry:
         # /openai/v1/responses and are served on /v1/chat/completions, so the
         # registry must NOT hand them the Responses config; they fall through to
         # None and keep the chat-completions emulation.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -990,7 +990,7 @@ class TestBedrockMantleResponsesRegistry:
     def test_registry_returns_none_when_model_is_none(self):
         # By-id operations (delete/get/cancel) call with model=None; keep returning
         # None so those paths are unchanged.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -1005,7 +1005,7 @@ class TestBedrockMantleResponsesRegistry:
         # user's proxy model_info block) must route to the STANDARD /v1/responses
         # path, not the frontier /openai/v1/responses path. Fails before the
         # path-aware gate exists (old gate returned None for non-gpt models).
-        from litellm.utils import ProviderConfigManager, register_model
+        from token_iq.gateway.utils import ProviderConfigManager, register_model
 
         register_model(
             {
@@ -1026,7 +1026,7 @@ class TestBedrockMantleResponsesRegistry:
         # When a user opts gpt-oss into native Responses via model_info mode,
         # it must take the STANDARD /v1/responses path (gpt-oss Responses is on
         # /v1/responses, NOT the frontier /openai/v1/responses path).
-        from litellm.utils import ProviderConfigManager, register_model
+        from token_iq.gateway.utils import ProviderConfigManager, register_model
 
         register_model(
             {
@@ -1046,7 +1046,7 @@ class TestBedrockMantleResponsesRegistry:
     def test_unmapped_model_degrades_to_none_without_crashing(self, restore_model_cost):
         # A model absent from model_cost has no capability signal, so the gate
         # returns None (chat-completions emulation) rather than crashing.
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         litellm.model_cost.pop("bedrock_mantle/somelab.unmapped-model", None)
         litellm.get_model_info.cache_clear()
@@ -1065,7 +1065,7 @@ class TestBedrockMantleResponsesRegistry:
         # gpt-oss-safeguard is the right vehicle here: it is chat-only, so without
         # the registered mode=responses it resolves to None, isolating the effect
         # of the register/restore from the model's own (lack of) capability.
-        from litellm.utils import ProviderConfigManager, register_model
+        from token_iq.gateway.utils import ProviderConfigManager, register_model
 
         snapshot = copy.deepcopy(litellm.model_cost)
         litellm.get_model_info.cache_clear()
@@ -1125,7 +1125,7 @@ class TestMantleBaseSegment:
         ],
     )
     def test_base_segment(self, model, model_cost, expected):
-        from litellm.llms.bedrock_mantle.common_utils import mantle_base_segment
+        from token_iq.gateway.llms.bedrock_mantle.common_utils import mantle_base_segment
 
         assert mantle_base_segment(model, model_cost) == expected
 
@@ -1176,7 +1176,7 @@ class TestMantleSupportsResponses:
         ],
     )
     def test_supports_responses(self, model, model_cost, expected):
-        from litellm.llms.bedrock_mantle.common_utils import mantle_supports_responses
+        from token_iq.gateway.llms.bedrock_mantle.common_utils import mantle_supports_responses
 
         assert mantle_supports_responses(model, model_cost) is expected
 
@@ -1187,7 +1187,7 @@ class TestBedrockMantlePerModelResponsesURL:
     /openai/v1/responses."""
 
     def _url_for(self, model, region="us-east-2"):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
@@ -1222,7 +1222,7 @@ class TestBedrockMantleEndpointHonoring:
         # chat-completions traffic. responses_api_bridge_check keys off mode, and
         # gpt-oss stays mode=chat, so a completion() call is not flipped to the
         # Responses API. Guards the dual-capability contract.
-        from litellm.main import responses_api_bridge_check
+        from token_iq.gateway.main import responses_api_bridge_check
 
         model_info, resolved_model = responses_api_bridge_check(
             model="openai.gpt-oss-120b",
@@ -1289,7 +1289,7 @@ def local_cost_map(monkeypatch):
 class TestBedrockMantleResponsesSigV4:
     def test_bearer_short_circuits_without_credentials(self, monkeypatch):
         from unittest.mock import MagicMock
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
@@ -1313,7 +1313,7 @@ class TestBedrockMantleResponsesSigV4:
 
     def test_bearer_resolved_from_mantle_env_key(self, monkeypatch):
         from unittest.mock import MagicMock
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.setenv("BEDROCK_MANTLE_API_KEY", "env-bearer")
@@ -1337,7 +1337,7 @@ class TestBedrockMantleResponsesSigV4:
         # The passed api_key (e.g. litellm_params.api_key) must win over the env
         # bearer; a reordered precedence chain would silently use the wrong token.
         from unittest.mock import MagicMock
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.setenv("BEDROCK_MANTLE_API_KEY", "env-bearer")
@@ -1359,7 +1359,7 @@ class TestBedrockMantleResponsesSigV4:
         signer.get_credentials.assert_not_called()
 
     def test_access_key_produces_sigv4_headers(self, monkeypatch):
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
@@ -1387,7 +1387,7 @@ class TestBedrockMantleResponsesSigV4:
     def test_assume_role_path_produces_sigv4_headers(self, monkeypatch):
         from unittest.mock import MagicMock
         from botocore.credentials import Credentials
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
@@ -1427,7 +1427,7 @@ class TestBedrockMantleResponsesSigV4:
         exactly that dict, so a later change to the data would break the SigV4 hash.
         """
         import json
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
@@ -1449,7 +1449,7 @@ class TestBedrockMantleResponsesSigV4:
         assert json.loads(signed_body) == final_data
 
     def test_region_comes_from_optional_params(self, monkeypatch):
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
@@ -1482,7 +1482,7 @@ class TestBedrockMantleResponsesSigV4:
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         params = {
             "aws_region_name": "ap-southeast-2",
@@ -1520,7 +1520,7 @@ class TestBedrockMantleResponsesSigV4:
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         injected_base = "https://bedrock-mantle.us-east-1.api.aws/v1"  # default region
         params = {
@@ -1563,7 +1563,7 @@ class TestBedrockMantleResponsesSigV4:
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
 
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         cfg = BedrockMantleResponsesAPIConfig(aws_signer=BaseAWSLLM())
         headers, _ = cfg.sign_request(
@@ -1583,7 +1583,7 @@ class TestBedrockMantleResponsesSigV4:
     def test_no_bearer_and_no_credentials_raises_both_paths(self, monkeypatch):
         from unittest.mock import MagicMock
         from botocore.exceptions import NoCredentialsError
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -1613,7 +1613,7 @@ class TestBedrockMantleResponsesSigV4:
     )
     def test_partial_credentials_raises_both_paths(self, monkeypatch, cred_error):
         from unittest.mock import MagicMock
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -1640,7 +1640,7 @@ class TestBedrockMantleResponsesSigV4:
         # "no usable AWS credentials" message that would send the user to fix the
         # wrong thing.
         from unittest.mock import MagicMock
-        from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+        from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -1724,7 +1724,7 @@ class TestBedrockMantleResponsesPricing:
         ],
     )
     def test_gpt_5_6_responses_call_cost(self, local_cost_map, model, input_cost, output_cost):
-        from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
         input_tokens = 100000
         output_tokens = 10000

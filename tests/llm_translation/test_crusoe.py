@@ -4,14 +4,14 @@ Tests for Crusoe provider integration
 import os
 from unittest import mock
 
-import litellm
+from token_iq import gateway as litellm
 
 CRUSOE_API_BASE = "https://managed-inference-api-proxy.crusoecloud.com/v1"
 
 
 def test_crusoe_json_registry():
     """Test CrusoeChatConfig is loaded from JSON provider registry"""
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     assert JSONProviderRegistry.exists("crusoe")
     config = JSONProviderRegistry.get("crusoe")
@@ -23,8 +23,8 @@ def test_crusoe_json_registry():
 
 def test_crusoe_get_openai_compatible_provider_info():
     """Test Crusoe provider info retrieval"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
 
@@ -63,7 +63,7 @@ def test_crusoe_get_openai_compatible_provider_info():
 
 def test_get_llm_provider_crusoe():
     """Test that get_llm_provider correctly identifies Crusoe"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     # Test with crusoe/model-name format
     model, provider, api_key, api_base = get_llm_provider(
@@ -75,7 +75,7 @@ def test_get_llm_provider_crusoe():
 
 def test_crusoe_models_configuration():
     """Test that Crusoe models are configured correctly"""
-    from litellm import get_model_info
+    from token_iq.gateway import get_model_info
 
     original_model_cost = litellm.model_cost
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")

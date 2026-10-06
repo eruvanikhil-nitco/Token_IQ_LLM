@@ -3,10 +3,10 @@ import json
 import pytest
 
 
-from litellm import ChatCompletionUsageBlock, stream_chunk_builder
-from litellm.types.utils import GenericStreamingChunk
-from litellm.litellm_core_utils.streaming_chunk_builder_utils import ChunkProcessor
-from litellm.types.utils import (
+from token_iq.gateway import ChatCompletionUsageBlock, stream_chunk_builder
+from token_iq.gateway.types.utils import GenericStreamingChunk
+from token_iq.gateway.core_utils.streaming_chunk_builder_utils import ChunkProcessor
+from token_iq.gateway.types.utils import (
     ChatCompletionDeltaToolCall,
     ChatCompletionMessageToolCall,
     Delta,
@@ -333,8 +333,8 @@ def test_streaming_preserves_anthropic_1hr_cache_creation_breakdown():
     Reproduces the trace: input=3, cache_creation=50 (all 1h), cache_read=8728.
     Correct cache-write cost is 50 * 6e-06 (1h) = 0.0003, not 50 * 3.75e-06 = 0.0001875.
     """
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
 
     config = AnthropicConfig()
     message_start_usage = config.calculate_usage(
@@ -411,7 +411,7 @@ def test_streaming_keeps_cache_creation_breakdown_from_final_chunk():
     """When the final usage chunk itself carries the cache-creation breakdown,
     aggregation must keep that breakdown instead of re-attaching a stale one
     captured from an earlier chunk."""
-    from litellm.llms.anthropic.chat.transformation import AnthropicConfig
+    from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 
     config = AnthropicConfig()
     message_start_usage = config.calculate_usage(
@@ -770,7 +770,7 @@ def test_calculate_usage_carries_google_maps_grounding_requests():
     when a later chunk carries its own prompt_tokens_details, or Maps grounding on streaming
     requests silently bills $0.
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
     chunk1 = ModelResponseStream(
         id="chatcmpl-maps-usage-0",
@@ -1110,7 +1110,7 @@ def test_stream_chunk_builder_tolerates_trailing_chunk_without_choices():
     those chunks used to raise ``KeyError('choices')`` (surfaced as a 500
     APIError); it must now skip the choices-less chunk and assemble content.
     """
-    from litellm.types.llms.base import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
 
     content_chunks = [
         ModelResponseStream(
@@ -1132,7 +1132,7 @@ def test_anthropic_speed_and_geo_survive_stream_assembly():
     """Anthropic prices fast mode and non-global regions with a multiplier read off
     ``usage.speed`` / ``usage.inference_geo``. Dropping them while reassembling a stream
     bills streamed fast-mode calls at the standard rate."""
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
 
     def _usage(**extra):
         usage = Usage(completion_tokens=100, prompt_tokens=1000, total_tokens=1100)
@@ -1171,7 +1171,7 @@ def test_prompt_tokens_details_survive_later_usage_chunk_without_details():
     """Regression for #34801: a trailing usage chunk that omits
     `prompt_tokens_details` must not wipe the OpenAI cache-read/cache-write split,
     otherwise those tokens get re-priced at the uncached input rate."""
-    from litellm.types.utils import PromptTokensDetailsWrapper
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
     chunk_with_details = ModelResponseStream(
         id="chatcmpl-1",
@@ -1211,8 +1211,8 @@ def test_prompt_tokens_details_survive_later_usage_chunk_without_details():
 
 
 def test_get_combined_tool_content_custom_tool_call():
-    from litellm.litellm_core_utils.streaming_chunk_builder_utils import ChunkProcessor
-    from litellm.types.utils import ChatCompletionMessageCustomToolCall
+    from token_iq.gateway.core_utils.streaming_chunk_builder_utils import ChunkProcessor
+    from token_iq.gateway.types.utils import ChatCompletionMessageCustomToolCall
 
     processor = ChunkProcessor.__new__(ChunkProcessor)
     tool_call_chunks = [
@@ -1250,8 +1250,8 @@ def test_get_combined_tool_content_custom_tool_call_without_type_field():
     alone (``type`` may never arrive on any chunk). The assembler must use the same
     evidence; requiring ``type == "custom"`` dropped the whole tool call from the
     combined message (it matched neither the custom nor the function branch)."""
-    from litellm.litellm_core_utils.streaming_chunk_builder_utils import ChunkProcessor
-    from litellm.types.utils import ChatCompletionMessageCustomToolCall
+    from token_iq.gateway.core_utils.streaming_chunk_builder_utils import ChunkProcessor
+    from token_iq.gateway.types.utils import ChatCompletionMessageCustomToolCall
 
     processor = ChunkProcessor.__new__(ChunkProcessor)
     tool_call_chunks = [
@@ -1367,7 +1367,7 @@ def test_get_combined_tool_content_joins_many_object_shaped_argument_fragments_i
 def test_get_combined_tool_content_joins_many_custom_tool_input_fragments_in_order():
     from types import SimpleNamespace
 
-    from litellm.types.utils import ChatCompletionMessageCustomToolCall
+    from token_iq.gateway.types.utils import ChatCompletionMessageCustomToolCall
 
     processor = ChunkProcessor.__new__(ChunkProcessor)
     dict_fragments = [f"d{i}," for i in range(200)]
@@ -1407,7 +1407,7 @@ def _reasoning_stream_chunk() -> ModelResponseStream:
 
 
 def test_count_reasoning_tokens_returns_none_for_signature_only_thinking():
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     processor = ChunkProcessor(chunks=[_reasoning_stream_chunk()])
     response = ModelResponse(
@@ -1424,7 +1424,7 @@ def test_count_reasoning_tokens_returns_none_for_signature_only_thinking():
 
 
 def test_count_reasoning_tokens_counts_visible_reasoning():
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     processor = ChunkProcessor(chunks=[_reasoning_stream_chunk()])
     response = ModelResponse(
@@ -1451,7 +1451,7 @@ def test_count_reasoning_tokens_counts_visible_reasoning():
 def test_calculate_usage_fills_unknown_split_from_reasoning_estimate(
     estimated_reasoning_tokens, expected_reasoning_tokens, expected_text_tokens
 ):
-    from litellm.types.utils import CompletionTokensDetailsWrapper
+    from token_iq.gateway.types.utils import CompletionTokensDetailsWrapper
 
     chunk = ModelResponseStream(
         id="chatcmpl-unknown-split",

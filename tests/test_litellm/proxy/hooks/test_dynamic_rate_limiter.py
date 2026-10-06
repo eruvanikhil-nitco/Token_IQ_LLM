@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.proxy.hooks.dynamic_rate_limiter import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy.hooks.dynamic_rate_limiter import (
     DynamicRateLimiterCache,
     _PROXY_DynamicRateLimitHandler,
 )

@@ -7,8 +7,8 @@ load_dotenv()
 import io
 
 
-from litellm.proxy import proxy_server
-from litellm.proxy.common_utils.encrypt_decrypt_utils import (
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
     encrypt_value_helper,
 )

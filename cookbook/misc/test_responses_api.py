@@ -12,7 +12,7 @@ def encode_image(image_path):
 
 
 # Path to your image
-image_path = "litellm/proxy/logo.jpg"
+image_path = "token_iq/gateway/proxy/logo.jpg"
 
 # Getting the Base64 string
 base64_image = encode_image(image_path)

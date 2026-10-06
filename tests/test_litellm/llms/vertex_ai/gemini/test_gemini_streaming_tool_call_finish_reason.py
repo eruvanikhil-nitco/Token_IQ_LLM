@@ -11,7 +11,7 @@ Ref: https://github.com/BerriAI/litellm/issues/21041
 
 from unittest.mock import MagicMock
 
-from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     ModelResponseIterator,
 )
 

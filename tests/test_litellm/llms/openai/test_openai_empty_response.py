@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.llms.openai.openai import OpenAIChatCompletion
-from litellm.llms.openai.common_utils import OpenAIError
+from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
+from token_iq.gateway.llms.openai.common_utils import OpenAIError
 
 
 class TestEmptyResponseHandling:

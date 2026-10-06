@@ -1,4 +1,4 @@
-"""Tests for litellm/a2a_protocol/utils.py token/usage extraction."""
+"""Tests for token_iq/gateway/a2a_protocol/utils.py token/usage extraction."""
 
 import pytest
 
@@ -6,7 +6,7 @@ pytest.importorskip("a2a.compat.v0_3.types")
 
 from a2a.compat.v0_3.types import MessageSendParams, SendMessageRequest
 
-from litellm.a2a_protocol.utils import A2ARequestUtils
+from token_iq.gateway.a2a_protocol.utils import A2ARequestUtils
 
 
 def _request(user_text: str) -> SendMessageRequest:

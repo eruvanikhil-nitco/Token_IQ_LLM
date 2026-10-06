@@ -5,8 +5,8 @@ Test OCR functionality with Mistral API.
 import os
 import sys
 import pytest
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 from base_ocr_unit_tests import BaseOCRTest, TEST_PDF_URL
 
 

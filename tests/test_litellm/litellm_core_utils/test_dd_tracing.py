@@ -4,15 +4,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.litellm_core_utils.dd_tracing import (
+from token_iq.gateway.core_utils.dd_tracing import (
     _should_use_dd_profiler,
     _should_use_dd_tracer,
 )
-from litellm.litellm_core_utils.dd_tracing import tracer as dd_tracer
+from token_iq.gateway.core_utils.dd_tracing import tracer as dd_tracer
 
 
 def test_dd_tracer_when_package_exists():
-    with patch("litellm.litellm_core_utils.dd_tracing.should_use_dd_tracer", True):
+    with patch("token_iq.gateway.core_utils.dd_tracing.should_use_dd_tracer", True):
         """
         Operations works as expected when ddtrace is installed and USE_DDTRACE is True
         """
@@ -21,7 +21,7 @@ def test_dd_tracer_when_package_exists():
         mock_span = MagicMock()
         mock_tracer.trace.return_value.__enter__.return_value = mock_span
 
-        with patch("litellm.litellm_core_utils.dd_tracing.tracer", mock_tracer):
+        with patch("token_iq.gateway.core_utils.dd_tracing.tracer", mock_tracer):
             # Test the trace context manager
             with dd_tracer.trace("test_operation") as span:
                 assert span is not None
@@ -39,7 +39,7 @@ def test_dd_tracer_when_package_not_exists():
     """
     Operations works as expected when ddtrace is not installed and USE_DDTRACE is False
     """
-    with patch("litellm.litellm_core_utils.dd_tracing.should_use_dd_tracer", False):
+    with patch("token_iq.gateway.core_utils.dd_tracing.should_use_dd_tracer", False):
         # Test the trace context manager with null tracer
         with dd_tracer.trace("test_operation") as span:
             assert span is not None
@@ -59,7 +59,7 @@ def test_null_tracer_context_manager():
     """
     Test that the context manager works without raising exceptions when should_use_dd_tracer is False
     """
-    with patch("litellm.litellm_core_utils.dd_tracing.should_use_dd_tracer", False):
+    with patch("token_iq.gateway.core_utils.dd_tracing.should_use_dd_tracer", False):
         # Test that the context manager works without raising exceptions
         with dd_tracer.trace("test_operation") as span:
             # Test that we can call methods on the null span
@@ -72,7 +72,7 @@ def test_should_use_dd_tracer():
     Test that the should_use_dd_tracer function works as expected
     """
     with patch(
-        "litellm.litellm_core_utils.dd_tracing.get_secret_bool"
+        "token_iq.gateway.core_utils.dd_tracing.get_secret_bool"
     ) as mock_get_secret:
         # Test when USE_DDTRACE is True
 
@@ -94,7 +94,7 @@ def test_should_use_dd_profiler():
     Test that the should_use_dd_profiler function works as expected
     """
     with patch(
-        "litellm.litellm_core_utils.dd_tracing.get_secret_bool"
+        "token_iq.gateway.core_utils.dd_tracing.get_secret_bool"
     ) as mock_get_secret:
         # Test when USE_DDPROFILER is True
 

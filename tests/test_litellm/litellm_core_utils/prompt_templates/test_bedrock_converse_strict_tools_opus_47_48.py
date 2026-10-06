@@ -13,8 +13,8 @@ rather than forwarded as a no-op the provider can reject. See BerriAI/litellm#33
 
 import pytest
 
-from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
-from litellm.llms.bedrock.common_utils import bedrock_converse_supports_strict_tools
+from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
+from token_iq.gateway.llms.bedrock.common_utils import bedrock_converse_supports_strict_tools
 
 _STRICT_TOOL = [
     {
@@ -127,7 +127,7 @@ def test_responses_bridge_function_tool_does_not_reach_bedrock_with_strict() -> 
     """The Responses-to-Chat-Completions bridge stamps ``strict: false`` onto every
     function tool even when the caller never sent one, which is how Codex CLI requests
     acquired the key. Assert the fabricated value does not survive to toolSpec."""
-    from litellm.responses.litellm_completion_transformation.transformation import (
+    from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
         LiteLLMCompletionResponsesConfig,
     )
 
@@ -232,7 +232,7 @@ def test_bedrock_converse_supports_strict_tools_helper() -> None:
 def test_strict_tools_flag_set_in_model_cost_map(cost_map_key: str) -> None:
     """The gate is driven by ``bedrock_converse_supports_strict_tools: false`` in
     ``model_prices_and_context_window.json``, not hardcoded model patterns."""
-    from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+    from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
     cost_map = GetModelCostMap.load_local_model_cost_map()
     assert cost_map[cost_map_key]["bedrock_converse_supports_strict_tools"] is False

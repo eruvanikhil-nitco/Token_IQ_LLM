@@ -2,7 +2,7 @@
 Test that all standard HTTP error exceptions are exported from litellm.__init__.
 """
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_permission_denied_error_is_exported():

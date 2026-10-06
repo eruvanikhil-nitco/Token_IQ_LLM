@@ -7,8 +7,8 @@ forward_client_headers_to_llm_api were not being passed to Gemini/Vertex AI prov
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 
 class TestGeminiHeaderForwarding:
@@ -40,7 +40,7 @@ class TestGeminiHeaderForwarding:
 
         # Mock the vertex completion handler
         with patch(
-            "litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini.VertexLLM.completion"
+            "token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini.VertexLLM.completion"
         ) as mock_vertex_completion:
             # Configure the mock to return a proper response
             mock_response = Mock()
@@ -106,7 +106,7 @@ class TestGeminiHeaderForwarding:
         explicit_headers = {"X-Explicit-Header": "ExplicitValue"}
 
         with patch(
-            "litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini.VertexLLM.completion"
+            "token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini.VertexLLM.completion"
         ) as mock_vertex_completion:
             mock_response = Mock()
             mock_response.choices = [Mock()]

@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 
 
-from litellm.llms.cohere.embed.v1_transformation import CohereEmbeddingConfig
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.llms.cohere.embed.v1_transformation import CohereEmbeddingConfig
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 class TestCohereEmbeddingV1Transform:

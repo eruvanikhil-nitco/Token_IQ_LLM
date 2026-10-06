@@ -31,9 +31,9 @@ import pytest
 import httpx
 from unittest.mock import patch
 
-import litellm
-from litellm.litellm_core_utils.exception_mapping_utils import exception_type
-from litellm.exceptions import APIError, APIConnectionError
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
+from token_iq.gateway.exceptions import APIError, APIConnectionError
 
 
 class MockExceptionWithoutRequest:

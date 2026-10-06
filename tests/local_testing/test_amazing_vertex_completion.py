@@ -17,8 +17,8 @@ import httpx
 
 import pytest
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     RateLimitError,
     Timeout,
     acompletion,
@@ -27,10 +27,10 @@ from litellm import (
     embedding,
     image_generation,
 )
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
-from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
 
 litellm.num_retries = 3
@@ -657,7 +657,7 @@ def test_gemini_pro_grounding(value_in_dict):
 
         litellm.set_verbose = True
 
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
 
@@ -1071,7 +1071,7 @@ Using this JSON schema:
             """,
         }
     ]
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -1297,7 +1297,7 @@ async def test_gemini_pro_json_schema_args_sent_httpx(
 
     litellm.set_verbose = True
     messages = [{"role": "user", "content": "List 5 cookie recipes"}]
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     response_schema = {
         "type": "object",
@@ -1384,7 +1384,7 @@ async def test_gemini_pro_json_schema_args_sent_httpx(
 
 @pytest.mark.asyncio
 async def test_anthropic_message_via_anthropic_messages():
-    from litellm.llms.custom_httpx.llm_http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import AsyncHTTPHandler
     from unittest.mock import MagicMock, AsyncMock
 
     load_vertex_ai_credentials()
@@ -1496,7 +1496,7 @@ async def test_gemini_pro_json_schema_args_sent_httpx_openai_schema(
     litellm.set_verbose = True
 
     messages = [{"role": "user", "content": "List 5 cookie recipes"}]
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     class Recipe(BaseModel):
         recipe_name: str
@@ -1585,7 +1585,7 @@ async def test_gemini_pro_httpx_custom_api_base(model):
             "content": "Hello world",
         }
     ]
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -1849,7 +1849,7 @@ async def test_vertexai_multimodal_embedding():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.aembedding function
@@ -1909,7 +1909,7 @@ async def test_vertexai_multimodal_embedding_text_input():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.aembedding function
@@ -1967,7 +1967,7 @@ async def test_vertexai_multimodal_embedding_image_in_input():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.aembedding function
@@ -2033,7 +2033,7 @@ async def test_vertexai_multimodal_embedding_base64image_in_input():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.aembedding function
@@ -2310,7 +2310,7 @@ async def test_completion_fine_tuned_model():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.completion function
@@ -2406,7 +2406,7 @@ def mock_gemini_request(*args, **kwargs):
 
 
 def mock_gemini_list_request(*args, **kwargs):
-    from litellm.types.llms.vertex_ai import (
+    from token_iq.gateway.types.llms.vertex_ai import (
         CachedContent,
         CachedContentListAllResponseBody,
     )
@@ -2422,7 +2422,7 @@ def mock_gemini_list_request(*args, **kwargs):
     return mock_response
 
 
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 
 @pytest.mark.parametrize(
@@ -2431,7 +2431,7 @@ from litellm._uuid import uuid
 )
 @pytest.mark.asyncio
 async def test_gemini_context_caching_anthropic_format(sync_mode):
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
     litellm.set_verbose = True
     gemini_context_caching_messages = [
@@ -2529,7 +2529,7 @@ async def test_gemini_context_caching_disabled_flag(sync_mode):
 
     When the flag is set to True, messages with cache_control should not trigger caching API calls.
     """
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
     litellm.set_verbose = True
 
@@ -2718,7 +2718,7 @@ async def test_partner_models_httpx_ai21():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.acompletion(**data)
@@ -2794,7 +2794,7 @@ async def test_partner_models_httpx_ai21():
 def test_gemini_function_call_parameter_in_messages():
     litellm.set_verbose = True
     load_vertex_ai_credentials()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     tools = [
         {
@@ -2856,7 +2856,7 @@ def test_gemini_function_call_parameter_in_messages():
     }
 
     with patch(
-        "litellm.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
+        "token_iq.gateway.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
         return_value=({"Authorization": "Bearer fake"}, "test-project"),
     ):
         with patch.object(client, "post", new=MagicMock()) as mock_client:
@@ -2936,7 +2936,7 @@ def test_gemini_function_call_parameter_in_messages():
 
 def test_gemini_function_call_parameter_in_messages_2():
     litellm.set_verbose = True
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -3003,7 +3003,7 @@ def test_gemini_function_call_parameter_in_messages_2():
 def test_gemini_finetuned_endpoint(base_model, metadata):
     litellm.set_verbose = True
     load_vertex_ai_credentials()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     # Set up the messages
     messages = [
@@ -3252,8 +3252,8 @@ def vertex_ai_anthropic_thinking_mock_response(*args, **kwargs):
 
 
 def test_vertex_anthropic_completion():
-    from litellm import completion
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import completion
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3283,8 +3283,8 @@ def test_vertex_anthropic_completion():
 
 
 def test_signed_s3_url_with_format():
-    from litellm import completion
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import completion
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
@@ -3335,7 +3335,7 @@ def test_gemini_fine_tuned_model_request_consistency():
     """
     litellm.set_verbose = True
     load_vertex_ai_credentials()
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     from unittest.mock import patch, MagicMock
 
     # Set up the messages
@@ -3429,11 +3429,11 @@ def test_gemini_fine_tuned_model_request_consistency():
 @pytest.mark.parametrize("provider", ["vertex_ai", "gemini"])
 @pytest.mark.parametrize("route", ["completion", "embedding", "image_generation"])
 def test_litellm_api_base(monkeypatch, provider, route):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "api_base", "https://litellm.com")
 
@@ -3475,8 +3475,8 @@ def test_gemini_tool_calling_working_demo():
     branch (no items field at all) must synthesize items before the request
     is sent to Vertex (Vertex rejects array types missing items).
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     args = {
         "messages": [
@@ -3613,8 +3613,8 @@ def test_gemini_tool_calling_not_working():
     array branch and a null branch must serialize with items present on the
     array branch (Vertex rejects array types missing `items`).
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     args = {
         "messages": [
@@ -3885,7 +3885,7 @@ def test_gemini_nullable_object_tool_schema_httpx():
 
 def test_vertex_ai_response_id():
     """Test that litellm preserves the response ID from Vertex AI's API for non-streaming responses"""
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     load_vertex_ai_credentials()
 
@@ -3932,8 +3932,8 @@ def test_vertex_ai_response_id():
 
 def test_vertex_ai_streaming_response_id():
     """Test that litellm preserves the response ID from Vertex AI's API for streaming responses"""
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         make_sync_call,
     )
 
@@ -4014,8 +4014,8 @@ def test_vertex_ai_gemini_audio_ogg():
     in the request sent to Vertex AI. Uses mocked HTTP and auth to avoid flaky external
     URL fetches and credential requirements.
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -4099,7 +4099,7 @@ async def test_vertex_ai_deepseek():
     """Test that deepseek models use the correct v1 API endpoint instead of v1beta1."""
     load_vertex_ai_credentials()
     litellm._turn_on_debug()
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     client = AsyncHTTPHandler()
 
@@ -4137,7 +4137,7 @@ async def test_vertex_ai_deepseek():
 
 
 def test_gemini_grounding_on_streaming():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     load_vertex_ai_credentials()
     # litellm._turn_on_debug()

@@ -1,18 +1,18 @@
 import json
 from datetime import datetime, timezone
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_TeamMembership,
     LiteLLM_UserTable,
     Member,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_helpers.utils import add_new_member
+from token_iq.gateway.proxy.management_helpers.utils import add_new_member
 
 
 @pytest.mark.asyncio
@@ -28,12 +28,12 @@ async def test_management_otel_span_redacts_mcp_global_env_var_secrets(monkeypat
     """
     import datetime
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_MCPServerTable,
         MCPEnvVar,
         MCPEnvVarScope,
     )
-    from litellm.proxy.management_helpers import utils as mgmt_utils
+    from token_iq.gateway.proxy.management_helpers import utils as mgmt_utils
 
     captured = {}
 
@@ -43,7 +43,7 @@ async def test_management_otel_span_redacts_mcp_global_env_var_secrets(monkeypat
         ):
             captured["response"] = logging_payload.response
 
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "open_telemetry_logger", _FakeOtelLogger())
     monkeypatch.setattr(mgmt_utils, "is_otel_v2_enabled", lambda: False)
@@ -102,13 +102,13 @@ async def test_management_otel_span_redacts_nested_submission_env_var_secrets(
     """
     import datetime
 
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_MCPServerTable,
         MCPEnvVar,
         MCPEnvVarScope,
         MCPSubmissionsSummary,
     )
-    from litellm.proxy.management_helpers import utils as mgmt_utils
+    from token_iq.gateway.proxy.management_helpers import utils as mgmt_utils
 
     captured = {}
 
@@ -118,7 +118,7 @@ async def test_management_otel_span_redacts_nested_submission_env_var_secrets(
         ):
             captured["response"] = logging_payload.response
 
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "open_telemetry_logger", _FakeOtelLogger())
     monkeypatch.setattr(mgmt_utils, "is_otel_v2_enabled", lambda: False)
@@ -172,7 +172,7 @@ async def test_add_new_member_clones_default_team_budget_id():
     Cloning (rather than sharing the same budget row) is what lets admins later
     edit one member's budget without mutating every other member's budget.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     # Setup test data
     test_user_id = "test_user_123"
@@ -286,7 +286,7 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
     budget, the member must clone the default (keeping its max_budget) and just
     override the reset window. Creating a fresh duration-only row instead would
     silently drop the team default's cap, leaving the member uncapped."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     new_member = Member(user_id="dur-clone-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
@@ -364,7 +364,7 @@ async def test_add_new_member_no_budget_when_no_default_and_no_max_budget():
 
     When the team has no default member budget, new members get nothing.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     test_user_id = "test_user_no_budget"
     test_team_id = "test_team_no_budget"
@@ -425,7 +425,7 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
     2. A new budget is created in the litellm_budgettable
     3. The new budget_id is used for the team membership
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     # Setup test data
     test_user_id = "test_user_123"
@@ -515,7 +515,7 @@ async def test_add_new_member_persists_budget_duration():
     a budget_duration passed to add_new_member must be written to the new
     member budget along with a future budget_reset_at, so the per-member budget
     recurs instead of acting as a lifetime cap."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     new_member = Member(user_id="user-dur", role="user")
     user_api_key_dict = UserAPIKeyAuth(
@@ -579,7 +579,7 @@ async def test_add_new_member_persists_budget_duration():
 async def test_add_new_member_persists_budget_duration_without_max_budget():
     """budget_duration alone must still create a member budget; otherwise an
     explicit recurring window passed without a cap would be silently dropped."""
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     new_member = Member(user_id="user-dur2", role="user")
     user_api_key_dict = UserAPIKeyAuth(
@@ -642,7 +642,7 @@ async def test_add_new_member_with_user_email_clones_default_budget():
     budget. The default budget should be CLONED into a new private row for
     this user, not shared with other members of the team.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     test_user_email = "test@example.com"
     test_team_id = "test_team_456"
@@ -746,7 +746,7 @@ async def test_attach_object_permission_to_dict_with_object_permission_id():
     Test that attach_object_permission_to_dict correctly attaches object_permission
     when object_permission_id is present and found in database.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -801,7 +801,7 @@ async def test_attach_object_permission_to_dict_without_object_permission_id():
     Test that attach_object_permission_to_dict returns the original dict unchanged
     when object_permission_id is not present.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -830,7 +830,7 @@ async def test_attach_object_permission_to_dict_object_permission_not_found():
     Test that attach_object_permission_to_dict returns the original dict unchanged
     when object_permission_id is present but not found in database.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -871,7 +871,7 @@ async def test_attach_object_permission_to_dict_with_dict_method():
     Test that attach_object_permission_to_dict handles object permissions that use .dict() method
     instead of .model_dump() method.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -923,7 +923,7 @@ async def test_attach_object_permission_to_dict_with_none_prisma_client():
     """
     Test that attach_object_permission_to_dict raises ValueError when prisma_client is None.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -945,7 +945,7 @@ async def test_attach_object_permission_to_dict_with_empty_dict():
     """
     Test that attach_object_permission_to_dict handles empty dictionaries correctly.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -973,7 +973,7 @@ async def test_attach_object_permission_to_dict_with_none_object_permission_id()
     """
     Test that attach_object_permission_to_dict handles None object_permission_id correctly.
     """
-    from litellm.proxy.management_helpers.object_permission_utils import (
+    from token_iq.gateway.proxy.management_helpers.object_permission_utils import (
         attach_object_permission_to_dict,
     )
 
@@ -1013,7 +1013,7 @@ async def test_add_new_member_appends_team_only_if_absent_for_existing_user():
     the team is already present, and it must not fall through to creating a new
     user row for a user that already exists.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     new_member = Member(user_id="existing-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
@@ -1079,7 +1079,7 @@ async def test_add_new_member_creates_missing_user_atomically_via_upsert():
     "Unique constraint failed on the fields: (user_id)", so the shape of both
     branches is pinned here.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     new_member = Member(user_id="brand-new-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
@@ -1170,7 +1170,7 @@ async def test_add_new_member_runs_every_write_on_the_caller_transaction(new_mem
     lock while the holder waits for a free one, so nothing ever commits or releases the lock.
     Given a transaction, every read and write has to go through it.
     """
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     tx = _member_write_tx()
     prisma_client = AsyncMock()

@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch, MagicMock, AsyncMock
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 import respx
 
@@ -13,7 +13,7 @@ MOCK_EMBEDDING_RESPONSE = [[0.1, 0.2, 0.3, 0.4, 0.5]]
 @pytest.fixture
 def mock_embedding_http_handler():
     """Fixture to mock the HTTP handler for embedding tests"""
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_response = MagicMock()
         mock_response.raise_for_status.return_value = None
         mock_response.status_code = 200
@@ -36,7 +36,7 @@ def mock_hf_config_fetch():
 def mock_embedding_async_http_handler():
     """Fixture to mock the async HTTP handler for embedding tests"""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_response = MagicMock()
@@ -52,7 +52,7 @@ class TestHuggingFaceEmbedding:
     @pytest.fixture(autouse=True)
     def setup(self, mock_embedding_http_handler, mock_embedding_async_http_handler, mock_hf_config_fetch):
         self.mock_get_task_patcher = patch(
-            "litellm.llms.huggingface.embedding.handler.get_hf_task_embedding_for_model"
+            "token_iq.gateway.llms.huggingface.embedding.handler.get_hf_task_embedding_for_model"
         )
         self.mock_get_task = self.mock_get_task_patcher.start()
 

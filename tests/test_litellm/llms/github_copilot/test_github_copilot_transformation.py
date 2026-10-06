@@ -10,15 +10,16 @@ import pytest
 import httpx
 from respx import MockRouter
 
-import litellm
+from token_iq import gateway as litellm
 
 # Import at the top to make the patch work correctly
-import litellm.llms.github_copilot.chat.transformation
-from litellm import Choices, Message, ModelResponse, Usage, acompletion, completion
-from litellm.exceptions import AuthenticationError
-from litellm.llms.github_copilot.authenticator import Authenticator
-from litellm.llms.github_copilot.chat.transformation import GithubCopilotConfig
-from litellm.llms.github_copilot.common_utils import (
+import token_iq.gateway.llms.github_copilot.chat.transformation
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse, Usage, acompletion, completion
+from token_iq.gateway.exceptions import AuthenticationError
+from token_iq.gateway.llms.github_copilot.authenticator import Authenticator
+from token_iq.gateway.llms.github_copilot.chat.transformation import GithubCopilotConfig
+from token_iq.gateway.llms.github_copilot.common_utils import (
     APIKeyExpiredError,
     GetAccessTokenError,
     GetAPIKeyError,
@@ -89,9 +90,9 @@ def test_github_copilot_config_get_openai_compatible_provider_info():
     assert "Failed to get API key" in str(excinfo.value)
 
 
-@patch("litellm.llms.github_copilot.authenticator.Authenticator.get_api_key")
-@patch("litellm.main.openai_chat_completions.completion")
-@patch("litellm.llms.openai.openai.OpenAIChatCompletion.completion")
+@patch("token_iq.gateway.llms.github_copilot.authenticator.Authenticator.get_api_key")
+@patch("token_iq.gateway.main.openai_chat_completions.completion")
+@patch("token_iq.gateway.llms.openai.openai.OpenAIChatCompletion.completion")
 def test_completion_github_copilot_mock_response(
     mock_class_completion, mock_instance_completion, mock_get_api_key, monkeypatch
 ):
@@ -145,8 +146,8 @@ def test_completion_github_copilot_mock_response(
 
 def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
     """Test that system messages are converted to assistant unless disable_copilot_system_to_assistant is True."""
-    import litellm
-    from litellm.llms.github_copilot.chat.transformation import GithubCopilotConfig
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.github_copilot.chat.transformation import GithubCopilotConfig
 
     # Save original value
     original_flag = litellm.disable_copilot_system_to_assistant
@@ -926,9 +927,9 @@ class TestGithubCopilotTransformParsedResponseDict:
         assert config.transform_parsed_response_dict(parsed) is parsed
 
 
-@patch("litellm.llms.openai.openai.OpenAIChatCompletion._get_openai_client")
+@patch("token_iq.gateway.llms.openai.openai.OpenAIChatCompletion._get_openai_client")
 @patch(
-    "litellm.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request"
+    "token_iq.gateway.llms.openai.openai.OpenAIChatCompletion.make_sync_openai_chat_completion_request"
 )
 def test_openai_handler_repairs_github_copilot_empty_choices(
     mock_request, mock_get_client
@@ -942,7 +943,7 @@ def test_openai_handler_repairs_github_copilot_empty_choices(
 
     See: https://github.com/BerriAI/litellm/issues/30927
     """
-    from litellm.llms.openai.openai import OpenAIChatCompletion
+    from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 
     mock_get_client.return_value = MagicMock()
 

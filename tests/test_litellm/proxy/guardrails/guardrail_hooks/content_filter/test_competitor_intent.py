@@ -4,7 +4,7 @@ Tests for competitor intent detection (normalize, entity layer, scoring, policy)
 
 import pytest
 
-from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
     AirlineCompetitorIntentChecker,
     normalize,
     text_for_entity_matching,
@@ -133,7 +133,7 @@ class TestContentFilterWithCompetitorIntent:
     @pytest.mark.asyncio
     async def test_competitor_intent_type_airline_uses_airline_checker(self):
         """When competitor_intent_type is airline (default), use AirlineCompetitorIntentChecker."""
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -147,7 +147,7 @@ class TestContentFilterWithCompetitorIntent:
             },
         )
         assert guardrail._competitor_intent_checker is not None
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
             AirlineCompetitorIntentChecker,
         )
 
@@ -158,10 +158,10 @@ class TestContentFilterWithCompetitorIntent:
     @pytest.mark.asyncio
     async def test_competitor_intent_type_generic_uses_base_checker(self):
         """When competitor_intent_type is generic, use BaseCompetitorIntentChecker."""
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.competitor_intent import (
             BaseCompetitorIntentChecker,
         )
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -181,7 +181,7 @@ class TestContentFilterWithCompetitorIntent:
 
     @pytest.mark.asyncio
     async def test_apply_guardrail_with_competitor_intent_allow(self):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -207,7 +207,7 @@ class TestContentFilterWithCompetitorIntent:
     async def test_apply_guardrail_with_competitor_intent_refuse(self):
         from fastapi import HTTPException
 
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -229,7 +229,7 @@ class TestContentFilterWithCompetitorIntent:
         assert exc_info.value.status_code == 400
 
 
-# Exact config from litellm/proxy/_new_secret_config.yaml (lines 27-53).
+# Exact config from token_iq/gateway/proxy/_new_secret_config.yaml (lines 27-53).
 AIRLINE_PROXY_CONFIG = {
     "brand_self": ["emirates", "ek"],
     "competitors": ["qatar airways", "qatar", "etihad"],

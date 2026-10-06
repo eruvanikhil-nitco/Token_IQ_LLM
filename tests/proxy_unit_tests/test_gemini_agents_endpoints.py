@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/proxy/google_endpoints/agents_endpoints.py
+Unit tests for token_iq/gateway/proxy/google_endpoints/agents_endpoints.py
 
 Focus: verify that list_gemini_agents, get_gemini_agent, delete_gemini_agent,
 and list_gemini_agent_versions correctly forward per-request credentials
@@ -16,7 +16,7 @@ from fastapi import Request
 from fastapi.datastructures import Headers, QueryParams
 
 
-from litellm.proxy.google_endpoints.agents_endpoints import (
+from token_iq.gateway.proxy.google_endpoints.agents_endpoints import (
     _merge_query_params_into_data,
 )
 
@@ -133,7 +133,7 @@ def mock_srv():
         "version": "0.0.0",
     }
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints._proxy_server_imports",
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints._proxy_server_imports",
         return_value=srv,
     ):
         yield srv
@@ -141,7 +141,7 @@ def mock_srv():
 
 @pytest.fixture
 def user_api_key_dict():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     return UserAPIKeyAuth(api_key="test-key")
 
@@ -165,12 +165,12 @@ async def test_list_gemini_agents_passes_api_key_to_processor(
 ):
     from urllib.parse import quote
 
-    from litellm.proxy.google_endpoints.agents_endpoints import list_gemini_agents
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import list_gemini_agents
 
     template = json.dumps({"api_key": "AIzaListTest"})
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -193,12 +193,12 @@ async def test_get_gemini_agent_passes_api_key_to_processor(
 ):
     from urllib.parse import quote
 
-    from litellm.proxy.google_endpoints.agents_endpoints import get_gemini_agent
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import get_gemini_agent
 
     template = json.dumps({"api_key": "AIzaGetTest"})
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -223,12 +223,12 @@ async def test_delete_gemini_agent_passes_api_key_to_processor(
 ):
     from urllib.parse import quote
 
-    from litellm.proxy.google_endpoints.agents_endpoints import delete_gemini_agent
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import delete_gemini_agent
 
     template = json.dumps({"api_key": "AIzaDeleteTest"})
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -253,14 +253,14 @@ async def test_list_gemini_agent_versions_passes_api_key_to_processor(
 ):
     from urllib.parse import quote
 
-    from litellm.proxy.google_endpoints.agents_endpoints import (
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import (
         list_gemini_agent_versions,
     )
 
     template = json.dumps({"api_key": "AIzaVersionsTest"})
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -286,10 +286,10 @@ async def test_get_gemini_agent_name_not_overwritten_by_query_param(
     """Path-param ``name`` must not be replaced by an attacker-controlled query param."""
     from urllib.parse import quote
 
-    from litellm.proxy.google_endpoints.agents_endpoints import get_gemini_agent
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import get_gemini_agent
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -316,13 +316,13 @@ async def test_get_gemini_agent_name_not_overwritten_by_query_param(
 @pytest.mark.asyncio
 async def test_list_agents_template_via_query_param(mock_srv, user_api_key_dict):
     """litellm_params_template in query string is expanded."""
-    from litellm.proxy.google_endpoints.agents_endpoints import list_gemini_agents
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import list_gemini_agents
     from urllib.parse import quote
 
     template = json.dumps({"api_key": "TemplateKey", "vertex_project": "proj-x"})
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -347,7 +347,7 @@ async def test_list_agents_template_via_query_param(mock_srv, user_api_key_dict)
 
 @pytest.fixture
 def proxy_admin_user_api_key_dict():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(
         api_key="sk-admin",
@@ -364,10 +364,10 @@ async def test_list_agents_non_admin_without_api_key_is_rejected(
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.google_endpoints.agents_endpoints import list_gemini_agents
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import list_gemini_agents
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -390,10 +390,10 @@ async def test_delete_agent_non_admin_without_api_key_is_rejected(
 ):
     from fastapi import HTTPException
 
-    from litellm.proxy.google_endpoints.agents_endpoints import delete_gemini_agent
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import delete_gemini_agent
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -416,14 +416,14 @@ async def test_create_agent_non_admin_without_api_key_is_rejected(
 ):
     from fastapi import HTTPException
 
-    from litellm.proxy.google_endpoints.agents_endpoints import create_gemini_agent
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import create_gemini_agent
 
     with (
         patch(
-            "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor,
         patch(
-            "litellm.proxy.google_endpoints.agents_endpoints._read_request_body",
+            "token_iq.gateway.proxy.google_endpoints.agents_endpoints._read_request_body",
             new=AsyncMock(return_value={"name": "agent-1", "base_agent": "waverunner"}),
         ),
     ):
@@ -446,10 +446,10 @@ async def test_list_agents_proxy_admin_may_use_env_fallback(
     mock_srv, proxy_admin_user_api_key_dict
 ):
     """Proxy admins (master key) keep the env-fallback convenience."""
-    from litellm.proxy.google_endpoints.agents_endpoints import list_gemini_agents
+    from token_iq.gateway.proxy.google_endpoints.agents_endpoints import list_gemini_agents
 
     with patch(
-        "litellm.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
+        "token_iq.gateway.proxy.google_endpoints.agents_endpoints.ProxyBaseLLMRequestProcessing"
     ) as MockProcessor:
         instance = MockProcessor.return_value
         instance.base_process_llm_request = AsyncMock(return_value=MagicMock())
@@ -473,7 +473,7 @@ def test_validate_environment_rejects_api_base_override_without_explicit_key(
     api_key — otherwise the proxy's shared GOOGLE_API_KEY leaks to the
     attacker-controlled host via the x-goog-api-key header.
     """
-    from litellm.llms.gemini.agents.transformation import GeminiAgentsConfig
+    from token_iq.gateway.llms.gemini.agents.transformation import GeminiAgentsConfig
 
     # Even if env-fallback is available, api_base override must require api_key.
     monkeypatch.setenv("GOOGLE_API_KEY", "AIzaSharedSecret")
@@ -488,7 +488,7 @@ def test_validate_environment_rejects_api_base_override_without_explicit_key(
 
 def test_validate_environment_allows_api_base_with_explicit_key(monkeypatch):
     """api_base override is OK when paired with an explicit api_key."""
-    from litellm.llms.gemini.agents.transformation import GeminiAgentsConfig
+    from token_iq.gateway.llms.gemini.agents.transformation import GeminiAgentsConfig
 
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
@@ -506,7 +506,7 @@ def test_validate_environment_allows_api_base_with_explicit_key(monkeypatch):
 
 def test_validate_environment_env_fallback_when_no_api_base_override(monkeypatch):
     """Without api_base override, env fallback continues to work for SDK use."""
-    from litellm.llms.gemini.agents.transformation import GeminiAgentsConfig
+    from token_iq.gateway.llms.gemini.agents.transformation import GeminiAgentsConfig
 
     monkeypatch.setenv("GOOGLE_API_KEY", "AIzaFromEnv")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -58,7 +58,7 @@ async def test_write_secret_replicates_when_configured():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_CREATE_RESPONSE),
         ):
             with patch.object(
@@ -96,7 +96,7 @@ async def test_write_secret_no_replication_when_not_configured():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_CREATE_RESPONSE),
         ):
             with patch.object(
@@ -128,7 +128,7 @@ async def test_replication_failure_does_not_fail_write():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_CREATE_RESPONSE),
         ):
             with patch.object(
@@ -156,7 +156,7 @@ async def test_async_replicate_secret_empty_regions_returns_empty():
     manager = AWSSecretsManagerV2()
 
     with patch(
-        "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client"
+        "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client"
     ) as mock_get_client:
         result = await manager.async_replicate_secret(
             secret_name="litellm/test-key",
@@ -186,7 +186,7 @@ async def test_async_replicate_secret_correct_payload():
         AWSSecretsManagerV2, "_prepare_request", side_effect=capture_prepare
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_REPLICATE_RESPONSE),
         ):
             result = await manager.async_replicate_secret(
@@ -220,7 +220,7 @@ async def test_replication_fires_on_create(caplog):
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_REPLICATE_RESPONSE),
         ):
             with caplog.at_level(logging.INFO, logger="LiteLLM"):
@@ -239,7 +239,7 @@ async def test_replication_fires_on_create(caplog):
 
 def test_load_aws_secret_manager_passes_replica_regions():
     """load_aws_secret_manager must forward replica_regions from key_management_settings."""
-    import litellm
+    from token_iq import gateway as litellm
 
     original = litellm.secret_manager_client
     settings = MagicMock()
@@ -301,7 +301,7 @@ async def test_write_secret_http_error_raises():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client_raising(
                 _http_status_error(400, "ResourceExistsException")
             ),
@@ -328,7 +328,7 @@ async def test_write_secret_timeout_raises():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client_raising(
                 httpx.ReadTimeout("timed out", request=None)
             ),
@@ -360,7 +360,7 @@ async def test_replicate_secret_http_error_raises():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client_raising(
                 _http_status_error(403, "AccessDeniedException")
             ),
@@ -387,7 +387,7 @@ async def test_replicate_secret_timeout_raises():
         ),
     ):
         with patch(
-            "litellm.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
+            "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client_raising(
                 httpx.ReadTimeout("timed out", request=None)
             ),

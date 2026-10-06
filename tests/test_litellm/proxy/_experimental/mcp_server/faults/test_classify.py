@@ -3,11 +3,11 @@ code and whose credentials the gateway presented, never on the upstream's HTTP s
 
 import httpx
 
-from litellm.proxy._experimental.mcp_server.faults.classify import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.classify import (
     classify_upstream_dcr_rejection,
     classify_upstream_token_rejection,
 )
-from litellm.proxy._experimental.mcp_server.faults.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.types import (
     CallerRejected,
     GatewayRejected,
     UpstreamProtocolFault,

@@ -8,19 +8,19 @@ import traceback
 
 from dotenv import load_dotenv
 from openai.types.image import Image
-from litellm.caching import InMemoryCache
+from token_iq.gateway.caching import InMemoryCache
 
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 import asyncio
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 import json
 import tempfile
 from base_image_generation_test import BaseImageGenTest
 import logging
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 from io import BytesIO
 from PIL import Image as PILImage
 

@@ -15,8 +15,8 @@ fails, so the actual cost is always written to the shared counter.
 
 import pytest
 
-from litellm.caching import DualCache
-from litellm.proxy import proxy_server
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.proxy import proxy_server
 
 
 class _FlakyRedisCache:

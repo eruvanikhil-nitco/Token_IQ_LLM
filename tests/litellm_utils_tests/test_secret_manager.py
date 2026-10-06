@@ -2,7 +2,7 @@ import base64
 import os
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 import json
@@ -12,12 +12,12 @@ import tempfile
 from uuid import uuid4
 
 import pytest
-import litellm
-from litellm.llms.azure.azure import get_azure_ad_token_from_oidc
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.bedrock.chat import BedrockConverseLLM
-from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
-from litellm.secret_managers.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.azure import get_azure_ad_token_from_oidc
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.chat import BedrockConverseLLM
+from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+from token_iq.gateway.secret_managers.main import (
     get_secret,
     _should_read_secret_from_secret_manager,
 )
@@ -225,7 +225,7 @@ def test_google_secret_manager():
     """
     os.environ["GOOGLE_SECRET_MANAGER_PROJECT_ID"] = "litellm-ci-cd"
 
-    from litellm.secret_managers.google_secret_manager import GoogleSecretManager
+    from token_iq.gateway.secret_managers.google_secret_manager import GoogleSecretManager
 
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -236,7 +236,7 @@ def test_google_secret_manager():
     }
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             GoogleSecretManager,
             "sync_construct_request_headers",
@@ -267,12 +267,12 @@ def test_google_secret_manager_read_in_memory():
     """
     Test that Google Secret manager returns in memory value when it exists
     """
-    from litellm.secret_managers.google_secret_manager import GoogleSecretManager
+    from token_iq.gateway.secret_managers.google_secret_manager import GoogleSecretManager
 
     os.environ["GOOGLE_SECRET_MANAGER_PROJECT_ID"] = "litellm-ci-cd"
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch.object(
             GoogleSecretManager,
             "sync_construct_request_headers",
@@ -300,7 +300,7 @@ def test_should_read_secret_from_secret_manager():
     """
     Test that _should_read_secret_from_secret_manager returns correct values based on access mode
     """
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     # Test when secret manager client is None
     litellm.secret_manager_client = None
@@ -331,7 +331,7 @@ def test_get_secret_with_access_mode():
     """
     Test that get_secret respects access mode settings
     """
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     # Set up test environment
     test_secret_name = "TEST_SECRET_KEY"
@@ -368,7 +368,7 @@ def test_key_management_settings_defaults():
     """
     Test that KeyManagementSettings initializes with correct default values.
     """
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     settings = KeyManagementSettings()
 
@@ -384,7 +384,7 @@ def test_key_management_settings_custom_values():
     """
     Test that KeyManagementSettings correctly stores custom description and tags.
     """
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     custom_tags = {"Environment": "Dev", "Team": "Intelligence"}
     custom_description = "LiteLLM-managed API key for development"
@@ -411,9 +411,9 @@ async def test_async_write_secret_receives_description_and_tags(monkeypatch):
     """
     Test that AWSSecretsManagerV2.async_write_secret receives description and tags when KeyManagementSettings is set.
     """
-    from litellm import litellm
-    from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway import litellm
+    from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     # Mock out AWS network calls
     mock_async_write = AsyncMock(return_value={"Name": "litellm/test_secret"})
@@ -430,7 +430,7 @@ async def test_async_write_secret_receives_description_and_tags(monkeypatch):
     litellm.secret_manager_client = AWSSecretsManagerV2()
 
     # Call the helper method that stores a virtual key
-    from litellm.proxy.hooks.key_management_event_hooks import (
+    from token_iq.gateway.proxy.hooks.key_management_event_hooks import (
         KeyManagementEventHooks,
     )
 
@@ -452,7 +452,7 @@ def test_key_management_settings_serialization_roundtrip():
     """
     Test that KeyManagementSettings serializes and deserializes consistently (Pydantic behavior).
     """
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     original = KeyManagementSettings(
         store_virtual_keys=True,

@@ -3,10 +3,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.proxy.proxy_server import _should_include_fallback_errors
-from litellm.router import Router
-from litellm.router_utils.add_retry_fallback_headers import get_hidden_params_dict
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import _should_include_fallback_errors
+from token_iq.gateway.router import Router
+from token_iq.gateway.router_utils.add_retry_fallback_headers import get_hidden_params_dict
 
 
 def test_apply_fallback_hidden_params_copies_from_fallback_response():
@@ -137,7 +137,7 @@ async def test_set_response_headers_adds_model_group_to_streaming_wrapper():
 def test_should_include_fallback_errors_gated_by_operator_setting():
     request_data: dict = {"include_fallback_errors": True}
 
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     original = ps.general_settings.copy() if isinstance(ps.general_settings, dict) else {}
     try:

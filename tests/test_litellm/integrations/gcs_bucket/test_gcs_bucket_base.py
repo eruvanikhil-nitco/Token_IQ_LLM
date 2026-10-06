@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.gcs_bucket.gcs_bucket import GCSBucketLogger
-from litellm.integrations.gcs_bucket.gcs_bucket_base import GCSBucketBase
+from token_iq.gateway.integrations.gcs_bucket.gcs_bucket import GCSBucketLogger
+from token_iq.gateway.integrations.gcs_bucket.gcs_bucket_base import GCSBucketBase
 
 
 class TestGCSBucketBase:
@@ -23,10 +23,10 @@ class TestGCSBucketBase:
 
             with (
                 patch(
-                    "litellm.vertex_chat_completion._ensure_access_token"
+                    "token_iq.gateway.vertex_chat_completion._ensure_access_token"
                 ) as mock_ensure_token,
                 patch(
-                    "litellm.vertex_chat_completion._get_token_and_url"
+                    "token_iq.gateway.vertex_chat_completion._get_token_and_url"
                 ) as mock_get_token,
             ):
                 mock_ensure_token.return_value = (mock_auth_header, test_project_id)
@@ -66,10 +66,10 @@ class TestGCSBucketBase:
 
         with (
             patch(
-                "litellm.vertex_chat_completion._ensure_access_token"
+                "token_iq.gateway.vertex_chat_completion._ensure_access_token"
             ) as mock_ensure_token,
             patch(
-                "litellm.vertex_chat_completion._get_token_and_url"
+                "token_iq.gateway.vertex_chat_completion._get_token_and_url"
             ) as mock_get_token,
         ):
             mock_ensure_token.return_value = (mock_auth_header, None)

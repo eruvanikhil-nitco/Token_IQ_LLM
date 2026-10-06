@@ -5,8 +5,8 @@ NEOSANTARA_API_BASE = "https://api.neosantara.xyz/v1"
 
 
 def test_neosantara_json_registry():
-    import litellm
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     assert litellm.LlmProviders.NEOSANTARA.value == "neosantara"
     assert litellm.LlmProviders("neosantara") == litellm.LlmProviders.NEOSANTARA
@@ -22,8 +22,8 @@ def test_neosantara_json_registry():
 
 
 def test_neosantara_dynamic_config_env_vars():
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("neosantara"))()
 
@@ -41,7 +41,7 @@ def test_neosantara_dynamic_config_env_vars():
 
 
 def test_neosantara_provider_detection_by_prefix():
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, _, api_base = get_llm_provider("neosantara/gemini-3-flash")
 
@@ -51,8 +51,8 @@ def test_neosantara_provider_detection_by_prefix():
 
 
 def test_neosantara_chat_complete_url():
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("neosantara"))()
 
@@ -69,8 +69,8 @@ def test_neosantara_chat_complete_url():
 
 
 def test_neosantara_maps_max_completion_tokens_to_max_tokens():
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("neosantara"))()
     optional_params = config.map_openai_params(
@@ -84,8 +84,8 @@ def test_neosantara_maps_max_completion_tokens_to_max_tokens():
 
 
 def test_neosantara_responses_api_config():
-    from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
         provider="neosantara",

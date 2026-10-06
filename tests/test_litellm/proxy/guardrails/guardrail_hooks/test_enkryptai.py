@@ -10,11 +10,11 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm import ModelResponse
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.enkryptai import EnkryptAIGuardrails
-from litellm.types.utils import Choices, Message
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.enkryptai import EnkryptAIGuardrails
+from token_iq.gateway.types.utils import Choices, Message
 
 
 @pytest.fixture

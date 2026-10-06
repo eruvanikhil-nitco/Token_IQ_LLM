@@ -12,12 +12,12 @@ import httpx
 import pytest
 
 
-from litellm.llms.black_forest_labs.image_generation.transformation import (
+from token_iq.gateway.llms.black_forest_labs.image_generation.transformation import (
     BlackForestLabsImageGenerationConfig,
     get_black_forest_labs_image_generation_config,
 )
-from litellm.llms.black_forest_labs.common_utils import BlackForestLabsError
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.llms.black_forest_labs.common_utils import BlackForestLabsError
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 class TestBlackForestLabsImageGenerationTransformation:
@@ -140,7 +140,7 @@ class TestBlackForestLabsImageGenerationTransformation:
         headers = {}
 
         with patch(
-            "litellm.llms.black_forest_labs.image_generation.transformation.get_secret_str",
+            "token_iq.gateway.llms.black_forest_labs.image_generation.transformation.get_secret_str",
             return_value=None,
         ):
             with pytest.raises(BlackForestLabsError, match="BFL_API_KEY"):

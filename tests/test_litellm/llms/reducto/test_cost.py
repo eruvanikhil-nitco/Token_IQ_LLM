@@ -1,8 +1,8 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.cost_calculator import completion_cost
-from litellm.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
+from token_iq.gateway.cost_calculator import completion_cost
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
 
 
 def test_ocr_cost_prefers_credit_pricing_when_pages_processed_is_none(monkeypatch):

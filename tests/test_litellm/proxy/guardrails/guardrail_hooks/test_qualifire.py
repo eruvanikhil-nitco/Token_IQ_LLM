@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 class TestQualifireGuardrailInit:
@@ -14,7 +14,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_default_prompt_injections(self):
         """Test that prompt_injections defaults to True when no checks are specified."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -28,7 +28,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_evaluation_id_no_default_checks(self):
         """Test that no default checks are enabled when evaluation_id is provided."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -44,7 +44,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_explicit_checks(self):
         """Test initialization with explicit check flags."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -62,7 +62,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_on_flagged_monitor(self):
         """Test initialization with monitor mode."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -76,7 +76,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_default_api_base(self):
         """Test that default API base is set when not provided."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             DEFAULT_QUALIFIRE_API_BASE,
             QualifireGuardrail,
         )
@@ -90,7 +90,7 @@ class TestQualifireGuardrailInit:
 
     def test_init_with_custom_api_base(self):
         """Test initialization with custom API base URL."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -103,7 +103,7 @@ class TestQualifireGuardrailInit:
         assert guardrail.qualifire_api_base == "https://custom.qualifire.ai"
 
     def test_on_flagged_defaults_to_block(self):
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -111,7 +111,7 @@ class TestQualifireGuardrailInit:
         assert guardrail.on_flagged == "block"
 
     def test_on_flagged_monitor_is_accepted(self):
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -127,7 +127,7 @@ class TestQualifireGuardrailInit:
         Silently accepting it would let an admin believe advisory mode is active
         when Qualifire actually just blocks on any unrecognized value.
         """
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -145,10 +145,10 @@ class TestQualifireGuardrailInit:
         straight onto a running instance, bypassing the constructor's rejection.
         Mirrors LakeraAIGuardrail's own update_in_memory_litellm_params override.
         """
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         guardrail = QualifireGuardrail(api_key="test_key", guardrail_name="test_guardrail", on_flagged="block")
         updated_params = LitellmParams(
@@ -164,7 +164,7 @@ class TestQualifireGuardrailMessageConversion:
 
     def test_convert_simple_messages(self):
         """Test conversion of simple text messages."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -188,7 +188,7 @@ class TestQualifireGuardrailMessageConversion:
 
     def test_convert_multimodal_messages(self):
         """Test conversion of multimodal messages with text parts."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -215,7 +215,7 @@ class TestQualifireGuardrailMessageConversion:
 
     def test_convert_messages_with_tool_calls(self):
         """Test conversion of messages with tool calls."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -257,7 +257,7 @@ class TestQualifireGuardrailToolConversion:
 
     def test_convert_openai_function_tools(self):
         """Test conversion of OpenAI function tool format."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -286,7 +286,7 @@ class TestQualifireGuardrailToolConversion:
 
     def test_convert_empty_tools(self):
         """Test that empty tools returns None."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -308,7 +308,7 @@ class TestQualifireGuardrailAPICall:
     @pytest.mark.asyncio
     async def test_evaluate_called_with_prompt_injections(self):
         """Test that evaluate endpoint is called with prompt_injections enabled."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -347,7 +347,7 @@ class TestQualifireGuardrailAPICall:
     @pytest.mark.asyncio
     async def test_evaluate_called_with_multiple_checks(self):
         """Test that evaluate is called with multiple checks enabled."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -390,7 +390,7 @@ class TestQualifireGuardrailAPICall:
     @pytest.mark.asyncio
     async def test_invoke_endpoint_used_with_evaluation_id(self):
         """Test that invoke endpoint is used when evaluation_id is provided."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -429,7 +429,7 @@ class TestQualifireGuardrailAPICall:
     @pytest.mark.asyncio
     async def test_correct_headers_sent(self):
         """Test that correct headers are sent with the API request."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -466,7 +466,7 @@ class TestQualifireGuardrailCheckIfFlagged:
 
     def test_check_if_flagged_returns_false_for_success(self):
         """Test that _check_if_flagged returns False for successful evaluations."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -486,7 +486,7 @@ class TestQualifireGuardrailCheckIfFlagged:
 
     def test_check_if_flagged_returns_true_for_flagged_content(self):
         """Test that _check_if_flagged returns True when content is flagged."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -517,7 +517,7 @@ class TestQualifireGuardrailCheckIfFlagged:
 
     def test_check_if_flagged_returns_false_when_no_flagged_items(self):
         """Test that _check_if_flagged returns False when no items are flagged."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -552,7 +552,7 @@ class TestQualifireGuardrailShouldRun:
 
     def test_should_run_guardrail_with_guardrail_in_metadata(self):
         """Test that guardrail runs when specified in metadata."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -575,7 +575,7 @@ class TestQualifireGuardrailShouldRun:
 
     def test_should_not_run_guardrail_when_not_in_metadata(self):
         """Test that guardrail doesn't run when not specified in metadata."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -598,7 +598,7 @@ class TestQualifireGuardrailShouldRun:
 
     def test_should_run_guardrail_with_default_on(self):
         """Test that guardrail runs when default_on is True."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -626,7 +626,7 @@ class TestQualifireGuardrailHooks:
     @pytest.mark.asyncio
     async def test_async_pre_call_hook_returns_none_when_disabled(self):
         """Test that async_pre_call_hook returns None when guardrail is disabled."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -654,7 +654,7 @@ class TestQualifireGuardrailHooks:
     @pytest.mark.asyncio
     async def test_async_moderation_hook_returns_when_no_messages(self):
         """Test that async_moderation_hook returns when no messages in data."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 
@@ -684,7 +684,7 @@ class TestQualifireGuardrailConfigModel:
 
     def test_config_model_ui_friendly_name(self):
         """Test that config model has correct UI friendly name."""
-        from litellm.types.proxy.guardrails.guardrail_hooks.qualifire import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.qualifire import (
             QualifireGuardrailConfigModel,
         )
 
@@ -692,7 +692,7 @@ class TestQualifireGuardrailConfigModel:
 
     def test_config_model_fields(self):
         """Test that config model has expected fields."""
-        from litellm.types.proxy.guardrails.guardrail_hooks.qualifire import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.qualifire import (
             QualifireGuardrailConfigModel,
         )
 
@@ -709,14 +709,14 @@ class TestQualifireGuardrailRegistry:
 
     def test_qualifire_in_supported_integrations(self):
         """Test that QUALIFIRE is in SupportedGuardrailIntegrations enum."""
-        from litellm.types.guardrails import SupportedGuardrailIntegrations
+        from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
         assert hasattr(SupportedGuardrailIntegrations, "QUALIFIRE")
         assert SupportedGuardrailIntegrations.QUALIFIRE.value == "qualifire"
 
     def test_initialize_guardrail_function_exists(self):
         """Test that initialize_guardrail function is properly exported."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire import (
             guardrail_initializer_registry,
             initialize_guardrail,
         )
@@ -726,10 +726,10 @@ class TestQualifireGuardrailRegistry:
 
     def test_guardrail_class_registry_exists(self):
         """Test that guardrail_class_registry is properly exported."""
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire import (
             guardrail_class_registry,
         )
-        from litellm.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.qualifire.qualifire import (
             QualifireGuardrail,
         )
 

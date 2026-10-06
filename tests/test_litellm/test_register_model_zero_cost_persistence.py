@@ -34,7 +34,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _restore_model_cost():
-    import litellm
+    from token_iq import gateway as litellm
 
     original = dict(litellm.model_cost)
     try:
@@ -46,7 +46,7 @@ def _restore_model_cost():
 
 def _sparse_router_value(model_cost_key: str) -> Dict[str, Any]:
     # Mirrors what Router builds for a db_model deployment with no custom
-    # pricing (litellm/router.py:_create_deployment).
+    # pricing (token_iq/gateway/router.py:_create_deployment).
     return {
         "model_name": "gpt-4o-mini",
         "litellm_params": {
@@ -62,7 +62,7 @@ def test_first_registration_leaves_sparse_entry_without_cost_keys():
     """First ``register_model`` call against an unknown key must NOT add
     cost keys to the entry — otherwise the very first registration would
     already poison the map."""
-    import litellm
+    from token_iq import gateway as litellm
 
     key = "fixed-uuid-30198-first"
     litellm.model_cost.pop(key, None)
@@ -78,7 +78,7 @@ def test_second_registration_does_not_persist_synthesized_zero_costs():
     """The #30198 bug: re-registering the same sparse entry made
     ``get_model_info`` synthesize cost = 0 and write it back. Verify the
     entry stays clean after a second pass."""
-    import litellm
+    from token_iq import gateway as litellm
 
     key = "fixed-uuid-30198-double-register"
     litellm.model_cost.pop(key, None)
@@ -102,7 +102,7 @@ def test_explicit_zero_cost_in_value_is_preserved():
     """If the caller actually wants the model marked free, the explicit
     zero must survive the dedup. The fix must only strip SYNTHESIZED
     zeros, not caller-provided ones."""
-    import litellm
+    from token_iq import gateway as litellm
 
     key = "fixed-uuid-30198-explicit-zero"
     litellm.model_cost.pop(key, None)
@@ -140,7 +140,7 @@ def test_real_pricing_for_known_model_survives_re_registration():
     """A model with built-in pricing (e.g. gpt-4o-mini) must keep its
     real per-token rates across repeated registrations of an empty
     payload that names the same key."""
-    import litellm
+    from token_iq import gateway as litellm
 
     base_in = litellm.model_cost["gpt-4o-mini"]["input_cost_per_token"]
     base_out = litellm.model_cost["gpt-4o-mini"]["output_cost_per_token"]
@@ -157,8 +157,8 @@ def test_router_double_init_keeps_db_model_entry_sparse():
     """End-to-end repro from the issue body: building Router twice on
     the same model_list must not flip the per-deployment entry to
     cost=0. This is the exact production symptom (#30198)."""
-    import litellm
-    from litellm import Router
+    from token_iq import gateway as litellm
+    from token_iq.gateway import Router
 
     deployment_id = "fixed-uuid-30198-router-init"
     litellm.model_cost.pop(deployment_id, None)

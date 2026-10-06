@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 
-from litellm.proxy.response_polling.polling_handler import ResponsePollingHandler
+from token_iq.gateway.proxy.response_polling.polling_handler import ResponsePollingHandler
 
 
 class TestResponsePollingHandler:
@@ -665,7 +665,7 @@ class TestBackgroundStreamingModule:
 
     def test_background_streaming_task_can_be_imported(self):
         """Test that background_streaming_task can be imported from the module"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -674,7 +674,7 @@ class TestBackgroundStreamingModule:
 
     def test_module_exports_from_init(self):
         """Test that the module exports are available from __init__"""
-        from litellm.proxy.response_polling import (
+        from token_iq.gateway.proxy.response_polling import (
             ResponsePollingHandler,
             background_streaming_task,
         )
@@ -685,7 +685,7 @@ class TestBackgroundStreamingModule:
     def test_background_streaming_task_is_async(self):
         """Test that background_streaming_task is an async function"""
         import inspect
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -907,7 +907,7 @@ class TestPollingConditionChecks:
 
     def test_polling_enabled_when_all_conditions_met(self):
         """Test polling is enabled when background=true, polling_via_cache="all", and redis is available"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -923,7 +923,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_when_background_false(self):
         """Test polling is disabled when background=false"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -939,7 +939,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_when_config_false(self):
         """Test polling is disabled when polling_via_cache is False"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -955,7 +955,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_when_redis_not_configured(self):
         """Test polling is disabled when Redis is not configured"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -971,7 +971,7 @@ class TestPollingConditionChecks:
 
     def test_polling_enabled_with_provider_list_match(self):
         """Test polling is enabled when provider list matches"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -987,7 +987,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_with_provider_list_no_match(self):
         """Test polling is disabled when provider not in list"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1003,7 +1003,7 @@ class TestPollingConditionChecks:
 
     def test_polling_with_router_lookup(self):
         """Test polling uses router to resolve model name to provider"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1026,7 +1026,7 @@ class TestPollingConditionChecks:
 
     def test_polling_with_router_lookup_no_match(self):
         """Test polling returns False when router lookup finds non-matching provider"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1053,7 +1053,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_when_model_in_native_background_mode(self):
         """Test that polling is disabled when model is in native_background_mode list"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1070,7 +1070,7 @@ class TestPollingConditionChecks:
 
     def test_polling_disabled_for_native_background_mode_with_provider_list(self):
         """Test that native_background_mode takes precedence even when provider matches"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1087,7 +1087,7 @@ class TestPollingConditionChecks:
 
     def test_polling_enabled_when_model_not_in_native_background_mode(self):
         """Test that polling is enabled when model is not in native_background_mode list"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1104,7 +1104,7 @@ class TestPollingConditionChecks:
 
     def test_polling_enabled_when_native_background_mode_is_none(self):
         """Test that polling works normally when native_background_mode is None"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1121,7 +1121,7 @@ class TestPollingConditionChecks:
 
     def test_polling_enabled_when_native_background_mode_is_empty_list(self):
         """Test that polling works normally when native_background_mode is empty list"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1138,7 +1138,7 @@ class TestPollingConditionChecks:
 
     def test_native_background_mode_exact_match_required(self):
         """Test that native_background_mode uses exact model name matching"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1156,7 +1156,7 @@ class TestPollingConditionChecks:
 
     def test_native_background_mode_with_provider_prefix_in_request(self):
         """Test native_background_mode matching when request model has provider prefix"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1176,7 +1176,7 @@ class TestPollingConditionChecks:
 
     def test_native_background_mode_with_router_lookup(self):
         """Test that native_background_mode works with router-resolved models"""
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             should_use_polling_for_request,
         )
 
@@ -1442,7 +1442,7 @@ class TestBackgroundStreamingTerminalEvents:
     @pytest.mark.asyncio
     async def test_response_failed_sets_failed_status_and_error(self):
         """Test that a response.failed stream event results in failed status with error"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1469,7 +1469,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_1", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response
@@ -1484,7 +1484,7 @@ class TestBackgroundStreamingTerminalEvents:
     @pytest.mark.asyncio
     async def test_response_incomplete_sets_incomplete_status_and_details(self):
         """Test that a response.incomplete stream event results in incomplete status"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1513,7 +1513,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_2", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response
@@ -1531,7 +1531,7 @@ class TestBackgroundStreamingTerminalEvents:
     @pytest.mark.asyncio
     async def test_response_cancelled_sets_cancelled_status(self):
         """Test that a response.cancelled stream event results in cancelled status"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1552,7 +1552,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_3", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response
@@ -1565,7 +1565,7 @@ class TestBackgroundStreamingTerminalEvents:
     @pytest.mark.asyncio
     async def test_response_completed_sets_completed_status(self):
         """Test that a response.completed stream event results in completed status"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1587,7 +1587,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_4", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response
@@ -1604,7 +1604,7 @@ class TestBackgroundStreamingTerminalEvents:
     ):
         """Test that when the response body lacks a status field, the fallback
         is derived from the event type, not hardcoded to 'completed'."""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1627,7 +1627,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_5", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response
@@ -1640,7 +1640,7 @@ class TestBackgroundStreamingTerminalEvents:
     @pytest.mark.asyncio
     async def test_no_terminal_event_defaults_to_completed(self):
         """Test that when no terminal event is received, status defaults to completed"""
-        from litellm.proxy.response_polling.background_streaming import (
+        from token_iq.gateway.proxy.response_polling.background_streaming import (
             background_streaming_task,
         )
 
@@ -1653,7 +1653,7 @@ class TestBackgroundStreamingTerminalEvents:
         kwargs = _make_background_streaming_kwargs("poll_6", handler)
 
         with patch(
-            "litellm.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
+            "token_iq.gateway.proxy.response_polling.background_streaming.ProxyBaseLLMRequestProcessing"
         ) as MockProcessor:
             MockProcessor.return_value.base_process_llm_request = AsyncMock(
                 return_value=mock_response

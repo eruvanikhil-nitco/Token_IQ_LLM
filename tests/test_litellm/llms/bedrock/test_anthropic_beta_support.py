@@ -10,12 +10,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeConfig,
 )
-from litellm.llms.bedrock.common_utils import get_anthropic_beta_from_headers
-from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.common_utils import get_anthropic_beta_from_headers
+from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeMessagesConfig,
 )
 

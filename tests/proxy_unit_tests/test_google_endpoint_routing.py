@@ -6,12 +6,12 @@ import pytest
 import yaml
 
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.google_endpoints.endpoints import google_generate_content
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.google_endpoints.endpoints import google_generate_content
 from fastapi import Request, Response
 from fastapi.datastructures import Headers
-from litellm.proxy.proxy_server import initialize
-from litellm.utils import ModelResponse
+from token_iq.gateway.proxy.proxy_server import initialize
+from token_iq.gateway.utils import ModelResponse
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ async def test_google_generate_content_with_slashes_in_model_name(
         await initialize(config=config_fp)
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router.agenerate_content",
+            "token_iq.gateway.proxy.proxy_server.llm_router.agenerate_content",
             new_callable=AsyncMock,
         ) as mock_agenerate_content:
             mock_agenerate_content.return_value = ModelResponse()

@@ -5,18 +5,18 @@ from fastapi import HTTPException
 from httpx import ConnectError, Request, Response
 
 
-import litellm
-from litellm import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.repelloai.repelloai import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.repelloai.repelloai import (
     DEFAULT_REPELLOAI_API_BASE,
     RepelloAIGuardrail,
     RepelloAIGuardrailMissingSecrets,
     verbose_proxy_logger,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.llms.openai import ResponsesAPIResponse
-from litellm.types.utils import (
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.utils import (
     Choices,
     Message,
     ModelResponse,
@@ -116,7 +116,7 @@ class TestRepelloAIInitialization:
 
     @pytest.mark.asyncio
     async def test_provider_specific_params_include_api_key(self):
-        from litellm.proxy.guardrails.guardrail_endpoints import (
+        from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
             get_provider_specific_params,
         )
 
@@ -134,7 +134,7 @@ class TestRepelloAIInitialization:
         hard-required Pydantic field. LitellmParams inherits the RepelloAI config
         model, so a required asset_id would leak onto every other guardrail's
         litellm_params validation and break them."""
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         LitellmParams(guardrail="presidio", mode="pre_call")
 
@@ -1020,7 +1020,7 @@ class TestRepelloAILoggingStatus:
 class TestRepelloAIStreaming:
     @staticmethod
     def _stream(*contents):
-        from litellm.types.utils import Delta, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, StreamingChoices
 
         async def _gen():
             for content in contents:
@@ -1051,7 +1051,7 @@ class TestRepelloAIStreaming:
 
     @pytest.mark.asyncio
     async def test_streaming_blocked_raises(self, monkeypatch):
-        from litellm.proxy.proxy_server import StreamingCallbackError
+        from token_iq.gateway.proxy.proxy_server import StreamingCallbackError
 
         guardrail = _guardrail(event_hook="post_call")
         data = {"messages": [{"role": "user", "content": "q"}]}

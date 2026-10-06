@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.gigachat import authenticator
-from litellm.llms.gigachat.authenticator import (
+from token_iq.gateway.llms.gigachat import authenticator
+from token_iq.gateway.llms.gigachat.authenticator import (
     GigaChatAuthError,
     TOKEN_EXPIRY_BUFFER_MS,
     get_access_token,
@@ -20,7 +20,7 @@ from litellm.llms.gigachat.authenticator import (
 )
 
 
-AUTH_MODULE = "litellm.llms.gigachat.authenticator"
+AUTH_MODULE = "token_iq.gateway.llms.gigachat.authenticator"
 
 
 def _future_expires_at_ms(offset_seconds: float = 3600) -> int:
@@ -386,7 +386,7 @@ class TestRequestTokenSyncErrorMapping:
         client.post.side_effect = http_error
         mock_get_client.return_value = client
 
-        from litellm.llms.gigachat.authenticator import _request_token_sync
+        from token_iq.gateway.llms.gigachat.authenticator import _request_token_sync
 
         with pytest.raises(GigaChatAuthError) as exc_info:
             _request_token_sync("creds", "GIGACHAT_API_PERS", "https://auth.example.com")
@@ -399,7 +399,7 @@ class TestRequestTokenSyncErrorMapping:
         client.post.side_effect = httpx.ConnectError("connection refused")
         mock_get_client.return_value = client
 
-        from litellm.llms.gigachat.authenticator import _request_token_sync
+        from token_iq.gateway.llms.gigachat.authenticator import _request_token_sync
 
         with pytest.raises(GigaChatAuthError) as exc_info:
             _request_token_sync("creds", "GIGACHAT_API_PERS", "https://auth.example.com")
@@ -418,7 +418,7 @@ class TestRequestTokenAsyncErrorMapping:
         client.post = AsyncMock(side_effect=http_error)
         mock_get_client.return_value = client
 
-        from litellm.llms.gigachat.authenticator import _request_token_async
+        from token_iq.gateway.llms.gigachat.authenticator import _request_token_async
 
         with pytest.raises(GigaChatAuthError) as exc_info:
             await _request_token_async("creds", "GIGACHAT_API_PERS", "https://auth.example.com")
@@ -432,7 +432,7 @@ class TestRequestTokenAsyncErrorMapping:
         client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
         mock_get_client.return_value = client
 
-        from litellm.llms.gigachat.authenticator import _request_token_async
+        from token_iq.gateway.llms.gigachat.authenticator import _request_token_async
 
         with pytest.raises(GigaChatAuthError) as exc_info:
             await _request_token_async("creds", "GIGACHAT_API_PERS", "https://auth.example.com")
@@ -451,7 +451,7 @@ class TestParseTokenResponse:
         )
 
     def test_parses_tok_exp_fields(self):
-        from litellm.llms.gigachat.authenticator import _parse_token_response
+        from token_iq.gateway.llms.gigachat.authenticator import _parse_token_response
 
         token, expires_at = _parse_token_response(
             self._make_response({"tok": "abc", "exp": 1700000000000})
@@ -460,7 +460,7 @@ class TestParseTokenResponse:
         assert expires_at == 1700000000000
 
     def test_parses_access_token_expires_at_fields(self):
-        from litellm.llms.gigachat.authenticator import _parse_token_response
+        from token_iq.gateway.llms.gigachat.authenticator import _parse_token_response
 
         token, expires_at = _parse_token_response(
             self._make_response({"access_token": "xyz", "expires_at": 1700000000000})
@@ -469,7 +469,7 @@ class TestParseTokenResponse:
         assert expires_at == 1700000000000
 
     def test_parses_string_expires_at(self):
-        from litellm.llms.gigachat.authenticator import _parse_token_response
+        from token_iq.gateway.llms.gigachat.authenticator import _parse_token_response
 
         token, expires_at = _parse_token_response(
             self._make_response({"tok": "abc", "exp": "1700000000000"})
@@ -479,7 +479,7 @@ class TestParseTokenResponse:
         assert isinstance(expires_at, int)
 
     def test_raises_when_no_access_token(self):
-        from litellm.llms.gigachat.authenticator import _parse_token_response
+        from token_iq.gateway.llms.gigachat.authenticator import _parse_token_response
 
         with pytest.raises(GigaChatAuthError) as exc_info:
             _parse_token_response(self._make_response({"exp": 1700000000000}))

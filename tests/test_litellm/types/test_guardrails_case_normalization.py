@@ -5,7 +5,7 @@ Test case normalization in LitellmParams for all guardrail types
 import pytest
 from pydantic import ValidationError
 
-from litellm.types.guardrails import BaseLitellmParams, LitellmParams
+from token_iq.gateway.types.guardrails import BaseLitellmParams, LitellmParams
 
 
 class TestLitellmParamsCaseNormalization:

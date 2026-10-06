@@ -6,9 +6,9 @@ import pytest
 
 import json
 
-import litellm
-from litellm.caching.dual_cache import DualCache
-from litellm.router_utils.pre_call_checks.deployment_affinity_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
     DeploymentAffinityCheck,
 )
 

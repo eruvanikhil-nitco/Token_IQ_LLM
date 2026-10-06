@@ -166,7 +166,7 @@ def price_as_of(
     if recorded is not None:
         return recorded
 
-    from litellm.litellm_core_utils.get_model_cost_map import load_bundled_prices
+    from token_iq.gateway.core_utils.get_model_cost_map import load_bundled_prices
 
     entry: Final = load_bundled_prices().get(model)
     if not isinstance(entry, Mapping):

@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.llms.openai.chat.o_series_transformation import OpenAIOSeriesConfig
+from token_iq.gateway.llms.openai.chat.o_series_transformation import OpenAIOSeriesConfig
 
 
 @pytest.mark.parametrize(

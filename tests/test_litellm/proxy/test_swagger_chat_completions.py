@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy.common_utils.custom_openapi_spec import CustomOpenAPISpec
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.common_utils.custom_openapi_spec import CustomOpenAPISpec
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.mark.xdist_group("swagger")
@@ -35,7 +35,7 @@ class TestSwaggerChatCompletions:
         for /chat/completions endpoints after add_llm_api_request_schema_body runs.
         """
         # Clear any cached schema to ensure we get the latest version
-        from litellm.proxy.proxy_server import app
+        from token_iq.gateway.proxy.proxy_server import app
 
         app.openapi_schema = None
 
@@ -115,7 +115,7 @@ class TestSwaggerChatCompletions:
         with all individual fields visible (not just a $ref).
         """
         # Clear any cached schema to ensure we get the latest version
-        from litellm.proxy.proxy_server import app
+        from token_iq.gateway.proxy.proxy_server import app
 
         app.openapi_schema = None
 
@@ -194,7 +194,7 @@ class TestSwaggerChatCompletions:
             ), f"Only path parameters expected, found {param.get('in')} parameter: {param.get('name')}"
 
     @patch(
-        "litellm.proxy.common_utils.custom_openapi_spec.CustomOpenAPISpec.add_chat_completion_request_schema"
+        "token_iq.gateway.proxy.common_utils.custom_openapi_spec.CustomOpenAPISpec.add_chat_completion_request_schema"
     )
     def test_add_llm_api_request_schema_body_calls_chat_completion_method(
         self, mock_add_chat
@@ -243,7 +243,7 @@ class TestSwaggerChatCompletions:
         Test that ProxyChatCompletionRequest properly generates schemas
         and includes the expected LiteLLM-specific fields.
         """
-        from litellm.proxy._types import ProxyChatCompletionRequest
+        from token_iq.gateway.proxy._types import ProxyChatCompletionRequest
 
         # Check that we can get the schema
         try:
@@ -284,7 +284,7 @@ class TestSwaggerChatCompletions:
         Test that the messages field in the expanded request body includes a helpful example.
         """
         # Clear any cached schema to ensure we get the latest version
-        from litellm.proxy.proxy_server import app
+        from token_iq.gateway.proxy.proxy_server import app
 
         app.openapi_schema = None
 
@@ -376,7 +376,7 @@ class TestSwaggerChatCompletions:
         """
         from unittest.mock import patch
 
-        from litellm.proxy.proxy_server import app, custom_openapi, get_openapi_schema
+        from token_iq.gateway.proxy.proxy_server import app, custom_openapi, get_openapi_schema
 
         # Test cases: (server_root_path, expected_servers_url)
         # Note: empty string is falsy in Python, so servers won't be set
@@ -391,7 +391,7 @@ class TestSwaggerChatCompletions:
             # Clear cached schema
             app.openapi_schema = None
 
-            with patch("litellm.proxy.proxy_server.server_root_path", root_path):
+            with patch("token_iq.gateway.proxy.proxy_server.server_root_path", root_path):
                 # Test get_openapi_schema
                 schema = get_openapi_schema()
 
@@ -405,7 +405,7 @@ class TestSwaggerChatCompletions:
 
             # Test custom_openapi as well
             app.openapi_schema = None
-            with patch("litellm.proxy.proxy_server.server_root_path", root_path):
+            with patch("token_iq.gateway.proxy.proxy_server.server_root_path", root_path):
                 schema = custom_openapi()
 
                 assert (
@@ -416,7 +416,7 @@ class TestSwaggerChatCompletions:
                 ), f"Expected servers URL '{expected_url}' in custom_openapi, got '{schema['servers'][0]['url']}'"
 
     def test_should_make_duplicate_operation_ids_unique_by_method(self):
-        from litellm.proxy.proxy_server import ensure_unique_openapi_operation_ids
+        from token_iq.gateway.proxy.proxy_server import ensure_unique_openapi_operation_ids
 
         schema = {
             "paths": {
@@ -463,7 +463,7 @@ class TestSwaggerChatCompletions:
     def test_should_not_add_method_suffix_to_multi_method_route_base_id(self):
         from types import SimpleNamespace
 
-        from litellm.proxy.proxy_server import _generate_stable_operation_id
+        from token_iq.gateway.proxy.proxy_server import _generate_stable_operation_id
 
         multi_method_route = SimpleNamespace(
             name="anthropic_proxy_route",
@@ -486,7 +486,7 @@ class TestSwaggerChatCompletions:
         )
 
     def test_should_reserve_operation_ids_across_lazy_fragments(self):
-        from litellm.proxy.proxy_server import ensure_unique_openapi_operation_ids
+        from token_iq.gateway.proxy.proxy_server import ensure_unique_openapi_operation_ids
 
         used_operation_ids = set()
         first_schema = {

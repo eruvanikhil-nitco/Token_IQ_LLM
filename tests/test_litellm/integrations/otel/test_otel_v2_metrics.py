@@ -32,19 +32,19 @@ pytest.importorskip("opentelemetry")
 from opentelemetry.sdk.metrics import MeterProvider  # noqa: E402
 from opentelemetry.sdk.metrics.export import InMemoryMetricReader  # noqa: E402
 
-import litellm  # noqa: E402
-from litellm.constants import (  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
+from token_iq.gateway.constants import (  # noqa: E402
     LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL,
 )
-from litellm.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
-from litellm.integrations.otel.model.config import (  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import (  # noqa: E402
     OpenTelemetryV2Config,
 )
-from litellm.integrations.otel.plumbing.metrics import (  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing.metrics import (  # noqa: E402
     GenAIMetricRecorder,
     create_genai_metrics,
 )
-from litellm.integrations.otel.plumbing.providers import (  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing.providers import (  # noqa: E402
     resolve_meter_provider,
 )
 

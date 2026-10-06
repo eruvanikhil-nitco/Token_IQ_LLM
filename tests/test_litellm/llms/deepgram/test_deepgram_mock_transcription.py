@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.types.utils import TranscriptionResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 @pytest.fixture
@@ -161,7 +161,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
 
@@ -213,7 +213,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
 
@@ -249,7 +249,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
 
@@ -327,7 +327,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
             response: TranscriptionResponse = litellm.transcription(
@@ -377,7 +377,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
             response: TranscriptionResponse = litellm.transcription(
@@ -428,7 +428,7 @@ class TestDeepgramMockTranscription:
         mock_response.headers = {"Content-Type": "application/json"}
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
             response: TranscriptionResponse = litellm.transcription(

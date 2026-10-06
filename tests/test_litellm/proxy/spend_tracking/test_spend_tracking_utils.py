@@ -9,14 +9,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from typing_extensions import ReadOnly, TypedDict
 
-import litellm
-from litellm.constants import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import (
     LITELLM_TRUNCATED_PAYLOAD_FIELD,
     LITELLM_TRUNCATION_DB_SAFEGUARD_NOTE,
     REDACTED_BY_LITELM_STRING,
 )
-from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
-from litellm.proxy.spend_tracking.spend_tracking_utils import (
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
     _get_messages_for_spend_logs_payload,
     _get_proxy_server_request_for_spend_logs_payload,
     _get_request_duration_ms,
@@ -33,8 +33,8 @@ from litellm.proxy.spend_tracking.spend_tracking_utils import (
     get_logging_payload,
     get_spend_logs_id,
 )
-from litellm.proxy.utils import hash_token
-from litellm.types.utils import (
+from token_iq.gateway.proxy.utils import hash_token
+from token_iq.gateway.types.utils import (
     StandardLoggingHiddenParams,
     StandardLoggingMetadata,
     StandardLoggingModelInformation,
@@ -274,7 +274,7 @@ def test_sanitize_request_body_for_spend_logs_payload_basic():
 
 
 def test_sanitize_request_body_for_spend_logs_payload_long_string():
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     # Create a string longer than MAX_STRING_LENGTH_PROMPT_IN_DB (2048)
     long_string = (
@@ -302,7 +302,7 @@ def test_sanitize_request_body_for_spend_logs_payload_long_string():
 
 
 def test_sanitize_request_body_for_spend_logs_payload_nested_dict():
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     # Create a string longer than MAX_STRING_LENGTH_PROMPT_IN_DB
     long_string = "a" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -325,7 +325,7 @@ def test_sanitize_request_body_for_spend_logs_payload_nested_dict():
 
 
 def test_sanitize_request_body_for_spend_logs_payload_nested_list():
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     # Create a string longer than MAX_STRING_LENGTH_PROMPT_IN_DB
     long_string = "a" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -363,7 +363,7 @@ def test_sanitize_request_body_for_spend_logs_payload_empty():
 
 
 def test_sanitize_request_body_for_spend_logs_payload_mixed_types():
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     # Create a string longer than MAX_STRING_LENGTH_PROMPT_IN_DB
     long_string = "a" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -395,7 +395,7 @@ def test_sanitize_request_body_for_spend_logs_payload_mixed_types():
 def test_sanitize_request_body_for_spend_logs_payload_uses_runtime_env_override(
     monkeypatch: pytest.MonkeyPatch,
 ):
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     override_max = max(MAX_STRING_LENGTH_PROMPT_IN_DB + 1000, 6000)
     test_string = "a" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -421,7 +421,7 @@ def test_sanitize_request_body_for_spend_logs_payload_circular_reference():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_vector_store_request_for_spend_logs_payload_store_prompts_true(
     mock_should_store,
@@ -450,7 +450,7 @@ def test_get_vector_store_request_for_spend_logs_payload_store_prompts_true(
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_vector_store_request_for_spend_logs_payload_store_prompts_false(
     mock_should_store,
@@ -484,7 +484,7 @@ def test_get_vector_store_request_for_spend_logs_payload_store_prompts_false(
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_vector_store_request_for_spend_logs_payload_null_input(mock_should_store):
     # When input is None
@@ -494,7 +494,7 @@ def test_get_vector_store_request_for_spend_logs_payload_null_input(mock_should_
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_messages_for_spend_logs_realtime_returns_messages(mock_should_store):
     """
@@ -523,7 +523,7 @@ def test_get_messages_for_spend_logs_realtime_returns_messages(mock_should_store
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_messages_for_spend_logs_strips_null_bytes(mock_should_store):
     """Regression for PostgreSQL 22P05: NUL bytes must be stripped from messages."""
@@ -542,7 +542,7 @@ def test_get_messages_for_spend_logs_strips_null_bytes(mock_should_store):
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_messages_for_spend_logs_realtime_empty_when_disabled(mock_should_store):
     """
@@ -562,7 +562,7 @@ def test_get_messages_for_spend_logs_realtime_empty_when_disabled(mock_should_st
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_messages_for_spend_logs_non_realtime_returns_empty(mock_should_store):
     """
@@ -582,10 +582,10 @@ def test_get_messages_for_spend_logs_non_realtime_returns_empty(mock_should_stor
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_response_for_spend_logs_payload_truncates_large_base64(mock_should_store):
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     mock_should_store.return_value = True
     large_text = "A" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -612,7 +612,7 @@ def test_get_response_for_spend_logs_payload_truncates_large_base64(mock_should_
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_response_for_spend_logs_payload_strips_null_bytes(mock_should_store):
     """Regression for PostgreSQL 22P05: NUL bytes must be stripped from response."""
@@ -627,12 +627,12 @@ def test_get_response_for_spend_logs_payload_strips_null_bytes(mock_should_store
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_get_response_for_spend_logs_payload_truncates_large_embedding(
     mock_should_store,
 ):
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     mock_should_store.return_value = True
     embedding_values = [
@@ -668,7 +668,7 @@ def test_truncation_includes_db_safeguard_note():
     Test that truncated content includes the DB safeguard note explaining
     that full data is available in OTEL/other logging integrations.
     """
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     large_error = "Error: " + "x" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 1000)
     request_body = {"error_trace": large_error}
@@ -686,14 +686,14 @@ def test_truncation_includes_db_safeguard_note():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_response_truncation_logs_info_message(mock_should_store):
     """
     Test that when response is truncated before DB storage, an info log is emitted
     noting that full data is available in OTEL/other integrations.
     """
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     mock_should_store.return_value = True
     large_text = "B" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -703,7 +703,7 @@ def test_response_truncation_logs_info_message(mock_should_store):
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.spend_tracking_utils.verbose_proxy_logger"
+        "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.verbose_proxy_logger"
     ) as mock_logger:
         _get_response_for_spend_logs_payload(payload)
         mock_logger.info.assert_called_once()
@@ -712,13 +712,13 @@ def test_response_truncation_logs_info_message(mock_should_store):
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_request_body_truncation_logs_info_message(mock_should_store):
     """
     Test that when request body is truncated before DB storage, an info log is emitted.
     """
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     mock_should_store.return_value = True
     large_prompt = "C" * (MAX_STRING_LENGTH_PROMPT_IN_DB + 500)
@@ -729,7 +729,7 @@ def test_request_body_truncation_logs_info_message(mock_should_store):
     }
 
     with patch(
-        "litellm.proxy.spend_tracking.spend_tracking_utils.verbose_proxy_logger"
+        "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.verbose_proxy_logger"
     ) as mock_logger:
         _get_proxy_server_request_for_spend_logs_payload(
             metadata={}, litellm_params=litellm_params, kwargs={}
@@ -812,8 +812,8 @@ def test_safe_dumps_complex_metadata_like_object():
     assert parsed["model"] == "gpt-4"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_api_key_preserved_when_standard_logging_payload_is_none():
     """
     Critical - Product incident was caused by this bug.
@@ -885,8 +885,8 @@ def test_get_logging_payload_api_key_preserved_when_standard_logging_payload_is_
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.proxy_server.master_key", "sk-master-key")
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master-key")
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 async def test_api_key_preserved_through_failure_hook_to_database():
     """
     CRITICAL E2E TEST: Validates the COMPLETE code path from failure hook to database.
@@ -903,9 +903,9 @@ async def test_api_key_preserved_through_failure_hook_to_database():
     This test validates the ENTIRE flow to ensure the bug cannot regress.
     If this test fails in CI/CD, the build MUST fail.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
-    from litellm.proxy.utils import hash_token
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
+    from token_iq.gateway.proxy.utils import hash_token
 
     # Setup
     test_api_key = "sk-test-critical-e2e-key"
@@ -927,7 +927,7 @@ async def test_api_key_preserved_through_failure_hook_to_database():
         org_id,
     ):
         """Mock update_database and capture the payload it creates"""
-        from litellm.proxy.spend_tracking.spend_tracking_utils import (
+        from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
             get_logging_payload,
         )
 
@@ -989,7 +989,7 @@ async def test_api_key_preserved_through_failure_hook_to_database():
     # Execute the ACTUAL failure hook code path
     logger = _ProxyDBLogger()
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj):
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj):
         await logger.async_post_call_failure_hook(
             request_data=request_data,
             original_exception=exception,
@@ -1031,8 +1031,8 @@ async def test_api_key_preserved_through_failure_hook_to_database():
     assert payload.get("user") == "test_user"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_includes_agent_id_from_kwargs():
     """
     Test that get_logging_payload extracts agent_id from kwargs and includes it in the payload.
@@ -1071,8 +1071,8 @@ def test_get_logging_payload_includes_agent_id_from_kwargs():
     ), f"Expected agent_id '{test_agent_id}', got '{payload.get('agent_id')}'"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_includes_overhead_in_spend_logs_metadata():
     """
     Test that get_logging_payload extracts litellm_overhead_time_ms from hidden_params
@@ -1178,8 +1178,8 @@ def test_get_logging_payload_includes_overhead_in_spend_logs_metadata():
     ), f"Expected overhead '{test_overhead_ms}', got '{metadata.get('litellm_overhead_time_ms')}'"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_strips_null_bytes_from_request_tags():
     """Regression for PostgreSQL 22P05: NUL bytes must be stripped from request_tags."""
     kwargs = {
@@ -1208,8 +1208,8 @@ def test_get_logging_payload_strips_null_bytes_from_request_tags():
     assert json.loads(request_tags) == ["clean-tag", "badtag"]
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_handles_missing_overhead_gracefully():
     """
     Test that get_logging_payload handles missing overhead gracefully
@@ -1315,7 +1315,7 @@ def test_get_logging_payload_handles_missing_overhead_gracefully():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_spend_logs_redacts_request_and_response_when_turn_off_message_logging_enabled(
     mock_should_store,
@@ -1379,7 +1379,7 @@ def test_spend_logs_redacts_request_and_response_when_turn_off_message_logging_e
     assert parsed_response["choices"][0]["message"]["role"] == "assistant"
 
 
-@patch("litellm.secret_managers.main.get_secret_bool")
+@patch("token_iq.gateway.secret_managers.main.get_secret_bool")
 def test_should_store_prompts_and_responses_in_spend_logs_case_insensitive_string(
     mock_get_secret_bool,
 ):
@@ -1390,7 +1390,7 @@ def test_should_store_prompts_and_responses_in_spend_logs_case_insensitive_strin
     # Test case-insensitive string "true" variations
     for true_value in ["true", "TRUE", "True", "TrUe"]:
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"store_prompts_in_spend_logs": true_value},
         ):
             mock_get_secret_bool.return_value = False  # Ensure env var is False
@@ -1399,7 +1399,7 @@ def test_should_store_prompts_and_responses_in_spend_logs_case_insensitive_strin
 
     # Test boolean True
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"store_prompts_in_spend_logs": True},
     ):
         mock_get_secret_bool.return_value = False
@@ -1409,7 +1409,7 @@ def test_should_store_prompts_and_responses_in_spend_logs_case_insensitive_strin
     # Test that non-true values fall back to environment variable
     for false_value in [False, None, "false", "FALSE", "False", "anything"]:
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"store_prompts_in_spend_logs": false_value},
         ):
             # When env var is True, should return True
@@ -1427,7 +1427,7 @@ def test_should_store_prompts_and_responses_in_spend_logs_case_insensitive_strin
             ), f"Expected False (from env var) for '{false_value}', got {result}"
 
     # Test when general_settings doesn't have the key at all
-    with patch("litellm.proxy.proxy_server.general_settings", {}):
+    with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
         mock_get_secret_bool.return_value = True
         result = _should_store_prompts_and_responses_in_spend_logs()
         assert (
@@ -1470,7 +1470,7 @@ def test_get_spend_logs_metadata_guardrail_info_fallback_from_metadata():
     assert result["guardrail_information"] is None
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_redacts_all_prompt_carrying_fields_when_flag_false(
     mock_should_store,
 ):
@@ -1506,7 +1506,7 @@ def test_sanitize_guardrail_information_redacts_all_prompt_carrying_fields_when_
     assert entry["guardrail_action"] == "NONE"
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_redacts_prompt_fields_when_flag_false(
     mock_should_store,
 ):
@@ -1570,7 +1570,7 @@ def test_sanitize_guardrail_information_redacts_prompt_fields_when_flag_false(
     }
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_preserves_guardrail_usage_when_flag_false(
     mock_should_store,
 ):
@@ -1602,7 +1602,7 @@ def test_sanitize_guardrail_information_preserves_guardrail_usage_when_flag_fals
     assert entry["guardrail_usage"] == {"topicPolicyUnits": 1, "contentPolicyUnits": 1, "wordPolicyUnits": 0}
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_passthrough_when_flag_true(
     mock_should_store,
 ):
@@ -1625,13 +1625,13 @@ def test_sanitize_guardrail_information_passthrough_when_flag_true(
     assert result == guardrail_info
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_none_passthrough(mock_should_store):
     mock_should_store.return_value = False
     assert _sanitize_guardrail_information_for_spend_logs(None) is None
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_normalizes_bare_dict_input(mock_should_store):
     """
     Regression: xecguard (xecguard.py:246) assigns a bare dict to
@@ -1663,7 +1663,7 @@ def test_sanitize_guardrail_information_normalizes_bare_dict_input(mock_should_s
     assert entry["start_time"] == 1.0
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_drops_non_dict_items_in_list(mock_should_store):
     """
     A stray non-dict item in the list (e.g. from a buggy caller that
@@ -1682,7 +1682,7 @@ def test_sanitize_guardrail_information_drops_non_dict_items_in_list(mock_should
     assert result == [{"guardrail_name": "x", "guardrail_response": REDACTED_BY_LITELM_STRING}]
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_preserves_absent_prompt_fields(mock_should_store):
     """
     Entries that never carried guardrail_request or guardrail_response must
@@ -1709,9 +1709,9 @@ def test_sanitize_guardrail_information_preserves_absent_prompt_fields(mock_shou
     assert entry["guardrail_status"] == "success"
 
 
-@patch("litellm.proxy.proxy_server.master_key", "sk-master")
+@patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master")
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"store_prompts_in_spend_logs": False},
 )
 def test_get_logging_payload_redacts_guardrail_prompt_fields_when_flag_false():
@@ -1787,9 +1787,9 @@ def test_get_logging_payload_guardrail_info_when_no_standard_logging_payload():
         # No "standard_logging_object" key - this is the failure case
     }
 
-    with patch("litellm.proxy.proxy_server.master_key", "sk-master"):
+    with patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master"):
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"store_prompts_in_spend_logs": True},
         ):
             payload = get_logging_payload(
@@ -1803,8 +1803,8 @@ def test_get_logging_payload_guardrail_info_when_no_standard_logging_payload():
     assert metadata_result["guardrail_information"] == guardrail_info
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_includes_retry_info_in_spend_logs_metadata():
     """
     Test that retry info (attempted_retries, max_retries) from metadata
@@ -1905,8 +1905,8 @@ def test_get_logging_payload_includes_retry_info_in_spend_logs_metadata():
     ), f"Expected max_retries=3, got {metadata.get('max_retries')}"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_handles_missing_retry_info_gracefully():
     """
     Test that retry fields are None when not present in metadata (backward compatibility).
@@ -2044,8 +2044,8 @@ def test_get_logging_payload_includes_request_duration_ms():
     }
 
     with (
-        patch("litellm.proxy.proxy_server.master_key", None),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         payload = get_logging_payload(
             kwargs=kwargs,
@@ -2081,7 +2081,7 @@ class TestIsMasterKey:
         ``_is_master_key`` must not accept ``hash_token(master_key)`` as
         equivalent to the raw master key — only the raw value matches.
         """
-        from litellm.proxy.utils import hash_token
+        from token_iq.gateway.proxy.utils import hash_token
 
         master = "sk-master-key-123"
         hashed = hash_token(master)
@@ -2115,7 +2115,7 @@ def test_sanitize_request_body_strips_secret_fields():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_proxy_server_request_payload_excludes_secret_fields(mock_should_store):
     """
@@ -2204,7 +2204,7 @@ def test_redact_prompt_leaks_empty_string():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_redacts_when_not_storing_prompts(
     mock_should_store,
@@ -2234,7 +2234,7 @@ def test_sanitize_error_information_redacts_when_not_storing_prompts(
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_skips_redaction_when_storing_prompts(
     mock_should_store,
@@ -2260,14 +2260,14 @@ def test_sanitize_error_information_skips_redaction_when_storing_prompts(
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_caps_size_regardless_of_prompt_flag(
     mock_should_store,
 ):
     # The DB-storage cap must apply even when prompt storage is enabled, so a
     # provider error that echoes a multi-MB body can't blow up a single row.
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     mock_should_store.return_value = True
 
@@ -2293,7 +2293,7 @@ def test_sanitize_error_information_none_passthrough():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_reproduces_lit_2992(mock_should_store):
     # Mirrors the reproduced row body from LIT-2992 — a RateLimitError whose
@@ -2386,7 +2386,7 @@ def test_redact_prompt_leaks_handles_unterminated_value():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_redacts_traceback_when_not_storing_prompts(
     mock_should_store,
@@ -2420,7 +2420,7 @@ def test_sanitize_error_information_redacts_traceback_when_not_storing_prompts(
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_skips_traceback_redaction_when_storing_prompts(
     mock_should_store,
@@ -2542,7 +2542,7 @@ def test_redact_prompt_leaks_combined_quoted_key_and_pydantic_assignment():
 
 
 @patch(
-    "litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
+    "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs"
 )
 def test_sanitize_error_information_redacts_pydantic_assignment_form(
     mock_should_store,
@@ -2676,14 +2676,14 @@ def test_redact_logged_api_key_hashed_jwt_short_suffix_is_hashed():
 
 
 def test_redact_logged_api_key_master_key_alias_passes_through():
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     result = _redact_logged_api_key(LITELLM_PROXY_MASTER_KEY_ALIAS, already_redacted=True)
     assert result == LITELLM_PROXY_MASTER_KEY_ALIAS
 
 
 def test_redact_logged_api_key_master_key_alias_without_provenance_is_hashed():
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     result = _redact_logged_api_key(LITELLM_PROXY_MASTER_KEY_ALIAS)
     assert result == hash_token(LITELLM_PROXY_MASTER_KEY_ALIAS)
@@ -2691,7 +2691,7 @@ def test_redact_logged_api_key_master_key_alias_without_provenance_is_hashed():
 
 
 def test_get_spend_logs_metadata_keeps_master_key_alias_readable():
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     meta = _get_spend_logs_metadata(
         {
@@ -2791,7 +2791,7 @@ def test_get_logging_payload_uses_recovered_combined_usage_on_failure():
     the failure hook surfaces it as ``combined_usage_object``. The spend-log
     payload must record those token counts instead of zero.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     kwargs = {
         "model": "anthropic/claude-haiku-4-5",
@@ -2985,8 +2985,8 @@ class TestSpendLogKeyRedaction:
         assert _redact_logged_api_key(bare) == _redact_logged_api_key(bearer)
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_non_sk_raw_key_both_fields_hashed():
     raw = "anthropic-raw-key-xyz"
     kwargs = {
@@ -3018,7 +3018,7 @@ def test_get_logging_payload_non_sk_raw_key_both_fields_hashed():
 
 
 def test_get_logging_payload_keeps_master_key_alias_readable():
-    from litellm.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
+    from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
     kwargs = {
         "model": "openai/gpt-4.1",
@@ -3044,8 +3044,8 @@ def test_get_logging_payload_keeps_master_key_alias_readable():
     assert parsed_meta["user_api_key"] == LITELLM_PROXY_MASTER_KEY_ALIAS
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_hashes_bearer_prefixed_api_key():
     """Regression for LIT-4121: failed-request spend logs stored plaintext
     'Bearer sk-...' in both the api_key column and metadata.user_api_key"""
@@ -3087,7 +3087,7 @@ def test_get_logging_payload_hashes_bearer_prefixed_api_key():
     )
 
 
-@patch("litellm.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
+@patch("token_iq.gateway.proxy.spend_tracking.spend_tracking_utils._should_store_prompts_and_responses_in_spend_logs")
 def test_sanitize_guardrail_information_preserves_headroom_compression_token_stats(
     mock_should_store,
 ):
@@ -3143,14 +3143,14 @@ async def test_compression_savings_survive_to_spend_log_payload_metadata(monkeyp
     anthropic_messages), and get_logging_payload lands it in
     SpendLogsPayload.metadata JSON under ``compression_savings``.
     """
-    from litellm.integrations.compression_interception.handler import (
+    from token_iq.gateway.integrations.compression_interception.handler import (
         CompressionInterceptionLogger,
     )
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.types.utils import CallTypes
 
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         lambda **kwargs: {
             "messages": [{"role": "user", "content": "compressed"}],
             "original_tokens": 12000,
@@ -3278,7 +3278,7 @@ def test_user_traffic_carries_no_internal_call_origin():
 def _spend_log_for_call_type(
     call_type: str, internal_call_origin: str | None = None, background: bool | None = None
 ) -> dict:
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     return cast(
         dict,
@@ -3620,8 +3620,8 @@ def test_get_logging_payload_falls_back_to_kwargs_model_when_slp_model_missing()
     assert payload["model"] == "azure_ai/model_router/model-router"
 
 
-@patch("litellm.proxy.proxy_server.master_key", None)
-@patch("litellm.proxy.proxy_server.general_settings", {})
+@patch("token_iq.gateway.proxy.proxy_server.master_key", None)
+@patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
 def test_get_logging_payload_empty_key_slp_none_is_empty_string_not_none_literal():
     kwargs = {
         "model": "openai/gpt-4.1",

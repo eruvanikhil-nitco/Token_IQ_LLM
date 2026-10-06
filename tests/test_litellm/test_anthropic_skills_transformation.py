@@ -11,16 +11,16 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.constants import ANTHROPIC_SKILLS_API_BETA_VERSION
-from litellm.llms.anthropic.skills.transformation import AnthropicSkillsConfig
-from litellm.types.llms.anthropic_skills import (
+from token_iq.gateway.constants import ANTHROPIC_SKILLS_API_BETA_VERSION
+from token_iq.gateway.llms.anthropic.skills.transformation import AnthropicSkillsConfig
+from token_iq.gateway.types.llms.anthropic_skills import (
     CreateSkillRequest,
     DeleteSkillResponse,
     ListSkillsParams,
     ListSkillsResponse,
     Skill,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 FAKE_API_KEY = "sk-ant-test-key-1234"
@@ -81,7 +81,7 @@ class TestAnthropicSkillsConfigURLConstruction:
 
     def test_url_falls_back_to_anthropic_default(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
             return_value="https://api.anthropic.com",
         ):
             url = self.config.get_complete_url(
@@ -108,7 +108,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_sets_api_key_header(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -118,7 +118,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_sets_anthropic_version_header(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -128,7 +128,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_sets_skills_beta_header(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -138,7 +138,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_merges_existing_beta_header_string(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -151,7 +151,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_merges_existing_beta_header_list(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -163,7 +163,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_does_not_duplicate_beta_header(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
@@ -178,7 +178,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
 
     def test_raises_without_api_key(self):
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_key",
             return_value=None,
         ):
             with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
@@ -229,7 +229,7 @@ class TestAnthropicSkillsConfigListRequestTransformation:
     def test_limit_included_in_query_params(self):
         list_params: ListSkillsParams = {"limit": 25}
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
             return_value=FAKE_API_BASE,
         ):
             url, query_params = self.config.transform_list_skills_request(
@@ -243,7 +243,7 @@ class TestAnthropicSkillsConfigListRequestTransformation:
     def test_source_filter_included(self):
         list_params: ListSkillsParams = {"source": "custom"}
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
             return_value=FAKE_API_BASE,
         ):
             _, query_params = self.config.transform_list_skills_request(
@@ -256,7 +256,7 @@ class TestAnthropicSkillsConfigListRequestTransformation:
     def test_empty_params_produce_empty_query(self):
         list_params: ListSkillsParams = {}
         with patch(
-            "litellm.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
+            "token_iq.gateway.llms.anthropic.common_utils.AnthropicModelInfo.get_api_base",
             return_value=FAKE_API_BASE,
         ):
             _, query_params = self.config.transform_list_skills_request(

@@ -6,7 +6,7 @@ CRUSOE_API_BASE = "https://managed-inference-api-proxy.crusoecloud.com/v1"
 
 def test_crusoe_json_registry():
     """Test Crusoe is registered in the JSON provider registry"""
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     assert JSONProviderRegistry.exists("crusoe")
     config = JSONProviderRegistry.get("crusoe")
@@ -18,8 +18,8 @@ def test_crusoe_json_registry():
 
 def test_crusoe_dynamic_config_defaults():
     """Test dynamic config returns correct default API base"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
 
@@ -32,8 +32,8 @@ def test_crusoe_dynamic_config_defaults():
 
 def test_crusoe_dynamic_config_env_vars():
     """Test dynamic config reads CRUSOE_API_KEY and CRUSOE_API_BASE from env"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
 
@@ -49,8 +49,8 @@ def test_crusoe_dynamic_config_env_vars():
 
 def test_crusoe_dynamic_config_explicit_params():
     """Test explicit params override env vars"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
 
@@ -65,8 +65,8 @@ def test_crusoe_dynamic_config_explicit_params():
 
 def test_crusoe_supported_params():
     """Test dynamic config returns standard OpenAI params"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
     params = config.get_supported_openai_params(model="meta-llama/Llama-3.3-70B-Instruct")
@@ -80,8 +80,8 @@ def test_crusoe_supported_params():
 
 def test_crusoe_param_mapping_max_completion_tokens():
     """Test max_completion_tokens is mapped to max_tokens for Crusoe"""
-    from litellm.llms.openai_like.dynamic_config import create_config_class
-    from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+    from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+    from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
     config = create_config_class(JSONProviderRegistry.get("crusoe"))()
     optional_params = config.map_openai_params(
@@ -98,7 +98,7 @@ def test_crusoe_param_mapping_max_completion_tokens():
 
 def test_crusoe_provider_detection_by_prefix():
     """Test crusoe/model prefix is correctly routed"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     model, provider, _, _ = get_llm_provider("crusoe/meta-llama/Llama-3.3-70B-Instruct")
     assert provider == "crusoe"
@@ -107,7 +107,7 @@ def test_crusoe_provider_detection_by_prefix():
 
 def test_crusoe_model_list_populated(monkeypatch):
     """Test Crusoe models are present in model_prices_and_context_window.json"""
-    import litellm
+    from token_iq import gateway as litellm
 
     original_model_cost = litellm.model_cost
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")

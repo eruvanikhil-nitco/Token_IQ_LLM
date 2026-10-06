@@ -2,15 +2,15 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import (
     BlockModelRequest,
     LitellmUserRoles,
     ProxyException,
     ReconcileOutcome,
     UserAPIKeyAuth,
 )
-from litellm.types.router import RouterRateLimitError
+from token_iq.gateway.types.router import RouterRateLimitError
 
 
 def _setup_model_block_mocks(monkeypatch, *, updated_blocked: bool):
@@ -45,16 +45,16 @@ def _setup_model_block_mocks(monkeypatch, *, updated_blocked: bool):
     )
     mock_audit_log = AsyncMock(return_value=None)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", mock_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", mock_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.model_management_endpoints.clear_cache",
+        "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.clear_cache",
         mock_clear_cache,
     )
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.model_management_endpoints.create_object_audit_log",
+        "token_iq.gateway.proxy.management_endpoints.model_management_endpoints.create_object_audit_log",
         mock_audit_log,
     )
 
@@ -71,7 +71,7 @@ def _proxy_admin() -> UserAPIKeyAuth:
 
 @pytest.mark.asyncio
 async def test_model_block_endpoint_sets_blocked_true(monkeypatch):
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         block_model,
     )
 
@@ -102,7 +102,7 @@ async def test_model_block_endpoint_sets_blocked_true(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_model_unblock_endpoint_sets_blocked_false(monkeypatch):
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         unblock_model,
     )
 
@@ -126,7 +126,7 @@ async def test_model_unblock_endpoint_sets_blocked_false(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_model_block_endpoint_requires_proxy_admin(monkeypatch):
-    from litellm.proxy.management_endpoints.model_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
         block_model,
     )
 
@@ -177,7 +177,7 @@ def test_router_returns_no_healthy_deployment_when_model_is_fully_blocked():
 
 @pytest.mark.asyncio
 async def test_route_request_returns_403_when_model_is_fully_blocked(monkeypatch):
-    from litellm.proxy.route_llm_request import route_request
+    from token_iq.gateway.proxy.route_llm_request import route_request
 
     router = litellm.Router(
         model_list=[
@@ -189,7 +189,7 @@ async def test_route_request_returns_403_when_model_is_fully_blocked(monkeypatch
         ]
     )
     monkeypatch.setattr(
-        "litellm.proxy.route_llm_request.add_shared_session_to_data",
+        "token_iq.gateway.proxy.route_llm_request.add_shared_session_to_data",
         AsyncMock(return_value=None),
     )
 
@@ -209,15 +209,15 @@ async def test_route_request_returns_403_when_model_is_fully_blocked(monkeypatch
 async def test_model_block_surfaces_wholesale_reload_failure(monkeypatch):
     """The write endpoints owe the caller an error when the pod failed to reload at all;
     the DB row is saved but this pod is not serving the change."""
-    from litellm.proxy._types import ProxyException
-    from litellm.proxy.management_endpoints.model_management_endpoints import block_model
+    from token_iq.gateway.proxy._types import ProxyException
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import block_model
 
     model_id, model_table, updated_row, mock_clear_cache, mock_audit_log = _setup_model_block_mocks(
         monkeypatch, updated_blocked=True
     )
     wiped_router = MagicMock()
     wiped_router.get_model_ids.side_effect = [[model_id], []]
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", wiped_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", wiped_router)
 
     with pytest.raises(ProxyException, match=model_id):
         await block_model(
@@ -234,15 +234,15 @@ async def test_model_block_surfaces_wholesale_reload_failure(monkeypatch):
 async def test_model_block_surfaces_model_dropped_by_reload(monkeypatch):
     """A reload that completes but drops the written model (ignore_invalid_deployments
     swallowed its re-add) must not produce an unqualified success."""
-    from litellm.proxy._types import ProxyException
-    from litellm.proxy.management_endpoints.model_management_endpoints import block_model
+    from token_iq.gateway.proxy._types import ProxyException
+    from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import block_model
 
     model_id, model_table, updated_row, mock_clear_cache, _ = _setup_model_block_mocks(
         monkeypatch, updated_blocked=True
     )
     dropped_router = MagicMock()
     dropped_router.get_model_ids.return_value = []
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", dropped_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", dropped_router)
 
     with pytest.raises(ProxyException, match=model_id):
         await block_model(

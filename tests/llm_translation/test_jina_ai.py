@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 
 
 from base_rerank_unit_tests import BaseLLMRerankTest
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestJinaAI(BaseLLMRerankTest):

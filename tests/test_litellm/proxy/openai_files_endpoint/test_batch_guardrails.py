@@ -4,12 +4,12 @@ import json
 import pytest
 from fastapi import HTTPException
 
-from litellm.exceptions import BlockedPiiEntityError, GuardrailRaisedException
+from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
 
-from litellm.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
-from litellm.proxy.openai_files_endpoints.batch_guardrails import (
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails import (
     BatchScanResult,
     RecordDropped,
     RecordRedacted,
@@ -373,7 +373,7 @@ async def test_an_absolute_url_resolves_by_path_not_by_body_shape(url, expected_
 )
 async def test_a_file_the_upload_validation_accepts_is_a_file_the_scan_can_read(prefix, label):
     """The validator parses each line as bytes, which tolerates a BOM; the scan must match it."""
-    from litellm.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
 
     payload = prefix + (json.dumps(_record("a")) + "\n").encode()
     assert check_batch_file_upload("in.jsonl", io.BytesIO(payload), None) is None, f"{label} rejected upfront"
@@ -404,8 +404,8 @@ async def test_a_bom_file_is_rewritten_without_losing_the_untouched_records():
 )
 def test_load_balancing_finds_the_routing_record_in_any_file_the_upload_accepts(prefix):
     """A file whose routing model cannot be read is silently sent to the default provider."""
-    from litellm.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
-    from litellm.proxy.openai_files_endpoints.files_endpoints import get_first_json_object
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
+    from token_iq.gateway.proxy.openai_files_endpoints.files_endpoints import get_first_json_object
 
     payload = prefix + (json.dumps(_record("a")) + "\n").encode()
     assert check_batch_file_upload("in.jsonl", io.BytesIO(payload), None) is None, "rejected upfront"
@@ -433,7 +433,7 @@ async def test_a_malformed_url_does_not_escape_the_scan(url):
 )
 def test_a_reported_custom_id_can_always_be_rendered(custom_id, expected):
     """The id is echoed in the response; one that cannot be encoded back out would 500 the upload."""
-    from litellm.proxy.openai_files_endpoints.batch_guardrails import _custom_id_of
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails import _custom_id_of
 
     rendered = _custom_id_of({"custom_id": custom_id})
 
@@ -448,8 +448,8 @@ def test_a_reported_custom_id_can_always_be_rendered(custom_id, expected):
 )
 def test_a_record_whose_body_is_not_an_object_does_not_crash_deployment_selection(body):
     """Validation only checks that `body` is present, so a record can carry anything there."""
-    from litellm.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
-    from litellm.proxy.openai_files_endpoints.files_endpoints import (
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_file_validation import check_batch_file_upload
+    from token_iq.gateway.proxy.openai_files_endpoints.files_endpoints import (
         get_first_json_object,
         get_model_from_json_obj,
     )
@@ -464,7 +464,7 @@ def test_a_record_whose_body_is_not_an_object_does_not_crash_deployment_selectio
 
 @pytest.mark.parametrize("payload", [b"", b"\n\n\n"], ids=["empty", "blanks_only"])
 def test_load_balancing_returns_none_when_there_is_no_record(payload):
-    from litellm.proxy.openai_files_endpoints.files_endpoints import get_first_json_object
+    from token_iq.gateway.proxy.openai_files_endpoints.files_endpoints import get_first_json_object
 
     assert get_first_json_object(io.BytesIO(payload)) is None
     assert get_first_json_object(payload) is None
@@ -553,7 +553,7 @@ def test_every_failure_maps_to_a_400_naming_the_record(failure, fragment):
 @pytest.mark.asyncio
 async def test_scan_does_not_mutate_the_parsed_record():
     """The guardrail must redact a copy. Mutating the record would corrupt what PR 2 writes out."""
-    from litellm.proxy.openai_files_endpoints.batch_guardrails import _ParsedRecord, _scan_record
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails import _ParsedRecord, _scan_record
 
     payload = _record("a", content="my secret is here")
     record = _ParsedRecord(line_number=1, payload=payload)
@@ -575,7 +575,7 @@ async def test_scan_does_not_mutate_the_parsed_record():
 async def test_scan_is_bounded_so_a_huge_file_cannot_fan_out_without_limit():
     import asyncio
 
-    from litellm.proxy.openai_files_endpoints.batch_guardrails import _SCAN_WINDOW
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails import _SCAN_WINDOW
 
     in_flight = {"now": 0, "peak": 0}
 
@@ -806,7 +806,7 @@ async def test_an_unreachable_guardrail_aborts_instead_of_quietly_dropping_the_r
 @pytest.mark.asyncio
 async def test_a_guardrail_subclass_that_blocks_content_drops_only_that_record():
     """A subclass has to opt in too, or a real block takes the whole upload down with it."""
-    from litellm.proxy.guardrails.guardrail_hooks.ovalix.ovalix import OvalixGuardrailBlockedException
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.ovalix.ovalix import OvalixGuardrailBlockedException
 
     def _hook(data):
         if "tripwire" in data["messages"][0]["content"]:
@@ -821,7 +821,7 @@ async def test_a_guardrail_subclass_that_blocks_content_drops_only_that_record()
 @pytest.mark.asyncio
 async def test_a_record_a_guardrail_rerouted_aborts_rather_than_shipping_to_the_original_provider():
     """pre_call_hook honours a reroute by rewriting `model`; a batch file cannot follow it."""
-    from litellm.proxy.openai_files_endpoints.batch_guardrails import UnroutableRecord
+    from token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails import UnroutableRecord
 
     def _hook(data):
         if "tripwire" in data["messages"][0]["content"]:
@@ -856,7 +856,7 @@ async def test_the_scan_spool_is_closed_when_the_upload_is_refused():
 
     source = _jsonl(_record("a"), _record("b", content="tripwire"))
     spools = []
-    import litellm.proxy.openai_files_endpoints.batch_guardrails as bg
+    import token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails as bg
 
     real = bg.tempfile.SpooledTemporaryFile
 
@@ -878,7 +878,7 @@ async def test_the_scan_spool_is_closed_when_the_upload_is_refused():
 @pytest.mark.asyncio
 async def test_the_rewrite_closes_its_own_output_when_it_cannot_finish():
     """A half-written rewrite spool has no owner yet, so it has to clean up after itself."""
-    import litellm.proxy.openai_files_endpoints.batch_guardrails as bg
+    import token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails as bg
 
     source = _jsonl(_record("a"), _record("b", content="my secret is here"))
     result = await _scan_full(source, FakeProxyLogging(_redact_containing("secret")))
@@ -910,7 +910,7 @@ async def test_the_rewrite_closes_its_own_output_when_it_cannot_finish():
 @pytest.mark.asyncio
 async def test_the_scan_spool_is_closed_when_a_record_escapes_the_iterator():
     """A raise from inside the read loop bypasses the per-record outcome path entirely."""
-    import litellm.proxy.openai_files_endpoints.batch_guardrails as bg
+    import token_iq.gateway.proxy.openai_files_endpoints.batch_guardrails as bg
 
     spools = []
     real = bg.tempfile.SpooledTemporaryFile
@@ -939,9 +939,9 @@ async def test_a_real_non_guardrail_enforcement_hook_drops_its_record(monkeypatc
     these hooks to `raise ... from e` would turn every drop into an aborted upload. Nothing else
     pins that, because the other tests raise their own exceptions.
     """
-    import litellm
-    from litellm.proxy.hooks.prompt_injection_detection import _OPTIONAL_PromptInjectionDetection
-    from litellm.proxy._types import LiteLLMPromptInjectionParams
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.hooks.prompt_injection_detection import _OPTIONAL_PromptInjectionDetection
+    from token_iq.gateway.proxy._types import LiteLLMPromptInjectionParams
 
     hook = _OPTIONAL_PromptInjectionDetection(
         prompt_injection_params=LiteLLMPromptInjectionParams(heuristics_check=True)
@@ -1005,7 +1005,7 @@ async def test_a_redacted_record_keeps_its_own_guardrails_key():
 @pytest.mark.asyncio
 async def test_a_400_that_is_not_a_guardrail_decision_still_aborts():
     """A guardrail's own HTTP client can raise a 400 because OUR payload was rejected, not the content."""
-    from litellm.exceptions import BadRequestError
+    from token_iq.gateway.exceptions import BadRequestError
 
     def _hook(data):
         raise BadRequestError(message="guardrail service rejected the payload", model="m", llm_provider="p")

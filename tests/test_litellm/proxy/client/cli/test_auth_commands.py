@@ -10,24 +10,24 @@ from unittest.mock import Mock, patch
 import pytest
 from click.testing import CliRunner
 
-from litellm.constants import CLI_JWT_EXPIRATION_HOURS
-from litellm.litellm_core_utils.cli_keyring import (
+from token_iq.gateway.constants import CLI_JWT_EXPIRATION_HOURS
+from token_iq.gateway.core_utils.cli_keyring import (
     DISABLE_KEYRING_ENV_VAR,
     KeyringDisabled,
     KeyringNotInstalled,
     SecretErased,
     SecretStored,
 )
-from litellm.litellm_core_utils.cli_token_utils import CliTokenRecord, save_cli_token
-from litellm.proxy.client.cli import cli
-from litellm.proxy.client.cli.commands.auth import (
+from token_iq.gateway.core_utils.cli_token_utils import CliTokenRecord, save_cli_token
+from token_iq.gateway.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli.commands.auth import (
     get_stored_api_key,
     login,
     logout,
     print_token,
     whoami,
 )
-from litellm.proxy.client.cli.commands.claude_settings import SettingsFileOwner
+from token_iq.gateway.proxy.client.cli.commands.claude_settings import SettingsFileOwner
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def _mock_cli_sso_start_response(
 
 class TestPollingErrorSurfacing:
     def test_client_error_raises_with_server_detail_and_stops_polling(self):
-        from litellm.proxy.client.cli.commands.auth import _poll_for_ready_data
+        from token_iq.gateway.proxy.client.cli.commands.auth import _poll_for_ready_data
 
         mock_response = Mock()
         mock_response.status_code = 400
@@ -115,7 +115,7 @@ class TestPollingErrorSurfacing:
         assert "Authentication timed out" not in result.output
 
     def test_server_error_without_json_body_retries_until_timeout(self, capsys):
-        from litellm.proxy.client.cli.commands.auth import _poll_for_ready_data
+        from token_iq.gateway.proxy.client.cli.commands.auth import _poll_for_ready_data
 
         mock_response = Mock()
         mock_response.status_code = 500
@@ -129,7 +129,7 @@ class TestPollingErrorSurfacing:
         assert "Polling error: HTTP 500" in capsys.readouterr().out
 
     def test_rate_limit_is_retried_not_aborted(self, capsys):
-        from litellm.proxy.client.cli.commands.auth import _poll_for_ready_data
+        from token_iq.gateway.proxy.client.cli.commands.auth import _poll_for_ready_data
 
         mock_response = Mock()
         mock_response.status_code = 429
@@ -145,7 +145,7 @@ class TestPollingErrorSurfacing:
 
 class TestStartCliSsoFlowErrors:
     def test_endpoint_not_found_explains_version_or_base_url(self):
-        from litellm.proxy.client.cli.commands.auth import _start_cli_sso_flow
+        from token_iq.gateway.proxy.client.cli.commands.auth import _start_cli_sso_flow
 
         mock_response = Mock()
         mock_response.status_code = 404
@@ -160,7 +160,7 @@ class TestStartCliSsoFlowErrors:
         assert "older than this CLI" in message
 
     def test_http_error_includes_server_detail(self):
-        from litellm.proxy.client.cli.commands.auth import _start_cli_sso_flow
+        from token_iq.gateway.proxy.client.cli.commands.auth import _start_cli_sso_flow
 
         mock_response = Mock()
         mock_response.status_code = 429
@@ -174,7 +174,7 @@ class TestStartCliSsoFlowErrors:
         assert "Too many CLI login attempts. Try again later." in str(exc_info.value)
 
     def test_non_json_response_names_interception(self):
-        from litellm.proxy.client.cli.commands.auth import _start_cli_sso_flow
+        from token_iq.gateway.proxy.client.cli.commands.auth import _start_cli_sso_flow
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -194,7 +194,7 @@ class TestStartCliSsoFlowErrors:
     def test_connection_error_points_at_base_url(self):
         import requests
 
-        from litellm.proxy.client.cli.commands.auth import _start_cli_sso_flow
+        from token_iq.gateway.proxy.client.cli.commands.auth import _start_cli_sso_flow
 
         with patch("requests.post", side_effect=requests.ConnectionError("Connection refused")):
             with pytest.raises(ValueError, match='Connection refused\\. Check that the proxy is running') as exc_info:
@@ -280,10 +280,10 @@ class TestLoginCommand:
             patch("webbrowser.open"),
             patch("requests.post", return_value=_mock_cli_sso_start_response()),
             patch("requests.get", return_value=mock_response),
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as mock_save,
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as mock_save,
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, obj={"base_url": "https://test.example.com"})
 
@@ -321,8 +321,8 @@ class TestLoginCommand:
                 return_value=_mock_cli_sso_start_response(login_id="cli-test-uuid-123"),
             ) as mock_post,
             patch("requests.get", return_value=mock_response) as mock_get,
-            patch("litellm.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
-            patch("litellm.proxy.client.cli.interface.show_commands") as mock_show_commands,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands") as mock_show_commands,
         ):
             result = self.runner.invoke(login, obj=mock_context.obj)
 
@@ -676,7 +676,7 @@ class TestWhoamiCommand:
             timestamp=time.time() - 3600,
         )
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
             assert result.exit_code == 0
@@ -688,7 +688,7 @@ class TestWhoamiCommand:
 
     def test_whoami_not_authenticated(self):
         """Test whoami when user is not authenticated"""
-        with patch("litellm.proxy.client.cli.commands.auth.load_cli_token", return_value=None):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token", return_value=None):
             result = self.runner.invoke(whoami)
 
             assert result.exit_code == 0
@@ -705,7 +705,7 @@ class TestWhoamiCommand:
             timestamp=time.time() - (25 * 3600),
         )
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
             assert result.exit_code == 0
@@ -716,7 +716,7 @@ class TestWhoamiCommand:
         """Test whoami with token missing some fields"""
         token_data = CliTokenRecord(key="sk-live", timestamp=time.time() - 3600)
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
             assert result.exit_code == 0
@@ -735,7 +735,7 @@ class TestWhoamiCommand:
             "refresh_token": "llm_srefresh_abc",
         }
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
         assert result.exit_code == 0
@@ -751,7 +751,7 @@ class TestWhoamiCommand:
             "expires_at": time.time() - 60,
         }
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
         assert result.exit_code == 0
@@ -768,7 +768,7 @@ class TestWhoamiCommand:
             "refresh_token": "llm_srefresh_spent",
         }
 
-        with patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=token_data):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=token_data):
             result = self.runner.invoke(whoami)
 
         assert result.exit_code == 0
@@ -786,7 +786,7 @@ class TestWhoamiCommand:
 
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_cli_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
                 return_value=token_data,
             ),
             patch("time.time", return_value=1000),
@@ -846,8 +846,8 @@ class TestCLIKeyRegenerationFlow:
                 return_value=_mock_cli_sso_start_response(login_id="cli-session-uuid-456"),
             ),
             patch("requests.get", side_effect=[mock_first_response, mock_second_response]) as mock_get,
-            patch("litellm.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
-            patch("litellm.proxy.client.cli.interface.show_commands") as mock_show_commands,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands") as mock_show_commands,
             patch("click.prompt", return_value="2"),
         ):  # User selects index 2
             result = self.runner.invoke(login, obj=mock_context.obj)
@@ -907,8 +907,8 @@ class TestCLIKeyRegenerationFlow:
                 return_value=_mock_cli_sso_start_response(login_id="cli-session-uuid-solo"),
             ),
             patch("requests.get", return_value=mock_response),
-            patch("litellm.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_cli_token") as mock_save,
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, obj=mock_context.obj)
 
@@ -955,7 +955,7 @@ class TestPrintTokenCommand:
         self.runner = CliRunner()
 
     def test_no_stored_token_fails_cleanly(self):
-        with patch("litellm.proxy.client.cli.commands.auth.load_cli_token", return_value=None):
+        with patch("token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token", return_value=None):
             result = self.runner.invoke(print_token, obj={})
 
         assert result.exit_code != 0
@@ -967,7 +967,7 @@ class TestPrintTokenCommand:
         one). Must use token.json's own base_url, not a hardcoded default."""
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_cli_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
                 return_value=CliTokenRecord(
                     base_url="https://litellm-proxy.corp.com",
                     key="sk-prod-fresh",
@@ -989,7 +989,7 @@ class TestPrintTokenCommand:
         token minted for proxy A must not reach a helper invocation aimed
         at proxy B, even though the token itself is otherwise fresh."""
         with patch(
-            "litellm.proxy.client.cli.commands.auth.load_cli_token",
+            "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
             return_value=CliTokenRecord(
                 base_url="https://other-server.com",
                 key="sk-should-not-print",
@@ -1008,7 +1008,7 @@ class TestPrintTokenCommand:
         """`lite up`'s own bound invocation shape: --base-url matching the token's origin
         must succeed exactly like the bare/legacy invocation does."""
         with patch(
-            "litellm.proxy.client.cli.commands.auth.load_cli_token",
+            "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
             return_value=CliTokenRecord(
                 base_url="http://localhost:4000",
                 key="sk-matches",
@@ -1029,7 +1029,7 @@ class TestPrintTokenCommand:
         frequently)."""
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_cli_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
                 return_value=CliTokenRecord(
                     base_url="http://localhost:4000",
                     key="sk-cached-fresh",
@@ -1053,7 +1053,7 @@ class TestPrintTokenCommand:
 
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_cli_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_cli_token",
                 return_value=CliTokenRecord(
                     base_url="http://localhost:4000",
                     key="sk-stale-key",
@@ -1155,7 +1155,7 @@ class TestFileFallbackStorage:
         def _explode(*args, **kwargs):
             raise TypeError("not serialisable")
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _explode)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _explode)
 
         with pytest.raises(TypeError):
             save_cli_token(CliTokenRecord(key="sk-new"), vault=secret_vault_factory(available=False))
@@ -1185,7 +1185,7 @@ class TestKeychainBackedCommands:
             patch("webbrowser.open"),
             patch("requests.post", return_value=_mock_cli_sso_start_response()),
             patch("requests.get", return_value=poll_response),
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             return self.runner.invoke(login, obj={"base_url": base_url, "secret_vault": vault})
 
@@ -1349,7 +1349,7 @@ class TestApiKeyPrecedence:
     into the keychain must not disturb that order."""
 
     def _resolved_key(self, args, obj=None):
-        with patch("litellm.proxy.client.cli.main.print_version") as mock_print_version:
+        with patch("token_iq.gateway.proxy.client.cli.main.print_version") as mock_print_version:
             result = CliRunner().invoke(cli, [*args, "version"], obj=obj)
         assert result.exit_code == 0, result.output
         return mock_print_version.call_args[0][1]
@@ -1414,15 +1414,15 @@ class TestLoginConfigClaude:
             patch("webbrowser.open"),
             patch("requests.post", return_value=_mock_cli_sso_start_response()),
             patch("requests.get", return_value=poll_response),
-            patch("litellm.proxy.client.cli.commands.auth.save_cli_token"),
-            patch("litellm.proxy.client.cli.interface.show_commands"),
-            patch("litellm.proxy.client.cli.commands.auth.CLAUDE_SETTINGS_PATH", settings_path),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_cli_token"),
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.CLAUDE_SETTINGS_PATH", settings_path),
             patch(
-                "litellm.proxy.client.cli.commands.auth.SETTINGS_FILE_OWNERS",
+                "token_iq.gateway.proxy.client.cli.commands.auth.SETTINGS_FILE_OWNERS",
                 (SettingsFileOwner(backup_path, "lite up", "lite down"),),
             ),
             patch(
-                "litellm.proxy.client.cli.commands.claude_settings.shutil.which",
+                "token_iq.gateway.proxy.client.cli.commands.claude_settings.shutil.which",
                 return_value="/usr/local/bin/lite",
             ),
         ):
@@ -1535,7 +1535,7 @@ def _pkce_record(**overrides):
 
 
 def _pkce_credential():
-    from litellm.proxy.client.cli.commands.pkce_login import PkceCredential
+    from token_iq.gateway.proxy.client.cli.commands.pkce_login import PkceCredential
 
     return PkceCredential(
         access_token="sk-cli-fresh",
@@ -1571,11 +1571,11 @@ class TestPkceLoginCommand:
             return SecretStored()
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record(team_id="team-a")),
-            patch("litellm.proxy.client.cli.commands.auth.save_token", side_effect=record_posts) as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record(team_id="team-a")),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", side_effect=record_posts) as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, ["--pkce"], obj={"base_url": PKCE_BASE_URL})
 
@@ -1599,11 +1599,11 @@ class TestPkceLoginCommand:
                 self.response = _FakeHttpResponse(503, {"error": "temporarily_unavailable"})
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FailingSession),
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FailingSession),
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, ["--pkce"], obj={"base_url": PKCE_BASE_URL})
 
@@ -1618,11 +1618,11 @@ class TestPkceLoginCommand:
     @pytest.mark.parametrize("previous", [None, {"key": "sk-classic", "base_url": PKCE_BASE_URL}])
     def test_pkce_login_without_a_previous_refresh_token_makes_no_revocation_request(self, previous):
         with (
-            patch("litellm.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=previous),
-            patch("litellm.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=previous),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, ["--pkce"], obj={"base_url": PKCE_BASE_URL})
 
@@ -1633,10 +1633,10 @@ class TestPkceLoginCommand:
 
     def test_pkce_login_saves_the_refreshable_record_and_skips_the_sso_poll(self):
         with (
-            patch("litellm.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()) as run,
-            patch("litellm.proxy.client.cli.commands.auth._start_cli_sso_flow") as sso_start,
-            patch("litellm.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
-            patch("litellm.proxy.client.cli.interface.show_commands"),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login", return_value=_pkce_credential()) as run,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth._start_cli_sso_flow") as sso_start,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
+            patch("token_iq.gateway.proxy.client.cli.interface.show_commands"),
         ):
             result = self.runner.invoke(login, ["--pkce"], obj={"base_url": f"{PKCE_BASE_URL}/"})
 
@@ -1657,14 +1657,14 @@ class TestPkceLoginCommand:
         assert saved["team_id"] == "team-b"
 
     def test_pkce_login_failure_is_reported_and_nothing_is_saved(self):
-        from litellm.proxy.client.cli.commands.pkce_login import PkceFailure
+        from token_iq.gateway.proxy.client.cli.commands.pkce_login import PkceFailure
 
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.run_pkce_login",
+                "token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login",
                 return_value=PkceFailure("sign-in was not approved (access_denied): no details"),
             ),
-            patch("litellm.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token", return_value=SecretStored()) as save,
         ):
             result = self.runner.invoke(login, ["--pkce"], obj={"base_url": PKCE_BASE_URL})
 
@@ -1674,8 +1674,8 @@ class TestPkceLoginCommand:
 
     def test_login_without_the_flag_never_touches_the_pkce_flow(self):
         with (
-            patch("litellm.proxy.client.cli.commands.auth.run_pkce_login") as run,
-            patch("litellm.proxy.client.cli.commands.auth._start_cli_sso_flow", side_effect=KeyboardInterrupt),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.run_pkce_login") as run,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth._start_cli_sso_flow", side_effect=KeyboardInterrupt),
         ):
             result = self.runner.invoke(login, obj={"base_url": PKCE_BASE_URL})
 
@@ -1690,9 +1690,9 @@ class TestPkceLogoutCommand:
 
     def test_logout_revokes_the_refresh_token_before_clearing(self):
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
         ):
             result = self.runner.invoke(logout)
 
@@ -1713,9 +1713,9 @@ class TestPkceLogoutCommand:
                 self.response = _FakeHttpResponse(401, {"error": "invalid_client"})
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
         ):
             result = self.runner.invoke(logout)
 
@@ -1736,9 +1736,9 @@ class TestPkceLogoutCommand:
                 )
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _UnavailableSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _UnavailableSession),
         ):
             result = self.runner.invoke(logout)
 
@@ -1752,9 +1752,9 @@ class TestPkceLogoutCommand:
 
     def test_logout_of_a_classic_token_makes_no_request(self):
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value={"key": "sk-classic"}),
-            patch("litellm.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value={"key": "sk-classic"}),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.clear_cli_token", return_value=SecretErased()) as clear,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
         ):
             result = self.runner.invoke(logout)
 
@@ -1778,9 +1778,9 @@ class TestPkcePrintToken:
                 self.response = _FakeHttpResponse(200, PKCE_TOKEN_RESPONSE)
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
         ):
             result = self.runner.invoke(print_token, obj={})
 
@@ -1795,10 +1795,10 @@ class TestPkcePrintToken:
     def test_print_token_prints_a_fresh_pkce_key_without_a_request(self):
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_token",
                 return_value=_pkce_record(expires_at=time.time() + 3600),
             ),
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
         ):
             result = self.runner.invoke(print_token, obj={})
 
@@ -1813,11 +1813,11 @@ class TestPkcePrintToken:
 
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_token",
                 return_value=_pkce_record(expires_at=time.time() - 1),
             ),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
         ):
             result = self.runner.invoke(print_token, obj={})
 
@@ -1841,11 +1841,11 @@ class TestPkcePrintToken:
 
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_token",
                 return_value=_pkce_record(expires_at=time.time() - 1),
             ),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
         ):
             result = self.runner.invoke(cli, ["--base-url", PKCE_BASE_URL, "auth", "print-token"])
 
@@ -1867,9 +1867,9 @@ class TestPkcePrintToken:
                 self.response = _FakeHttpResponse(200, PKCE_TOKEN_RESPONSE)
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
         ):
             result = self.runner.invoke(cli, ["--base-url", PKCE_BASE_URL, "auth", "print-token"])
 
@@ -1890,9 +1890,9 @@ class TestPkcePrintToken:
                 self.response = _FakeHttpResponse(200, PKCE_TOKEN_RESPONSE)
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
         ):
             result = self.runner.invoke(cli, ["auth", "print-token"])
 
@@ -1904,10 +1904,10 @@ class TestPkcePrintToken:
     def test_print_token_for_an_expired_classic_token_makes_no_request(self):
         with (
             patch(
-                "litellm.proxy.client.cli.commands.auth.load_token",
+                "token_iq.gateway.proxy.client.cli.commands.auth.load_token",
                 return_value={"key": "sk-classic", "timestamp": time.time() - (CLI_JWT_EXPIRATION_HOURS + 1) * 3600},
             ),
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _FakeSession),
         ):
             result = self.runner.invoke(print_token, obj={})
 
@@ -1926,9 +1926,9 @@ class TestGetStoredApiKeyRefresh:
                 self.response = _FakeHttpResponse(200, PKCE_TOKEN_RESPONSE)
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefreshingSession),
         ):
             assert get_stored_api_key(PKCE_BASE_URL) == "sk-cli-rotated"
             assert get_stored_api_key("https://other.example.com") is None
@@ -1945,9 +1945,9 @@ class TestGetStoredApiKeyRefresh:
                 self.response = _FakeHttpResponse(503, {"error": "temporarily_unavailable"})
 
         with (
-            patch("litellm.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
-            patch("litellm.proxy.client.cli.commands.auth.save_token") as save,
-            patch("litellm.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.load_token", return_value=_pkce_record()),
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.save_token") as save,
+            patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.Session", _RefusingSession),
         ):
             assert get_stored_api_key(PKCE_BASE_URL) == "sk-cli-old"
 

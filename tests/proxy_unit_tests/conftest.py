@@ -8,8 +8,9 @@ import warnings
 import pytest
 
 
-import litellm
-import litellm.proxy.proxy_server
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server
+from token_iq import gateway as litellm
 
 
 # Top-level assignments of these types are the ones importlib.reload(litellm)

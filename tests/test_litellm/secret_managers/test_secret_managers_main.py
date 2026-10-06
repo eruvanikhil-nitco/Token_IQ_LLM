@@ -7,14 +7,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_secret_manager import CustomSecretManager
-from litellm.secret_managers.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
+from token_iq.gateway.secret_managers.main import (
     get_secret,
     normalize_nonempty_secret_str,
     secret_manager_would_be_consulted,
 )
-from litellm.types.secret_managers.main import KeyManagementSettings, KeyManagementSystem
+from token_iq.gateway.types.secret_managers.main import KeyManagementSettings, KeyManagementSystem
 
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -64,13 +64,13 @@ def test_oidc_google_success():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             with patch(
-                "litellm.secret_managers.main.HTTPHandler",
+                "token_iq.gateway.secret_managers.main.HTTPHandler",
                 side_effect=lambda timeout=None: mock_handler,
             ):
                 result = get_secret(secret_name)
@@ -89,13 +89,13 @@ def test_oidc_google_cached():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = "cached_token"
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             with patch(
-                "litellm.secret_managers.main.HTTPHandler",
+                "token_iq.gateway.secret_managers.main.HTTPHandler",
                 Mock(side_effect=AssertionError("HTTPHandler should not be used")),
             ):
                 result = get_secret(secret_name)
@@ -121,9 +121,9 @@ def test_oidc_google_cache_ttl_capped_by_token_exp():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             result = get_secret(secret_name)
@@ -144,9 +144,9 @@ def test_oidc_google_expired_token_not_cached():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             result = get_secret(secret_name)
@@ -165,9 +165,9 @@ def test_oidc_google_long_lived_token_still_capped_at_default_ttl():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             result = get_secret(secret_name)
@@ -186,9 +186,9 @@ def test_oidc_google_non_jwt_token_keeps_default_ttl():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             result = get_secret(secret_name)
@@ -208,13 +208,13 @@ def test_oidc_google_failure():
     mock_oidc_cache = Mock()
     mock_oidc_cache.get_cache.return_value = None
 
-    with patch("litellm.secret_managers.main.oidc_cache", mock_oidc_cache):
+    with patch("token_iq.gateway.secret_managers.main.oidc_cache", mock_oidc_cache):
         with patch(
-            "litellm.secret_managers.main._get_oidc_http_handler",
+            "token_iq.gateway.secret_managers.main._get_oidc_http_handler",
             mock_get_http_handler,
         ):
             with patch(
-                "litellm.secret_managers.main.HTTPHandler",
+                "token_iq.gateway.secret_managers.main.HTTPHandler",
                 side_effect=lambda timeout=None: mock_handler,
             ):
                 with pytest.raises(ValueError, match="Google OIDC provider failed"):
@@ -238,8 +238,8 @@ def test_oidc_circleci_failure(monkeypatch):
         get_secret(secret_name)
 
 
-@patch("litellm.secret_managers.main.oidc_cache")
-@patch("litellm.secret_managers.main._get_oidc_http_handler")
+@patch("token_iq.gateway.secret_managers.main.oidc_cache")
+@patch("token_iq.gateway.secret_managers.main._get_oidc_http_handler")
 def test_oidc_github_success(mock_get_http_handler, mock_oidc_cache, mock_env):
     mock_env["ACTIONS_ID_TOKEN_REQUEST_URL"] = "https://github.com/token"
     mock_env["ACTIONS_ID_TOKEN_REQUEST_TOKEN"] = "github_token"
@@ -280,7 +280,7 @@ def test_oidc_azure_file_success(mock_env, tmp_path):
     assert result == "azure_token"
 
 
-@patch("litellm.secret_managers.main.get_azure_ad_token_provider")
+@patch("token_iq.gateway.secret_managers.main.get_azure_ad_token_provider")
 def test_oidc_azure_ad_token_success(mock_get_azure_ad_token_provider, monkeypatch):
     # Force-unset so we always hit the Azure AD token provider path (CI may set AZURE_FEDERATED_TOKEN_FILE)
     monkeypatch.delenv("AZURE_FEDERATED_TOKEN_FILE", raising=False)

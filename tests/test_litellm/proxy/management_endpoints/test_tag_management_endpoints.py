@@ -12,10 +12,10 @@ from prisma.actions import LiteLLM_VerificationTokenActions
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, Mock, patch
 
-import litellm
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.proxy_server import app
-from litellm.types.tag_management import TagDeleteRequest, TagInfoRequest, TagNewRequest
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.tag_management import TagDeleteRequest, TagInfoRequest, TagNewRequest
 
 client = TestClient(app)
 
@@ -50,7 +50,7 @@ async def test_create_and_get_tag():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -60,13 +60,13 @@ async def test_create_and_get_tag():
 
     try:
         with (
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
-            patch("litellm.proxy.proxy_server.llm_router") as mock_router,
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router,
             patch(
-                "litellm.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
+                "token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
             ),
             patch(
-                "litellm.proxy.management_endpoints.tag_management_endpoints.get_deployments_by_model"
+                "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_deployments_by_model"
             ) as mock_get_deployments,
         ):
             # Setup prisma mocks
@@ -146,7 +146,7 @@ async def test_update_tag():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -156,9 +156,9 @@ async def test_update_tag():
 
     try:
         with (
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
             patch(
-                "litellm.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
+                "token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
             ),
         ):
             # Setup prisma mocks
@@ -224,7 +224,7 @@ async def test_delete_tag():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -233,7 +233,7 @@ async def test_delete_tag():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             # Setup prisma mocks
             mock_db = Mock()
             mock_prisma.db = mock_db
@@ -287,9 +287,9 @@ def _tag_cache_doubles():
     recording_cache = _RecordingAuthCache()
     mock_publish = AsyncMock()
     with (
-        patch("litellm.proxy.proxy_server.user_api_key_cache", recording_cache),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", recording_cache),
         patch(
-            "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.publish_auth_cache_invalidation",
+            "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.publish_auth_cache_invalidation",
             mock_publish,
         ),
     ):
@@ -312,7 +312,7 @@ async def test_new_tag_invalidates_tag_and_registry_caches():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
@@ -322,13 +322,13 @@ async def test_new_tag_invalidates_tag_and_registry_caches():
     try:
         with (
             _tag_cache_doubles() as (recording_cache, mock_publish),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
-            patch("litellm.proxy.proxy_server.llm_router"),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.llm_router"),
             patch(
-                "litellm.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
+                "token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
             ),
             patch(
-                "litellm.proxy.management_endpoints.tag_management_endpoints.get_deployments_by_model"
+                "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_deployments_by_model"
             ) as mock_get_deployments,
         ):
             mock_db = Mock()
@@ -368,7 +368,7 @@ async def test_update_tag_invalidates_only_the_tag_cache():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
@@ -378,9 +378,9 @@ async def test_update_tag_invalidates_only_the_tag_cache():
     try:
         with (
             _tag_cache_doubles() as (recording_cache, mock_publish),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
             patch(
-                "litellm.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
+                "token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "default_user_id"
             ),
         ):
             mock_db = Mock()
@@ -422,7 +422,7 @@ async def test_delete_tag_invalidates_tag_and_registry_caches():
     """Without this a deleted tag keeps its cached budget enforced until the TTL expires."""
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
@@ -432,7 +432,7 @@ async def test_delete_tag_invalidates_tag_and_registry_caches():
     try:
         with (
             _tag_cache_doubles() as (recording_cache, mock_publish),
-            patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
             mock_db = Mock()
             mock_prisma.db = mock_db
@@ -464,7 +464,7 @@ async def test_list_tags_with_dynamic_tags():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -473,7 +473,7 @@ async def test_list_tags_with_dynamic_tags():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
 
@@ -545,7 +545,7 @@ async def test_list_tags_no_dynamic_tags():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -554,7 +554,7 @@ async def test_list_tags_no_dynamic_tags():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
 
@@ -594,7 +594,7 @@ async def test_internal_user_list_tags_only_returns_tags_used_by_their_keys():
     from datetime import datetime
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="current-owned-key",
@@ -604,7 +604,7 @@ async def test_internal_user_list_tags_only_returns_tags_used_by_their_keys():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
 
@@ -685,7 +685,7 @@ async def test_internal_user_list_tags_does_not_500_on_unsupported_prisma_kwarg(
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="new-user-key",
@@ -695,7 +695,7 @@ async def test_internal_user_list_tags_does_not_500_on_unsupported_prisma_kwarg(
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
 
@@ -728,7 +728,7 @@ async def test_list_tags_with_date_range_filters_dynamic_tags():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -737,7 +737,7 @@ async def test_list_tags_with_date_range_filters_dynamic_tags():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
             mock_db.litellm_tagtable.find_many = AsyncMock(return_value=[])
@@ -768,7 +768,7 @@ async def test_internal_user_tag_daily_activity_is_scoped_to_their_keys():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_tag_daily_activity,
     )
 
@@ -778,9 +778,9 @@ async def test_internal_user_tag_daily_activity_is_scoped_to_their_keys():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         patch(
-            "litellm.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
+            "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
             new_callable=AsyncMock,
         ) as mock_get_daily_activity,
     ):
@@ -814,7 +814,7 @@ async def test_internal_user_tag_daily_activity_rejects_unowned_api_key_filter()
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_tag_daily_activity,
     )
 
@@ -824,9 +824,9 @@ async def test_internal_user_tag_daily_activity_rejects_unowned_api_key_filter()
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         patch(
-            "litellm.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
+            "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
             new_callable=AsyncMock,
         ) as mock_get_daily_activity,
     ):
@@ -859,7 +859,7 @@ async def test_internal_user_tag_daily_activity_scopes_to_current_key_without_us
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_tag_daily_activity,
     )
 
@@ -870,9 +870,9 @@ async def test_internal_user_tag_daily_activity_scopes_to_current_key_without_us
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         patch(
-            "litellm.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
+            "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
             new_callable=AsyncMock,
         ) as mock_get_daily_activity,
     ):
@@ -904,7 +904,7 @@ async def test_internal_user_tag_daily_activity_without_any_scoped_keys_returns_
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_tag_daily_activity,
     )
 
@@ -914,9 +914,9 @@ async def test_internal_user_tag_daily_activity_without_any_scoped_keys_returns_
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         patch(
-            "litellm.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
+            "token_iq.gateway.proxy.management_endpoints.tag_management_endpoints.get_daily_activity",
             new_callable=AsyncMock,
         ) as mock_get_daily_activity,
     ):
@@ -944,7 +944,7 @@ async def test_get_tag_daily_activity_requires_database_connection():
     Tag daily activity should fail with the same explicit DB error used by other
     tag endpoints instead of raising an AttributeError during scope resolution.
     """
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_tag_daily_activity,
     )
 
@@ -953,7 +953,7 @@ async def test_get_tag_daily_activity_requires_database_connection():
         user_role=LitellmUserRoles.INTERNAL_USER,
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc_info:
             await get_tag_daily_activity(
                 start_date="2025-01-01",
@@ -970,7 +970,7 @@ async def test_list_tags_without_date_range_omits_date_filter():
     """When no date range is passed, the WHERE clause must not carry a date key."""
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -979,7 +979,7 @@ async def test_list_tags_without_date_range_omits_date_filter():
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
             mock_db.litellm_tagtable.find_many = AsyncMock(return_value=[])
@@ -1011,7 +1011,7 @@ async def test_list_tags_without_date_range_omits_date_filter():
 async def test_list_tags_rejects_invalid_date_range(query, expected_detail_fragment):
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
@@ -1020,7 +1020,7 @@ async def test_list_tags_rejects_invalid_date_range(query, expected_detail_fragm
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
     try:
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_db = Mock()
             mock_prisma.db = mock_db
             mock_db.litellm_tagtable.find_many = AsyncMock(return_value=[])
@@ -1043,10 +1043,10 @@ async def test_get_deployments_by_model_id():
     """
     from unittest.mock import Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_deployments_by_model,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
     # Create a mock router
     mock_router = Mock()
@@ -1073,10 +1073,10 @@ async def test_get_deployments_by_model_name():
     """
     from unittest.mock import Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_deployments_by_model,
     )
-    from litellm.types.router import Deployment
+    from token_iq.gateway.types.router import Deployment
 
     # Create a mock router
     mock_router = Mock()
@@ -1107,7 +1107,7 @@ async def test_get_deployments_by_model_not_found():
     """
     from unittest.mock import Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         get_deployments_by_model,
     )
 
@@ -1133,12 +1133,12 @@ async def test_add_tag_to_deployment_preserves_encrypted_fields():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         _add_tag_to_deployment,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Setup prisma mocks
         mock_db = Mock()
         mock_prisma.db = mock_db
@@ -1199,12 +1199,12 @@ async def test_add_tag_to_deployment_with_string_params():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         _add_tag_to_deployment,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Setup prisma mocks
         mock_db = Mock()
         mock_prisma.db = mock_db
@@ -1252,12 +1252,12 @@ async def test_add_tag_to_deployment_no_duplicate_tags():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         _add_tag_to_deployment,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Setup prisma mocks
         mock_db = Mock()
         mock_prisma.db = mock_db
@@ -1304,12 +1304,12 @@ async def test_add_tag_to_deployment_model_not_found():
     """
     from unittest.mock import AsyncMock, Mock
 
-    from litellm.proxy.management_endpoints.tag_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.tag_management_endpoints import (
         _add_tag_to_deployment,
     )
-    from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+    from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Setup prisma mocks
         mock_db = Mock()
         mock_prisma.db = mock_db

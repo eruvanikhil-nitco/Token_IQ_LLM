@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import AsyncMock
 
-from litellm.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 
 
 class _SlowInt(int):

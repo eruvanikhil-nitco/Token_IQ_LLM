@@ -8,7 +8,7 @@ import yaml
 from fastapi.testclient import TestClient
 
 
-import litellm
+from token_iq import gateway as litellm
 
 pytestmark = pytest.mark.flaky(condition=False)
 
@@ -20,7 +20,7 @@ def _initialize_proxy_with_config(config: dict, tmp_path) -> TestClient:
     IMPORTANT: proxy_server.initialize() mutates module-level globals. We must call
     cleanup_router_config_variables() before initializing to prevent cross-test bleed.
     """
-    from litellm.proxy.proxy_server import (
+    from token_iq.gateway.proxy.proxy_server import (
         app,
         cleanup_router_config_variables,
         initialize,
@@ -68,7 +68,7 @@ def _decode_sse_chunk(chunk) -> str:
 
 
 def test_restamp_streaming_chunk_skips_matching_model():
-    from litellm.proxy.proxy_server import _restamp_streaming_chunk_model
+    from token_iq.gateway.proxy.proxy_server import _restamp_streaming_chunk_model
 
     chunk = _make_model_response_stream_chunk("client-model")
 
@@ -85,7 +85,7 @@ def test_restamp_streaming_chunk_skips_matching_model():
 
 
 def test_fast_serialize_simple_streaming_chunk_matches_model_dump_json():
-    from litellm.proxy.proxy_server import _serialize_streaming_chunk
+    from token_iq.gateway.proxy.proxy_server import _serialize_streaming_chunk
 
     chunk = _make_model_response_stream_chunk("client-model")
 
@@ -102,7 +102,7 @@ def test_fast_serialize_returns_none_when_model_field_is_missing():
     compatible clients that reject ``null`` for optional string fields.
     Falling back to ``None`` lets the canonical serializer handle the edge.
     """
-    from litellm.proxy.proxy_server import (
+    from token_iq.gateway.proxy.proxy_server import (
         _fast_serialize_simple_model_response_stream,
         _serialize_streaming_chunk,
     )
@@ -153,7 +153,7 @@ def test_proxy_chat_completion_does_not_return_provider_prefixed_model(
     )
 
     # Patch router call to avoid making any real network request.
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(
         proxy_server.llm_router,  # type: ignore[arg-type]
@@ -203,8 +203,8 @@ async def test_proxy_streaming_chunks_do_not_return_provider_prefixed_model(
     client_model = "vllm-model"
     internal_model = f"hosted_vllm/{client_model}"
 
-    from litellm.proxy import proxy_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     # Patch proxy_logging_obj hooks so async_data_generator yields exactly our chunk.
     async def _iterator_hook(
@@ -277,8 +277,8 @@ async def test_proxy_streaming_chunks_use_client_requested_model_before_alias_ma
     canonical_model = "vllm-model"
     internal_model = f"hosted_vllm/{canonical_model}"
 
-    from litellm.proxy import proxy_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     async def _iterator_hook(
         user_api_key_dict: UserAPIKeyAuth,
@@ -349,8 +349,8 @@ async def test_proxy_streaming_azure_model_router_preserves_actual_model(monkeyp
     router_model = "azure_ai/model_router"
     actual_model_used = "azure_ai/gpt-5-nano-2025-08-07"
 
-    from litellm.proxy import proxy_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     async def _iterator_hook(
         user_api_key_dict: UserAPIKeyAuth,
@@ -422,8 +422,8 @@ async def test_proxy_streaming_fastest_response_preserves_winning_model(monkeypa
     comma_separated_models = "openai/gpt-4o,gemini/gemini-2.5-flash"
     winning_model = "gemini-2.5-flash"
 
-    from litellm.proxy import proxy_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     async def _iterator_hook(
         user_api_key_dict: UserAPIKeyAuth,

@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy.guardrails.guardrail_hooks.singulr.singulr import SingulrGuardrail
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.proxy.guardrails.guardrail_hooks.singulr import (
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.singulr.singulr import SingulrGuardrail
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.singulr import (
     SingulrGuardrailConfigModel,
 )
 
@@ -121,7 +121,7 @@ class TestSingulrBuildPayloadRequestData:
         """The response hasn't happened yet at request time, so model_response
         must not be forwarded even if request_data carries a stale response
         object from a previous call."""
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         request_data = {"model": "gpt-4o", "response": ModelResponse()}
         payload = singulr_guardrail._build_payload(request_data, {"texts": []}, "request")
@@ -135,7 +135,7 @@ class TestSingulrBuildPayloadRequestData:
         payload cannot be sent via httpx's json= kwarg."""
         import json as _json
 
-        from litellm.types.utils import Choices, Message, ModelResponse, Usage
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
         response = ModelResponse(
             choices=[Choices(message=Message(role="assistant", content="Go to settings."))],
@@ -153,7 +153,7 @@ class TestSingulrBuildPayloadRequestData:
         """Tool calls the model requests arrive inside response.choices[].message.tool_calls.
         They must survive the dump so Singulr can inspect what tools the
         model is trying to invoke."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         response = ModelResponse(
             choices=[
@@ -489,7 +489,7 @@ class TestSingulrConfigModel:
 
 class TestSingulrInitializer:
     def test_guardrail_initializer_registry_has_entry(self):
-        from litellm.proxy.guardrails.guardrail_hooks.singulr import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.singulr import (
             initialize_guardrail,
         )
 
@@ -501,10 +501,10 @@ class TestSingulrInitializer:
         the generic api_base/api_key fields. initialize_guardrail must read
         those, or a UI-configured singulr_api_base is silently ignored and
         the guardrail falls back to the localhost default."""
-        from litellm.proxy.guardrails.guardrail_hooks.singulr import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.singulr import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import Guardrail, LitellmParams
+        from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="singulr",
@@ -529,10 +529,10 @@ class TestSingulrInitializer:
         per-request latency budget. initialize_guardrail must forward it to
         SingulrGuardrail instead of leaving every deployment stuck on the
         hardcoded default regardless of configuration."""
-        from litellm.proxy.guardrails.guardrail_hooks.singulr import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.singulr import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import Guardrail, LitellmParams
+        from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
         litellm_params = LitellmParams(
             guardrail="singulr",

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from litellm.llms.openai_like.chat.handler import make_call, make_sync_call
+from token_iq.gateway.llms.openai_like.chat.handler import make_call, make_sync_call
 
 
 class MockResponse:

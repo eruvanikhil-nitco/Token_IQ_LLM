@@ -2,7 +2,7 @@ import builtins
 
 import pytest
 
-from litellm.integrations.opentelemetry import OpenTelemetry
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
 
 def _make_otel(exporter: str) -> OpenTelemetry:

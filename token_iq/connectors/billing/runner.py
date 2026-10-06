@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Final
 
-from litellm._logging import verbose_proxy_logger
+from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.connectors.billing.connector import BillingConnector
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository

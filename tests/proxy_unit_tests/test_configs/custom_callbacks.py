@@ -1,6 +1,6 @@
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 import inspect
-import litellm
+from token_iq import gateway as litellm
 
 
 class testCustomCallbackProxy(CustomLogger):

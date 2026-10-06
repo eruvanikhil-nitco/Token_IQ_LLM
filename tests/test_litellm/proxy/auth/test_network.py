@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import Request
 
-from litellm.proxy.auth.network import (
+from token_iq.gateway.proxy.auth.network import (
     TrustedProxyConfig,
     resolve_client_ip,
     resolve_network_context,

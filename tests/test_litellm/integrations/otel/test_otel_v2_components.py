@@ -21,15 +21,15 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
 )
 from opentelemetry.trace import SpanKind  # noqa: E402
 
-from litellm.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.model.config import OpenTelemetryV2Config  # noqa: E402
-from litellm.integrations.otel.mappers.genai import GenAIMapper  # noqa: E402
-from litellm.integrations.otel.mappers.legacy import LegacyMapper  # noqa: E402
-from litellm.integrations.otel.plumbing.metrics import (
+from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config  # noqa: E402
+from token_iq.gateway.integrations.otel.mappers.genai import GenAIMapper  # noqa: E402
+from token_iq.gateway.integrations.otel.mappers.legacy import LegacyMapper  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing.metrics import (
     create_genai_metrics,
 )  # noqa: E402
-from litellm.integrations.otel.model.payloads import (  # noqa: E402
+from token_iq.gateway.integrations.otel.model.payloads import (  # noqa: E402
     GuardrailSpanData,
     LLMCallSpanData,
     LLMCost,
@@ -41,8 +41,8 @@ from litellm.integrations.otel.model.payloads import (  # noqa: E402
     ServiceSpanData,
     SpanError,
 )
-from litellm.integrations.otel.model.semconv import GenAI, GenAIOperation
-from litellm.integrations.otel.model.spans import (  # noqa: E402
+from token_iq.gateway.integrations.otel.model.semconv import GenAI, GenAIOperation
+from token_iq.gateway.integrations.otel.model.spans import (  # noqa: E402
     SPAN_REGISTRY,
     LiteLLMSpanKind,
     SpanRole,
@@ -54,7 +54,7 @@ from litellm.integrations.otel.model.spans import (  # noqa: E402
     span_role_for_service,
     validate_registry,
 )
-from litellm.integrations.otel.model.utils import (  # noqa: E402
+from token_iq.gateway.integrations.otel.model.utils import (  # noqa: E402
     as_bool,
     as_float,
     as_int,
@@ -277,7 +277,7 @@ def test_genai_mapper_omits_messages_when_content_not_captured():
 
 
 def test_genai_mapper_cost_breakdown():
-    from litellm.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
 
     data = LLMCallSpanData(
         operation=GenAIOperation.CHAT,
@@ -323,7 +323,7 @@ def test_genai_mapper_cost_breakdown():
 
 def test_genai_mapper_cost_breakdown_absent():
     # No cost_breakdown → only the rolled-up total (from response_cost) emits.
-    from litellm.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
 
     attrs = GenAIMapper().map(_full_llm_call())
     assert attrs[f"{LiteLLM.COST_PREFIX}total"] == 0.002
@@ -365,7 +365,7 @@ def test_llm_cost_from_breakdown_none_is_empty():
 
 
 def test_genai_mapper_guardrail_and_service():
-    from litellm.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
 
     g = GenAIMapper().map(GuardrailSpanData("presidio", mode="pre"))
     assert g[LiteLLM.GUARDRAIL_NAME] == "presidio"
@@ -388,7 +388,7 @@ def test_genai_mapper_guardrail_billing_attrs():
     """Billing counters and USD cost stamped on StandardLoggingGuardrailInformation
     surface on the guardrail span: usage JSON-serialized, cost numeric under the
     litellm.cost.* namespace."""
-    from litellm.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
 
     entry = {
         "guardrail_name": "azure-shield",
@@ -646,7 +646,7 @@ def test_baggage_processor_lifecycle_noops():
 
 
 def test_emitter_without_call_id_is_not_deduped():
-    from litellm.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     provider, exporter = providers.in_memory_provider(cfg)
@@ -671,7 +671,7 @@ def test_emitter_without_call_id_is_not_deduped():
 
 
 def _emit_error_span(message, error_type="litellm.APIError"):
-    from litellm.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     provider, exporter = providers.in_memory_provider(cfg)
@@ -696,7 +696,7 @@ def _emit_error_span(message, error_type="litellm.APIError"):
 
 
 def _exception_event(span):
-    from litellm.integrations.otel.model.semconv import ExceptionEvent
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent
 
     events = [e for e in span.events if e.name == ExceptionEvent.NAME]
     assert len(events) == 1, "expected exactly one exception event"
@@ -708,7 +708,7 @@ def test_error_message_recorded_as_full_exception_event_untruncated():
     ``exception.message`` so backends that dynamic-map unknown string span
     attrs to ``keyword`` (e.g. Elasticsearch with a 1024-char ``ignore_above``)
     still see it in full via the semconv-recognized event field."""
-    from litellm.integrations.otel.model.semconv import Error, ExceptionEvent
+    from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent
 
     long_message = "boom: " + "x" * 5000
     span = _emit_error_span(long_message, error_type="litellm.APIError")
@@ -730,8 +730,8 @@ def test_error_details_stamped_as_span_attributes_for_labels_ingest():
     attributes so backends that flatten attrs into label indexes (Elastic APM
     ``labels.*``, Datadog span tags) render them. The exception event with the
     full untruncated message stays alongside."""
-    from litellm.integrations.otel.model.semconv import Error, ExceptionEvent, LiteLLMError
-    from litellm.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent, LiteLLMError
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     provider, exporter = providers.in_memory_provider(cfg)
@@ -777,7 +777,7 @@ def test_error_details_omitted_when_span_error_carries_only_message():
     """A guardrail-shape error (message only, no code/traceback/provider) must
     not pollute the span with empty-string detail attributes. Only the keys
     that carry real data land."""
-    from litellm.integrations.otel.model.semconv import Error, LiteLLMError
+    from token_iq.gateway.integrations.otel.model.semconv import Error, LiteLLMError
 
     span = _emit_error_span("guardrail rejected", error_type="ContentFilter")
 
@@ -795,7 +795,7 @@ def test_error_attribute_keys_are_pinned():
     registry; the litellm-specific detail keys are vendor keys under
     ``litellm.provider.error.*``. Pins the exact strings so the emitted
     vocabulary can't drift silently."""
-    from litellm.integrations.otel.model.semconv import Error, LiteLLMError
+    from token_iq.gateway.integrations.otel.model.semconv import Error, LiteLLMError
 
     assert Error.TYPE == "error.type"
     assert Error.MESSAGE == "error.message"
@@ -809,7 +809,7 @@ def test_error_message_falls_back_to_error_type_when_message_absent():
     the resolved message is the error_type, and it lands on ``error.message``,
     the exception event, and the span-status description in lockstep so a
     single-source-of-truth view isn't inconsistent."""
-    from litellm.integrations.otel.model.semconv import Error, ExceptionEvent
+    from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent
 
     span = _emit_error_span(message=None, error_type="RateLimitError")
 
@@ -819,8 +819,8 @@ def test_error_message_falls_back_to_error_type_when_message_absent():
 
 
 def test_success_span_records_no_exception_event():
-    from litellm.integrations.otel.emitter import SpanEmitter
-    from litellm.integrations.otel.model.semconv import ExceptionEvent
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     provider, exporter = providers.in_memory_provider(cfg)
@@ -847,8 +847,8 @@ def test_success_span_records_no_exception_event():
 def _engine_with_event_recorder():
     from opentelemetry.sdk._logs.export import InMemoryLogExporter
 
-    from litellm.integrations.otel.emitter import SpanEmitter
-    from litellm.integrations.otel.plumbing.events import GenAIEventRecorder
+    from token_iq.gateway.integrations.otel.emitter import SpanEmitter
+    from token_iq.gateway.integrations.otel.plumbing.events import GenAIEventRecorder
 
     cfg = OpenTelemetryV2Config(exporter="in_memory", enable_events=True)
     provider, span_exporter = providers.in_memory_provider(cfg)
@@ -883,7 +883,7 @@ def test_operation_exception_log_event_emitted_on_failed_llm_call():
     the failed span via trace/span ids. The span-side error surface stays intact."""
     from opentelemetry._logs.severity import SeverityNumber
 
-    from litellm.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
 
     engine, span_exporter, log_exporter = _engine_with_event_recorder()
     engine.emit(
@@ -915,7 +915,7 @@ def test_operation_exception_log_event_emitted_on_failed_llm_call():
 
 
 def test_operation_exception_log_event_omits_absent_stacktrace():
-    from litellm.integrations.otel.model.semconv import ExceptionEvent
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent
 
     engine, _, log_exporter = _engine_with_event_recorder()
     engine.emit(SpanRole.LLM_CALL, _llm_call_data(SpanError(error_type="APIError", message="boom")))
@@ -933,8 +933,8 @@ def test_operation_exception_log_event_always_carries_required_pair():
     from opentelemetry.sdk._logs.export import InMemoryLogExporter
     from opentelemetry.trace import INVALID_SPAN_CONTEXT
 
-    from litellm.integrations.otel.model.semconv import ExceptionEvent
-    from litellm.integrations.otel.plumbing.events import GenAIEventRecorder
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent
+    from token_iq.gateway.integrations.otel.plumbing.events import GenAIEventRecorder
 
     cfg = OpenTelemetryV2Config(exporter="in_memory", enable_events=True)
     log_exporter = InMemoryLogExporter()
@@ -984,7 +984,7 @@ def test_resolve_logger_provider_honors_explicit_noop_optout(monkeypatch):
     from opentelemetry import _logs
     from opentelemetry._logs import NoOpLoggerProvider
 
-    from litellm.integrations.otel.logger import OpenTelemetryV2
+    from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2
 
     cfg = OpenTelemetryV2Config(exporter="in_memory", enable_events=True)
     tracer_provider, _ = providers.in_memory_provider(cfg)
@@ -1009,7 +1009,7 @@ def test_resolve_logger_provider_reuses_operator_sdk_global(monkeypatch):
 
 
 def test_operation_exception_event_keys_are_pinned():
-    from litellm.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
+    from token_iq.gateway.integrations.otel.model.semconv import ExceptionEvent, GenAIEvent
 
     assert GenAIEvent.OPERATION_EXCEPTION == "gen_ai.client.operation.exception"
     assert ExceptionEvent.STACKTRACE == "exception.stacktrace"
@@ -1041,7 +1041,7 @@ def test_span_role_for_service_classifies_datastores_internal_and_metrics_only()
 
 
 def test_sanitize_event_metadata_drops_objects_dumps_and_secrets():
-    from litellm.integrations.otel.model.payloads import sanitize_event_metadata
+    from token_iq.gateway.integrations.otel.model.payloads import sanitize_event_metadata
 
     clean = sanitize_event_metadata(
         {
@@ -1061,7 +1061,7 @@ def test_sanitize_event_metadata_drops_objects_dumps_and_secrets():
 
 
 def test_sanitize_event_metadata_caps_value_length_and_handles_none():
-    from litellm.integrations.otel.model.payloads import sanitize_event_metadata
+    from token_iq.gateway.integrations.otel.model.payloads import sanitize_event_metadata
 
     assert sanitize_event_metadata(None) == {}
     big = sanitize_event_metadata({"k": "v" * 5000})
@@ -1072,7 +1072,7 @@ def test_genai_mapper_guardrail_cost_in_spend_attr():
     """guardrail_cost_in_spend surfaces on the span so trace consumers can tell a
     billed guardrail cost (already inside litellm.cost.total) from a report-only
     one; absent means billed and the attribute stays off the span."""
-    from litellm.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
 
     entry = {
         "guardrail_name": "azure-shield",

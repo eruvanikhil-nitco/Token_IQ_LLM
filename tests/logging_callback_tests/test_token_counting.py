@@ -1,6 +1,6 @@
 import os
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import pytest
 from dotenv import load_dotenv
 from fastapi import Request
@@ -11,13 +11,13 @@ import io
 import time
 import json
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
-import litellm
+from token_iq import gateway as litellm
 import asyncio
 from typing import Optional
-from litellm.types.utils import StandardLoggingPayload, Usage, ModelInfoBase
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload, Usage, ModelInfoBase
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class TestCustomLogger(CustomLogger):

@@ -11,10 +11,10 @@ from unittest import mock
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 ## for ollama we can't test making the completion call
-from litellm.utils import EmbeddingResponse, get_llm_provider, get_optional_params
+from token_iq.gateway.utils import EmbeddingResponse, get_llm_provider, get_optional_params
 
 
 def test_get_ollama_params():
@@ -76,7 +76,7 @@ def test_ollama_json_mode():
 
 
 def test_ollama_vision_model():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     from unittest.mock import patch
@@ -118,7 +118,7 @@ mock_ollama_embedding_response = EmbeddingResponse(model="ollama/nomic-embed-tex
 
 
 @mock.patch(
-    "litellm.llms.ollama.completion.handler.ollama_embeddings",
+    "token_iq.gateway.llms.ollama.completion.handler.ollama_embeddings",
     return_value=mock_ollama_embedding_response,
 )
 def test_ollama_embeddings(mock_embeddings):
@@ -145,7 +145,7 @@ def test_ollama_embeddings(mock_embeddings):
 
 
 @mock.patch(
-    "litellm.llms.ollama.completion.handler.ollama_aembeddings",
+    "token_iq.gateway.llms.ollama.completion.handler.ollama_aembeddings",
     return_value=mock_ollama_embedding_response,
 )
 def test_ollama_aembeddings(mock_aembeddings):
@@ -215,7 +215,7 @@ def test_ollama_chat_function_calling():
 
 
 def test_ollama_ssl_verify():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     import ssl
     import httpx
 
@@ -248,7 +248,7 @@ def test_ollama_ssl_verify():
 @pytest.mark.parametrize("stream", [True, False])
 @pytest.mark.asyncio
 async def test_async_ollama_ssl_verify(stream):
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
     import httpx
 
     try:
@@ -290,7 +290,7 @@ async def test_async_ollama_ssl_verify(stream):
 
 @pytest.mark.skip(reason="local only test")
 def test_ollama_streaming_with_chunk_builder():
-    from litellm.main import stream_chunk_builder
+    from token_iq.gateway.main import stream_chunk_builder
 
     tools = [
         {

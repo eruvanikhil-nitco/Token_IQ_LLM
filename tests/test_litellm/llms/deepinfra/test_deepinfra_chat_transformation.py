@@ -6,14 +6,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Add litellm to path
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_deepseek_supported_openai_params(monkeypatch):
     """
     Test "reasoning_effort" is an openai param supported for the DeepSeek model on deepinfra
     """
-    from litellm.llms.deepinfra.chat.transformation import DeepInfraConfig
+    from token_iq.gateway.llms.deepinfra.chat.transformation import DeepInfraConfig
 
     # Ensure we're using the local model cost map
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
@@ -38,7 +38,7 @@ def test_deepinfra_tool_message_content_transformation():
 
     Related to issue #13982
     """
-    from litellm.llms.deepinfra.chat.transformation import DeepInfraConfig
+    from token_iq.gateway.llms.deepinfra.chat.transformation import DeepInfraConfig
 
     config = DeepInfraConfig()
 
@@ -156,7 +156,7 @@ async def test_deepinfra_tool_message_content_transformation_async():
 
     Related to issue #13982
     """
-    from litellm.llms.deepinfra.chat.transformation import DeepInfraConfig
+    from token_iq.gateway.llms.deepinfra.chat.transformation import DeepInfraConfig
 
     config = DeepInfraConfig()
 

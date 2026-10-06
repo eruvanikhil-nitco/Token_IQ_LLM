@@ -11,8 +11,8 @@ import respx
 from httpx import Response
 
 
-import litellm
-from litellm import atext_completion, text_completion
+from token_iq import gateway as litellm
+from token_iq.gateway import atext_completion, text_completion
 
 
 @pytest.fixture(autouse=True)

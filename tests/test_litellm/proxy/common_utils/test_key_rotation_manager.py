@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     GenerateKeyResponse,
     LiteLLM_VerificationToken,
 )
-from litellm.proxy.common_utils.key_rotation_manager import KeyRotationManager
+from token_iq.gateway.proxy.common_utils.key_rotation_manager import KeyRotationManager
 
 
 class TestKeyRotationManager:
@@ -133,7 +133,7 @@ class TestKeyRotationManager:
         from unittest.mock import patch
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.datetime"
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.datetime"
         ) as mock_datetime:
             mock_datetime.now.return_value = now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(
@@ -192,11 +192,11 @@ class TestKeyRotationManager:
         from unittest.mock import patch
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             return_value=mock_response,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook"
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook"
             ):
                 # Execute
                 await manager._rotate_key(key_to_rotate)
@@ -270,16 +270,16 @@ class TestKeyRotationManager:
         from unittest.mock import patch
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             new_callable=AsyncMock,
         ) as mock_regenerate:
             mock_regenerate.return_value = mock_response
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
             ):
                 with patch(
-                    "litellm.proxy.common_utils.key_rotation_manager.LITELLM_KEY_ROTATION_GRACE_PERIOD",
+                    "token_iq.gateway.proxy.common_utils.key_rotation_manager.LITELLM_KEY_ROTATION_GRACE_PERIOD",
                     "48h",
                 ):
                     await manager._rotate_key(key_to_rotate)

@@ -5,10 +5,10 @@ import pytest
 
 import json
 
-import litellm
-from litellm.caching.dual_cache import DualCache
-from litellm.constants import SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY, SESSION_ID_GENERATED_METADATA_KEY
-from litellm.router_utils.pre_call_checks.deployment_affinity_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.constants import SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY, SESSION_ID_GENERATED_METADATA_KEY
+from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
     DeploymentAffinityCheck,
 )
 
@@ -199,11 +199,11 @@ async def _one_turn(router, model, session_id, key_hash):
     deployment can only come from a pin read."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post,
         patch(
-            "litellm.router_strategy.simple_shuffle.random.choice",
+            "token_iq.gateway.router_strategy.simple_shuffle.random.choice",
             side_effect=lambda seq: seq[0],
         ),
     ):

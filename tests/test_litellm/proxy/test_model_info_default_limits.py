@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy.proxy_server import _get_proxy_model_info
-from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+from token_iq.gateway.proxy.proxy_server import _get_proxy_model_info
+from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
 
 def _make_deployment(
@@ -108,8 +108,8 @@ class TestModelInfoEndpointWithRouter:
         When litellm_model_id is provided, the endpoint should return the deployment's
         default limits in litellm_params.
         """
-        from litellm.proxy.proxy_server import model_info_v1
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.proxy_server import model_info_v1
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         deployment = _make_deployment("model1", default_tpm=100, default_rpm=200)
 
@@ -119,9 +119,9 @@ class TestModelInfoEndpointWithRouter:
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.llm_model_list", []),
-            patch("litellm.proxy.proxy_server.user_model", None),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.llm_model_list", []),
+            patch("token_iq.gateway.proxy.proxy_server.user_model", None),
         ):
             response = await model_info_v1(
                 user_api_key_dict=user_api_key_dict,
@@ -139,8 +139,8 @@ class TestModelInfoEndpointWithRouter:
         Without litellm_model_id, the endpoint iterates all models. Each deployment's
         default limits should appear in its litellm_params entry.
         """
-        from litellm.proxy.proxy_server import model_info_v1
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.proxy_server import model_info_v1
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         deployment = _make_deployment("model1", default_tpm=100, default_rpm=200)
         deployment_dict = deployment.model_dump(exclude_none=True)
@@ -153,16 +153,16 @@ class TestModelInfoEndpointWithRouter:
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-test")
 
         with (
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.llm_model_list", [deployment_dict]),
-            patch("litellm.proxy.proxy_server.user_model", None),
-            patch("litellm.proxy.proxy_server.prisma_client", None),
-            patch("litellm.proxy.proxy_server.get_key_models", return_value=["model1"]),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.llm_model_list", [deployment_dict]),
+            patch("token_iq.gateway.proxy.proxy_server.user_model", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.get_key_models", return_value=["model1"]),
             patch(
-                "litellm.proxy.proxy_server.get_team_models", return_value=["model1"]
+                "token_iq.gateway.proxy.proxy_server.get_team_models", return_value=["model1"]
             ),
             patch(
-                "litellm.proxy.proxy_server.get_complete_model_list",
+                "token_iq.gateway.proxy.proxy_server.get_complete_model_list",
                 return_value=["model1"],
             ),
         ):

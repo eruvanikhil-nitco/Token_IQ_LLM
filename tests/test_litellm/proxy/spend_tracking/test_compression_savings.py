@@ -4,7 +4,7 @@ Unit tests for the compression-savings spend-log metadata normalizer.
 
 import pytest
 
-from litellm.proxy.spend_tracking.compression_savings import (
+from token_iq.gateway.proxy.spend_tracking.compression_savings import (
     extract_compression_saved_tokens,
 )
 
@@ -121,10 +121,10 @@ def test_bare_dict_guardrail_information_counts_as_single_entry():
 
 
 def test_headroom_writer_and_reader_share_provider_slug():
-    from litellm.proxy.guardrails.guardrail_hooks.headroom.headroom import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.headroom.headroom import (
         HEADROOM_GUARDRAIL_PROVIDER as writer_slug,
     )
-    from litellm.proxy.spend_tracking.compression_savings import (
+    from token_iq.gateway.proxy.spend_tracking.compression_savings import (
         HEADROOM_GUARDRAIL_PROVIDER as reader_slug,
     )
 

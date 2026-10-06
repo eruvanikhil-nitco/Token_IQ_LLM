@@ -16,8 +16,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.memory.memory_endpoints import _visibility_filter, router
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.memory.memory_endpoints import _visibility_filter, router
 
 
 def _make_row(
@@ -218,7 +218,7 @@ def _make_prisma() -> MagicMock:
 
 
 def _make_client(auth: UserAPIKeyAuth) -> TestClient:
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     app = FastAPI()
     app.include_router(router)
@@ -249,7 +249,7 @@ def _admin_viewer_auth() -> UserAPIKeyAuth:
 def _patch_prisma(prisma: Any):
     """Patch the endpoint module's _require_prisma to return our fake."""
     return patch(
-        "litellm.proxy.memory.memory_endpoints._require_prisma",
+        "token_iq.gateway.proxy.memory.memory_endpoints._require_prisma",
         return_value=prisma,
     )
 

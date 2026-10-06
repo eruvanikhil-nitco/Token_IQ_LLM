@@ -4,15 +4,15 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from httpx import Response, Request
 
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import (
     DeepKeepGuardrail,
     DeepKeepGuardrailMissingSecrets,
     DeepKeepGuardrailAPIError,
     GUARDRAIL_NAME,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.exceptions import GuardrailRaisedException
 
 
 def test_deepkeep_guard_config(monkeypatch: pytest.MonkeyPatch):

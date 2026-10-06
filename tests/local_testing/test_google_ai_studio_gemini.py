@@ -1,6 +1,6 @@
 import os, sys, traceback
 
-import litellm
+from token_iq import gateway as litellm
 from dotenv import load_dotenv
 
 

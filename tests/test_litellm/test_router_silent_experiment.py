@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.router import Router
+from token_iq import gateway as litellm
+from token_iq.gateway.router import Router
 
 
 class _NonCopyableSpan:

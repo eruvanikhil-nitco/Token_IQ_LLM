@@ -1,6 +1,6 @@
 """Bedrock Converse context_management forwarding (compact_20260112 only)."""
 
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
 CLAUDE_MODEL = "anthropic.claude-opus-4-7-20250115-v1:0"
 

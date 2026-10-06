@@ -34,11 +34,11 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from opentelemetry.trace import StatusCode
 
 
-from litellm.integrations.opentelemetry import (
+from token_iq.gateway.integrations.opentelemetry import (
     LITELLM_REQUEST_SPAN_NAME,
     OpenTelemetry,
 )
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 GUARDRAIL_SPAN_NAME = "guardrail"
@@ -48,7 +48,7 @@ PROXY_SPAN_NAME = "Received Proxy Server Request"
 def _bedrock_block_response():
     """Realistic Bedrock ApplyGuardrail response when a topic policy fires.
 
-    Mirrors the shape in ``litellm/types/proxy/guardrails/guardrail_hooks/
+    Mirrors the shape in ``token_iq/gateway/types/proxy/guardrails/guardrail_hooks/
     bedrock_guardrails.py`` so the violation-category extraction can be
     tested against the exact payload Bedrock returns.
     """
@@ -588,8 +588,8 @@ class TestCustomGuardrailEndToEnd(unittest.TestCase):
         # raises HTTPException, but the OTEL span flow is exception-type
         # agnostic. Using a plain Exception keeps this test runnable in
         # SDK-only installs that don't ship fastapi.
-        from litellm.integrations.custom_guardrail import CustomGuardrail
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         class BlockingViolation(Exception):
             pass

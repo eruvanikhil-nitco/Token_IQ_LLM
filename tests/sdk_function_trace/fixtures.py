@@ -174,9 +174,9 @@ ROUTES: Final = tuple(ROUTE_SPECS)
 
 
 def sdk_invocation(route: str, *, engine: Engine, asynchronous: bool) -> Invocation:
-    import litellm
-    from litellm.anthropic_interface import messages as sdk_messages
-    from litellm.rust_bridge import get_native_bridge
+    from token_iq import gateway as litellm
+    from token_iq.gateway.anthropic_interface import messages as sdk_messages
+    from token_iq.gateway.rust_bridge import get_native_bridge
 
     rust: Final = engine == "rust"
     bridge: Final = get_native_bridge() if rust else None

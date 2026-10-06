@@ -87,14 +87,14 @@ def test_get_routes_invalid_method_405(client):
 
 
 def test_adaptive_router_state_returns_snapshots(client, auth_as, monkeypatch):
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     fake_router = MagicMock()
     snap = {"router_name": "ar-1", "queue_depth": 0, "posteriors": []}
     bandit = MagicMock()
     bandit.get_state_snapshot = AsyncMock(return_value=snap)
-    from litellm.types.router import TaggedPreRoutingStrategy
+    from token_iq.gateway.types.router import TaggedPreRoutingStrategy
 
     fake_router.adaptive_routers = {
         "ar-1": [TaggedPreRoutingStrategy(tags=(), strategy=bandit)]
@@ -112,7 +112,7 @@ def test_adaptive_router_state_returns_snapshots(client, auth_as, monkeypatch):
 
 
 def test_adaptive_router_state_not_admin_forbidden(client, auth_as):
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     with auth_as(LitellmUserRoles.INTERNAL_USER):
         response = client.get("/adaptive_router/state")
@@ -121,8 +121,8 @@ def test_adaptive_router_state_not_admin_forbidden(client, auth_as):
 
 
 def test_adaptive_router_state_not_configured_404(client, auth_as, monkeypatch):
-    from litellm.proxy import proxy_server as ps
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy import proxy_server as ps
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     fake_router = MagicMock()
     fake_router.adaptive_routers = {}

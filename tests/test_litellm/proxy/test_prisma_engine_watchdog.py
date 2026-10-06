@@ -22,7 +22,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
 
 @pytest.fixture(autouse=True)

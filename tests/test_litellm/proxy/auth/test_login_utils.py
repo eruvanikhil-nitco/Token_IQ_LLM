@@ -11,15 +11,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.constants import LITELLM_PROXY_ADMIN_NAME
-from litellm.proxy._types import (
+from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
+from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
     LitellmUserRoles,
     ProxyErrorTypes,
     ProxyException,
     hash_token,
 )
-from litellm.proxy.auth.login_utils import (
+from token_iq.gateway.proxy.auth.login_utils import (
     LoginResult,
     authenticate_user,
     get_ui_credentials,
@@ -77,7 +77,7 @@ async def test_authenticate_user_admin_login_with_ui_credentials():
         },
     ):
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             mock_generate_key.return_value = {
@@ -86,12 +86,12 @@ async def test_authenticate_user_admin_login_with_ui_credentials():
             }
 
             with patch(
-                "litellm.proxy.auth.login_utils.user_update",
+                "token_iq.gateway.proxy.auth.login_utils.user_update",
                 new_callable=AsyncMock,
                 return_value=None,
             ) as mock_user_update:
                 with patch(
-                    "litellm.proxy.auth.login_utils.get_secret_bool",
+                    "token_iq.gateway.proxy.auth.login_utils.get_secret_bool",
                     return_value=False,
                 ):
                     result = await authenticate_user(
@@ -134,7 +134,7 @@ async def test_authenticate_user_admin_login_with_master_key_as_password(monkeyp
         # Explicitly remove UI_PASSWORD if it exists
         monkeypatch.delenv("UI_PASSWORD", raising=False)
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             mock_generate_key.return_value = {
@@ -143,12 +143,12 @@ async def test_authenticate_user_admin_login_with_master_key_as_password(monkeyp
             }
 
             with patch(
-                "litellm.proxy.auth.login_utils.user_update",
+                "token_iq.gateway.proxy.auth.login_utils.user_update",
                 new_callable=AsyncMock,
                 return_value=None,
             ) as mock_user_update:
                 with patch(
-                    "litellm.proxy.auth.login_utils.get_secret_bool",
+                    "token_iq.gateway.proxy.auth.login_utils.get_secret_bool",
                     return_value=False,
                 ):
                     result = await authenticate_user(
@@ -283,7 +283,7 @@ async def test_authenticate_user_email_case_insensitive_login():
         },
     ):
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             mock_generate_key.side_effect = [
@@ -327,7 +327,7 @@ async def test_authenticate_user_database_required_for_admin(monkeypatch):
 
     with patch.dict(os.environ, {"UI_USERNAME": ui_username, "UI_PASSWORD": ui_password}):
         with patch(
-            "litellm.proxy.auth.login_utils.user_update",
+            "token_iq.gateway.proxy.auth.login_utils.user_update",
             new_callable=AsyncMock,
             return_value=None,
         ):
@@ -372,7 +372,7 @@ async def test_authenticate_user_admin_login_with_non_ascii_characters():
         },
     ):
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             mock_generate_key.return_value = {
@@ -381,12 +381,12 @@ async def test_authenticate_user_admin_login_with_non_ascii_characters():
             }
 
             with patch(
-                "litellm.proxy.auth.login_utils.user_update",
+                "token_iq.gateway.proxy.auth.login_utils.user_update",
                 new_callable=AsyncMock,
                 return_value=None,
             ) as mock_user_update:
                 with patch(
-                    "litellm.proxy.auth.login_utils.get_secret_bool",
+                    "token_iq.gateway.proxy.auth.login_utils.get_secret_bool",
                     return_value=False,
                 ):
                     result = await authenticate_user(
@@ -445,7 +445,7 @@ async def test_authenticate_user_multiple_logins_generate_unique_tokens():
         },
     ):
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             # Each login should generate a unique token
@@ -456,12 +456,12 @@ async def test_authenticate_user_multiple_logins_generate_unique_tokens():
             ]
 
             with patch(
-                "litellm.proxy.auth.login_utils.user_update",
+                "token_iq.gateway.proxy.auth.login_utils.user_update",
                 new_callable=AsyncMock,
                 return_value=None,
             ):
                 with patch(
-                    "litellm.proxy.auth.login_utils.get_secret_bool",
+                    "token_iq.gateway.proxy.auth.login_utils.get_secret_bool",
                     return_value=False,
                 ):
                     # Simulate multiple logins from the same user
@@ -529,7 +529,7 @@ async def test_authenticate_user_database_login_with_non_ascii_password():
         },
     ):
         with patch(
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
         ) as mock_generate_key:
             mock_generate_key.return_value = {"token": "token-123"}
@@ -559,10 +559,10 @@ class TestEncodeUiSessionJwt:
     def test_encoded_cookie_carries_bounded_exp(self):
         import time
 
-        from litellm.proxy.auth.login_utils import encode_ui_session_jwt
+        from token_iq.gateway.proxy.auth.login_utils import encode_ui_session_jwt
 
         token_object = {"user_id": "u1", "key": "sk-abc", "login_method": "username_password"}
-        with patch("litellm.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "24h"):
+        with patch("token_iq.gateway.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "24h"):
             token = encode_ui_session_jwt(token_object, "sk-master-for-tests")
         claims = self._decode(token)
         assert claims["user_id"] == "u1"
@@ -573,9 +573,9 @@ class TestEncodeUiSessionJwt:
     def test_duration_is_honored_from_env(self):
         import time
 
-        from litellm.proxy.auth.login_utils import encode_ui_session_jwt
+        from token_iq.gateway.proxy.auth.login_utils import encode_ui_session_jwt
 
-        with patch("litellm.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "1h"):
+        with patch("token_iq.gateway.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "1h"):
             token = encode_ui_session_jwt({"user_id": "u1"}, "sk-master-for-tests")
         remaining = self._decode(token)["exp"] - int(time.time())
         assert 0 < remaining <= 3600
@@ -587,24 +587,24 @@ class TestEncodeUiSessionJwt:
         this helper must now be accepted."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy._experimental.mcp_server.byok_oauth_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.byok_oauth_endpoints import (
             _user_id_from_session_cookie,
         )
-        from litellm.proxy.auth.login_utils import encode_ui_session_jwt
+        from token_iq.gateway.proxy.auth.login_utils import encode_ui_session_jwt
 
         token_object = {"user_id": "cornell-user", "key": "sk-abc", "login_method": "sso"}
-        with patch("litellm.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "24h"):
+        with patch("token_iq.gateway.proxy.auth.login_utils.LITELLM_UI_SESSION_DURATION", "24h"):
             token = encode_ui_session_jwt(token_object, "sk-master-for-tests")
         request = MagicMock()
         request.cookies = {"token": token}
-        with patch("litellm.proxy.proxy_server.master_key", "sk-master-for-tests"):
+        with patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-master-for-tests"):
             assert _user_id_from_session_cookie(request) == "cornell-user"
 
 
 def _patch_sso_configured(stack: ExitStack, *, configured: bool) -> None:
     stack.enter_context(
         patch(  # test-quality-ok: no HTTP boundary here; same internal the pre-existing tests above already mock
-            "litellm.proxy.auth.login_utils.is_sso_provider_fully_configured", return_value=configured
+            "token_iq.gateway.proxy.auth.login_utils.is_sso_provider_fully_configured", return_value=configured
         )
     )
 
@@ -616,21 +616,21 @@ def _patch_successful_admin_login_deps(stack: ExitStack) -> None:
     don't each repeat the same three-mock wiring."""
     stack.enter_context(
         patch(  # test-quality-ok: internal orchestration, no HTTP boundary; matches pre-existing tests
-            "litellm.proxy.auth.login_utils.generate_key_helper_fn",
+            "token_iq.gateway.proxy.auth.login_utils.generate_key_helper_fn",
             new_callable=AsyncMock,
             return_value={"token": "test-token", "user_id": LITELLM_PROXY_ADMIN_NAME},
         )
     )
     stack.enter_context(
         patch(  # test-quality-ok: internal orchestration, no HTTP boundary; matches pre-existing tests
-            "litellm.proxy.auth.login_utils.user_update",
+            "token_iq.gateway.proxy.auth.login_utils.user_update",
             new_callable=AsyncMock,
             return_value=None,
         )
     )
     stack.enter_context(
         patch(  # test-quality-ok: internal orchestration, no HTTP boundary; matches pre-existing tests
-            "litellm.proxy.auth.login_utils.get_secret_bool",
+            "token_iq.gateway.proxy.auth.login_utils.get_secret_bool",
             return_value=False,
         )
     )

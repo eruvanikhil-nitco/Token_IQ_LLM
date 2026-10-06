@@ -3,17 +3,17 @@ from typing import Dict
 from unittest.mock import MagicMock
 
 import httpx
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     BaseAudioTranscriptionConfig,
 )
-from litellm.llms.mistral.audio_transcription.transformation import (
+from token_iq.gateway.llms.mistral.audio_transcription.transformation import (
     MistralAudioTranscriptionConfig,
 )
-from litellm.types.utils import TranscriptionResponse
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import TranscriptionResponse
+from token_iq.gateway.utils import ProviderConfigManager
 from tests.llm_translation.base_audio_transcription_unit_tests import (
     BaseLLMAudioTranscriptionTest,
 )

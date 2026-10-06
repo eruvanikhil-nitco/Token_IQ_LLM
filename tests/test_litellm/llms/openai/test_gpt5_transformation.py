@@ -2,12 +2,12 @@ import re
 
 import pytest
 
-import litellm
-import litellm.main as litellm_main
-from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
-from litellm.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
-from litellm.llms.openai.openai import OpenAIConfig
-from litellm.utils import (
+from token_iq import gateway as litellm
+import token_iq.gateway.main as litellm_main
+from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
+from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
+from token_iq.gateway.llms.openai.openai import OpenAIConfig
+from token_iq.gateway.utils import (
     _is_explicitly_disabled_factory,
     peek_reasoning_summary_aliases,
     strip_reasoning_summary_aliases_from_optional_params,
@@ -1189,8 +1189,8 @@ def test_gpt5_1_logprobs_dropped_with_reasoning_effort(config: OpenAIConfig):
 # Responses API: GPT-5 temperature validation (#16090)
 # ---------------------------------------------------------------------------
 
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
 
 @pytest.fixture()
@@ -1334,7 +1334,7 @@ def test_gpt5_6_never_advertises_reasoning_effort_max(model: str):
     """/v1/chat/completions answers max with "Unsupported value: 'reasoning_effort' does not support
     'max' with this model. Supported values are: 'none', 'low', 'medium', 'high', and 'xhigh'", so no
     gpt-5.6 entry asserts supports_max_reasoning_effort and the advertised set stops at xhigh."""
-    from litellm.router_utils.reasoning_effort_capability import resolve_supported_reasoning_efforts
+    from token_iq.gateway.router_utils.reasoning_effort_capability import resolve_supported_reasoning_efforts
 
     resolved = resolve_supported_reasoning_efforts(litellm.get_model_info(model), deployment_is_mapped=True)
     assert resolved is not None

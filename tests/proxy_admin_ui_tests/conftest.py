@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -15,7 +15,7 @@ def setup_and_teardown():
     """
     curr_dir = os.getcwd()  # Get the current working directory
 
-    from litellm import Router
+    from token_iq.gateway import Router
 
     importlib.reload(litellm)
     import asyncio

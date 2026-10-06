@@ -30,8 +30,8 @@ def _make_wrapper_class():
     ``Router._aresponses_streaming_iterator`` long enough to construct
     the class then return it. Mirrors how the wrapper is actually
     instantiated in production."""
-    from litellm.router import Router
-    from litellm.responses.streaming_iterator import (
+    from token_iq.gateway.router import Router
+    from token_iq.gateway.responses.streaming_iterator import (
         BaseResponsesAPIStreamingIterator,
     )
 
@@ -55,7 +55,7 @@ def _make_wrapper_class():
     # construction.
     captured = {}
 
-    real_router_module = __import__("litellm.router", fromlist=["Router"])
+    real_router_module = __import__("token_iq.gateway.router", fromlist=["Router"])
 
     async def _drive():
         async def empty_gen():
@@ -182,7 +182,7 @@ class TestProxyOwnershipHookReadsCompletedResponse:
     response correctly so the ownership recording path doesn't break."""
 
     def test_extract_returns_inner_response_object(self):
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
@@ -209,7 +209,7 @@ class TestSilentSkipNowLogged:
 
     def test_warning_logged_when_completed_response_missing(self, caplog):
         import logging
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 

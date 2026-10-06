@@ -4,7 +4,7 @@ import asyncio
 import random
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
@@ -14,10 +14,10 @@ load_dotenv()
 
 import pytest
 
-import litellm
-from litellm import DualCache, Router
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.dynamic_rate_limiter import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache, Router
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.dynamic_rate_limiter import (
     _PROXY_DynamicRateLimitHandler as DynamicRateLimitHandler,
 )
 

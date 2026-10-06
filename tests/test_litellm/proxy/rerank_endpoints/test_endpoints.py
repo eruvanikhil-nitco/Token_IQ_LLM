@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import Request, Response
 
-import litellm.proxy.common_request_processing as common_request_processing_mod
-import litellm.proxy.proxy_server as proxy_server_mod
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.rerank_endpoints.endpoints import rerank
-from litellm.types.utils import RerankResponse
+import token_iq.gateway.proxy.common_request_processing as common_request_processing_mod
+import token_iq.gateway.proxy.proxy_server as proxy_server_mod
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.rerank_endpoints.endpoints import rerank
+from token_iq.gateway.types.utils import RerankResponse
 
 HIDDEN_PARAMS = {
     "model_id": "deployment-1",

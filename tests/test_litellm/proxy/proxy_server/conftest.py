@@ -74,7 +74,7 @@ def app():
     Module import still runs once; module-level globals are harmless.
     """
     os.environ.setdefault("LITELLM_LOG", "ERROR")
-    from litellm.proxy.proxy_server import app as _app
+    from token_iq.gateway.proxy.proxy_server import app as _app
 
     return _app
 
@@ -181,7 +181,7 @@ def auth_as(app) -> Callable[..., contextlib.AbstractContextManager]:
     Usage::
 
         def test_admin_only(client, auth_as):
-            from litellm.proxy._types import LitellmUserRoles
+            from token_iq.gateway.proxy._types import LitellmUserRoles
             with auth_as(LitellmUserRoles.PROXY_ADMIN):
                 response = client.get("/some/admin/route")
                 assert response.status_code == 200
@@ -189,7 +189,7 @@ def auth_as(app) -> Callable[..., contextlib.AbstractContextManager]:
     Outside the ``with`` block the override is removed so other tests see
     the real dependency.
     """
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     @contextlib.contextmanager
     def _auth_as(
@@ -199,7 +199,7 @@ def auth_as(app) -> Callable[..., contextlib.AbstractContextManager]:
         api_key: str = "sk-test-key",
         **kwargs: Any,
     ) -> Iterator[Any]:
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
         if role is None:
             role = LitellmUserRoles.PROXY_ADMIN
@@ -248,7 +248,7 @@ def make_acompletion_response(
         - A tool-call shape when ``tools`` is non-empty
         - A plain text response otherwise
     """
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Choices,
         Function,
@@ -289,7 +289,7 @@ def make_acompletion_response(
 async def _stream_chunks(
     model: str = "gpt-4", content: str = "Hi"
 ) -> AsyncIterator[Any]:
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         Delta,
         ModelResponseStream,
         StreamingChoices,
@@ -317,7 +317,7 @@ def make_embedding_response(
     dimensions: int = 8,
     **kwargs: Any,
 ) -> Any:
-    from litellm.types.utils import EmbeddingResponse
+    from token_iq.gateway.types.utils import EmbeddingResponse
 
     if isinstance(input, list):
         n = len(input)
@@ -337,7 +337,7 @@ def make_embedding_response(
 
 
 def make_image_response(model: str = "dall-e-3", **kwargs: Any) -> Any:
-    from litellm.types.utils import ImageResponse
+    from token_iq.gateway.types.utils import ImageResponse
 
     return ImageResponse(
         created=0,
@@ -351,7 +351,7 @@ def make_speech_response(**kwargs: Any) -> bytes:
 
 
 def make_transcription_response(**kwargs: Any) -> Any:
-    from litellm.types.utils import TranscriptionResponse
+    from token_iq.gateway.types.utils import TranscriptionResponse
 
     return TranscriptionResponse(text="hello world")
 
@@ -428,7 +428,7 @@ def mock_router() -> MagicMock:
 @pytest.fixture(autouse=True)
 def mock_callbacks_disabled(monkeypatch) -> None:
     """Wipe ``litellm.callbacks`` and friends so tests don't leak side effects."""
-    import litellm
+    from token_iq import gateway as litellm
 
     for attr in (
         "callbacks",
@@ -456,7 +456,7 @@ def make_user(
     spend: float = 0.0,
     **kwargs: Any,
 ) -> Any:
-    from litellm.proxy._types import LiteLLM_UserTable, LitellmUserRoles
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles
 
     if role is None:
         role = LitellmUserRoles.INTERNAL_USER
@@ -479,7 +479,7 @@ def make_team(
     members_with_roles: Optional[List[Dict[str, Any]]] = None,
     **kwargs: Any,
 ) -> Any:
-    from litellm.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
 
     return LiteLLM_TeamTable(
         team_id=team_id,
@@ -500,7 +500,7 @@ def make_key(
     max_budget: Optional[float] = None,
     **kwargs: Any,
 ) -> Any:
-    from litellm.proxy._types import LiteLLM_VerificationToken
+    from token_iq.gateway.proxy._types import LiteLLM_VerificationToken
 
     return LiteLLM_VerificationToken(
         token=token,

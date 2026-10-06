@@ -15,7 +15,7 @@ These tests verify that:
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 
-from litellm.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
+from token_iq.gateway.llms.sap.chat.transformation import GenAIHubOrchestrationConfig
 
 
 class TestLangChainAgentCompatibility:

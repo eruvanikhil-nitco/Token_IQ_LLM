@@ -7,8 +7,8 @@ from typing import Any, Dict
 
 from prisma import Json
 
-from litellm.proxy._types import LitellmUserRoles
-from litellm.proxy.utils import PrismaClient, hash_token
+from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy.utils import PrismaClient, hash_token
 
 
 class Actor(str, enum.Enum):

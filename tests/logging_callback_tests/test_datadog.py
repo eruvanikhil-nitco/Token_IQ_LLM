@@ -1,7 +1,7 @@
 import io
 import os
 
-from litellm.integrations.datadog.datadog_handler import (
+from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_source,
     get_datadog_service,
     get_datadog_env,
@@ -20,20 +20,20 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.datadog.datadog import *
-import litellm.integrations.datadog.datadog as datadog_module
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.datadog.datadog import *
+import token_iq.gateway.integrations.datadog.datadog as datadog_module
 from datetime import datetime, timedelta
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingModelInformation,
     StandardLoggingMetadata,
     StandardLoggingHiddenParams,
     LiteLLMCommonStrings,
 )
-from litellm.types.integrations.datadog import DatadogInitParams
+from token_iq.gateway.types.integrations.datadog import DatadogInitParams
 
 verbose_logger.setLevel(logging.DEBUG)
 
@@ -174,7 +174,7 @@ async def test_datadog_logging_http_request():
     - each element in a DatadogPayload.message contains all the valid fields
     """
     try:
-        from litellm.integrations.datadog.datadog import DataDogLogger
+        from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
 
         os.environ["DD_SITE"] = "https://fake.datadoghq.com"
         os.environ["DD_API_KEY"] = "anything"
@@ -384,8 +384,8 @@ async def test_datadog_log_redis_failures():
     Test that poorly configured Redis is logged as Warning on DataDog
     """
     try:
-        from litellm.caching.caching import Cache
-        from litellm.integrations.datadog.datadog import DataDogLogger
+        from token_iq.gateway.caching.caching import Cache
+        from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
 
         litellm.cache = Cache(
             type="redis", host="badhost", port="6379", password="badpassword"
@@ -710,7 +710,7 @@ def test_get_datadog_tags():
 async def test_datadog_message_redaction():
     """
     Test that DataDog logger correctly initializes with turn_off_message_logging=True
-    from litellm.datadog_params
+    from token_iq.gateway.datadog_params
     """
     try:
         # Test using litellm.datadog_params pattern

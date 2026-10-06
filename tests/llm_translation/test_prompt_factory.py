@@ -6,9 +6,9 @@ import pytest
 
 from typing import List
 
-# from litellm.litellm_core_utils.prompt_templates.factory import prompt_factory
-import litellm
-from litellm.litellm_core_utils.prompt_templates.factory import (
+# from litellm.core_utils.prompt_templates.factory import prompt_factory
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     _bedrock_tools_pt,
     anthropic_messages_pt,
     anthropic_pt,
@@ -22,13 +22,13 @@ from litellm.litellm_core_utils.prompt_templates.factory import (
     llama_2_chat_pt,
     prompt_factory,
 )
-from litellm.litellm_core_utils.prompt_templates.common_utils import (
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     get_completion_messages,
 )
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
-from litellm.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.llms.openai import AllMessageValues
 from unittest.mock import MagicMock, patch
 
 
@@ -475,10 +475,10 @@ def test_bedrock_parallel_tool_calling_pt(provider):
     """
     Make sure parallel tool call blocks are merged correctly - https://github.com/BerriAI/litellm/issues/5277
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
-    from litellm.types.utils import ChatCompletionMessageToolCall, Function, Message
+    from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function, Message
 
     messages = [
         {
@@ -610,7 +610,7 @@ def test_convert_url(monkeypatch):
 
     import httpx
 
-    from litellm.litellm_core_utils.prompt_templates.image_handling import (
+    from token_iq.gateway.core_utils.prompt_templates.image_handling import (
         in_memory_cache,
     )
 
@@ -1198,7 +1198,7 @@ def test_ensure_alternating_roles_system_prefix_with_tool_chain():
 
 
 def test_alternating_roles_e2e():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     import json
 
     litellm.set_verbose = True
@@ -1275,7 +1275,7 @@ def test_alternating_roles_e2e():
 
 
 def test_just_system_message():
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
 
@@ -1290,7 +1290,7 @@ def test_just_system_message():
 
 
 def test_convert_generic_image_chunk_to_openai_image_obj():
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_generic_image_chunk_to_openai_image_obj,
         convert_to_anthropic_image_obj,
     )
@@ -1303,7 +1303,7 @@ def test_convert_generic_image_chunk_to_openai_image_obj():
 
 
 def test_hf_chat_template():
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         hf_chat_template,
     )
 
@@ -1360,7 +1360,7 @@ def test_hf_chat_template():
 
 
 def test_ollama_pt():
-    from litellm.litellm_core_utils.prompt_templates.factory import ollama_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import ollama_pt
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -1826,7 +1826,7 @@ def test_anthropic_messages_pt_with_bash_tool_result_in_provider_specific_fields
 
 def test_parse_tool_call_arguments_valid_json():
     """Test that valid JSON is parsed correctly."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -1836,7 +1836,7 @@ def test_parse_tool_call_arguments_valid_json():
 
 def test_parse_tool_call_arguments_empty_input():
     """Test that None/empty input returns empty dict."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -1846,7 +1846,7 @@ def test_parse_tool_call_arguments_empty_input():
 
 def test_parse_tool_call_arguments_malformed_json():
     """Test that malformed JSON raises ValueError with context."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -1896,7 +1896,7 @@ def test_convert_to_anthropic_tool_invoke_malformed_json():
 
 def test_attempt_json_repair_missing_closing_brace():
     """Repair JSON truncated with a missing closing brace (issue #22312)."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1914,7 +1914,7 @@ def test_attempt_json_repair_missing_closing_brace():
 
 def test_attempt_json_repair_missing_bracket_and_brace():
     """Repair JSON truncated with both missing ] and }."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1926,7 +1926,7 @@ def test_attempt_json_repair_missing_bracket_and_brace():
 
 def test_attempt_json_repair_trailing_comma():
     """Repair JSON with a trailing comma before missing close."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1938,7 +1938,7 @@ def test_attempt_json_repair_trailing_comma():
 
 def test_attempt_json_repair_returns_none_for_unterminated_string():
     """Cannot repair an unterminated string — returns None."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1947,7 +1947,7 @@ def test_attempt_json_repair_returns_none_for_unterminated_string():
 
 def test_attempt_json_repair_returns_none_for_valid_json():
     """Valid JSON has no unmatched brackets — returns None (no repair needed)."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1956,7 +1956,7 @@ def test_attempt_json_repair_returns_none_for_valid_json():
 
 def test_attempt_json_repair_returns_none_for_empty():
     """Empty / whitespace input returns None."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1966,7 +1966,7 @@ def test_attempt_json_repair_returns_none_for_empty():
 
 def test_attempt_json_repair_interleaved_nesting():
     """Repair JSON with interleaved {} and [] nesting."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1979,7 +1979,7 @@ def test_attempt_json_repair_interleaved_nesting():
 
 def test_attempt_json_repair_deeply_nested():
     """Repair deeply nested truncated JSON."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         _attempt_json_repair,
     )
 
@@ -1991,7 +1991,7 @@ def test_attempt_json_repair_deeply_nested():
 
 def test_parse_tool_call_arguments_whitespace_only():
     """Whitespace-only input returns empty dict."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -2001,7 +2001,7 @@ def test_parse_tool_call_arguments_whitespace_only():
 
 def test_parse_tool_call_arguments_non_object_json():
     """Non-object JSON (list, string, number) is returned as-is (no wrapping)."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -2011,7 +2011,7 @@ def test_parse_tool_call_arguments_non_object_json():
 
 def test_parse_tool_call_arguments_repairs_truncated_json():
     """parse_tool_call_arguments should repair truncated JSON instead of raising."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 
@@ -2024,7 +2024,7 @@ def test_parse_tool_call_arguments_repairs_truncated_json():
 
 def test_parse_tool_call_arguments_still_raises_for_unrepairable():
     """parse_tool_call_arguments raises ValueError when repair also fails."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )
 

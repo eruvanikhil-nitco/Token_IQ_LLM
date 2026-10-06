@@ -20,18 +20,18 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.openai_files_endpoints.common_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     encode_file_id_with_model,
 )
-from litellm.proxy.proxy_server import app
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.llms.openai import HttpxBinaryResponseContent
-from litellm.types.utils import LiteLLMBatch
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
+from token_iq.gateway.types.utils import LiteLLMBatch
 
 client = TestClient(app)
 
@@ -66,11 +66,11 @@ def _setup_proxy(monkeypatch, llm_router: Router):
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
 
 def _encoded_bedrock_batch_id() -> str:

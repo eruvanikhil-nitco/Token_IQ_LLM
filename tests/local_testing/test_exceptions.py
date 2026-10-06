@@ -7,15 +7,15 @@ from typing import Any
 import httpx
 from openai import AsyncAzureOpenAI, AsyncOpenAI, AuthenticationError, AzureOpenAI, BadRequestError, OpenAIError, RateLimitError
 
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import (  # AuthenticationError,; RateLimitError,; ServiceUnavailableError,; OpenAIError,
+from token_iq import gateway as litellm
+from token_iq.gateway import (  # AuthenticationError,; RateLimitError,; ServiceUnavailableError,; OpenAIError,
     ContextWindowExceededError,
     completion,
     embedding,
@@ -292,7 +292,7 @@ async def asynctest_completion_azure_exception():
     try:
         import openai
 
-        import litellm
+        from token_iq import gateway as litellm
 
         print("azure gpt-3.5 test\n\n")
         litellm.set_verbose = True
@@ -327,7 +327,7 @@ def asynctest_completion_openai_exception_bad_model():
 
         import openai
 
-        import litellm
+        from token_iq import gateway as litellm
 
         print("azure exception bad model\n\n")
         litellm.set_verbose = True
@@ -357,7 +357,7 @@ def asynctest_completion_azure_exception_bad_model():
 
         import openai
 
-        import litellm
+        from token_iq import gateway as litellm
 
         print("azure exception bad model\n\n")
         litellm.set_verbose = True
@@ -609,7 +609,7 @@ def test_completion_openai_api_key_exception(monkeypatch):
 
 def test_router_completion_vertex_exception():
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.set_verbose = True
         router = litellm.Router(
@@ -635,7 +635,7 @@ def test_router_completion_vertex_exception():
 
 def test_litellm_completion_vertex_exception():
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.set_verbose = True
         response = completion(
@@ -654,7 +654,7 @@ def test_litellm_predibase_exception():
     Test - Assert that the Predibase API Key is not returned on Authentication Errors
     """
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.set_verbose = True
         response = completion(
@@ -777,9 +777,9 @@ def test_fireworks_ai_exception_mapping():
     Related to: https://github.com/BerriAI/litellm/pull/11455
     Based on Fireworks AI documentation: https://docs.fireworks.ai/tools-sdks/python-client/api-reference
     """
-    import litellm
-    from litellm.llms.fireworks_ai.common_utils import FireworksAIException
-    from litellm.litellm_core_utils.exception_mapping_utils import ExceptionCheckers
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.fireworks_ai.common_utils import FireworksAIException
+    from token_iq.gateway.core_utils.exception_mapping_utils import ExceptionCheckers
 
     # Test scenarios covering all important cases
     test_scenarios = [
@@ -1281,7 +1281,7 @@ def test_exceptions_base_class():
 
 def test_context_window_exceeded_error_from_litellm_proxy():
     from httpx import Response
-    from litellm.litellm_core_utils.exception_mapping_utils import (
+    from token_iq.gateway.core_utils.exception_mapping_utils import (
         extract_and_raise_litellm_exception,
     )
 
@@ -1304,7 +1304,7 @@ def test_bad_request_error_with_response_without_request():
     ensure it doesn't raise RuntimeError when the exception is created.
     """
     from httpx import Response
-    from litellm.litellm_core_utils.exception_mapping_utils import (
+    from token_iq.gateway.core_utils.exception_mapping_utils import (
         extract_and_raise_litellm_exception,
     )
 
@@ -1345,7 +1345,7 @@ async def test_exception_bubbling_up(sync_mode, stream_mode, model):
     """
     make sure code, param, and type are bubbled up
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
     async def _call_with_bad_role():

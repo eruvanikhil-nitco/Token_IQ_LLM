@@ -15,21 +15,21 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.custom_guardrail import CustomGuardrail
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 
 
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from litellm._logging import verbose_proxy_logger
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_helpers import should_proceed_based_on_metadata
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.proxy.guardrails.guardrail_endpoints import _get_guardrails_list_response
-from litellm.types.guardrails import GuardrailInfoResponse, ListGuardrailsResponse
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_helpers import should_proceed_based_on_metadata
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _get_guardrails_list_response
+from token_iq.gateway.types.guardrails import GuardrailInfoResponse, ListGuardrailsResponse
 
 
 def test_get_guardrail_from_metadata():

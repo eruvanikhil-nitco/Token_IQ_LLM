@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from litellm.proxy.management_helpers.access_group_team_sync import (
+from token_iq.gateway.proxy.management_helpers.access_group_team_sync import (
     reconcile_team_access_group_membership,
     sync_team_access_group_membership,
 )
@@ -89,7 +89,7 @@ async def _set_team_groups(db, team_id, access_group_ids):
 async def _sync(db, team_id, access_group_ids):
     await _set_team_groups(db, team_id, access_group_ids)
     with patch(
-        "litellm.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
+        "token_iq.gateway.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
         new_callable=AsyncMock,
     ) as invalidate:
         await sync_team_access_group_membership(prisma_client=SimpleNamespace(db=db), team_id=team_id)
@@ -208,7 +208,7 @@ async def test_a_concurrent_writer_cannot_replay_a_stale_team_row_over_a_newer_o
         async def competing_sync():
             sync_started.set()
             with patch(
-                "litellm.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
+                "token_iq.gateway.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
                 new_callable=AsyncMock,
             ):
                 await sync_team_access_group_membership(prisma_client=SimpleNamespace(db=db), team_id=TEAM)

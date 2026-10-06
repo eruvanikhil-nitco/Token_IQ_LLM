@@ -7,18 +7,18 @@ import unittest
 
 import pytest
 
-from litellm.google_genai.main import agenerate_content
+from token_iq.gateway.google_genai.main import agenerate_content
 
 
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_adapter_import():
     """Test that the adapter can be imported successfully"""
-    from litellm.google_genai.adapters.handler import GenerateContentToCompletionHandler
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     # Should not raise any exceptions
     assert GoogleGenAIAdapter is not None
@@ -27,7 +27,7 @@ def test_adapter_import():
 
 def test_single_content_transformation():
     """Test the transformation from generate_content to completion format with single content"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -52,7 +52,7 @@ def test_single_content_transformation():
 
 def test_list_contents_transformation():
     """Test transformation with list of contents (conversation history)"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -88,7 +88,7 @@ def test_list_contents_transformation():
 
 def test_config_parameter_mapping():
     """Test that config parameters are correctly mapped"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -114,7 +114,7 @@ def test_config_parameter_mapping():
 
 def test_tools_transformation():
     """Test transformation of Google GenAI tools to OpenAI tools format"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -180,7 +180,7 @@ def test_tools_transformation():
 
 def test_tool_config_transformation():
     """Test transformation of Google GenAI tool_config to OpenAI tool_choice"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -206,7 +206,7 @@ def test_tool_config_transformation():
 
 def test_function_call_message_transformation():
     """Test transformation of messages with function calls"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -257,7 +257,7 @@ def test_function_call_message_transformation():
 
 def test_function_response_message_transformation():
     """Test transformation of messages with function responses"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -308,13 +308,13 @@ def test_function_response_message_transformation():
 
 def test_completion_to_generate_content_with_tool_calls():
     """Test transforming completion response with tool calls back to generate_content format"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.types.llms.openai import (
         ChatCompletionAssistantMessage,
         ChatCompletionAssistantToolCall,
         ChatCompletionToolCallFunctionChunk,
     )
-    from litellm.types.utils import Choices, ModelResponse, Usage
+    from token_iq.gateway.types.utils import Choices, ModelResponse, Usage
 
     adapter = GoogleGenAIAdapter()
 
@@ -378,11 +378,11 @@ def test_completion_to_generate_content_with_tool_calls():
 
 def test_streaming_tool_calls_transformation():
     """Test streaming transformation with tool calls"""
-    from litellm.google_genai.adapters.transformation import (
+    from token_iq.gateway.google_genai.adapters.transformation import (
         GoogleGenAIAdapter,
         GoogleGenAIStreamWrapper,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -439,11 +439,11 @@ def test_streaming_tool_calls_transformation():
 
 def test_streaming_partial_tool_calls_accumulation():
     """Test accumulation of partial tool call arguments across streaming chunks"""
-    from litellm.google_genai.adapters.transformation import (
+    from token_iq.gateway.google_genai.adapters.transformation import (
         GoogleGenAIAdapter,
         GoogleGenAIStreamWrapper,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -548,11 +548,11 @@ def test_streaming_partial_tool_calls_accumulation():
 
 def test_streaming_multiple_partial_tool_calls():
     """Test accumulation of multiple partial tool calls simultaneously"""
-    from litellm.google_genai.adapters.transformation import (
+    from token_iq.gateway.google_genai.adapters.transformation import (
         GoogleGenAIAdapter,
         GoogleGenAIStreamWrapper,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -647,7 +647,7 @@ def test_streaming_multiple_partial_tool_calls():
 
 def test_mixed_content_transformation():
     """Test transformation of mixed content (text + function calls)"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -708,9 +708,9 @@ def test_mixed_content_transformation():
 
 def test_completion_to_generate_content_transformation():
     """Test transforming a completion response back to generate_content format"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
-    from litellm.types.llms.openai import ChatCompletionAssistantMessage
-    from litellm.types.utils import Choices, ModelResponse, Usage
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.types.llms.openai import ChatCompletionAssistantMessage
+    from token_iq.gateway.types.utils import Choices, ModelResponse, Usage
 
     adapter = GoogleGenAIAdapter()
 
@@ -767,7 +767,7 @@ def test_completion_to_generate_content_transformation():
 
 def test_finish_reason_mapping():
     """Test that finish reasons are correctly mapped"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -788,7 +788,7 @@ def test_finish_reason_mapping():
 
 def test_empty_content_handling():
     """Test handling of empty or missing content"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -808,7 +808,7 @@ def test_empty_content_handling():
 
 def test_handler_parameter_exclusion():
     """Test that the handler properly excludes Google GenAI-specific parameters"""
-    from litellm.google_genai.adapters.handler import GenerateContentToCompletionHandler
+    from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
 
     # Test parameters that should be excluded
     model = "gpt-3.5-turbo"
@@ -857,13 +857,13 @@ def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
 
     # Import the specific function being tested
     if function_name == "generate_content":
-        from litellm.google_genai.main import generate_content as test_function
+        from token_iq.gateway.google_genai.main import generate_content as test_function
     elif function_name == "agenerate_content":
-        from litellm.google_genai.main import agenerate_content as test_function
+        from token_iq.gateway.google_genai.main import agenerate_content as test_function
     elif function_name == "generate_content_stream":
-        from litellm.google_genai.main import generate_content_stream as test_function
+        from token_iq.gateway.google_genai.main import generate_content_stream as test_function
     elif function_name == "agenerate_content_stream":
-        from litellm.google_genai.main import agenerate_content_stream as test_function
+        from token_iq.gateway.google_genai.main import agenerate_content_stream as test_function
 
     # Test input parameters
     model = "gpt-3.5-turbo"
@@ -951,7 +951,7 @@ def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
 
 def test_shared_schema_normalization_utilities():
     """Test the shared schema normalization utility functions work correctly"""
-    from litellm.litellm_core_utils.json_validation_rule import (
+    from token_iq.gateway.core_utils.json_validation_rule import (
         normalize_json_schema_types,
         normalize_tool_schema,
     )
@@ -1030,9 +1030,9 @@ async def test_google_generate_content_with_openai():
     """ """
     import unittest.mock
 
-    from litellm.types.llms.openai import ChatCompletionAssistantMessage
-    from litellm.types.router import GenericLiteLLMParams
-    from litellm.types.utils import Choices, ModelResponse, Usage
+    from token_iq.gateway.types.llms.openai import ChatCompletionAssistantMessage
+    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.utils import Choices, ModelResponse, Usage
 
     # Create a proper mock response object with expected attributes
     mock_message = ChatCompletionAssistantMessage(
@@ -1054,7 +1054,7 @@ async def test_google_generate_content_with_openai():
 
     # Use AsyncMock for proper async function mocking - patch at the module level where it's imported
     with unittest.mock.patch(
-        "litellm.google_genai.main.litellm.acompletion",
+        "token_iq.gateway.google_genai.main.litellm.acompletion",
         new_callable=unittest.mock.AsyncMock,
     ) as mock_completion:
         # Set the return value directly on the MagicMock
@@ -1099,7 +1099,7 @@ def test_validate_environment_sets_x_goog_api_key():
     This is the mechanism by which Google AI Studio (Gemini) requests get
     authenticated via header instead of a query-string ?key= parameter.
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -1129,7 +1129,7 @@ def test_get_gemini_url_excludes_api_key():
     API keys in URLs leak through httpx error tracebacks. The key must be
     sent via the x-goog-api-key header instead.
     """
-    from litellm.llms.vertex_ai.common_utils import _get_gemini_url
+    from token_iq.gateway.llms.vertex_ai.common_utils import _get_gemini_url
 
     for mode in ("chat", "embedding", "batch_embedding", "count_tokens"):
         url, _ = _get_gemini_url(
@@ -1147,7 +1147,7 @@ def test_get_gemini_url_excludes_api_key():
 
 def test_inline_data_base64_image_transformation():
     """Test transformation of Gemini inline_data (Base64 images) to OpenAI format"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -1200,7 +1200,7 @@ def test_inline_data_base64_image_transformation():
 
 def test_inline_data_image_only_transformation():
     """Test transformation of Gemini inline_data with only image (no text)"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 
@@ -1243,7 +1243,7 @@ def test_inline_data_image_only_transformation():
 
 def test_inline_data_backward_compatibility_text_only():
     """Test that pure text messages still use simple string format (backward compatibility)"""
-    from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
+    from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 
     adapter = GoogleGenAIAdapter()
 

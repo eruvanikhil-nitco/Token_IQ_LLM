@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
 
@@ -229,11 +229,11 @@ class TestShortCircuitEntryPoint:
     @pytest.mark.asyncio
     async def test_returns_none_when_no_callbacks(self):
         """No callbacks configured → returns None"""
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
-        with patch("litellm.callbacks", []):
+        with patch("token_iq.gateway.callbacks", []):
             result = await _try_websearch_short_circuit(
                 model="test",
                 messages=[],
@@ -246,7 +246,7 @@ class TestShortCircuitEntryPoint:
     @pytest.mark.asyncio
     async def test_returns_dict_when_not_streaming(self):
         """Non-streaming short-circuit → returns dict"""
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
@@ -255,7 +255,7 @@ class TestShortCircuitEntryPoint:
             logger, "_execute_search", new_callable=AsyncMock
         ) as mock_search:
             mock_search.return_value = ("results", None)
-            with patch("litellm.callbacks", [logger]):
+            with patch("token_iq.gateway.callbacks", [logger]):
                 result = await _try_websearch_short_circuit(
                     model="github_copilot/claude-sonnet-4",
                     messages=[{"role": "user", "content": "search query"}],
@@ -271,10 +271,10 @@ class TestShortCircuitEntryPoint:
     @pytest.mark.asyncio
     async def test_returns_stream_iterator_when_streaming(self):
         """Streaming short-circuit → returns FakeAnthropicMessagesStreamIterator"""
-        from litellm.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
             FakeAnthropicMessagesStreamIterator,
         )
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
@@ -283,7 +283,7 @@ class TestShortCircuitEntryPoint:
             logger, "_execute_search", new_callable=AsyncMock
         ) as mock_search:
             mock_search.return_value = ("streaming results", None)
-            with patch("litellm.callbacks", [logger]):
+            with patch("token_iq.gateway.callbacks", [logger]):
                 result = await _try_websearch_short_circuit(
                     model="github_copilot/claude-sonnet-4",
                     messages=[{"role": "user", "content": "search query"}],
@@ -313,12 +313,12 @@ class TestShortCircuitEntryPoint:
         """Non-WebSearchInterceptionLogger callbacks are ignored"""
         from unittest.mock import MagicMock
 
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
         other_callback = MagicMock()
-        with patch("litellm.callbacks", [other_callback]):
+        with patch("token_iq.gateway.callbacks", [other_callback]):
             result = await _try_websearch_short_circuit(
                 model="test",
                 messages=[{"role": "user", "content": "search"}],
@@ -336,10 +336,10 @@ class TestShortCircuitEntryPoint:
         loop. The short-circuit must use the ORIGINAL stream value so streaming
         callers get SSE events instead of a plain dict.
         """
-        from litellm.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
             FakeAnthropicMessagesStreamIterator,
         )
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
@@ -348,7 +348,7 @@ class TestShortCircuitEntryPoint:
             logger, "_execute_search", new_callable=AsyncMock
         ) as mock_search:
             mock_search.return_value = ("streaming results", None)
-            with patch("litellm.callbacks", [logger]):
+            with patch("token_iq.gateway.callbacks", [logger]):
                 # Simulate what anthropic_messages() does: original_stream=True
                 # is passed to the short-circuit, even though the hook would have
                 # already converted stream to False in request_kwargs.
@@ -369,7 +369,7 @@ class TestShortCircuitEntryPoint:
         still fire the short-circuit when the caller propagates the derived
         provider.
         """
-        from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
             _try_websearch_short_circuit,
         )
 
@@ -378,7 +378,7 @@ class TestShortCircuitEntryPoint:
             logger, "_execute_search", new_callable=AsyncMock
         ) as mock_search:
             mock_search.return_value = ("results", None)
-            with patch("litellm.callbacks", [logger]):
+            with patch("token_iq.gateway.callbacks", [logger]):
                 # Simulate the caller having derived custom_llm_provider from
                 # the model string before calling _try_websearch_short_circuit
                 result = await _try_websearch_short_circuit(

@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.context_management.constants import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
     CLEARED_TOOL_RESULT_PLACEHOLDER,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     Choices,
     Message,
     ModelResponse,
@@ -108,7 +108,7 @@ async def test_polyfill_round_trip_non_streaming():
         captured.update(kwargs)
         return _mock_completion_response()
 
-    with patch("litellm.acompletion", side_effect=fake_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
         response = await litellm.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=5),
@@ -176,7 +176,7 @@ async def test_polyfill_trigger_not_met_passes_through_unchanged():
         captured.update(kwargs)
         return _mock_completion_response()
 
-    with patch("litellm.acompletion", side_effect=fake_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
         response = await litellm.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=2),
@@ -211,7 +211,7 @@ async def test_polyfill_streaming_attaches_to_message_delta():
     async def fake_acompletion(**kwargs):
         return _mock_streaming_chunks()
 
-    with patch("litellm.acompletion", side_effect=fake_acompletion):
+    with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
         response = await litellm.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=5),

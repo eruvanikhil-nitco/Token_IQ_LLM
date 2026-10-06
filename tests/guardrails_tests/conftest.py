@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -119,7 +119,7 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    import litellm
+    from token_iq import gateway as litellm
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
@@ -127,7 +127,8 @@ def setup_and_teardown():
 
         try:
             if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-                import litellm.proxy.proxy_server
+                import token_iq.gateway.proxy.proxy_server
+                from token_iq import gateway as litellm
 
                 importlib.reload(litellm.proxy.proxy_server)
         except Exception as e:

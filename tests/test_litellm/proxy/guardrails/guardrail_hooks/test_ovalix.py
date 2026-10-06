@@ -10,13 +10,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy.guardrails.guardrail_hooks.ovalix.ovalix import (
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.ovalix.ovalix import (
     OvalixGuardrail,
     OvalixGuardrailBlockedException,
     OvalixGuardrailMissingSecrets,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 # Example Tracker responses (as returned by the checkpoint API)
 TRACKER_RESPONSE_ALLOW = {

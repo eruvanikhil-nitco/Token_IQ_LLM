@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-import litellm
+from token_iq import gateway as litellm
 from pydantic import BaseModel
-from litellm import utils, Router
+from token_iq.gateway import utils, Router
 
 COMPLETION_TOKENS = 5
 base_model_list = [

@@ -10,16 +10,16 @@ Tests cost calculation for Azure's new assistant features:
 
 import os
 import pytest
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.constants import (
+from token_iq.gateway.constants import (
     AZURE_FILE_SEARCH_COST_PER_GB_PER_DAY,
     AZURE_COMPUTER_USE_INPUT_COST_PER_1K_TOKENS,
     AZURE_COMPUTER_USE_OUTPUT_COST_PER_1K_TOKENS,
     AZURE_VECTOR_STORE_COST_PER_GB_PER_DAY,
 )
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestAzureAssistantCostTracking:
@@ -59,7 +59,7 @@ class TestAzureAssistantCostTracking:
 
     def test_openai_file_search_unchanged(self):
         """Test OpenAI file search pricing remains unchanged."""
-        from litellm.constants import OPENAI_FILE_SEARCH_COST_PER_1K_CALLS
+        from token_iq.gateway.constants import OPENAI_FILE_SEARCH_COST_PER_1K_CALLS
 
         cost = StandardBuiltInToolCostTracking.get_cost_for_file_search(
             file_search={},

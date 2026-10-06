@@ -6,14 +6,14 @@ import httpx
 import pytest
 
 
-from litellm.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+from token_iq.gateway.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
     MCPServerManager,
     _extract_upstream_auth_failure,
 )
-from litellm.proxy._types import MCPTransport
-from litellm.types.mcp import MCPAuth
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._types import MCPTransport
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def test_extract_upstream_auth_failure_finds_401_in_http_status_error():
@@ -319,8 +319,8 @@ async def test_aggregate_list_tools_absorbs_one_unauthenticated_server():
 
     from mcp.types import Tool as MCPTool
 
-    from litellm.proxy._experimental.mcp_server import server as mcp_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._experimental.mcp_server import server as mcp_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     delegate = _http_server(
         "s1", "delegate_docs", auth_type=MCPAuth.oauth2, delegate_auth_to_upstream=True
@@ -362,9 +362,9 @@ async def test_single_server_route_also_absorbs_upstream_auth_error():
     re-auth surfacing is handled by a request-scope preemptive check, tracked separately."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server import server as mcp_server
-    from litellm.proxy._experimental.mcp_server.mcp_context import _mcp_gateway_server_name
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._experimental.mcp_server import server as mcp_server
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_context import _mcp_gateway_server_name
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     delegate = _http_server(
         "s1", "delegate_docs", auth_type=MCPAuth.oauth2, delegate_auth_to_upstream=True
@@ -403,8 +403,8 @@ async def test_aggregate_with_single_accessible_server_still_absorbs():
     permission sets."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server import server as mcp_server
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._experimental.mcp_server import server as mcp_server
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     delegate = _http_server(
         "s1", "delegate_docs", auth_type=MCPAuth.oauth2, delegate_auth_to_upstream=True

@@ -19,9 +19,9 @@ import json
 from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
-import litellm
-from litellm.llms.bedrock.common_utils import get_bedrock_chat_config
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_chat_config
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 class TestBedrockMoonshotInvoke(BaseLLMChatTest):
@@ -149,7 +149,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
     def test_pydantic_model_input(self):
         """Verify a completion call with a pydantic ``Message`` as input does
         not raise and produces a parseable response."""
-        from litellm import Message
+        from token_iq.gateway import Message
 
         mock_post, response = self._invoke_with_mocked_post(
             messages=[Message(content="Hello, how are you?", role="user")],
@@ -208,7 +208,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
         not exercised here — moonshot streaming delegates to the OpenAI
         parser and is covered by the OpenAI test suite.
         """
-        from litellm.utils import CustomStreamWrapper
+        from token_iq.gateway.utils import CustomStreamWrapper
 
         captured: dict = {}
 
@@ -309,7 +309,7 @@ class TestBedrockMoonshotBasic:
 
     def test_transform_request_strips_model_prefix(self):
         """Test that model ID prefixes are correctly stripped in transform_request."""
-        from litellm.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
             AmazonMoonshotConfig,
         )
 
@@ -335,7 +335,7 @@ class TestBedrockMoonshotReasoningContent:
 
     def test_reasoning_content_extraction(self):
         """Test that reasoning content is extracted from <reasoning> tags."""
-        from litellm.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
             AmazonMoonshotConfig,
         )
 
@@ -379,7 +379,7 @@ class TestBedrockMoonshotToolCalling:
 
     def test_tool_call_request_format(self):
         """Test that tool call requests are formatted correctly."""
-        from litellm.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
             AmazonMoonshotConfig,
         )
 
@@ -467,7 +467,7 @@ class TestBedrockMoonshotTransformations:
 
     def test_transform_request_basic(self):
         """Test basic request transformation."""
-        from litellm.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
             AmazonMoonshotConfig,
         )
 
@@ -501,7 +501,7 @@ class TestBedrockMoonshotTransformations:
 
     def test_transform_request_with_system_message(self):
         """Test request transformation with system message."""
-        from litellm.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
+        from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_moonshot_transformation import (
             AmazonMoonshotConfig,
         )
 

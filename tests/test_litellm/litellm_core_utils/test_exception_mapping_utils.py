@@ -3,17 +3,17 @@ import httpx
 import openai
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
-from litellm.litellm_core_utils.exception_mapping_utils import (
+from token_iq.gateway.core_utils.exception_mapping_utils import (
     ExceptionCheckers,
     _get_body_error_code,
     exception_type,
     extract_and_raise_litellm_exception,
 )
-from litellm.llms.openai.common_utils import OpenAIError
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.llms.openai.common_utils import OpenAIError
+from token_iq.gateway.types.utils import LlmProviders
 
 # Test cases for is_error_str_context_window_exceeded
 # Tuple format: (error_message, expected_result)
@@ -724,7 +724,7 @@ def test_upstream_4xx_without_model_maps_to_bad_request():
     ``model=None``; the provider mapping used to be gated on ``if model:``, so an
     upstream 400 like Azure's "Cannot cancel a synchronous response." fell through to
     the generic 500 APIConnectionError instead of surfacing as a 400."""
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(
         status_code=400,
@@ -743,7 +743,7 @@ def test_upstream_4xx_without_model_maps_to_bad_request():
 
 
 def test_azure_404_with_invalid_request_error_type_maps_to_not_found():
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(
         status_code=404,
@@ -978,7 +978,7 @@ def test_a_provider_without_a_handler_maps_by_the_upstream_status(
 
 
 def test_a_minimax_bad_key_is_an_authentication_error(quiet_exception_mapping):
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     with pytest.raises(litellm.AuthenticationError) as raised:
         exception_type(
@@ -1016,7 +1016,7 @@ def test_an_unmapped_exception_with_no_model_or_provider_is_a_connection_error(q
 def _raise_and_map(
     model: str | None, original_exception: Exception, custom_llm_provider: str | None
 ) -> None:
-    """Calls exception_type() from inside the except block, as litellm/main.py does,
+    """Calls exception_type() from inside the except block, as token_iq/gateway/main.py does,
     so traceback.format_exc() has a real stack."""
     try:
         raise original_exception
@@ -1161,7 +1161,7 @@ def test_a_timed_out_request_is_a_timeout_for_every_provider(
 
 
 def test_bedrock_mantle_400_maps_to_bad_request():
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(
         status_code=400,
@@ -1185,7 +1185,7 @@ def test_bedrock_mantle_400_maps_to_bad_request():
 
 
 def test_bedrock_mantle_context_overflow_maps_to_context_window_exceeded():
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(
         status_code=400,
@@ -1208,7 +1208,7 @@ def test_bedrock_mantle_context_overflow_maps_to_context_window_exceeded():
 
 
 def test_branchless_provider_transport_error_maps_to_api_connection_error():
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(status_code=500, message="[Errno 111] Connection refused")
     original_exception.status_code_is_synthesized = True
@@ -1222,7 +1222,7 @@ def test_branchless_provider_transport_error_maps_to_api_connection_error():
 
 
 def test_branchless_provider_upstream_500_still_maps_to_internal_server_error():
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     original_exception = BaseLLMException(status_code=500, message="upstream exploded")
 
@@ -1235,7 +1235,7 @@ def test_branchless_provider_upstream_500_still_maps_to_internal_server_error():
 
 
 def test_handle_error_marks_only_a_status_code_it_never_received():
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     handler = BaseLLMHTTPHandler()
 

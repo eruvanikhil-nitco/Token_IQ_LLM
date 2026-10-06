@@ -6,12 +6,12 @@ import pytest
 from fastapi.exceptions import HTTPException
 from httpx import ReadTimeout, Request, Response
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.prompt_security.prompt_security import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.prompt_security.prompt_security import (
     PromptSecurityGuardrail,
     PromptSecurityGuardrailMissingSecrets,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_prompt_security_guard_config(monkeypatch: pytest.MonkeyPatch):

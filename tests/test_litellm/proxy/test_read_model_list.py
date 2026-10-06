@@ -1,6 +1,6 @@
 """Tests for litellm.proxy.read_model_list (Rust AI gateway config bridge)."""
 
-from litellm.proxy.read_model_list import read_model_list
+from token_iq.gateway.proxy.read_model_list import read_model_list
 
 
 def test_read_model_list_resolves_os_environ(monkeypatch, tmp_path):

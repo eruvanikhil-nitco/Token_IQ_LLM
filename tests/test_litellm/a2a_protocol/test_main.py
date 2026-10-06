@@ -1,4 +1,4 @@
-"""Tests for litellm/a2a_protocol/main.py non-streaming send behavior."""
+"""Tests for token_iq/gateway/a2a_protocol/main.py non-streaming send behavior."""
 
 import httpx
 import pytest
@@ -12,11 +12,11 @@ from a2a.compat.v0_3.types import (
     SendStreamingMessageRequest,
 )
 
-import litellm
-from litellm.a2a_protocol.main import _send_message, _stream_messages, create_a2a_client
-from litellm.caching.llm_caching_handler import LLMClientCache
-from litellm.constants import DEFAULT_A2A_AGENT_TIMEOUT
-from litellm.llms.custom_httpx.http_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.a2a_protocol.main import _send_message, _stream_messages, create_a2a_client
+from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
+from token_iq.gateway.constants import DEFAULT_A2A_AGENT_TIMEOUT
+from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     get_async_httpx_client,
     httpxSpecialProvider,
@@ -84,8 +84,8 @@ async def test_streaming_trace_id_prefers_logging_trace_id():
         SendStreamingMessageRequest,
     )
 
-    from litellm.a2a_protocol import main as a2a_main
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.a2a_protocol import main as a2a_main
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     request = SendStreamingMessageRequest(
         id="rpc-1",
@@ -128,7 +128,7 @@ def test_streaming_logging_obj_carries_call_type_into_model_call_details():
     and OTel's GenAI metrics label it ``chat`` instead of ``invoke_agent``."""
     from a2a.compat.v0_3.types import MessageSendParams, SendStreamingMessageRequest
 
-    from litellm.a2a_protocol.main import _build_streaming_logging_obj
+    from token_iq.gateway.a2a_protocol.main import _build_streaming_logging_obj
 
     request = SendStreamingMessageRequest(
         id="rpc-call-type",

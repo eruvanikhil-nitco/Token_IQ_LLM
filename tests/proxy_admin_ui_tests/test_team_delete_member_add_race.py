@@ -25,15 +25,15 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     DeleteTeamRequest,
     LitellmUserRoles,
     Member,
     TeamMemberAddRequest,
     UserAPIKeyAuth,
 )
-from litellm.caching.caching import DualCache
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
 _DELETE_SEEDED = 'DELETE FROM "LiteLLM_TeamMembership" WHERE team_id = $1'
 _DELETE_USER = 'DELETE FROM "LiteLLM_UserTable" WHERE user_id = $1'
@@ -96,8 +96,8 @@ async def test_member_add_blocked_by_delete_writes_no_dangling_reference():
     the row gone and raise, without ever calling the write that appends the user/membership
     references, which is the only way this leaves zero trace after the delete wins.
     """
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.management_endpoints.team_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         _add_team_members_to_team,
     )
 
@@ -159,9 +159,9 @@ async def test_member_delete_blocked_by_member_add_removes_from_the_fresh_roster
     snapshot it validated against before the lock, and its write would overwrite the
     member_add's addition right back out even though member_add's request already succeeded.
     """
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import TeamMemberDeleteRequest
-    from litellm.proxy.management_endpoints.team_endpoints import team_member_delete
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import TeamMemberDeleteRequest
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import team_member_delete
 
     team_id, user_id = _race_ids()
     other_user = f"{user_id}-other"
@@ -232,9 +232,9 @@ async def test_delete_blocked_by_member_add_sweeps_the_fresh_reference():
     actually is, not a stale snapshot, and reap that reference rather than leaving it
     stranded on a team id the delete is about to remove.
     """
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import LiteLLM_TeamTable
-    from litellm.proxy.management_endpoints.team_endpoints import delete_team
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import delete_team
 
     team_id, user_id = _race_ids()
     async with _clean_db(team_id, user_id) as db:

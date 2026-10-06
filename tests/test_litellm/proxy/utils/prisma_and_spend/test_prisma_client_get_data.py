@@ -23,9 +23,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LiteLLM_VerificationTokenView
-from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy._types import LiteLLM_VerificationTokenView
+from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 def test_hash_token_method_returns_sha256(prisma_client: PrismaClient) -> None:

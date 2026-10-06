@@ -7,14 +7,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.utils import LiteLLMBatch
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.utils import LiteLLMBatch
 
 from fastapi.testclient import TestClient
 
@@ -44,9 +44,9 @@ def _setup_proxy(monkeypatch, llm_router: Router):
     proxy_logging_obj = ProxyLogging(
         user_api_key_cache=DualCache(default_in_memory_ttl=1)
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", llm_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging_obj
     )
 
 
@@ -72,7 +72,7 @@ def test_output_expires_after_passthrough():
         mock_response.id = "batch_123"
         return mock_response
 
-    with patch("litellm.batches.main.openai_batches_instance") as mock_instance:
+    with patch("token_iq.gateway.batches.main.openai_batches_instance") as mock_instance:
         mock_instance.create_batch.side_effect = capturing_create
         litellm.create_batch(
             completion_window="24h",
@@ -179,11 +179,11 @@ class TestBatchEndpointPolicyMetadata:
     def test_create_batch_does_not_forward_applied_policies_metadata(
         self, monkeypatch, llm_router
     ):
-        from litellm.proxy.policy_engine.attachment_registry import (
+        from token_iq.gateway.proxy.policy_engine.attachment_registry import (
             get_attachment_registry,
         )
-        from litellm.proxy.policy_engine.policy_registry import get_policy_registry
-        from litellm.types.proxy.policy_engine import (
+        from token_iq.gateway.proxy.policy_engine.policy_registry import get_policy_registry
+        from token_iq.gateway.types.proxy.policy_engine import (
             Policy,
             PolicyAttachment,
             PolicyGuardrails,

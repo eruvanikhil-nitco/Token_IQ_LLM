@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock
 import pytest
 from httpx import Request, Response
 
-from litellm.integrations.datadog.datadog_metrics import DatadogMetricsLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.datadog.datadog_metrics import DatadogMetricsLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 @pytest.fixture

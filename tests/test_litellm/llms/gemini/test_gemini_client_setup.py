@@ -1,8 +1,8 @@
 import pytest
-import litellm
+from token_iq import gateway as litellm
 import os
 from unittest.mock import patch, Mock
-from litellm import completion
+from token_iq.gateway import completion
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +57,7 @@ def test_gemini_completion_no_api_key_with_mock():
             if key in os.environ:
                 del os.environ[key]
 
-        with patch("litellm.get_secret") as mock_get_secret:
+        with patch("token_iq.gateway.get_secret") as mock_get_secret:
             mock_get_secret.return_value = None
 
             with pytest.raises(Exception, match='in _complete_vertex_ai_beta') as exc_info:

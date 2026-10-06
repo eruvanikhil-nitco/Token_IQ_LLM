@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTableCachedObj,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks import get_key_object, get_team_object
+from token_iq.gateway.proxy.auth.auth_checks import get_key_object, get_team_object
 
 
 @pytest.mark.asyncio
@@ -50,11 +50,11 @@ async def test_get_key_object_loads_object_permission():
     # Mock get_object_permission to return the permission
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_object_permission",
+            "token_iq.gateway.proxy.auth.auth_checks.get_object_permission",
             AsyncMock(return_value=mock_object_permission),
         ),
-        patch("litellm.proxy.auth.auth_checks._cache_key_object", AsyncMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
+        patch("token_iq.gateway.proxy.auth.auth_checks._cache_key_object", AsyncMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
     ):
         result = await get_key_object(
             hashed_token="test_token_hash",
@@ -94,8 +94,8 @@ async def test_get_key_object_no_permission_id():
     mock_proxy_logging_obj.service_logging_obj.async_service_failure_hook = AsyncMock()
 
     with (
-        patch("litellm.proxy.auth.auth_checks._cache_key_object", AsyncMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
+        patch("token_iq.gateway.proxy.auth.auth_checks._cache_key_object", AsyncMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
     ):
         result = await get_key_object(
             hashed_token="test_token_hash",
@@ -140,17 +140,17 @@ async def test_get_team_object_loads_object_permission():
 
     with (
         patch(
-            "litellm.proxy.auth.auth_checks._get_team_db_check",
+            "token_iq.gateway.proxy.auth.auth_checks._get_team_db_check",
             AsyncMock(return_value=mock_team),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_object_permission",
+            "token_iq.gateway.proxy.auth.auth_checks.get_object_permission",
             AsyncMock(return_value=mock_object_permission),
         ),
-        patch("litellm.proxy.auth.auth_checks._cache_team_object", AsyncMock()),
-        patch("litellm.proxy.auth.auth_checks._should_check_db", return_value=True),
-        patch("litellm.proxy.auth.auth_checks._update_last_db_access_time"),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
+        patch("token_iq.gateway.proxy.auth.auth_checks._cache_team_object", AsyncMock()),
+        patch("token_iq.gateway.proxy.auth.auth_checks._should_check_db", return_value=True),
+        patch("token_iq.gateway.proxy.auth.auth_checks._update_last_db_access_time"),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging_obj),
     ):
         result = await get_team_object(
             team_id="test_team",

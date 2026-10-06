@@ -4,8 +4,8 @@ import os
 from unittest.mock import patch
 
 
-import litellm
-from litellm import MorphChatConfig, get_llm_provider
+from token_iq import gateway as litellm
+from token_iq.gateway import MorphChatConfig, get_llm_provider
 
 # Force model loading
 litellm.add_known_models()
@@ -46,8 +46,8 @@ def test_morph_get_llm_provider():
 
 def test_morph_in_provider_lists():
     """Test that morph is included in all necessary provider lists."""
-    import litellm
-    from litellm.constants import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.constants import (
         openai_compatible_providers,
         openai_compatible_endpoints,
     )
@@ -70,7 +70,7 @@ def test_morph_in_provider_lists():
 
 def test_morph_model_info():
     """Test that morph models have correct configuration."""
-    import litellm
+    from token_iq import gateway as litellm
 
     model_info = litellm.get_model_info("morph/morph-v3-large")
 

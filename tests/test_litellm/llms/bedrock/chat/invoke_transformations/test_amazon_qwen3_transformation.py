@@ -7,10 +7,10 @@ import pytest
 # Ensure the project root is on the import path so `litellm` can be imported when
 # tests are executed from any working directory.
 
-from litellm.llms.bedrock.chat.invoke_transformations.amazon_qwen3_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_qwen3_transformation import (
     AmazonQwen3Config,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_qwen3_get_supported_params():
@@ -183,8 +183,8 @@ def test_qwen3_transform_response_without_usage():
 
 def test_qwen3_provider_detection():
     """Test that Qwen3 provider is correctly detected from model names"""
-    from litellm.utils import ProviderConfigManager
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.utils import ProviderConfigManager
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Test with qwen3/ prefix
     config = ProviderConfigManager.get_provider_chat_config(

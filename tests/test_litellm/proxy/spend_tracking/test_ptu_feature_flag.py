@@ -2,7 +2,7 @@
 
 import pytest
 
-from litellm.proxy.spend_tracking.ptu_feature_flag import (
+from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import (
     PTU_COST_ATTRIBUTION_ENV_VAR,
     is_ptu_cost_attribution_enabled,
 )

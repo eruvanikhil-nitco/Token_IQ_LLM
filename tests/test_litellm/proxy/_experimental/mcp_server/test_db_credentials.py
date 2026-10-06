@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.db import (
+from token_iq.gateway.proxy._experimental.mcp_server.db import (
     _decode_user_credential,
     _prepare_mcp_server_data,
     decrypt_credentials,
@@ -31,12 +31,12 @@ from litellm.proxy._experimental.mcp_server.db import (
     store_user_credential,
     store_user_oauth_credential,
 )
-from litellm.proxy._types import NewMCPServerRequest, UpdateMCPServerRequest
-from litellm.proxy.common_utils.encrypt_decrypt_utils import (
+from token_iq.gateway.proxy._types import NewMCPServerRequest, UpdateMCPServerRequest
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
     encrypt_value_helper,
 )
-from litellm.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
 
 SALT_KEY = "test-salt-key-for-byok-credential-tests-1234"
 
@@ -109,7 +109,7 @@ def _identity_server(**overrides):
     ],
 )
 def test_mcp_oauth_token_identity_changes_on_mint_relevant_fields(overrides):
-    from litellm.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
+    from token_iq.gateway.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
 
     assert mcp_oauth_token_identity(_identity_server()) != mcp_oauth_token_identity(_identity_server(**overrides))
 
@@ -122,13 +122,13 @@ def test_mcp_oauth_token_identity_changes_on_mint_relevant_fields(overrides):
     ],
 )
 def test_mcp_oauth_token_identity_stable_on_non_mint_fields(overrides):
-    from litellm.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
+    from token_iq.gateway.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
 
     assert mcp_oauth_token_identity(_identity_server()) == mcp_oauth_token_identity(_identity_server(**overrides))
 
 
 def _encrypted_creds_json(client_id: str = "cid", client_secret: str = "csec") -> str:
-    from litellm.proxy._experimental.mcp_server.db import encrypt_credentials
+    from token_iq.gateway.proxy._experimental.mcp_server.db import encrypt_credentials
 
     encrypted = encrypt_credentials(
         credentials={"client_id": client_id, "client_secret": client_secret, "scopes": ["a"]},
@@ -142,7 +142,7 @@ def test_mcp_oauth_token_identity_stable_across_reencryption():
     saves of the SAME plaintext produce different ciphertext. The identity must compare decrypted
     values; comparing ciphertext would flag every routine save as a mint-relevant change and purge
     per-user tokens that are still valid."""
-    from litellm.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
+    from token_iq.gateway.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
 
     first = _encrypted_creds_json()
     second = _encrypted_creds_json()
@@ -154,7 +154,7 @@ def test_mcp_oauth_token_identity_stable_across_reencryption():
 
 
 def test_mcp_oauth_token_identity_detects_change_under_encryption():
-    from litellm.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
+    from token_iq.gateway.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
 
     unchanged = _identity_server(credentials=_encrypted_creds_json())
     changed = _identity_server(credentials=_encrypted_creds_json(client_id="other"))
@@ -180,7 +180,7 @@ def _byok_row(user_id: str, server_id: str = "srv-1"):
 @pytest.mark.asyncio
 async def test_purge_user_oauth_credentials_for_server_invalidates_each_user():
     """The purge must route each (user, server) row through the invalidator exactly once."""
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice"), _oauth_row("bob")])
@@ -205,7 +205,7 @@ async def test_purge_user_oauth_credentials_for_server_spares_byok_rows():
     """Regression: the purge used to delete_many on server_id alone, wiping BYOK API keys that share
     the LiteLLM_MCPUserCredentials table. Only rows holding an OAuth2 payload may be deleted (one
     batched query filtered to their user_ids), and only their users' token caches invalidated."""
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _oauth_row("alice")])
@@ -228,7 +228,7 @@ async def test_purge_user_oauth_credentials_for_server_spares_byok_rows():
 @pytest.mark.asyncio
 async def test_purge_user_oauth_credentials_for_server_all_byok_is_noop():
     """An api_key (BYOK-only) server whose identity tuple changes (e.g. its url) must purge nothing."""
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _byok_row("dave")])
@@ -246,8 +246,8 @@ async def test_purge_user_oauth_credentials_for_server_defaults_to_manager_inval
     invalidate_user_oauth_token_cache, the single point covering both the legacy per-user token cache
     and the v2 per-user OAuth token store; a wrong or no-op default silently leaves every cache
     serving tokens minted for the superseded config."""
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
@@ -268,8 +268,8 @@ async def test_purge_user_oauth_credentials_for_server_defaults_to_manager_inval
 
 @pytest.mark.asyncio
 async def test_purge_user_oauth_credentials_for_server_logs_raced_rows(monkeypatch):
-    from litellm.proxy._experimental.mcp_server import db as db_module
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server import db as db_module
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
@@ -288,7 +288,7 @@ async def test_delete_mcp_server_invalidates_cached_tokens_for_enumerated_users(
     """Deleting a server must invalidate each enumerated user's cached per-user token: the caches are
     keyed by (user_id, server_id), so a re-created server reusing the same server_id would otherwise
     serve tokens minted for the deleted server until TTL."""
-    from litellm.proxy._experimental.mcp_server.db import delete_mcp_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=MagicMock(server_id="srv-1"))
@@ -309,7 +309,7 @@ async def test_delete_mcp_server_invalidates_cached_tokens_for_enumerated_users(
 
 @pytest.mark.asyncio
 async def test_delete_mcp_server_returns_none_without_cleanup_when_server_missing():
-    from litellm.proxy._experimental.mcp_server.db import delete_mcp_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=None)
@@ -323,7 +323,7 @@ async def test_delete_mcp_server_returns_none_without_cleanup_when_server_missin
 
 @pytest.mark.asyncio
 async def test_purge_user_oauth_credentials_for_server_noop_when_empty():
-    from litellm.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[])
@@ -886,7 +886,7 @@ def test_expiry_missing_expires_at_is_never_expired():
 @pytest.mark.asyncio
 async def test_resolve_returns_valid_token_without_refreshing(monkeypatch):
     # A token good for 10 minutes must be returned as-is, with no refresh call.
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refresh = AsyncMock()
     monkeypatch.setattr(db_mod, "refresh_user_oauth_token", refresh)
@@ -905,7 +905,7 @@ async def test_resolve_returns_valid_token_without_refreshing(monkeypatch):
 async def test_resolve_refreshes_expired_token_with_refresh_token(monkeypatch):
     # The core regression: an expired OBO cred with a refresh_token must mint a
     # new token rather than returning None (which left the UI tool list empty).
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refreshed = _oauth_cred(access_token="at-fresh", refresh_token="rt-2", expires_in_seconds=3600)
     refresh = AsyncMock(return_value=refreshed)
@@ -924,7 +924,7 @@ async def test_resolve_refreshes_expired_token_with_refresh_token(monkeypatch):
 async def test_resolve_refreshes_token_expiring_within_buffer(monkeypatch):
     # A token still technically valid (30s left) but inside the 60s buffer must
     # be proactively refreshed, not handed back.
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refreshed = _oauth_cred(access_token="at-fresh", expires_in_seconds=3600)
     refresh = AsyncMock(return_value=refreshed)
@@ -942,7 +942,7 @@ async def test_resolve_refreshes_token_expiring_within_buffer(monkeypatch):
 @pytest.mark.asyncio
 async def test_resolve_returns_none_when_expired_without_refresh_token(monkeypatch):
     # No refresh_token means nothing to refresh with — return None, never call refresh.
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refresh = AsyncMock()
     monkeypatch.setattr(db_mod, "refresh_user_oauth_token", refresh)
@@ -959,7 +959,7 @@ async def test_resolve_returns_none_when_expired_without_refresh_token(monkeypat
 @pytest.mark.asyncio
 async def test_resolve_returns_none_when_refresh_fails(monkeypatch):
     # A failed refresh (provider returns nothing usable) must surface as None.
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refresh = AsyncMock(return_value=None)
     monkeypatch.setattr(db_mod, "refresh_user_oauth_token", refresh)
@@ -975,7 +975,7 @@ async def test_resolve_returns_none_when_refresh_fails(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_resolve_returns_none_for_missing_credential(monkeypatch):
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     refresh = AsyncMock()
     monkeypatch.setattr(db_mod, "refresh_user_oauth_token", refresh)
@@ -1022,7 +1022,7 @@ def _refresh_server(**overrides):
 
 
 async def _run_refresh(monkeypatch, server, response_body=None):
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     captured: dict = {}
 
@@ -1132,7 +1132,7 @@ async def test_rotate_user_env_vars_skips_undecryptable_rows():
 async def test_refresh_user_oauth_token_uses_client_secret_basic(monkeypatch):
     """LIT-4091: a per-user refresh against a server with token_endpoint_auth_method=client_secret_basic
     sends HTTP Basic and keeps the secret out of the body."""
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     server = MagicMock()
     server.token_url = "https://idp.example.com/oauth2/token"
@@ -1171,7 +1171,7 @@ async def test_refresh_user_oauth_token_uses_client_secret_basic(monkeypatch):
 async def test_refresh_user_oauth_token_defaults_to_client_secret_post(monkeypatch):
     """Backward compatibility: with no token_endpoint_auth_method the refresh keeps credentials in
     the body (client_secret_post) and sends no Authorization header."""
-    import litellm.proxy._experimental.mcp_server.db as db_mod
+    import token_iq.gateway.proxy._experimental.mcp_server.db as db_mod
 
     server = MagicMock()
     server.token_url = "https://idp.example.com/oauth2/token"
@@ -1256,9 +1256,9 @@ async def test_master_key_rotation_reencrypts_oauth_client_store(monkeypatch):
     master-key rotation must re-encrypt it alongside the server rows. Skipping it leaves
     config-declared DCR clients under the retired key, where they decrypt back to ciphertext and
     force a full re-authorization."""
-    import litellm.proxy.common_utils.encrypt_decrypt_utils as enc
-    from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
-    from litellm.proxy._experimental.mcp_server.db import (
+    import token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils as enc
+    from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+    from token_iq.gateway.proxy._experimental.mcp_server.db import (
         decrypt_credentials,
         encrypt_credentials,
         rotate_mcp_server_credentials_master_key,
@@ -1300,7 +1300,7 @@ async def test_delete_mcp_server_cleans_oauth_client_store():
     """Deleting a server must remove its server-scoped DCR client store entry alongside the per-user
     credential and env-var rows, or a re-created server reusing the same server_id would inherit the
     deleted server's OAuth client."""
-    from litellm.proxy._experimental.mcp_server.db import delete_mcp_server
+    from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
     prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=SimpleNamespace(server_id="s1"))
@@ -1323,7 +1323,7 @@ def test_mcp_oauth_token_identity_changes_when_only_upstream_resource_is_edited(
     calling tools with the previous audience's token until it expires, which is the token-reuse
     RFC 8707 exists to stop.
     """
-    from litellm.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
+    from token_iq.gateway.proxy._experimental.mcp_server.db import mcp_oauth_token_identity
 
     creds = {"client_id": "cid", "client_secret": "csec", "scopes": ["a"]}
     unset = _identity_server(credentials=dict(creds))
@@ -1343,9 +1343,9 @@ def test_mcp_oauth_token_identity_changes_when_only_upstream_resource_is_edited(
 async def test_refresh_user_oauth_token_uses_admin_entered_token_url_when_issuer_yield_empties_resolved(monkeypatch):
     """A pinned issuer empties the resolved token_url while configured_token_url keeps the
     admin-entered value; the silent per-user refresh must POST there instead of bailing."""
-    from litellm.proxy._types import MCPTransport
-    from litellm.types.mcp import MCPAuth
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._types import MCPTransport
+    from token_iq.gateway.types.mcp import MCPAuth
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     server = MCPServer(
         server_id="srv-1",

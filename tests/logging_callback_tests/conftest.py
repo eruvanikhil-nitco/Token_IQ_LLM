@@ -13,7 +13,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -125,8 +125,8 @@ def isolate_litellm_state():
     `litellm.num_retries = 3` at the top of test_langfuse_e2e_test.py) from
     leaking across tests within the same xdist worker.
     """
-    from litellm.litellm_core_utils import litellm_logging as ll_logging
-    from litellm.proxy.management_helpers import audit_logs as ll_audit_logs
+    from token_iq.gateway.core_utils import litellm_logging as ll_logging
+    from token_iq.gateway.proxy.management_helpers import audit_logs as ll_audit_logs
 
     # Flush cache and clear internal logger instances before test
     if hasattr(litellm, "in_memory_llm_clients_cache"):
@@ -177,7 +177,7 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    import litellm
+    from token_iq import gateway as litellm
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
@@ -185,7 +185,8 @@ def setup_and_teardown():
 
         try:
             if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-                import litellm.proxy.proxy_server
+                import token_iq.gateway.proxy.proxy_server
+                from token_iq import gateway as litellm
 
                 importlib.reload(litellm.proxy.proxy_server)
         except Exception as e:

@@ -3,14 +3,14 @@ from typing import Optional
 import pytest
 from fastapi import HTTPException
 
-from litellm.integrations.custom_guardrail import ModifyResponseException
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.grayswan import grayswan as grayswan_module
-from litellm.proxy.guardrails.guardrail_hooks.grayswan.grayswan import (
+from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.grayswan import grayswan as grayswan_module
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.grayswan.grayswan import (
     GraySwanGuardrail,
     GraySwanGuardrailAPIError,
 )
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 @pytest.fixture
@@ -568,7 +568,7 @@ def test_prepare_payload_includes_litellm_metadata(
 
 def test_ensure_litellm_metadata_populates_from_user_api_key_dict() -> None:
     """Verify _ensure_litellm_metadata populates litellm_metadata."""
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         _ensure_litellm_metadata,
     )
 
@@ -584,7 +584,7 @@ def test_ensure_litellm_metadata_populates_from_user_api_key_dict() -> None:
 
 def test_ensure_litellm_metadata_noop_when_already_present() -> None:
     """Verify _ensure_litellm_metadata does not overwrite existing litellm_metadata."""
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         _ensure_litellm_metadata,
     )
 

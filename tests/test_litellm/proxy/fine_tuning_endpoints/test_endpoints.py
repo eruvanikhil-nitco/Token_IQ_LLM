@@ -1,5 +1,5 @@
 """
-require_managed_files enforcement for litellm/proxy/fine_tuning_endpoints/endpoints.py
+require_managed_files enforcement for token_iq/gateway/proxy/fine_tuning_endpoints/endpoints.py
 
 Ownership rows only exist for LiteLLM managed ids. A raw provider id sent to these
 routes is forwarded to the provider under the shared proxy credentials with no tenant
@@ -20,15 +20,15 @@ import pytest
 
 from fastapi import Response
 
-import litellm
-import litellm.proxy.fine_tuning_endpoints.endpoints as endpoints
-import litellm.proxy.proxy_server as proxy_server
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.llms.openai import LiteLLMFineTuningJobCreate
-from litellm.types.utils import LiteLLMFineTuningJob, SpecialEnums
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.fine_tuning_endpoints.endpoints as endpoints
+import token_iq.gateway.proxy.proxy_server as proxy_server
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.llms.openai import LiteLLMFineTuningJobCreate
+from token_iq.gateway.types.utils import LiteLLMFineTuningJob, SpecialEnums
 
 RAW_FILE_ID = "file-victim-abc123"
 RAW_JOB_ID = "ftjob-victim-abc123"

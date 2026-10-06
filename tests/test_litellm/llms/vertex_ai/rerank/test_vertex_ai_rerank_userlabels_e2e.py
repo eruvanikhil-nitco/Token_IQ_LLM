@@ -15,8 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-import litellm.llms.vertex_ai.rerank.transformation
+from token_iq import gateway as litellm
+import token_iq.gateway.llms.vertex_ai.rerank.transformation
+from token_iq import gateway as litellm
 
 
 def _extract_body(call_kwargs):
@@ -100,7 +101,7 @@ def test_rerank_userlabels_propagates_from_metadata_sync(clean_vertex_env):
     with (
         _patch_vertex_auth(),
         patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             side_effect=fake_post,
         ),
     ):
@@ -134,7 +135,7 @@ def test_rerank_userlabels_propagates_from_metadata_async(clean_vertex_env):
     with (
         _patch_vertex_auth(),
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=fake_post,
         ),
     ):
@@ -165,7 +166,7 @@ def test_rerank_userlabels_absent_when_no_metadata(clean_vertex_env):
     with (
         _patch_vertex_auth(),
         patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             side_effect=fake_post,
         ),
     ):

@@ -14,15 +14,15 @@ from typing import Any, List, Literal, Optional
 
 import pytest
 
-from litellm.integrations.custom_guardrail import (
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     ModifyResponseException,
 )
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
     UnifiedLLMGuardrails,
 )
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 BLOCK_MESSAGE = "Blocked by policy: this response was withheld."
 
@@ -218,11 +218,11 @@ async def test_end_of_stream_only_block_does_not_append_after_message_stop():
 
 
 def test_blocked_stream_reports_usage_from_original_chunks():
-    from litellm.integrations.custom_guardrail import ModifyResponseException
-    from litellm.llms.anthropic.chat.guardrail_translation.handler import (
+    from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+    from token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler import (
         AnthropicMessagesHandler,
     )
-    from litellm.llms.base_llm.guardrail_translation.utils import (
+    from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
         blocked_response_usage,
     )
 
@@ -278,7 +278,7 @@ class TestContentBlockState:
     so a mid-stream block closes/opens the right indices."""
 
     def _handler(self):
-        from litellm.llms.anthropic.chat.guardrail_translation.handler import (
+        from token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler import (
             AnthropicMessagesHandler,
         )
 
@@ -329,7 +329,7 @@ class TestContentBlockState:
         assert max_index == 0
 
     def test_continuation_closes_open_block_and_appends_after_it(self):
-        from litellm.integrations.custom_guardrail import ModifyResponseException
+        from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
 
         handler = self._handler()
         # Client has seen an open text block at index 0.

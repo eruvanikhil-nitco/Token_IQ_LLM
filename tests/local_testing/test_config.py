@@ -15,11 +15,11 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-import litellm
-from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value
-from litellm.proxy.proxy_server import ProxyConfig
-from litellm.proxy.utils import DualCache, ProxyLogging
-from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.utils import DualCache, ProxyLogging
+from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
 
 class DBModel(BaseModel):
@@ -363,9 +363,9 @@ async def test_add_and_delete_deployments(llm_router, model_list_flag_value):
             assert len(llm_router.model_list) == len(model_list) + prev_llm_router_val
 
 
-from litellm import LITELLM_CHAT_PROVIDERS, LlmProviders
-from litellm.utils import ProviderConfigManager
-from litellm.llms.base_llm.chat.transformation import BaseConfig
+from token_iq.gateway import LITELLM_CHAT_PROVIDERS, LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig
 
 
 def _check_provider_config(config: BaseConfig, provider: LlmProviders):
@@ -387,7 +387,7 @@ def _check_provider_config(config: BaseConfig, provider: LlmProviders):
 
 
 def test_provider_config_manager_bedrock_converse_like():
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     config = ProviderConfigManager.get_provider_chat_config(
         model="bedrock/converse_like/us.amazon.nova-pro-v1:0",
@@ -422,7 +422,7 @@ def test_provider_config_manager_bedrock_converse_like():
 
 def test_litellm_proxy_responses_api_config():
     """Test that litellm_proxy provider returns correct Responses API config"""
-    from litellm.llms.litellm_proxy.responses.transformation import (
+    from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
         LiteLLMProxyResponsesAPIConfig,
     )
 

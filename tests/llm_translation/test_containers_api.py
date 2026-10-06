@@ -10,11 +10,11 @@ import time
 import pytest
 
 
-from litellm.containers import (
+from token_iq.gateway.containers import (
     create_container,
     delete_container,
 )
-from litellm.containers.endpoint_factory import (
+from token_iq.gateway.containers.endpoint_factory import (
     list_container_files,
     retrieve_container_file,
     retrieve_container_file_content,

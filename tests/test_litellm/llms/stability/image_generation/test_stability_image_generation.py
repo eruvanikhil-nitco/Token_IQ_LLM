@@ -10,15 +10,15 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.stability.image_generation import (
+from token_iq.gateway.llms.stability.image_generation import (
     StabilityImageGenerationConfig,
     get_stability_image_generation_config,
 )
-from litellm.types.llms.stability import (
+from token_iq.gateway.types.llms.stability import (
     OPENAI_SIZE_TO_STABILITY_ASPECT_RATIO,
     STABILITY_GENERATION_MODELS,
 )
-from litellm.types.utils import ImageResponse
+from token_iq.gateway.types.utils import ImageResponse
 
 
 class TestStabilityImageGenerationConfig:

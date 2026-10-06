@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.integrations.focus.destinations.factory import FocusDestinationFactory
-from litellm.integrations.focus.destinations.vantage_destination import (
+from token_iq.gateway.integrations.focus.destinations.factory import FocusDestinationFactory
+from token_iq.gateway.integrations.focus.destinations.vantage_destination import (
     FocusVantageDestination,
 )
 

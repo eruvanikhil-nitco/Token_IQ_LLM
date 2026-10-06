@@ -2,7 +2,7 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 import pytest
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import os
 import asyncio
 from unittest import mock
@@ -19,8 +19,8 @@ _SKIP_NO_MCP = pytest.mark.skipif(
 
 from starlette import status
 
-from litellm.constants import LITELLM_PROXY_ADMIN_NAME
-from litellm.proxy._types import (
+from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
+from token_iq.gateway.proxy._types import (
     MCPTransportType,
     MCPTransport,
     NewMCPServerRequest,
@@ -29,8 +29,8 @@ from litellm.proxy._types import (
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.types.mcp import MCPAuth
-from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
     does_mcp_server_exist,
 )
 
@@ -127,26 +127,26 @@ async def test_create_mcp_server_direct():
     # Mock the database functions directly
     with (
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
             True,
         ),
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
         ) as mock_get_prisma,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
             new_callable=mock.AsyncMock,
         ) as mock_create,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             new_callable=mock.AsyncMock,
         ) as mock_get_server,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
         ) as mock_manager,
     ):
         # Import after mocking
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
 
@@ -223,19 +223,19 @@ async def test_create_duplicate_mcp_server():
     # Mock the database functions directly
     with (
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
             True,
         ),
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
         ) as mock_get_prisma,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             new_callable=mock.AsyncMock,
         ) as mock_get_server,
     ):
         # Import after mocking
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
         from fastapi import HTTPException
@@ -288,15 +288,15 @@ async def test_create_mcp_server_auth_failure():
     # Mock the database functions directly
     with (
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
             True,
         ),
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
         ) as mock_get_prisma,
     ):
         # Import after mocking
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
         from fastapi import HTTPException
@@ -335,20 +335,20 @@ async def test_create_mcp_server_invalid_alias():
     """
     with (
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
             True,
         ),
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
         ) as mock_get_prisma,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server"
         ) as mock_get_server,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server"
         ) as mock_create,
     ):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
         from fastapi import HTTPException
@@ -392,25 +392,25 @@ async def test_create_mcp_server_invalid_alias():
 async def test_edit_mcp_server_redacts_credentials():
     with (
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE",
             True,
         ),
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw"
         ) as mock_get_prisma,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
             new_callable=mock.AsyncMock,
         ) as mock_update,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
             autospec=True,
         ) as mock_validate,
         mock.patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
         ) as mock_manager,
     ):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             edit_mcp_server,
         )
 
@@ -463,7 +463,7 @@ def test_validate_mcp_server_name_direct():
     """
     Test the validation function directly to ensure it works.
     """
-    from litellm.proxy._experimental.mcp_server.utils import validate_mcp_server_name
+    from token_iq.gateway.proxy._experimental.mcp_server.utils import validate_mcp_server_name
     from fastapi import HTTPException
 
     # Test that valid names pass

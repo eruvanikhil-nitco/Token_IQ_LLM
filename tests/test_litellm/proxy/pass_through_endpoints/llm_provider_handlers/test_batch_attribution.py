@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution import (
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution import (
     is_collection_route,
     log_batch_registration_result,
     optional_str,
@@ -127,7 +127,7 @@ class TestLogBatchRegistrationResult:
 
         task = await self._finished_task(ok())
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
         ) as logger:
             log_batch_registration_result(task, "Anthropic", "uoi", "b1", is_batch_create=True)
 
@@ -142,7 +142,7 @@ class TestLogBatchRegistrationResult:
 
         task = await self._finished_task(boom())
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
         ) as logger:
             log_batch_registration_result(task, "Vertex AI", "uoi", "b1", is_batch_create=True)
 
@@ -156,7 +156,7 @@ class TestLogBatchRegistrationResult:
 
         task = await self._finished_task(boom())
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
         ) as logger:
             log_batch_registration_result(task, "Vertex AI", "uoi", "b1", is_batch_create=False)
 
@@ -173,7 +173,7 @@ class TestLogBatchRegistrationResult:
         task.cancel()
         await asyncio.gather(task, return_exceptions=True)
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.batch_attribution.verbose_proxy_logger"
         ) as logger:
             log_batch_registration_result(task, "Anthropic", "uoi", "b1", is_batch_create=True)
 

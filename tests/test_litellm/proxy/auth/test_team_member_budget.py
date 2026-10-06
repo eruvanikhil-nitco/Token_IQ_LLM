@@ -7,15 +7,15 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import Request
 
-import litellm
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_TeamMembership,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks import common_checks, get_team_membership
+from token_iq.gateway.proxy.auth.auth_checks import common_checks, get_team_membership
 
 
 @pytest.mark.asyncio
@@ -67,12 +67,12 @@ async def test_team_member_budget_check_exceeds_budget():
     # Mock get_team_membership to return our team membership
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
             return_value=team_membership,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         # Should raise BudgetExceededError
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
@@ -145,12 +145,12 @@ async def test_team_member_budget_check_within_budget():
     # Mock get_team_membership to return our team membership
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
             return_value=team_membership,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         # Should not raise an exception
         result = await common_checks(
@@ -217,12 +217,12 @@ async def test_team_member_budget_check_no_budget_set():
     # Mock get_team_membership to return our team membership
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
             return_value=team_membership,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         # Should not raise an exception (no budget means no limit)
         result = await common_checks(
@@ -281,12 +281,12 @@ async def test_team_member_budget_check_no_team_membership():
     # Mock get_team_membership to return None (no membership)
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
             return_value=None,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         # Should not raise an exception (no membership means no budget check)
         result = await common_checks(
@@ -345,12 +345,12 @@ async def test_team_member_budget_check_blocks_regenerated_key_after_old_key_exh
 
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
             return_value=team_membership,
         ) as mock_get_team_membership,
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
             await common_checks(
@@ -413,11 +413,11 @@ async def test_team_member_budget_check_personal_key_not_team():
     # get_team_membership should not be called for personal keys
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new_callable=AsyncMock,
         ) as mock_get_team_membership,
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         result = await common_checks(
             request_body=request_body,

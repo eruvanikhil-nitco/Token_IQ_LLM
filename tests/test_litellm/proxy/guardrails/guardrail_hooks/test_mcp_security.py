@@ -11,11 +11,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.mcp_security.mcp_security_guardrail import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_security.mcp_security_guardrail import (
     MCPSecurityGuardrail,
 )
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ class TestExtractMCPServerNames:
 class TestMCPSecurityGuardrailPreCall:
     @pytest.mark.asyncio
     @patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
     )
     async def test_blocks_unregistered_server_chat_completions(
         self, mock_manager, guardrail
@@ -90,7 +90,7 @@ class TestMCPSecurityGuardrailPreCall:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
     )
     async def test_blocks_unregistered_server_responses_api(
         self, mock_manager, guardrail
@@ -119,7 +119,7 @@ class TestMCPSecurityGuardrailPreCall:
 
     @pytest.mark.asyncio
     @patch(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
     )
     async def test_allows_registered_servers(self, mock_manager, guardrail):
         """All MCP servers are registered - request passes through."""

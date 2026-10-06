@@ -2,19 +2,19 @@
 Tests for the Meta Model API (Muse Spark) provider configuration and integration.
 """
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestMetaProviderConfig:
     def test_meta_in_provider_list(self):
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         assert hasattr(LlmProviders, "META")
         assert LlmProviders.META.value == "meta"
         assert "meta" in litellm.provider_list
 
     def test_meta_json_config_exists(self):
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.exists("meta")
 
@@ -25,17 +25,17 @@ class TestMetaProviderConfig:
         assert meta.api_base_env == "META_API_BASE"
 
     def test_meta_supports_responses_api(self):
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.supports_responses_api("meta")
 
     def test_meta_in_openai_compatible_providers(self):
-        from litellm.constants import openai_compatible_providers
+        from token_iq.gateway.constants import openai_compatible_providers
 
         assert "meta" in openai_compatible_providers
 
     def test_meta_provider_resolution(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="meta/muse-spark-1.1",
@@ -49,7 +49,7 @@ class TestMetaProviderConfig:
         assert api_base == "https://api.meta.ai/v1"
 
     def test_meta_api_base_override(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="meta/muse-spark-1.1",
@@ -63,7 +63,7 @@ class TestMetaProviderConfig:
         assert api_key == "sk-test"
 
     def test_meta_url_autodetection(self):
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="muse-spark-1.1",
@@ -75,7 +75,7 @@ class TestMetaProviderConfig:
         assert api_base == "https://api.meta.ai/v1"
 
     def test_meta_router_config(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[
@@ -125,7 +125,7 @@ class TestMetaReasoningParams:
 
 class TestMetaAnthropicMessages:
     def test_meta_resolves_native_messages_config(self):
-        from litellm.llms.openai_like.messages.transformation import (
+        from token_iq.gateway.llms.openai_like.messages.transformation import (
             JSONProviderAnthropicMessagesConfig,
         )
 
@@ -141,8 +141,8 @@ class TestMetaAnthropicMessages:
         assert cfg is None
 
     def test_complete_url_defaults_to_meta_base(self):
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
-        from litellm.llms.openai_like.messages.transformation import (
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.messages.transformation import (
             JSONProviderAnthropicMessagesConfig,
         )
 
@@ -169,8 +169,8 @@ class TestMetaAnthropicMessages:
         assert override_url == "https://custom.meta.ai/v1/messages"
 
     def test_api_key_resolved_from_env(self, monkeypatch):
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
-        from litellm.llms.openai_like.messages.transformation import (
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.messages.transformation import (
             JSONProviderAnthropicMessagesConfig,
         )
 
@@ -208,8 +208,8 @@ class TestMuseSparkModelInfo:
         assert info["supports_prompt_caching"] is True
 
     def test_muse_spark_cost_calculation(self):
-        from litellm import completion_cost
-        from litellm.types.utils import ModelResponse, Usage
+        from token_iq.gateway import completion_cost
+        from token_iq.gateway.types.utils import ModelResponse, Usage
 
         response = ModelResponse(
             model="muse-spark-1.1",

@@ -5,13 +5,13 @@ import os
 import traceback
 
 import time
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 import httpx
 import openai
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.parametrize(
@@ -241,7 +241,7 @@ def test_timeout_streaming():
 @pytest.mark.skip(reason="local test")
 def test_timeout_ollama():
     # this Will Raise a timeout
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
     try:

@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.caching.azure_blob_cache import AzureBlobCache
+from token_iq.gateway.caching.azure_blob_cache import AzureBlobCache
 
 
 @pytest.fixture

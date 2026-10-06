@@ -8,8 +8,8 @@ from typing import Final
 
 import pytest
 
-import litellm
-from litellm.integrations.otel import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.otel import (
     BAGGAGE_PROMOTED_KEYS,
     DB,
     Error,
@@ -26,14 +26,14 @@ from litellm.integrations.otel import (
     resolve_output_type,
     resolve_provider,
 )
-from litellm.integrations.otel.mappers.genai import GenAIMapper
-from litellm.integrations.otel.model import spans as spans_mod
-from litellm.integrations.otel.model.payloads import (
+from token_iq.gateway.integrations.otel.mappers.genai import GenAIMapper
+from token_iq.gateway.integrations.otel.model import spans as spans_mod
+from token_iq.gateway.integrations.otel.model.payloads import (
     LLMCallSpanData,
     RequestIdentity,
     _upstream_address_port,
 )
-from litellm.integrations.otel.model.spans import (
+from token_iq.gateway.integrations.otel.model.spans import (
     SPAN_REGISTRY,
     LiteLLMSpanKind,
     SpanRole,
@@ -154,7 +154,7 @@ def _all_constants(cls):
 
 
 def test_attribute_keys_are_unique_across_namespaces():
-    from litellm.integrations.otel import MCP, Client, JsonRpc, LiteLLMError, Network
+    from token_iq.gateway.integrations.otel import MCP, Client, JsonRpc, LiteLLMError, Network
 
     # prefixes are allowed to be substrings; exact keys must not collide.
     exact = set()
@@ -170,7 +170,7 @@ def test_mcp_attribute_vocabulary_is_complete():
     Pins the vocabulary so a dropped or renamed key fails here rather than
     silently emitting a non-conformant attribute name.
     """
-    from litellm.integrations.otel import MCP, Client, JsonRpc, Network
+    from token_iq.gateway.integrations.otel import MCP, Client, JsonRpc, Network
 
     defined = set()
     for cls in (GenAI, Error, Server, MCP, JsonRpc, Network, Client):
@@ -368,7 +368,7 @@ def test_agent_message_is_an_invoke_agent_operation(call_type):
     """An agent (A2A) message send is an agent invocation, not a chat completion.
 
     The streaming spelling counts: ``_build_streaming_logging_obj`` in
-    ``litellm/a2a_protocol/main.py`` stamps ``asend_message_streaming`` on the
+    ``token_iq/gateway/a2a_protocol/main.py`` stamps ``asend_message_streaming`` on the
     logging object the streaming iterator dispatches success handlers with, so a
     missing entry sends every streamed agent turn into the chat series. There is
     no sync spelling because A2A streaming is async-only.
@@ -387,7 +387,7 @@ def test_every_call_type_the_a2a_package_stamps_is_an_agent_operation():
         for source in a2a_package.rglob("*.py")
         for call_type in re.findall(r'call_type="([^"]+)"', source.read_text())
     }
-    assert stamped, "no call_type literals found in litellm/a2a_protocol"
+    assert stamped, "no call_type literals found in token_iq/gateway/a2a_protocol"
     unmapped = {
         call_type: resolve_operation(call_type).value
         for call_type in stamped
@@ -431,7 +431,7 @@ def _mcp_payload(capture=False, **overrides):
 
 
 def test_mcp_method_values_match_wire_format():
-    from litellm.integrations.otel import MCP, MCPMethod
+    from token_iq.gateway.integrations.otel import MCP, MCPMethod
 
     assert MCPMethod.TOOLS_CALL.value == "tools/call"
     assert MCPMethod.TOOLS_LIST.value == "tools/list"
@@ -439,7 +439,7 @@ def test_mcp_method_values_match_wire_format():
 
 
 def test_mcp_tool_call_adapter_extracts_fields():
-    from litellm.integrations.otel import MCPToolCallSpanData
+    from token_iq.gateway.integrations.otel import MCPToolCallSpanData
 
     data = MCPToolCallSpanData.from_standard_logging_payload(_mcp_payload())
     assert data.operation is GenAIOperation.EXECUTE_TOOL
@@ -456,7 +456,7 @@ def test_mcp_tool_call_adapter_extracts_fields():
 def test_mcp_tool_call_content_gated_off_by_default():
     # Arguments and result are sensitive tool I/O: withheld unless content capture
     # is explicitly enabled, exactly like prompt/response bodies.
-    from litellm.integrations.otel import MCPToolCallSpanData
+    from token_iq.gateway.integrations.otel import MCPToolCallSpanData
 
     off = MCPToolCallSpanData.from_standard_logging_payload(_mcp_payload())
     assert off.arguments_json is None and off.result_json is None
@@ -469,7 +469,7 @@ def test_mcp_tool_call_content_gated_off_by_default():
 
 
 def test_mcp_tool_call_failure_path():
-    from litellm.integrations.otel import MCPToolCallSpanData
+    from token_iq.gateway.integrations.otel import MCPToolCallSpanData
 
     data = MCPToolCallSpanData.from_standard_logging_payload(
         _mcp_payload(
@@ -483,7 +483,7 @@ def test_mcp_tool_call_failure_path():
 
 
 def test_is_mcp_tool_call_detection():
-    from litellm.integrations.otel import is_mcp_tool_call
+    from token_iq.gateway.integrations.otel import is_mcp_tool_call
 
     assert is_mcp_tool_call(_mcp_payload()) is True
     # call_type alone is enough even before the gateway stamps its metadata.
@@ -493,8 +493,8 @@ def test_is_mcp_tool_call_detection():
 
 
 def test_mcp_tool_call_span_name():
-    from litellm.integrations.otel import MCPToolCallSpanData
-    from litellm.integrations.otel.model.spans import mcp_tool_call_span_name
+    from token_iq.gateway.integrations.otel import MCPToolCallSpanData
+    from token_iq.gateway.integrations.otel.model.spans import mcp_tool_call_span_name
 
     data = MCPToolCallSpanData.from_standard_logging_payload(_mcp_payload())
     assert mcp_tool_call_span_name(data) == "tools/call get_weather"
@@ -695,7 +695,7 @@ def test_content_capture_gated_off_by_default():
 
 
 def test_request_identity_prefers_canonical_team_keys():
-    from litellm.integrations.otel.model.payloads import RequestIdentity
+    from token_iq.gateway.integrations.otel.model.payloads import RequestIdentity
 
     payload = _sample_payload(
         metadata={
@@ -712,7 +712,7 @@ def test_request_identity_prefers_canonical_team_keys():
 
 
 def test_request_identity_falls_back_to_legacy_team_keys():
-    from litellm.integrations.otel.model.payloads import RequestIdentity
+    from token_iq.gateway.integrations.otel.model.payloads import RequestIdentity
 
     payload = _sample_payload(
         metadata={"team_id": "legacy-team", "team_alias": "legacy"}
@@ -723,7 +723,7 @@ def test_request_identity_falls_back_to_legacy_team_keys():
 
 
 def test_guardrail_span_data_block_carries_verdict_and_error():
-    from litellm.integrations.otel.model.payloads import GuardrailSpanData
+    from token_iq.gateway.integrations.otel.model.payloads import GuardrailSpanData
 
     entry = {
         "guardrail_name": "openai-moderation",
@@ -749,7 +749,7 @@ def test_guardrail_span_data_block_carries_verdict_and_error():
 
 
 def test_guardrail_span_data_success_has_no_error():
-    from litellm.integrations.otel.model.payloads import GuardrailSpanData
+    from token_iq.gateway.integrations.otel.model.payloads import GuardrailSpanData
 
     d = GuardrailSpanData.from_logging_entry(
         {
@@ -763,7 +763,7 @@ def test_guardrail_span_data_success_has_no_error():
 
 
 def test_request_identity_from_user_api_key_auth():
-    from litellm.integrations.otel.model.payloads import RequestIdentity
+    from token_iq.gateway.integrations.otel.model.payloads import RequestIdentity
 
     class _Auth:
         team_id = "t9"
@@ -794,7 +794,7 @@ def test_request_context_splits_group_from_dispatched_model():
     """On the proxy the caller asks for a model *group* that routes to a concrete
     deployment: ``gen_ai.request.model`` is the group, ``litellm.provider.model``
     is the dispatched (provider-prefixed) deployment model."""
-    from litellm.integrations.otel.model.metadata import RequestContext
+    from token_iq.gateway.integrations.otel.model.metadata import RequestContext
 
     payload = _sample_payload(
         model="openai/gpt-5.4-mini",  # reconstructed dispatched name
@@ -812,7 +812,7 @@ def test_request_context_splits_group_from_dispatched_model():
 def test_request_context_sdk_path_has_no_group():
     """Without a model group (the SDK path) the request and provider models
     coincide on the single call model."""
-    from litellm.integrations.otel.model.metadata import RequestContext
+    from token_iq.gateway.integrations.otel.model.metadata import RequestContext
 
     payload = _sample_payload()  # model="gpt-4o", no model_group
     ctx = RequestContext.from_standard_logging_payload(payload)
@@ -824,7 +824,7 @@ def test_request_context_sdk_path_has_no_group():
 def test_request_context_prefers_explicit_dispatched_model():
     """``hidden_params.litellm_model_name`` is the authoritative dispatched model
     when present, winning over the reconstructed top-level ``model``."""
-    from litellm.integrations.otel.model.metadata import RequestContext
+    from token_iq.gateway.integrations.otel.model.metadata import RequestContext
 
     payload = _sample_payload(
         model="gpt-4o",
@@ -852,7 +852,7 @@ def test_content_capture_opt_in_retains_bodies():
 
 
 def test_capture_span_content_resolves_modes():
-    from litellm.integrations.otel.model.config import (
+    from token_iq.gateway.integrations.otel.model.config import (
         CaptureMessageContent,
         OpenTelemetryV2Config,
     )
@@ -903,7 +903,7 @@ def test_capture_message_content_normalizer_only_touches_strings():
     import pytest
     from pydantic import ValidationError
 
-    from litellm.integrations.otel.model.config import OpenTelemetryV2Config
+    from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config
 
     with pytest.raises(ValidationError):
         OpenTelemetryV2Config(capture_message_content=123)
@@ -923,7 +923,7 @@ def test_v2_flag_resolved_once_not_per_call(monkeypatch):
     (auth, logging-callback setup). Building the pydantic-settings model on every
     call re-scanned the environment at ~28us a pop and dropped throughput, so the
     flag must be resolved once and cached rather than reconstructed per call."""
-    from litellm.integrations.otel.model import config as config_mod
+    from token_iq.gateway.integrations.otel.model import config as config_mod
 
     constructions = 0
     real_flag = config_mod._OTelV2Flag

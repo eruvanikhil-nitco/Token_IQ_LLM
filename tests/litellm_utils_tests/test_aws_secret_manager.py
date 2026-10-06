@@ -7,8 +7,10 @@ import traceback
 
 from dotenv import load_dotenv
 
-import litellm.types
-import litellm.types.utils
+import token_iq.gateway.types
+from token_iq import gateway as litellm
+import token_iq.gateway.types.utils
+from token_iq import gateway as litellm
 
 load_dotenv()
 import io
@@ -26,10 +28,10 @@ from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import json
-from litellm.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
-from litellm.types.secret_managers.main import KeyManagementSettings
+from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
+from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
 
 def skip_on_throttling(func):
@@ -402,7 +404,7 @@ def test_load_aws_secret_manager_with_settings():
     """
     Test loading AWS Secret Manager with key_management_settings
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     settings = KeyManagementSettings(
         store_virtual_keys=True,

@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import httpx
 
-from litellm.llms.vertex_ai.files.handler import VertexAIFilesHandler
-from litellm.types.llms.openai import FileContentRequest, HttpxBinaryResponseContent
+from token_iq.gateway.llms.vertex_ai.files.handler import VertexAIFilesHandler
+from token_iq.gateway.types.llms.openai import FileContentRequest, HttpxBinaryResponseContent
 
 
 def _mock_gcs_logging_config(bucket_name: str = "test-bucket"):

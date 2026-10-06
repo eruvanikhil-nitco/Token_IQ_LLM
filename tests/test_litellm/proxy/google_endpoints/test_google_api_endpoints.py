@@ -13,7 +13,7 @@ def _build_test_client():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.google_endpoints.endpoints import router as google_router
+    from token_iq.gateway.proxy.google_endpoints.endpoints import router as google_router
 
     app = FastAPI()
     app.include_router(google_router)
@@ -27,7 +27,7 @@ def _patch_base_process(return_value=None):
     if return_value is None:
         return_value = {"test": "response"}
     return patch(
-        "litellm.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+        "token_iq.gateway.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
         new_callable=AsyncMock,
         return_value=return_value,
     )
@@ -66,7 +66,7 @@ def test_google_stream_generate_content_endpoint():
     with (
         _patch_base_process() as mock_base,
         patch(
-            "litellm.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.__init__",
+            "token_iq.gateway.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.__init__",
             return_value=None,
         ) as mock_init,
     ):
@@ -103,7 +103,7 @@ def test_google_generate_content_data_flows_through_processor():
     with (
         _patch_base_process(),
         patch(
-            "litellm.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.__init__",
+            "token_iq.gateway.proxy.google_endpoints.endpoints.ProxyBaseLLMRequestProcessing.__init__",
             return_value=None,
         ) as mock_init,
     ):
@@ -167,7 +167,7 @@ def test_google_count_tokens_unchanged():
     fake_response.total_tokens = 7
 
     with patch(
-        "litellm.proxy.proxy_server.token_counter",
+        "token_iq.gateway.proxy.proxy_server.token_counter",
         new_callable=AsyncMock,
         return_value=fake_response,
     ):

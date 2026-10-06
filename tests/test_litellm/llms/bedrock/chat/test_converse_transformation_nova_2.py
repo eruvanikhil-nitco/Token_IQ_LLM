@@ -11,8 +11,8 @@ import pytest
 
 
 import httpx
-import litellm
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
 
 class TestNova15ReasoningTransformation:
@@ -354,7 +354,7 @@ class TestNova2StreamingResponseParsing:
     """Test that streaming reasoningContent deltas produce reasoning_content on the delta."""
 
     def test_should_extract_reasoning_content_from_delta(self):
-        from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+        from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
         handler = AWSEventStreamDecoder(model="amazon.nova-2-lite-v1:0")
         chunk_data = {
@@ -365,7 +365,7 @@ class TestNova2StreamingResponseParsing:
         assert result.choices[0].delta.reasoning_content == "Let me think about this..."
 
     def test_should_accumulate_multiple_reasoning_deltas(self):
-        from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+        from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
         handler = AWSEventStreamDecoder(model="amazon.nova-2-lite-v1:0")
         chunks = [
@@ -388,7 +388,7 @@ class TestNova2StreamingResponseParsing:
         assert results[2].choices[0].delta.reasoning_content == "the problem."
 
     def test_should_stream_reasoning_then_text(self):
-        from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+        from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
         handler = AWSEventStreamDecoder(model="amazon.nova-2-lite-v1:0")
         chunks = [
@@ -405,7 +405,7 @@ class TestNova2StreamingResponseParsing:
         assert results[2].choices[0].delta.content == "the answer is 42."
 
     def test_should_populate_provider_specific_fields(self):
-        from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+        from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
         handler = AWSEventStreamDecoder(model="amazon.nova-2-lite-v1:0")
         chunk_data = {
@@ -418,7 +418,7 @@ class TestNova2StreamingResponseParsing:
         assert psf["reasoningContent"]["text"] == "Reasoning text"
 
     def test_should_stream_reasoning_with_tool_calls(self):
-        from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+        from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
         handler = AWSEventStreamDecoder(model="amazon.nova-2-lite-v1:0")
         chunks = [
@@ -607,7 +607,7 @@ class TestNova2MultiTurnMessageTranslation:
     correctly translated to Bedrock content blocks via _bedrock_converse_messages_pt."""
 
     def _to_bedrock(self, messages, model=NOVA_2_LITE):
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             _bedrock_converse_messages_pt,
         )
 

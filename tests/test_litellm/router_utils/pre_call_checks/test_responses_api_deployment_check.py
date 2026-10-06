@@ -6,16 +6,16 @@ import pytest
 
 import json
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.types.llms.openai import (
     IncompleteDetails,
     ResponseAPIUsage,
     ResponseCompletedEvent,
     ResponsesAPIResponse,
 )
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 

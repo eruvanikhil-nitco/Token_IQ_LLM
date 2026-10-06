@@ -1,12 +1,12 @@
 import pytest
 
-import litellm
-from litellm.caching import DualCache
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq import gateway as litellm
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 def test_has_post_call_response_headers_callbacks_ignores_empty_callbacks(
@@ -204,10 +204,10 @@ def _anthropic_stream_chunks(text_parts):
 
 
 def _content_filter_guardrail(action: str, guardrail_cls=None, **guardrail_kwargs):
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
-    from litellm.types.guardrails import BlockedWord, ContentFilterAction
+    from token_iq.gateway.types.guardrails import BlockedWord, ContentFilterAction
 
     cls = guardrail_cls or ContentFilterGuardrail
     return cls(
@@ -223,7 +223,7 @@ def _streaming_logging_obj():
     import datetime
     import uuid
 
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     return Logging(
         model="claude-sonnet-5",
@@ -275,7 +275,7 @@ async def test_post_call_stream_guardrail_blocks_anthropic_messages_stream(monke
     """
     from fastapi import HTTPException
 
-    from litellm.caching.caching import DualCache
+    from token_iq.gateway.caching.caching import DualCache
     guardrail = _content_filter_guardrail("BLOCK")
     monkeypatch.setattr(litellm, "callbacks", [guardrail])
 
@@ -316,8 +316,8 @@ async def test_post_call_stream_guardrail_keeps_own_iterator_on_chat_completions
     unified block_only path never does. Masked output proves the own-hook
     path was used.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
     guardrail = _content_filter_guardrail("MASK")
     monkeypatch.setattr(litellm, "callbacks", [guardrail])
@@ -354,7 +354,7 @@ async def test_unified_guardrail_iterator_accepts_explicit_guardrail():
     flushed to the client, so it surfaces as a trailing in-stream error frame
     rather than a raised HTTPException.
     """
-    from litellm.proxy.utils import unified_guardrail
+    from token_iq.gateway.proxy.utils import unified_guardrail
 
     guardrail = _content_filter_guardrail("BLOCK")
     request_data = {
@@ -393,8 +393,8 @@ async def test_post_call_stream_guardrail_reroutes_inherited_apply_guardrail(mon
     """
     from fastapi import HTTPException
 
-    from litellm.caching.caching import DualCache
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
 
@@ -444,8 +444,8 @@ async def test_post_call_stream_masking_guardrail_keeps_own_iterator_on_anthropi
     deliver content it decided to mask. PANW Prisma AIRS is the concrete
     case: its own hook parses the raw bytes and blocks instead of masking.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
 
@@ -575,10 +575,10 @@ async def test_execute_guardrail_hook_keeps_native_hooks_when_opted_out(hook_typ
 
 
 def test_azure_content_safety_guardrails_keep_their_native_hooks():
-    from litellm.proxy.guardrails.guardrail_hooks.azure.prompt_shield import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.azure.prompt_shield import (
         AzureContentSafetyPromptShieldGuardrail,
     )
-    from litellm.proxy.guardrails.guardrail_hooks.azure.text_moderation import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.azure.text_moderation import (
         AzureContentSafetyTextModerationGuardrail,
     )
 
@@ -605,7 +605,7 @@ async def test_during_call_hook_keeps_native_moderation_hook_when_opted_out(monk
 
 @pytest.mark.asyncio
 async def test_post_call_success_hook_keeps_native_hook_when_opted_out(monkeypatch):
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True)
@@ -652,8 +652,8 @@ async def test_deferred_stream_guardrails_run_native_hook_when_opted_out(monkeyp
     """The deferred path skips unified-routed guardrails because the streaming iterator
     already scanned. An opted-out guardrail never reached that iterator, so its own
     post-call hook has to run here."""
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True)
@@ -675,7 +675,7 @@ async def test_deferred_stream_guardrails_run_native_hook_when_opted_out(monkeyp
 async def test_realtime_guardrails_skip_opted_out_guardrail(monkeypatch):
     """The realtime path calls apply_guardrail directly, so the opt-out has to be
     honored there too or a request-traffic guardrail starts blocking live sessions."""
-    from litellm.litellm_core_utils.realtime_streaming import RealTimeStreaming
+    from token_iq.gateway.core_utils.realtime_streaming import RealTimeStreaming
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.pre_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.pre_call, default_on=True)
@@ -705,7 +705,7 @@ async def test_post_call_stream_keeps_own_iterator_when_opted_out(monkeypatch):
     """A guardrail carrying both apply_guardrail and its own streaming iterator hook
     is re-routed to the unified path on /v1/messages. Opting out has to suppress that
     re-route, or its streamed responses get scanned by the unified pipeline instead."""
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
 
@@ -748,7 +748,7 @@ async def test_post_call_stream_keeps_own_iterator_when_opted_out(monkeypatch):
 async def test_parallel_post_call_guardrails_keep_native_hook_when_opted_out(monkeypatch):
     """The run_in_parallel post-call path has its own dispatch check, so the opt-out has
     to be honored there too."""
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True, run_in_parallel=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True, run_in_parallel=True)

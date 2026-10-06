@@ -7,16 +7,16 @@ from typing import cast
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.bedrock.image_edit.amazon_nova_canvas_image_edit_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.image_edit.amazon_nova_canvas_image_edit_transformation import (
     BedrockAmazonNovaCanvasImageEditConfig,
     get_bedrock_image_edit_config_for_model,
 )
-from litellm.llms.bedrock.image_edit.handler import BedrockImageEdit
-from litellm.llms.bedrock.image_edit.stability_transformation import (
+from token_iq.gateway.llms.bedrock.image_edit.handler import BedrockImageEdit
+from token_iq.gateway.llms.bedrock.image_edit.stability_transformation import (
     BedrockStabilityImageEditConfig,
 )
-from litellm.types.images.main import ImageEditOptionalRequestParams
+from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +26,7 @@ def ensure_nova_canvas_image_edit_model_cost_flags(monkeypatch):
     Full ``model_prices_and_context_window.json`` includes these flags, but CI or
     alternate cost maps may omit them—merge minimal entries so tests match production.
     """
-    from litellm.utils import _invalidate_model_cost_lowercase_map
+    from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
     for key in (
         "amazon.nova-canvas-v1:0",
@@ -109,7 +109,7 @@ def test_get_bedrock_image_edit_config_unknown_raises():
 
 def test_provider_config_manager_bedrock_nova_canvas():
     """ProviderConfigManager.get_provider_image_edit_config matches handler routing."""
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "amazon.nova-canvas-v1:0",
@@ -120,7 +120,7 @@ def test_provider_config_manager_bedrock_nova_canvas():
 
 def test_provider_config_manager_bedrock_stability_inpaint():
     """ProviderConfigManager returns Stability config for Stability edit models."""
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "stability.stable-image-inpaint-v1:0",
@@ -130,7 +130,7 @@ def test_provider_config_manager_bedrock_stability_inpaint():
 
 
 def test_provider_config_manager_bedrock_unknown_raises():
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     with pytest.raises(ValueError, match="Unsupported Bedrock image-edit model"):
         ProviderConfigManager.get_provider_image_edit_config(
@@ -144,7 +144,7 @@ def test_provider_config_manager_bedrock_dispatches_to_nova_transform_outpaintin
     Full dispatch: utils.ProviderConfigManager -> get_bedrock_image_edit_config_for_model
     -> Nova config.transform_image_edit_request (not only direct helper calls).
     """
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "amazon.nova-canvas-v1:0",

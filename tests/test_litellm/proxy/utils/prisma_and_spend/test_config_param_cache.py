@@ -18,8 +18,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.utils as utils_mod
-from litellm.proxy.utils import (
+import token_iq.gateway.proxy.utils as utils_mod
+from token_iq.gateway.proxy.utils import (
     _config_cache_key,
     _ConfigRow,
     _pack_config_row,

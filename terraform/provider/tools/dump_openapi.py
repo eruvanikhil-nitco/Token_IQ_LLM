@@ -8,7 +8,7 @@ Run from the litellm repo root with the proxy dependencies installed:
 import json
 import sys
 
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 
 def main(out_path: str) -> None:

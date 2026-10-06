@@ -17,13 +17,13 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     BaseAnthropicMessagesStreamingIterator,
 )
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 
 @pytest.fixture(autouse=True)
@@ -239,7 +239,7 @@ async def test_async_post_call_streaming_hook_invokes_per_chunk_callback(proxy_l
     cb = _Per()
     monkeypatch.setattr(litellm, "callbacks", [cb])
 
-    from litellm import ModelResponse
+    from token_iq.gateway import ModelResponse
 
     fake_resp = ModelResponse(
         id="rid",
@@ -265,7 +265,7 @@ async def test_async_post_call_streaming_hook_callback_error_raises(proxy_loggin
 
     monkeypatch.setattr(litellm, "callbacks", [_Per()])
 
-    from litellm import ModelResponse
+    from token_iq.gateway import ModelResponse
 
     fake_resp = ModelResponse(
         id="rid",

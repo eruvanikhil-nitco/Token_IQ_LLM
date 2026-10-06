@@ -8,13 +8,13 @@ import pytest
 from fastapi import Request, Response
 from fastapi.testclient import TestClient
 
-from litellm.caching.dual_cache import DualCache
-from litellm.passthrough.utils import CommonUtils
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.passthrough.utils import CommonUtils
 
 
 from unittest.mock import Mock
 
-from litellm.proxy.pass_through_endpoints.common_utils import get_litellm_virtual_key
+from token_iq.gateway.proxy.pass_through_endpoints.common_utils import get_litellm_virtual_key
 
 
 @pytest.mark.asyncio
@@ -106,7 +106,7 @@ def test_encode_bedrock_runtime_modelid_arn_partition_arns() -> None:
 
 
 def test_assert_passthrough_body_fidelity_allows_absent_managed_files_hook() -> None:
-    from litellm.proxy.pass_through_endpoints.common_utils import (
+    from token_iq.gateway.proxy.pass_through_endpoints.common_utils import (
         assert_passthrough_body_fidelity,
     )
 
@@ -116,8 +116,8 @@ def test_assert_passthrough_body_fidelity_allows_absent_managed_files_hook() -> 
 def test_assert_passthrough_body_fidelity_rejects_registered_managed_files_hook() -> None:
     """A registered managed_files hook enables the managed-id rewriter, which
     swaps provider IDs out of response bodies, so startup must refuse it."""
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.proxy.pass_through_endpoints.common_utils import (
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.proxy.pass_through_endpoints.common_utils import (
         assert_passthrough_body_fidelity,
     )
 
@@ -133,8 +133,8 @@ def test_proxy_startup_refuses_a_registered_managed_files_hook() -> None:
     Asserting on `startup_event` itself rather than the helper is what proves
     the guard is actually wired in, so deleting the call fails this test.
     """
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     with patch.object(
@@ -154,7 +154,7 @@ async def test_proxy_startup_succeeds_without_the_managed_files_hook() -> None:
     Async because `startup_event` schedules the Slack daily report with
     `asyncio.create_task`, which needs a running loop.
     """
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     with patch.object(

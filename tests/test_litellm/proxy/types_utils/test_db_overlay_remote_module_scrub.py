@@ -22,7 +22,7 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 )
 
-from litellm.proxy.proxy_server import (  # noqa: E402
+from token_iq.gateway.proxy.proxy_server import (  # noqa: E402
     _scrub_db_overlay_remote_module_loads,
 )
 

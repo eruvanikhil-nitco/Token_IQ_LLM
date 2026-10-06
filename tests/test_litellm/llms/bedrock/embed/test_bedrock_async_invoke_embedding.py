@@ -3,9 +3,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.types.llms.base import HiddenParams
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.types.llms.base import HiddenParams
 
 # Mock async invoke responses
 async_invoke_response = {
@@ -38,7 +38,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_response_transformation_twelvelabs(self):
         """Test that async invoke responses are properly transformed with hidden params."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -67,7 +67,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_response_transformation_generic(self):
         """Test that generic async invoke responses are properly transformed."""
-        from litellm.llms.bedrock.embed.embedding import BedrockEmbedding
+        from token_iq.gateway.llms.bedrock.embed.embedding import BedrockEmbedding
 
         bedrock_embedding = BedrockEmbedding()
 
@@ -105,7 +105,7 @@ class TestBedrockAsyncInvokeEmbedding:
         self, model, input_type
     ):
         """Test that async invoke requests are properly transformed for TwelveLabs."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -222,7 +222,7 @@ class TestBedrockAsyncInvokeEmbedding:
     @pytest.mark.asyncio
     async def test_async_invoke_status_checking(self):
         """Test async invoke status checking functionality."""
-        from litellm.llms.bedrock.embed.embedding import BedrockEmbedding
+        from token_iq.gateway.llms.bedrock.embed.embedding import BedrockEmbedding
 
         bedrock_embedding = BedrockEmbedding()
 
@@ -241,7 +241,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_error_handling_missing_output_s3_uri(self):
         """Test error handling when output_s3_uri is missing for async invoke."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -260,7 +260,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_error_handling_video_audio_without_async_route(self):
         """Test error handling when video/audio input is used without async invoke route."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -279,7 +279,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_invocation_arn_preservation(self):
         """Test that invocation ARN is correctly preserved in hidden params."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -303,7 +303,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_hidden_params_structure(self):
         """Test that hidden params have the correct structure and can be accessed."""
-        from litellm.llms.bedrock.embed.twelvelabs_marengo_transformation import (
+        from token_iq.gateway.llms.bedrock.embed.twelvelabs_marengo_transformation import (
             TwelveLabsMarengoEmbeddingConfig,
         )
 
@@ -332,7 +332,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_model_parsing(self):
         """Test that async invoke models are correctly parsed."""
-        from litellm.llms.bedrock.embed.embedding import BedrockEmbedding
+        from token_iq.gateway.llms.bedrock.embed.embedding import BedrockEmbedding
 
         bedrock_embedding = BedrockEmbedding()
 
@@ -359,7 +359,7 @@ class TestBedrockAsyncInvokeEmbedding:
 
     def test_async_invoke_endpoint_construction(self):
         """Test that async invoke endpoints are correctly constructed."""
-        from litellm.llms.bedrock.embed.embedding import BedrockEmbedding
+        from token_iq.gateway.llms.bedrock.embed.embedding import BedrockEmbedding
 
         bedrock_embedding = BedrockEmbedding()
 

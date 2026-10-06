@@ -9,9 +9,9 @@ import asyncio
 import pytest
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-import litellm
-from litellm.integrations.arize.arize import ArizeLogger
-from litellm.integrations.opentelemetry import OpenTelemetryConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.arize.arize import ArizeLogger
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
 
 @pytest.mark.asyncio

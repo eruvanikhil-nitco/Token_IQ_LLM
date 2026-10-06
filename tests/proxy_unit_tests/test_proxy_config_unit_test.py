@@ -5,18 +5,20 @@ import pytest
 
 from dotenv import load_dotenv
 
-import litellm.proxy
-import litellm.proxy.proxy_server
+import token_iq.gateway.proxy
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server
+from token_iq import gateway as litellm
 
 load_dotenv()
 import io
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import logging
 
-from litellm.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
 INVALID_FILES = ["config_with_missing_include.yaml"]
 
@@ -161,7 +163,7 @@ async def test_multiple_includes():
 def test_add_callbacks_from_db_config():
     """Test that callbacks are added correctly and duplicates are prevented"""
     # Setup
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -269,7 +271,7 @@ async def test_json_logs_calls_turn_on_json():
         proxy_config = ProxyConfig()
 
         # Mock _turn_on_json to track if it gets called
-        with mock.patch("litellm._turn_on_json") as mock_turn_on_json:
+        with mock.patch("token_iq.gateway._turn_on_json") as mock_turn_on_json:
             await proxy_config.load_config(
                 router=None,
                 config_file_path=temp_file_path,
@@ -309,7 +311,7 @@ class TestYamlStorePromptsDbOverride:
 
         test_general_settings = {"store_prompts_in_spend_logs": False}
 
-        with mock.patch("litellm.proxy.proxy_server.general_settings", test_general_settings):
+        with mock.patch("token_iq.gateway.proxy.proxy_server.general_settings", test_general_settings):
             await proxy_config._update_general_settings(
                 db_general_settings={"store_prompts_in_spend_logs": True},
             )
@@ -323,7 +325,7 @@ class TestYamlStorePromptsDbOverride:
 
         test_general_settings = {"master_key": "sk-test"}
 
-        with mock.patch("litellm.proxy.proxy_server.general_settings", test_general_settings):
+        with mock.patch("token_iq.gateway.proxy.proxy_server.general_settings", test_general_settings):
             await proxy_config._update_general_settings(
                 db_general_settings={"store_prompts_in_spend_logs": True},
             )
@@ -337,7 +339,7 @@ class TestYamlStorePromptsDbOverride:
 
         test_general_settings = {"master_key": "sk-test"}
 
-        with mock.patch("litellm.proxy.proxy_server.general_settings", test_general_settings):
+        with mock.patch("token_iq.gateway.proxy.proxy_server.general_settings", test_general_settings):
             await proxy_config._update_general_settings(
                 db_general_settings={"store_prompts_in_spend_logs": True},
             )

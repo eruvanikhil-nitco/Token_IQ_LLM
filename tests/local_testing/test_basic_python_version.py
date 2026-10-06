@@ -16,7 +16,7 @@ def _run_uv(*args: str, **kwargs) -> subprocess.CompletedProcess:
 
 def test_using_litellm():
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         print("litellm imported successfully")
     except Exception as e:
@@ -43,7 +43,7 @@ def test_package_dependencies():
     """
     try:
         import pathlib
-        import litellm
+        from token_iq import gateway as litellm
         from packaging.requirements import Requirement
 
         # Try to import tomllib (Python 3.11+) or tomli (older versions)
@@ -96,7 +96,7 @@ def test_cli_extra_is_a_thin_client_install():
     """
     import pathlib
 
-    import litellm
+    from token_iq import gateway as litellm
     from packaging.requirements import Requirement
 
     try:
@@ -260,7 +260,7 @@ def _run_proxy_server_smoke_test(extra_proxy_args=None):
                 "--no-sync",
                 "python",
                 "-m",
-                "litellm.proxy.proxy_cli",
+                "token_iq.gateway.proxy.proxy_cli",
                 "--config",
                 config_fp,
                 *extra_proxy_args,

@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     CachedOAuthTokenStore,
     OAuthToken,
     RefreshingTokenStore,

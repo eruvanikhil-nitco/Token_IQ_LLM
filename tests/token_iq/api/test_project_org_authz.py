@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ def _make_prisma_with_user_orgs(user_id: str, org_ids: list):
 
 @pytest.mark.asyncio
 async def test_assign_key_org_allows_member():
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _validate_caller_can_assign_key_org,
     )
 
@@ -133,7 +133,7 @@ async def test_assign_key_org_allows_member():
 @pytest.mark.asyncio
 async def test_assign_key_org_blocks_non_member():
     """The IDOR: caller asks to point a key at an org they don't belong to."""
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _validate_caller_can_assign_key_org,
     )
 
@@ -154,7 +154,7 @@ async def test_assign_key_org_blocks_non_member():
 
 @pytest.mark.asyncio
 async def test_assign_key_org_blocks_caller_without_user_id():
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _validate_caller_can_assign_key_org,
     )
 
@@ -173,7 +173,7 @@ async def test_assign_key_org_blocks_caller_without_user_id():
 
 @pytest.mark.asyncio
 async def test_assign_key_org_blocks_caller_with_no_memberships():
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _validate_caller_can_assign_key_org,
     )
 

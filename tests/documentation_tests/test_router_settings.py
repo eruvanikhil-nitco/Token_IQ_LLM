@@ -3,7 +3,7 @@ import re
 import inspect
 from typing import Type
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def get_init_params(cls: Type) -> list[str]:

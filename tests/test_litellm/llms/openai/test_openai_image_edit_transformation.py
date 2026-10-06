@@ -3,10 +3,10 @@ from typing import Dict
 
 import pytest
 
-from litellm import image_edit
-from litellm.images.utils import ImageEditRequestUtils
-from litellm.llms.openai.image_edit.transformation import OpenAIImageEditConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway import image_edit
+from token_iq.gateway.images.utils import ImageEditRequestUtils
+from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEditConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 @pytest.fixture

@@ -14,29 +14,29 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.apiserpent.search.transformation import APISerpentSearchConfig
-from litellm.llms.azure.search.transformation import BingGroundingSearchConfig
-from litellm.llms.base_llm.search.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.apiserpent.search.transformation import APISerpentSearchConfig
+from token_iq.gateway.llms.azure.search.transformation import BingGroundingSearchConfig
+from token_iq.gateway.llms.base_llm.search.transformation import (
     BaseSearchConfig,
     _is_trusted_search_api_base,
 )
-from litellm.llms.brave.search.transformation import BraveSearchConfig
-from litellm.llms.dataforseo.search.transformation import DataForSEOSearchConfig
-from litellm.llms.exa_ai.search.transformation import ExaAISearchConfig
-from litellm.llms.fastcrw.search.transformation import FastCRWSearchConfig
-from litellm.llms.firecrawl.search.transformation import FirecrawlSearchConfig
-from litellm.llms.google_pse.search.transformation import GooglePSESearchConfig
-from litellm.llms.linkup.search.transformation import LinkupSearchConfig
-from litellm.llms.nimble.search.transformation import NimbleSearchConfig
-from litellm.llms.parallel_ai.search.transformation import ParallelAISearchConfig
-from litellm.llms.perplexity.search.transformation import PerplexitySearchConfig
-from litellm.llms.searchapi.search.transformation import SearchAPIConfig
-from litellm.llms.searxng.search.transformation import SearXNGSearchConfig
-from litellm.llms.serper.search.transformation import SerperSearchConfig
-from litellm.llms.tavily.search.transformation import TavilySearchConfig
-from litellm.llms.tinyfish.search.transformation import TinyfishSearchConfig
-from litellm.llms.you_com.search.transformation import YouComSearchConfig
+from token_iq.gateway.llms.brave.search.transformation import BraveSearchConfig
+from token_iq.gateway.llms.dataforseo.search.transformation import DataForSEOSearchConfig
+from token_iq.gateway.llms.exa_ai.search.transformation import ExaAISearchConfig
+from token_iq.gateway.llms.fastcrw.search.transformation import FastCRWSearchConfig
+from token_iq.gateway.llms.firecrawl.search.transformation import FirecrawlSearchConfig
+from token_iq.gateway.llms.google_pse.search.transformation import GooglePSESearchConfig
+from token_iq.gateway.llms.linkup.search.transformation import LinkupSearchConfig
+from token_iq.gateway.llms.nimble.search.transformation import NimbleSearchConfig
+from token_iq.gateway.llms.parallel_ai.search.transformation import ParallelAISearchConfig
+from token_iq.gateway.llms.perplexity.search.transformation import PerplexitySearchConfig
+from token_iq.gateway.llms.searchapi.search.transformation import SearchAPIConfig
+from token_iq.gateway.llms.searxng.search.transformation import SearXNGSearchConfig
+from token_iq.gateway.llms.serper.search.transformation import SerperSearchConfig
+from token_iq.gateway.llms.tavily.search.transformation import TavilySearchConfig
+from token_iq.gateway.llms.tinyfish.search.transformation import TinyfishSearchConfig
+from token_iq.gateway.llms.you_com.search.transformation import YouComSearchConfig
 
 ATTACKER_BASE = "https://attacker.example.com"
 
@@ -265,11 +265,11 @@ async def test_asearch_does_not_leak_server_key_to_caller_api_base(
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get,
     ):
@@ -319,7 +319,7 @@ async def test_query_param_key_not_leaked_with_dummy_caller_key(
         raise RuntimeError("stop after capturing the outbound url")
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
         fake_get,
     ):
         with pytest.raises(litellm.APIConnectionError):

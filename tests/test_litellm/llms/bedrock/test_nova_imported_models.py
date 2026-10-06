@@ -4,12 +4,12 @@ Tests for Nova imported/custom model support via spec prefixes (nova/, nova-2/).
 
 import pytest
 
-from litellm.llms.bedrock.common_utils import (
+from token_iq.gateway.llms.bedrock.common_utils import (
     BedrockModelInfo,
     get_bedrock_base_model,
     strip_bedrock_routing_prefix,
 )
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
 
 NOVA_ARN = "arn:aws:bedrock:us-east-1:123456789012:custom-model-deployment/a1b2c3d4e5f6"

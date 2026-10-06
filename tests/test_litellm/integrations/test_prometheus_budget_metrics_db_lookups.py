@@ -15,10 +15,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from prometheus_client import REGISTRY
 
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 @pytest.fixture(autouse=True)
@@ -50,8 +50,8 @@ async def test_assemble_key_object_does_not_query_db_on_cache_miss(prometheus_lo
     cache = DualCache(in_memory_cache=InMemoryCache())
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache),
     ):
         result = await prometheus_logger._assemble_key_object(
             user_api_key="hashed-token-not-in-cache",
@@ -78,8 +78,8 @@ async def test_assemble_key_object_reads_budget_reset_at_from_cache(prometheus_l
     await cache.async_set_cache(key=hashed_token, value=cached_key)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", cache),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache),
     ):
         result = await prometheus_logger._assemble_key_object(
             user_api_key=hashed_token,

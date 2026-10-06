@@ -1,7 +1,7 @@
 """
 Unit tests for PG Vector Store transformation.
 
-This test file mirrors litellm/llms/pg_vector/vector_stores/transformation.py
+This test file mirrors token_iq/gateway/llms/pg_vector/vector_stores/transformation.py
 and contains mocked tests for the PGVectorStoreConfig class.
 """
 
@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from litellm.llms.pg_vector.vector_stores.transformation import PGVectorStoreConfig
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.pg_vector.vector_stores.transformation import PGVectorStoreConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class TestPGVectorStoreConfig:
@@ -95,7 +95,7 @@ class TestPGVectorStoreConfig:
 
         This test validates that PG Vector config inherits OpenAI-compatible methods.
         """
-        from litellm.llms.openai.vector_stores.transformation import (
+        from token_iq.gateway.llms.openai.vector_stores.transformation import (
             OpenAIVectorStoreConfig,
         )
 
@@ -197,7 +197,7 @@ class TestPGVectorStoreConfig:
             assert headers["Authorization"] == "Bearer param_key"
             assert headers["Content-Type"] == "application/json"
 
-    @patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_pg_vector_search_request_construction(self, mock_post):
         """
         Test that PG Vector search constructs the correct URL and request body.
@@ -205,7 +205,7 @@ class TestPGVectorStoreConfig:
         This test validates the complete request construction for PG Vector search
         operations, including URL, headers, and request body.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         # Clear any existing vector store registry to prevent interference with test data
         original_registry = getattr(litellm, "vector_store_registry", None)

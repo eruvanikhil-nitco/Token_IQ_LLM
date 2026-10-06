@@ -9,8 +9,8 @@ Tests that:
 
 import pytest
 
-import litellm
-from litellm.types.integrations.prometheus import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.integrations.prometheus import (
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,
 )
@@ -62,7 +62,7 @@ def test_stream_label_name():
 
 def test_user_api_key_label_values_has_stream_field():
     """UserAPIKeyLabelValues should accept stream field"""
-    from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+    from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
     values = UserAPIKeyLabelValues(stream="True")
     assert values.stream == "True"
@@ -76,7 +76,7 @@ def test_user_api_key_label_values_has_stream_field():
 
 def test_stream_label_in_model_dump():
     """stream field appears in model_dump() output for use in prometheus_label_factory"""
-    from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+    from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
     values = UserAPIKeyLabelValues(stream="True")
     dumped = values.model_dump()

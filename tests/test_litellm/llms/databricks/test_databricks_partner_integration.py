@@ -29,7 +29,7 @@ import pytest
 from unittest.mock import MagicMock, patch, Mock
 
 
-from litellm.llms.databricks.common_utils import DatabricksBase, DatabricksException
+from token_iq.gateway.llms.databricks.common_utils import DatabricksBase, DatabricksException
 
 
 class TestBuildUserAgent:
@@ -426,7 +426,7 @@ class TestLiteLLMCompletionUserAgent:
 
     def test_completion_passes_user_agent_to_headers(self):
         """litellm.completion() correctly passes user_agent to request headers."""
-        from litellm.llms.databricks.chat.transformation import DatabricksConfig
+        from token_iq.gateway.llms.databricks.chat.transformation import DatabricksConfig
 
         config = DatabricksConfig()
         optional_params = {"user_agent": "testpartner/1.0.0"}
@@ -460,7 +460,7 @@ class TestLiteLLMCompletionUserAgent:
 
     def test_user_agent_removed_from_optional_params(self):
         """user_agent is removed from optional_params so it's not sent to API."""
-        from litellm.llms.databricks.chat.transformation import DatabricksConfig
+        from token_iq.gateway.llms.databricks.chat.transformation import DatabricksConfig
 
         config = DatabricksConfig()
         optional_params = {
@@ -497,7 +497,7 @@ class TestLiteLLMEmbeddingUserAgent:
 
     def test_embedding_passes_user_agent_to_headers(self):
         """litellm.embedding() correctly passes user_agent to request headers."""
-        from litellm.llms.databricks.embed.handler import DatabricksEmbeddingHandler
+        from token_iq.gateway.llms.databricks.embed.handler import DatabricksEmbeddingHandler
 
         handler = DatabricksEmbeddingHandler()
         optional_params = {"user_agent": "embedpartner/1.0.0"}
@@ -514,7 +514,7 @@ class TestLiteLLMEmbeddingUserAgent:
             ),
         ) as mock_validate:
             with patch(
-                "litellm.llms.openai_like.embedding.handler.OpenAILikeEmbeddingHandler.embedding"
+                "token_iq.gateway.llms.openai_like.embedding.handler.OpenAILikeEmbeddingHandler.embedding"
             ):
                 try:
                     handler.embedding(

@@ -4,13 +4,13 @@ import re
 
 import pytest
 
-from litellm.proxy.db.daily_spend_bulk_upsert import (
+from token_iq.gateway.proxy.db.daily_spend_bulk_upsert import (
     DAILY_SPEND_TABLES,
     build_bulk_upsert,
     conflict_key,
     merge_by_conflict_key,
 )
-from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 
 TAG_TABLE = DAILY_SPEND_TABLES["tag"]
 USER_TABLE = DAILY_SPEND_TABLES["user"]

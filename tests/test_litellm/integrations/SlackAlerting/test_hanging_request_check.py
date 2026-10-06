@@ -7,10 +7,10 @@ import pytest
 
 # Adds the grandparent directory to sys.path to allow importing project modules
 
-from litellm.integrations.SlackAlerting.hanging_request_check import (
+from token_iq.gateway.integrations.SlackAlerting.hanging_request_check import (
     AlertingHangingRequestCheck,
 )
-from litellm.types.integrations.slack_alerting import HangingRequestData
+from token_iq.gateway.types.integrations.slack_alerting import HangingRequestData
 
 
 class TestAlertingHangingRequestCheck:
@@ -61,7 +61,7 @@ class TestAlertingHangingRequestCheck:
             },
         }
 
-        with patch("litellm.get_api_base", return_value="https://api.openai.com/v1"):
+        with patch("token_iq.gateway.get_api_base", return_value="https://api.openai.com/v1"):
             await hanging_request_checker.add_request_to_hanging_request_check(
                 request_data
             )
@@ -158,7 +158,7 @@ class TestAlertingHangingRequestCheck:
         Test send_alerts_for_hanging_requests when proxy_logging_obj.internal_usage_cache is None.
         Should return early without processing when internal usage cache is unavailable.
         """
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             mock_proxy.internal_usage_cache = None
 
             result = await hanging_request_checker.send_alerts_for_hanging_requests()
@@ -182,7 +182,7 @@ class TestAlertingHangingRequestCheck:
             key="completed_request_789", value=hanging_data, ttl=300
         )
 
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             # Mock internal usage cache to return a request status (meaning request completed)
             mock_internal_cache = AsyncMock()
             mock_internal_cache.async_get_cache.return_value = {"status": "success"}
@@ -219,7 +219,7 @@ class TestAlertingHangingRequestCheck:
             key="hanging_request_999", value=hanging_data, ttl=300
         )
 
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             # Mock internal usage cache to return None (meaning request is still hanging)
             mock_internal_cache = AsyncMock()
             mock_internal_cache.async_get_cache.return_value = None
@@ -253,7 +253,7 @@ class TestAlertingHangingRequestCheck:
             key="hanging_once_555", value=hanging_data, ttl=300
         )
 
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             mock_internal_cache = AsyncMock()
             mock_internal_cache.async_get_cache.return_value = None
             mock_proxy.internal_usage_cache = mock_internal_cache
@@ -289,7 +289,7 @@ class TestAlertingHangingRequestCheck:
             key="young_request_123", value=hanging_data, ttl=300
         )
 
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             # Mock internal usage cache to return None (request still in flight)
             mock_internal_cache = AsyncMock()
             mock_internal_cache.async_get_cache.return_value = None
@@ -319,7 +319,7 @@ class TestAlertingHangingRequestCheck:
         Test send_alerts_for_hanging_requests when hanging request data is missing from cache.
         Should continue processing other requests when individual request data is missing.
         """
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy:
             mock_internal_cache = AsyncMock()
             mock_proxy.internal_usage_cache = mock_internal_cache
 

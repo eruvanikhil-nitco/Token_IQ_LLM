@@ -13,23 +13,23 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import jwt
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.result import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import (
     Error,
     Ok,
     Result,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_endpoint import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_endpoint import (
     CLIENT_ASSERTION_TYPE,
     ExchangedToken,
     ExchangedTokenCache,
     TokenEndpointClient,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
     ClientSecretAuth,
     CredError,
     PrivateKeyJwtAuth,

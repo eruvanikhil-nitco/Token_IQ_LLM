@@ -1,11 +1,11 @@
 import pytest
 from typing import AsyncIterator, Iterator, cast
 
-from litellm.files import main as files_main
-from litellm.files.streaming import FileContentStreamingResponse
-from litellm.files.types import FileContentStreamingResult
-from litellm.llms.openai.openai import OpenAIFilesAPI
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.files import main as files_main
+from token_iq.gateway.files.streaming import FileContentStreamingResponse
+from token_iq.gateway.files.types import FileContentStreamingResult
+from token_iq.gateway.llms.openai.openai import OpenAIFilesAPI
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
 
 @pytest.mark.asyncio

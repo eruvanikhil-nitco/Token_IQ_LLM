@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 
-import litellm
+from token_iq import gateway as litellm
 
 MOCK_COMPLETION_RESPONSE = {
     "choices": [{"message": {"role": "assistant", "content": "hi there"}}],
@@ -21,7 +21,7 @@ def test_model_name_with_https_substring_uses_api_base():
     api_base = "https://legit.example"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = _mock_post_response()
 
@@ -38,7 +38,7 @@ def test_model_name_with_https_substring_uses_api_base():
 
 def test_url_valued_model_still_targets_that_url():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = _mock_post_response()
 

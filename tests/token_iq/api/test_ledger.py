@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from token_iq.ledger.reconciliation import reconcile
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.ledger import reconciliation_response
 from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 from token_iq.api.types.ledger import InvoiceBody

@@ -2,7 +2,7 @@ import importlib
 import os
 from unittest.mock import MagicMock, patch
 
-import litellm.litellm_core_utils.default_encoding as default_encoding
+import token_iq.gateway.core_utils.default_encoding as default_encoding
 
 
 def _reload_default_encoding(monkeypatch, **env_overrides):
@@ -39,7 +39,7 @@ def test_custom_tiktoken_cache_dir_override(monkeypatch, tmp_path):
     """
     custom_dir = tmp_path / "tiktoken_cache"
     with patch(
-        "litellm.litellm_core_utils.default_encoding.tiktoken.get_encoding",
+        "token_iq.gateway.core_utils.default_encoding.tiktoken.get_encoding",
         return_value=MagicMock(),
     ):
         _reload_default_encoding(monkeypatch, CUSTOM_TIKTOKEN_CACHE_DIR=str(custom_dir))

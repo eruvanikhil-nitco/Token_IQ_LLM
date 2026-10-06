@@ -118,11 +118,11 @@ def test_vertex_ai_ocr_routing():
     """
     Test that Vertex AI OCR routing correctly selects the right config based on model name.
     """
-    from litellm.llms.vertex_ai.ocr.common_utils import get_vertex_ai_ocr_config
-    from litellm.llms.vertex_ai.ocr.deepseek_transformation import (
+    from token_iq.gateway.llms.vertex_ai.ocr.common_utils import get_vertex_ai_ocr_config
+    from token_iq.gateway.llms.vertex_ai.ocr.deepseek_transformation import (
         VertexAIDeepSeekOCRConfig,
     )
-    from litellm.llms.vertex_ai.ocr.transformation import VertexAIOCRConfig
+    from token_iq.gateway.llms.vertex_ai.ocr.transformation import VertexAIOCRConfig
 
     # Test DeepSeek OCR routing
     deepseek_config = get_vertex_ai_ocr_config("vertex_ai/deepseek-ocr-maas")
@@ -145,7 +145,7 @@ def test_vertex_ai_ocr_routing():
 
 @pytest.mark.parametrize("model", ("deepseek-ocr-maas", "deepseek-ai/deepseek-ocr-maas"))
 def test_deepseek_request_uses_single_provider_namespace(model: str) -> None:
-    from litellm.llms.vertex_ai.ocr.deepseek_transformation import (
+    from token_iq.gateway.llms.vertex_ai.ocr.deepseek_transformation import (
         VertexAIDeepSeekOCRConfig,
     )
 

@@ -9,8 +9,8 @@ depending on the request lifecycle stage.
 import pytest
 from unittest.mock import MagicMock
 
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 def test_maybe_get_model_id_from_litellm_params():

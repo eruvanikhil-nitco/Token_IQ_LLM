@@ -16,9 +16,9 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.team_endpoints import (
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     BillingProbeResponse,
     DailyReconciliationResponse,
     DailyReconciliationRow,
@@ -86,7 +86,7 @@ async def provider_reconciliation(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ReconciliationResponse:
     """Every request in the window, priced by us and by the provider, with the difference."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
         raise HTTPException(
@@ -224,7 +224,7 @@ async def provider_billing_probe(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> BillingProbeResponse:
     """Try one provider's billing API now and report what came back."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
         raise HTTPException(
@@ -277,7 +277,7 @@ async def daily_reconciliation(
     A full outer join, because a day the provider charged for and this gateway never saw
     is the single most valuable row here: it is spend that bypassed the gateway entirely.
     """
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
         raise HTTPException(

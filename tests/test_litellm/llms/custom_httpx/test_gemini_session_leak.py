@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 async def test_aiohttp_handler_cleanup():
     """Test BaseLLMAIOHTTPHandler session cleanup via __del__"""
-    from litellm.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
 
     # Create handler and trigger session creation
     handler = BaseLLMAIOHTTPHandler()
@@ -39,11 +39,11 @@ async def test_aiohttp_handler_cleanup():
 
 async def test_atexit_cleanup():
     """Test that atexit cleanup works with new event loop approach"""
-    from litellm.llms.custom_httpx.async_client_cleanup import (
+    from token_iq.gateway.llms.custom_httpx.async_client_cleanup import (
         close_litellm_async_clients,
     )
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Use the actual global base_llm_aiohttp_handler from litellm
     handler = litellm.base_llm_aiohttp_handler
@@ -59,7 +59,7 @@ async def test_atexit_cleanup():
 
 def test_new_event_loop_atexit():
     """Test that the new atexit handler can create a fresh event loop"""
-    from litellm.llms.custom_httpx.async_client_cleanup import (
+    from token_iq.gateway.llms.custom_httpx.async_client_cleanup import (
         close_litellm_async_clients,
     )
 

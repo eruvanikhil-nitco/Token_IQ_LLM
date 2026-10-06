@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from litellm.exceptions import APIError
-from litellm.rust_bridge import bindings, runtime
+from token_iq.gateway.exceptions import APIError
+from token_iq.gateway.rust_bridge import bindings, runtime
 
 
 class RustBridgeDeclined(Exception):

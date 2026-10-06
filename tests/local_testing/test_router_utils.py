@@ -5,10 +5,10 @@ import sys, os, time
 import traceback, asyncio
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -84,7 +84,7 @@ def test_returned_settings():
         pytest.fail("An error occurred - " + traceback.format_exc())
 
 
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 def test_update_kwargs_before_fallbacks_unit_test():
@@ -302,7 +302,7 @@ async def test_call_router_callbacks_on_failure():
 async def test_router_model_group_headers():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
-    from litellm.types.utils import OPENAI_RESPONSE_HEADERS
+    from token_iq.gateway.types.utils import OPENAI_RESPONSE_HEADERS
 
     router = Router(
         model_list=[
@@ -335,7 +335,7 @@ async def test_router_model_group_headers():
 async def test_get_remaining_model_group_usage():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
     litellm.model_cost = litellm.get_model_cost_map()
-    from litellm.types.utils import OPENAI_RESPONSE_HEADERS
+    from token_iq.gateway.types.utils import OPENAI_RESPONSE_HEADERS
 
     router = Router(
         model_list=[

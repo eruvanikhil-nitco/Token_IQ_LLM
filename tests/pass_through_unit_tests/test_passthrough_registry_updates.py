@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 import asyncio
 
 # Import the specific components we need to test
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     InitPassThroughEndpointHelpers,
     _registered_pass_through_routes,
 )

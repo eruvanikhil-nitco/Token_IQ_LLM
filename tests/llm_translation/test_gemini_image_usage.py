@@ -8,9 +8,9 @@ was returning usage=0 while completion() returned proper token usage.
 import os
 import pytest
 from unittest.mock import patch, MagicMock
-import litellm
-from litellm.llms.gemini.image_generation.transformation import GoogleImageGenConfig
-from litellm.types.utils import ImageResponse, ImageObject, ImageUsage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gemini.image_generation.transformation import GoogleImageGenConfig
+from token_iq.gateway.types.utils import ImageResponse, ImageObject, ImageUsage
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_gemini_image_generation_usage_metadata(model_name: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         # Mock successful HTTP response
         mock_http_response = MagicMock()
@@ -163,7 +163,7 @@ def test_gemini_image_generation_without_usage_metadata():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         # Mock successful HTTP response
         mock_http_response = MagicMock()
@@ -202,7 +202,7 @@ def test_gemini_imagen_models_no_usage_extraction():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         # Mock successful HTTP response
         mock_http_response = MagicMock()

@@ -10,14 +10,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
     MCPOAuth2TokenCache,
     resolve_mcp_auth,
     resolved_token_header,
 )
-from litellm.proxy._types import MCPTransport
-from litellm.types.mcp import MCPAuth
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._types import MCPTransport
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def _server(**overrides) -> MCPServer:
@@ -55,7 +55,7 @@ async def test_resolve_mcp_auth_fetches_oauth2_token():
     mock_client.post.return_value = _token_response("m2m-token-1")
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         result = await resolve_mcp_auth(server)
@@ -78,11 +78,11 @@ async def test_token_cached_across_calls():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
             return_value=mock_client,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.mcp_oauth2_token_cache",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.mcp_oauth2_token_cache",
             cache,
         ),
     ):
@@ -107,11 +107,11 @@ async def test_m2m_token_not_shared_across_server_ids_with_identical_config():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
             return_value=mock_client,
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.mcp_oauth2_token_cache",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.mcp_oauth2_token_cache",
             cache,
         ),
     ):
@@ -178,7 +178,7 @@ async def test_http_error_raises_value_error():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
             return_value=mock_client,
         ),
         pytest.raises(ValueError, match="failed with status 401"),
@@ -198,7 +198,7 @@ async def test_non_dict_response_raises_value_error():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
             return_value=mock_client,
         ),
         pytest.raises(ValueError, match="non-object JSON"),
@@ -217,7 +217,7 @@ async def test_client_credentials_uses_client_secret_basic_when_configured():
     mock_client.post.return_value = _token_response("m2m-basic")
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         result = await resolve_mcp_auth(server)
@@ -235,8 +235,8 @@ def test_storage_ttl_capped_at_token_lifetime():
     expires_in minus the expiry buffer. Before the cap, the configured TTL won outright and the
     Redis fast path (which never re-checks expires_at) kept serving the dead token until eviction,
     while the stored refresh_token sat unused because refresh only runs on the DB read-through."""
-    from litellm.constants import MCP_PER_USER_TOKEN_EXPIRY_BUFFER_SECONDS
-    from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+    from token_iq.gateway.constants import MCP_PER_USER_TOKEN_EXPIRY_BUFFER_SECONDS
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
         _compute_per_user_token_ttl,
     )
 
@@ -247,7 +247,7 @@ def test_storage_ttl_capped_at_token_lifetime():
 def test_storage_ttl_shorter_than_token_lifetime_wins():
     """A configured TTL below the token lifetime is the operative value: the knob's purpose is to
     force earlier DB re-checks (staleness backstop), so the shorter side must win the min()."""
-    from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
         _compute_per_user_token_ttl,
     )
 
@@ -258,7 +258,7 @@ def test_storage_ttl_shorter_than_token_lifetime_wins():
 def test_storage_ttl_verbatim_when_token_lifetime_unknown():
     """With no expires_in from the upstream there is nothing to cap against, so the configured
     TTL applies as-is (matching the pre-cap behavior for lifetime-less tokens)."""
-    from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
         _compute_per_user_token_ttl,
     )
 
@@ -269,7 +269,7 @@ def test_storage_ttl_verbatim_when_token_lifetime_unknown():
 def test_storage_ttl_floors_at_one_second_for_nearly_dead_token():
     """A token already inside the expiry buffer yields the 1-second floor, not zero or a negative
     TTL, mirroring the floor the default (unconfigured) path has always had."""
-    from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
         _compute_per_user_token_ttl,
     )
 
@@ -280,11 +280,11 @@ def test_storage_ttl_floors_at_one_second_for_nearly_dead_token():
 def test_default_ttl_paths_unchanged_without_storage_ttl():
     """With token_storage_ttl_seconds unset the TTL still derives from expires_in minus the
     buffer, and falls back to MCP_PER_USER_TOKEN_DEFAULT_TTL when expires_in is absent."""
-    from litellm.constants import (
+    from token_iq.gateway.constants import (
         MCP_PER_USER_TOKEN_DEFAULT_TTL,
         MCP_PER_USER_TOKEN_EXPIRY_BUFFER_SECONDS,
     )
-    from litellm.proxy._experimental.mcp_server.oauth2_token_cache import (
+    from token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache import (
         _compute_per_user_token_ttl,
     )
 
@@ -311,7 +311,7 @@ async def test_client_credentials_sends_rfc8707_resource(configured, expected):
     mock_client.post.return_value = _token_response("m2m-tok")
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         await resolve_mcp_auth(server)
@@ -340,7 +340,7 @@ async def test_token_cache_mints_afresh_when_the_token_request_changes(changed):
     mock_client.post.side_effect = [_token_response("tok-before"), _token_response("tok-after")]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         before = await cache.async_get_token(_server())
@@ -360,7 +360,7 @@ async def test_token_cache_still_reuses_a_token_when_nothing_changed():
     mock_client.post.return_value = _token_response("tok-reused")
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         first = await cache.async_get_token(_server(upstream_resource="auto"))
@@ -383,7 +383,7 @@ async def test_invalidate_clears_every_identity_for_a_server():
     ]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         await cache.async_get_token(_server())
@@ -405,7 +405,7 @@ async def test_m2m_mint_uses_admin_entered_token_url_when_issuer_yield_empties_r
     mock_client.post.return_value = _token_response("m2m-token-configured")
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
+        "token_iq.gateway.proxy._experimental.mcp_server.oauth2_token_cache.get_async_httpx_client",
         return_value=mock_client,
     ):
         result = await cache.async_get_token(server)
@@ -415,8 +415,8 @@ async def test_m2m_mint_uses_admin_entered_token_url_when_issuer_yield_empties_r
 
 
 def _m2m_server(**overrides):
-    from litellm.types.mcp import MCPAuth, MCPTransport
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
     fields = dict(
         server_id="s",

@@ -5,7 +5,7 @@ This follows the same pattern as BaseOCRTest in tests/ocr_tests/base_ocr_unit_te
 """
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from abc import ABC, abstractmethod
 import os
 import json

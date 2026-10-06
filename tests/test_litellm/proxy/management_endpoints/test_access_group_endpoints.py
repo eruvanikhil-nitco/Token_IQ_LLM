@@ -11,9 +11,9 @@ import pytest
 from fastapi.testclient import TestClient
 from prisma.errors import PrismaError
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy.proxy_server import app
-from litellm.proxy._types import (
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LitellmUserRoles,
     UserAPIKeyAuth,
@@ -697,7 +697,7 @@ def test_delete_access_group_patches_cached_team_and_key(
     expected_key_ids_after,
 ):
     """Delete patches cached team/key objects to remove the deleted access_group_id."""
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
@@ -968,7 +968,7 @@ def test_access_group_endpoints_db_not_connected(
 
 def test_record_to_access_group_table():
     """Test _record_to_access_group_table converts Prisma-like record to LiteLLM_AccessGroupTable."""
-    from litellm.proxy.management_endpoints.access_group_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.access_group_endpoints import (
         _record_to_access_group_table,
     )
 

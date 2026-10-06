@@ -5,7 +5,7 @@ Test for Vertex AI Search API Vector Store with mocked responses
 import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-import litellm
+from token_iq import gateway as litellm
 
 
 # Mock response from actual Vertex AI Search API
@@ -68,12 +68,12 @@ class TestVertexAISearchAPIVectorStore:
 
         # Mock the access token method to avoid real authentication
         with patch(
-            "litellm.llms.vertex_ai.vector_stores.search_api.transformation.VertexSearchAPIVectorStoreConfig._ensure_access_token"
+            "token_iq.gateway.llms.vertex_ai.vector_stores.search_api.transformation.VertexSearchAPIVectorStoreConfig._ensure_access_token"
         ) as mock_auth:
             mock_auth.return_value = ("mock_token", "test-vector-store-db")
 
             with patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 new_callable=AsyncMock,
             ) as mock_post:
                 mock_post.return_value = mock_response
@@ -130,12 +130,12 @@ class TestVertexAISearchAPIVectorStore:
 
         # Mock the access token method to avoid real authentication
         with patch(
-            "litellm.llms.vertex_ai.vector_stores.search_api.transformation.VertexSearchAPIVectorStoreConfig._ensure_access_token"
+            "token_iq.gateway.llms.vertex_ai.vector_stores.search_api.transformation.VertexSearchAPIVectorStoreConfig._ensure_access_token"
         ) as mock_auth:
             mock_auth.return_value = ("mock_token", "test-vector-store-db")
 
             with patch(
-                "litellm.llms.custom_httpx.http_handler.HTTPHandler.post"
+                "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post"
             ) as mock_post:
                 mock_post.return_value = mock_response
 

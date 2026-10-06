@@ -33,7 +33,7 @@ def _capture_request(url: str, headers: dict, data: bytes | str | None) -> dict:
 
 
 def test_claude_platform_builds_default_messages_url_from_region():
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -52,7 +52,7 @@ def test_claude_platform_builds_default_messages_url_from_region():
 
 
 def test_claude_platform_ignores_standard_anthropic_base_url(monkeypatch):
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -74,8 +74,8 @@ def test_claude_platform_ignores_standard_anthropic_base_url(monkeypatch):
 
 
 def test_claude_platform_uses_bedrock_subroute():
-    import litellm
-    from litellm.llms.bedrock.common_utils import BedrockModelInfo
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     model, provider, _, _ = litellm.get_llm_provider(
         model="bedrock/claude_platform/claude-sonnet-4-6"
@@ -88,8 +88,8 @@ def test_claude_platform_uses_bedrock_subroute():
 
 
 def test_claude_platform_requires_workspace_header():
-    from litellm import AuthenticationError
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway import AuthenticationError
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -109,7 +109,7 @@ def test_claude_platform_requires_workspace_header():
 
 
 def test_claude_platform_api_key_auth_sets_workspace_and_key_headers():
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -129,7 +129,7 @@ def test_claude_platform_api_key_auth_sets_workspace_and_key_headers():
 
 
 def test_claude_platform_does_not_use_standard_anthropic_api_key(monkeypatch):
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -149,7 +149,7 @@ def test_claude_platform_does_not_use_standard_anthropic_api_key(monkeypatch):
 
 
 def test_claude_platform_sigv4_signs_transformed_request_body():
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -184,7 +184,7 @@ def test_claude_platform_sigv4_signs_transformed_request_body():
 
 
 def test_claude_platform_standard_anthropic_api_key_does_not_skip_sigv4(monkeypatch):
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -216,8 +216,8 @@ def test_claude_platform_standard_anthropic_api_key_does_not_skip_sigv4(monkeypa
 
 
 def test_bedrock_claude_platform_messages_config_round_trips_native_body():
-    import litellm
-    from litellm.types.utils import LlmProviders
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.utils import LlmProviders
 
     config = litellm.ProviderConfigManager.get_provider_anthropic_messages_config(
         model="claude_platform/claude-sonnet-4-6",
@@ -251,7 +251,7 @@ def test_bedrock_claude_platform_messages_config_round_trips_native_body():
 
 
 def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
-    import litellm
+    from token_iq import gateway as litellm
 
     requests = []
 
@@ -259,7 +259,7 @@ def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
         requests.append(_capture_request(url=url, headers=headers or {}, data=data))
         return _anthropic_response(url)
 
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post):
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post):
         response = litellm.completion(
             model="bedrock/claude_platform/claude-sonnet-4-6",
             messages=[{"role": "user", "content": "hello"}],
@@ -279,7 +279,7 @@ def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
 
 @pytest.mark.asyncio
 async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api():
-    import litellm
+    from token_iq import gateway as litellm
 
     requests = []
 
@@ -289,7 +289,7 @@ async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api
 
     try:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
             response = await litellm.anthropic_messages(
@@ -323,7 +323,7 @@ def test_sigv4_no_duplicate_content_type_when_caller_sets_lowercase():
     Fix: prepend with lowercase "content-type" so **headers overwrites it when
     the caller already set it.
     """
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     llm = BaseAWSLLM()
     mock_credentials = Credentials("key", "secret", "token")

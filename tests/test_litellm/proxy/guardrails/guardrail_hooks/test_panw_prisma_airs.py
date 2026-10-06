@@ -18,15 +18,15 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.caching import DualCache
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs import (
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs import (
     PanwPrismaAirsHandler,
     initialize_guardrail,
 )
-from litellm.types.guardrails import GuardrailEventHooks, LitellmParams
-from litellm.types.utils import (
+from token_iq.gateway.types.guardrails import GuardrailEventHooks, LitellmParams
+from token_iq.gateway.types.utils import (
     ChatCompletionCustomToolCallPayload,
     ChatCompletionMessageCustomToolCall,
     ChatCompletionMessageToolCall,
@@ -84,7 +84,7 @@ def malicious_prompt_data():
 def mock_panw_client():
     """Module-level fixture for mocked PANW API client."""
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
     ) as mock_client:
         mock_async_client = AsyncMock()
         mock_response = MagicMock()
@@ -171,7 +171,7 @@ class TestPanwAirsInitialization:
         )
         guardrail_config = {"guardrail_name": "test_guardrail"}
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback"):
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
             handler = initialize_guardrail(litellm_params, guardrail_config)
 
         assert isinstance(handler, PanwPrismaAirsHandler)
@@ -376,7 +376,7 @@ class TestPanwAirsAPIIntegration:
     async def test_api_error_handling(self, handler):
         """Test API error handling (fail closed)."""
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -400,7 +400,7 @@ class TestPanwAirsAPIIntegration:
         mock_response.raise_for_status.return_value = None
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -441,7 +441,7 @@ class TestPanwAirsConfiguration:
         )
         guardrail_config = {"guardrail_name": "test"}
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback"):
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
             handler = initialize_guardrail(litellm_params, guardrail_config)
 
         assert handler.api_base == "https://service.api.aisecurity.paloaltonetworks.com"
@@ -460,7 +460,7 @@ class TestPanwAirsConfiguration:
         )
         guardrail_config = {"guardrail_name": "test"}
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback"):
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
             handler = initialize_guardrail(litellm_params, guardrail_config)
 
         assert handler.api_base == custom_base
@@ -478,7 +478,7 @@ class TestPanwAirsConfiguration:
         )
         guardrail_config = {"guardrail_name": "test_guardrail"}
 
-        with patch("litellm.logging_callback_manager.add_litellm_callback"):
+        with patch("token_iq.gateway.logging_callback_manager.add_litellm_callback"):
             handler = initialize_guardrail(litellm_params, guardrail_config)
 
         assert handler.guardrail_name == "test_guardrail"
@@ -896,7 +896,7 @@ class TestPanwAirsAdvancedFeatures:
             handler, "_call_panw_api", new_callable=AsyncMock
         ) as mock_api:
             with patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
             ) as mock_header:
                 mock_api.return_value = mock_scan_result
 
@@ -1397,7 +1397,7 @@ class TestPanwAirsFailOpenBehavior:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -1443,7 +1443,7 @@ class TestPanwAirsFailOpenBehavior:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -1478,7 +1478,7 @@ class TestPanwAirsFailOpenBehavior:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -1513,7 +1513,7 @@ class TestPanwAirsFailOpenBehavior:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -1547,7 +1547,7 @@ class TestPanwAirsFailOpenBehavior:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_async_client.client = MagicMock()
@@ -1592,7 +1592,7 @@ class TestPanwAirsAppUserMetadata:
         ]
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_client:
             mock_async_client = AsyncMock()
             mock_response = MagicMock()
@@ -1682,7 +1682,7 @@ class TestPanwAirsApplyGuardrail:
         with (
             patch.object(handler, "_call_panw_api", new_callable=AsyncMock) as mock_api,
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
             ) as mock_header,
         ):
             mock_api.return_value = {"action": "allow", "category": "benign"}
@@ -1713,7 +1713,7 @@ class TestPanwAirsApplyGuardrail:
         with (
             patch.object(handler, "_call_panw_api", new_callable=AsyncMock) as mock_api,
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.verbose_proxy_logger.warning"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.verbose_proxy_logger.warning"
             ) as mock_warning,
         ):
             result = await handler.apply_guardrail(
@@ -2200,7 +2200,7 @@ class TestPanwAirsToolEventIsResponseFix:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_get_client:
             mock_response = MagicMock()
             mock_response.json.return_value = {"action": "allow"}
@@ -2235,7 +2235,7 @@ class TestPanwAirsToolEventIsResponseFix:
         )
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_get_client:
             mock_response = MagicMock()
             mock_response.json.return_value = {"action": "allow"}
@@ -2408,7 +2408,7 @@ class TestPanwAirsStreamingBytesScan:
         with (
             patch.object(handler, "_call_panw_api", new_callable=AsyncMock) as mock_api,
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
             ) as mock_header,
         ):
             mock_api.return_value = {"action": "allow", "category": "benign"}
@@ -2545,7 +2545,7 @@ class TestPanwAirsStreamingPydanticEventsScan:
         with (
             patch.object(handler, "_call_panw_api", new_callable=AsyncMock) as mock_api,
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.add_guardrail_to_applied_guardrails_header"
             ) as mock_header,
         ):
             mock_api.return_value = {"action": "allow", "category": "benign"}
@@ -3289,7 +3289,7 @@ class TestPanwAirsMcpToolEventScan:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager"
             ) as mock_manager,
             patch.object(handler, "_call_panw_api", new_callable=AsyncMock) as mock_api,
         ):
@@ -4184,7 +4184,7 @@ class TestPanwAirsRawStreamingMaskingWarning:
             mock_api.return_value = mock_scan_result
 
             with patch(
-                "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.verbose_proxy_logger"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.verbose_proxy_logger"
             ) as mock_logger:
                 with pytest.raises(HTTPException) as exc_info:
                     await handler._scan_raw_streaming_text(
@@ -5086,7 +5086,7 @@ class TestPanwAirsMcpToolCallWithoutCallId:
         }
 
         with patch(
-            "litellm.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.panw_prisma_airs.panw_prisma_airs.get_async_httpx_client"
         ) as mock_get_client:
             mock_response = MagicMock()
             mock_response.json.return_value = {
@@ -5678,7 +5678,7 @@ class TestPanwAirsTimeoutCoercion:
         on BaseLitellmParams, the legacy panw initializer at
         guardrail_initializers.py:220 must not crash on float(None) when the
         caller omits timeout entirely."""
-        from litellm.proxy.guardrails.guardrail_initializers import (
+        from token_iq.gateway.proxy.guardrails.guardrail_initializers import (
             initialize_panw_prisma_airs,
         )
 
@@ -5771,7 +5771,7 @@ class TestPanwAirsScanIdExposure:
 
     @pytest.mark.asyncio
     async def test_allowed_scan_id_becomes_response_header(self, user_api_key_dict):
-        from litellm.proxy.common_utils.callback_utils import get_logging_caching_headers
+        from token_iq.gateway.proxy.common_utils.callback_utils import get_logging_caching_headers
 
         handler = self._handler(self.ALLOW_SCAN_RESULT)
         data = _simple_data(litellm_call_id="test-call-id", metadata={})
@@ -5789,7 +5789,7 @@ class TestPanwAirsScanIdExposure:
 
     @pytest.mark.asyncio
     async def test_request_and_response_scan_ids_are_both_exposed(self, user_api_key_dict):
-        from litellm.proxy.common_utils.callback_utils import get_logging_caching_headers
+        from token_iq.gateway.proxy.common_utils.callback_utils import get_logging_caching_headers
 
         handler = self._handler(
             self.ALLOW_SCAN_RESULT,
@@ -5843,7 +5843,7 @@ class TestPanwAirsScanIdExposure:
         assert exc_info.value.detail["error"]["scan_id"] == "scan-abc-123"
 
     def test_client_supplied_scan_ids_are_stripped(self):
-        from litellm.proxy.litellm_pre_call_utils import (
+        from token_iq.gateway.proxy.litellm_pre_call_utils import (
             _UNTRUSTED_METADATA_CONTROL_FIELDS,
             _UNTRUSTED_ROOT_CONTROL_FIELDS,
         )

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.a2a_protocol.providers.pydantic_ai_agents.transformation import (
+from token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation import (
     PydanticAITransformation,
 )
 
@@ -44,7 +44,7 @@ async def test_send_non_streaming_request_forwards_agent_extra_headers():
     mock_client = _build_mock_client(completed_payload)
 
     with patch(
-        "litellm.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
+        "token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
         return_value=mock_client,
     ):
         await PydanticAITransformation.send_non_streaming_request(
@@ -92,7 +92,7 @@ async def test_send_non_streaming_request_without_headers_preserves_content_type
     mock_client = _build_mock_client(completed_payload)
 
     with patch(
-        "litellm.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
+        "token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
         return_value=mock_client,
     ):
         await PydanticAITransformation.send_non_streaming_request(
@@ -133,7 +133,7 @@ async def test_content_type_is_preserved_when_caller_tries_to_override():
     mock_client = _build_mock_client(completed_payload)
 
     with patch(
-        "litellm.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
+        "token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
         return_value=mock_client,
     ):
         await PydanticAITransformation.send_non_streaming_request(
@@ -156,7 +156,7 @@ async def test_content_type_is_preserved_when_caller_tries_to_override():
 @pytest.mark.asyncio
 async def test_provider_config_threads_agent_extra_headers():
     """End-to-end: PydanticAIProviderConfig forwards agent_extra_headers down the stack."""
-    from litellm.a2a_protocol.providers.pydantic_ai_agents.config import (
+    from token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.config import (
         PydanticAIProviderConfig,
     )
 
@@ -179,7 +179,7 @@ async def test_provider_config_threads_agent_extra_headers():
     mock_client = _build_mock_client(completed_payload)
 
     with patch(
-        "litellm.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
+        "token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation.get_async_httpx_client",
         return_value=mock_client,
     ):
         await PydanticAIProviderConfig().handle_non_streaming(

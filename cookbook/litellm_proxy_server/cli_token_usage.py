@@ -7,7 +7,7 @@ in your Python scripts after running `litellm-proxy login`.
 """
 
 from textwrap import indent
-import litellm
+from token_iq import gateway as litellm
 
 LITELLM_BASE_URL = "http://localhost:4000/"
 

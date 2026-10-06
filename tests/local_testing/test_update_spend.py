@@ -18,37 +18,37 @@ import logging
 
 import pytest
 
-import litellm
-from litellm import Router, mock_completion
-from litellm._logging import verbose_proxy_logger
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.management_endpoints.internal_user_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
     user_info,
     user_update,
 )
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     delete_key_fn,
     generate_key_fn,
     generate_key_helper_fn,
     info_key_fn,
     update_key_fn,
 )
-from litellm.proxy.proxy_server import user_api_key_auth
-from litellm.proxy.management_endpoints.customer_endpoints import block_user
-from litellm.proxy.spend_tracking.spend_management_endpoints import (
+from token_iq.gateway.proxy.proxy_server import user_api_key_auth
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import block_user
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
     spend_key_fn,
     spend_user_fn,
     view_spend_logs,
 )
-from litellm.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging, hash_token, update_spend
 
 verbose_proxy_logger.setLevel(level=logging.DEBUG)
 
 from starlette.datastructures import URL
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     BlockUsers,
     DynamoDBArgs,
     GenerateKeyRequest,
@@ -64,7 +64,7 @@ proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}

@@ -7,13 +7,13 @@ import json
 import os
 import random
 import time
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 
 import httpx
 
-from litellm.types.integrations.slack_alerting import AlertType
+from token_iq.gateway.types.integrations.slack_alerting import AlertType
 
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -23,16 +23,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from openai import APIError
 
-import litellm
-from litellm.caching.caching import DualCache, RedisCache
-from litellm.integrations.SlackAlerting.slack_alerting import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache, RedisCache
+from token_iq.gateway.integrations.SlackAlerting.slack_alerting import (
     DeploymentMetrics,
     SlackAlerting,
 )
-from litellm.proxy._types import CallInfo, Litellm_EntityType, WebhookEvent
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import AlertingConfig, Router
-from litellm.utils import get_api_base
+from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType, WebhookEvent
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import AlertingConfig, Router
+from token_iq.gateway.utils import get_api_base
 
 
 @pytest.mark.parametrize(
@@ -225,7 +225,7 @@ async def test_budget_alerts_crossed_again(slack_alerting):
 async def test_send_alert(slack_alerting):
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     asyncio.create_task(slack_alerting.periodic_flush())
     verbose_logger.setLevel(level=logging.DEBUG)
@@ -786,8 +786,8 @@ async def test_langfuse_trace_id():
     """
     - Unit test for `_add_langfuse_trace_id_to_alert` function in slack_alerting.py
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
 
     litellm.success_callback = ["langfuse"]
 
@@ -838,8 +838,8 @@ async def test_print_alerting_payload_warning():
     Test if alerts are printed to verbose logger when log_to_console=True
     """
     litellm.set_verbose = True
-    from litellm._logging import verbose_proxy_logger
-    from litellm.integrations.SlackAlerting.batching_handler import send_to_webhook
+    from token_iq.gateway._logging import verbose_proxy_logger
+    from token_iq.gateway.integrations.SlackAlerting.batching_handler import send_to_webhook
     import logging
 
     # Create a string buffer to capture log output
@@ -900,7 +900,7 @@ async def test_spend_report_cache(report_type):
         {"individual_request_tag": "tag2", "total_spend": 150.0},
     ]
 
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Setup mock for database query
         mock_prisma.db.query_raw = AsyncMock(
             side_effect=[mock_spend_data, mock_tag_data]

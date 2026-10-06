@@ -266,16 +266,16 @@ async def test_list_batches_with_target_model_names():
     # Mock _read_request_body to return our target_model_names
     with (
         patch(
-            "litellm.proxy.batches_endpoints.endpoints._read_request_body"
+            "token_iq.gateway.proxy.batches_endpoints.endpoints._read_request_body"
         ) as mock_read_body,
-        patch("litellm.proxy.proxy_server.llm_router") as mock_router,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router,
     ):
 
         mock_read_body.return_value = {"target_model_names": target_model_names}
         mock_router.alist_batches = AsyncMock(return_value=mock_batch_response)
 
         # Import and call the function directly
-        from litellm.proxy.batches_endpoints.endpoints import list_batches
+        from token_iq.gateway.proxy.batches_endpoints.endpoints import list_batches
 
         response = await list_batches(
             request=mock_request,
@@ -309,11 +309,11 @@ async def test_batch_status_sync_from_provider_to_database():
     - update_batch_in_database()
     """
     from unittest.mock import MagicMock, AsyncMock
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         get_batch_from_database,
         update_batch_in_database,
     )
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
     import json
 
     # Setup: Create mock objects
@@ -426,10 +426,10 @@ async def test_batch_cancel_updates_database():
     Test that canceling a batch updates the database status.
     """
     from unittest.mock import MagicMock, AsyncMock
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         update_batch_in_database,
     )
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
 
     # Setup
     batch_id = "batch_cancel_test"
@@ -498,10 +498,10 @@ async def test_batch_terminal_state_skip_provider_call():
     it returns immediately from database without calling the provider.
     """
     from unittest.mock import MagicMock, AsyncMock
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         get_batch_from_database,
     )
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
     import json
 
     # Setup: Create mock objects for a completed batch
@@ -567,10 +567,10 @@ async def test_batch_no_status_change_skip_update():
     Test that when batch status hasn't changed, database update is skipped.
     """
     from unittest.mock import MagicMock, AsyncMock
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         update_batch_in_database,
     )
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import LiteLLMBatch
 
     # Setup
     batch_id = "batch_no_change_test"

@@ -1,6 +1,6 @@
 
 
-from litellm.llms.fireworks_ai.completion.transformation import (
+from token_iq.gateway.llms.fireworks_ai.completion.transformation import (
     FireworksAITextCompletionConfig,
 )
 

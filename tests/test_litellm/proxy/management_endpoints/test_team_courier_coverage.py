@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.team_endpoints import team_courier_coverage
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import team_courier_coverage
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
@@ -37,8 +37,8 @@ def _prisma(team_row, unbound_key_count: int = 0):
 async def _call(team_row, *, unbound_key_count: int = 0, deployments=DEPLOYMENTS):
     router = SimpleNamespace(get_model_list=lambda: list(deployments))
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma(team_row, unbound_key_count)),
-        patch("litellm.proxy.proxy_server.llm_router", router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(team_row, unbound_key_count)),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", router),
     ):
         return await team_courier_coverage(team_id="t1", user_api_key_dict=ADMIN)
 
@@ -107,8 +107,8 @@ async def test_someone_outside_the_team_cannot_read_its_coverage():
     outsider = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-other", user_id="other")
     router = SimpleNamespace(get_model_list=lambda: list(DEPLOYMENTS))
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", _prisma(_team(models=["*"]))),
-        patch("litellm.proxy.proxy_server.llm_router", router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(_team(models=["*"]))),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", router),
         pytest.raises(HTTPException) as exc,
     ):
         await team_courier_coverage(team_id="t1", user_api_key_dict=outsider)
@@ -123,14 +123,14 @@ class TestCourierModeSurvivesTheUpdateEndpoint:
     switch calls /team/update, so without this the switch is decorative."""
 
     def test_the_update_request_carries_the_mode(self):
-        from litellm.proxy._types import UpdateTeamRequest
+        from token_iq.gateway.proxy._types import UpdateTeamRequest
 
         assert UpdateTeamRequest(team_id="t1", api_access_mode="courier").api_access_mode == "courier"
 
     def test_an_update_that_does_not_mention_it_leaves_it_alone(self):
         """None and False mean different things here: not mentioned versus turn it off.
         Collapsing them would switch a team back to translating mode on any unrelated edit."""
-        from litellm.proxy._types import UpdateTeamRequest
+        from token_iq.gateway.proxy._types import UpdateTeamRequest
 
         assert UpdateTeamRequest(team_id="t1").api_access_mode is None
 
@@ -138,14 +138,14 @@ class TestCourierModeSurvivesTheUpdateEndpoint:
         """The model accepting it is not enough. /team/update writes whatever
         `json(exclude_unset=True)` produces, so a field that survives validation but not
         that call is exactly the 200-and-drop this bug was."""
-        from litellm.proxy._types import UpdateTeamRequest
+        from token_iq.gateway.proxy._types import UpdateTeamRequest
 
         written = UpdateTeamRequest(team_id="t1", api_access_mode="courier").json(exclude_unset=True)
 
         assert written["api_access_mode"] == "courier"
 
     def test_an_unrelated_edit_writes_nothing_about_api_access_mode(self):
-        from litellm.proxy._types import UpdateTeamRequest
+        from token_iq.gateway.proxy._types import UpdateTeamRequest
 
         written = UpdateTeamRequest(team_id="t1", team_alias="renamed").json(exclude_unset=True)
 

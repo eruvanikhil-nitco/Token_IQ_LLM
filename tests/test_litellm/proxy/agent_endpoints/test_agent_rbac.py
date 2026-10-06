@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.agent_endpoints.auth.agent_permission_handler import (
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
     UnrestrictedAgentAccess,
 )
@@ -39,7 +39,7 @@ def _make_admin_user(user_id: str = "admin-1") -> UserAPIKeyAuth:
 @pytest.mark.asyncio
 async def test_get_agents_blocked_for_internal_user_when_disabled():
     """get_agents should raise 403 when agents are disabled for internal users."""
-    from litellm.proxy.agent_endpoints.endpoints import get_agents
+    from token_iq.gateway.proxy.agent_endpoints.endpoints import get_agents
 
     user = _make_internal_user()
     gs = {
@@ -48,7 +48,7 @@ async def test_get_agents_blocked_for_internal_user_when_disabled():
     }
 
     request_mock = MagicMock()
-    with patch.dict("litellm.proxy.proxy_server.general_settings", gs, clear=True):
+    with patch.dict("token_iq.gateway.proxy.proxy_server.general_settings", gs, clear=True):
         with pytest.raises(HTTPException) as exc_info:
             await get_agents(request=request_mock, user_api_key_dict=user)
     assert exc_info.value.status_code == 403
@@ -57,18 +57,18 @@ async def test_get_agents_blocked_for_internal_user_when_disabled():
 @pytest.mark.asyncio
 async def test_get_agents_allowed_when_not_disabled():
     """get_agents should not raise RBAC 403 when agents are not disabled."""
-    from litellm.proxy.agent_endpoints.endpoints import get_agents
+    from token_iq.gateway.proxy.agent_endpoints.endpoints import get_agents
 
     user = _make_internal_user()
     request_mock = MagicMock()
 
-    with patch.dict("litellm.proxy.proxy_server.general_settings", {}, clear=True):
+    with patch.dict("token_iq.gateway.proxy.proxy_server.general_settings", {}, clear=True):
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             MagicMock(get_agent_list=MagicMock(return_value=[])),
         ):
             with patch(
-                "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
+                "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
                 new=AsyncMock(return_value=UnrestrictedAgentAccess()),
             ):
                 result = await get_agents(request=request_mock, user_api_key_dict=user)
@@ -82,7 +82,7 @@ async def test_get_agents_allowed_when_not_disabled():
 
 @pytest.mark.asyncio
 async def test_get_agent_daily_activity_blocked_when_disabled():
-    from litellm.proxy.agent_endpoints.endpoints import get_agent_daily_activity
+    from token_iq.gateway.proxy.agent_endpoints.endpoints import get_agent_daily_activity
 
     user = _make_internal_user()
     gs = {
@@ -90,7 +90,7 @@ async def test_get_agent_daily_activity_blocked_when_disabled():
         "allow_agents_for_team_admins": False,
     }
 
-    with patch.dict("litellm.proxy.proxy_server.general_settings", gs, clear=True):
+    with patch.dict("token_iq.gateway.proxy.proxy_server.general_settings", gs, clear=True):
         with pytest.raises(HTTPException) as exc_info:
             await get_agent_daily_activity(user_api_key_dict=user)
     assert exc_info.value.status_code == 403

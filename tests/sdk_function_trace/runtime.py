@@ -31,7 +31,7 @@ class TraceResponsePayload(BaseModel):
 
 @contextmanager
 def _python_engine() -> Generator[None]:
-    from litellm.rust_bridge import ocr as ocr_bridge
+    from token_iq.gateway.rust_bridge import ocr as ocr_bridge
 
     previous_ocr: Final = ocr_bridge.rust_ocr_enabled()
     with patch.dict(os.environ, {"LITELLM_RUST": "false"}):
@@ -52,7 +52,7 @@ def _invoke(case: Invocation, api_base: str, *, asynchronous: bool) -> object:
 
 
 def collect(case: Invocation, api_base: str, *, engine: Engine, asynchronous: bool) -> tuple[FunctionTraceEvent, ...]:
-    import litellm
+    from token_iq import gateway as litellm
 
     if engine == "rust":
         payload: Final = TraceResponsePayload.model_validate(_invoke(case, api_base, asynchronous=asynchronous))

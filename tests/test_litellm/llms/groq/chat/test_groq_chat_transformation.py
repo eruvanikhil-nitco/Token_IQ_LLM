@@ -4,13 +4,13 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.groq.chat.transformation import GroqChatConfig
-from litellm.utils import get_optional_params
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.groq.chat.transformation import GroqChatConfig
+from token_iq.gateway.utils import get_optional_params
 
 WEB_SEARCH_MODELS = (
     "openai/gpt-oss-120b",

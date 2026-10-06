@@ -18,7 +18,7 @@ import pytest
 
 
 def _make_wrappers():
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     writer_inner = MagicMock(name="writer_prisma")
     reader_inner = MagicMock(name="reader_prisma")
@@ -53,7 +53,7 @@ def _model_actions_mock(name: str) -> _FakeActions:
 
 
 def test_top_level_query_raw_routes_to_reader():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
@@ -64,7 +64,7 @@ def test_top_level_query_raw_routes_to_reader():
 
 
 def test_top_level_execute_raw_routes_to_writer():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
@@ -76,7 +76,7 @@ def test_top_level_execute_raw_routes_to_writer():
 
 
 def test_per_model_reads_route_to_reader_writes_to_writer():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.litellm_usertable = _model_actions_mock("writer_users")
@@ -105,7 +105,7 @@ def test_writer_pinned_client_bypasses_reader_routing():
     """Regression for #38556: read-after-write reconciles must see the writer's
     just-committed rows, so WriterPinnedClient must resolve reads to the writer
     even when a read replica is configured."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.litellm_proxymodeltable = _model_actions_mock("writer_models")
@@ -119,7 +119,7 @@ def test_writer_pinned_client_bypasses_reader_routing():
 
 
 def test_writer_pinned_client_passes_through_single_db():
-    from litellm.proxy.db.routing_prisma_wrapper import WriterPinnedClient
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import WriterPinnedClient
 
     writer, _, _, _ = _make_wrappers()
 
@@ -130,7 +130,7 @@ def test_writer_pinned_client_yields_to_routed_reads_when_writer_down():
     """The pin must not break reader-only degraded mode: a proxy that starts
     during a primary outage still loads DB-backed models from the replica, so
     while the writer is degraded the pin resolves to the routed wrapper."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.litellm_proxymodeltable = _model_actions_mock("writer_models")
@@ -146,7 +146,7 @@ def test_writer_pinned_client_yields_to_routed_reads_when_writer_down():
 
 @pytest.mark.asyncio
 async def test_connect_invokes_both_clients():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock()
@@ -164,7 +164,7 @@ async def test_connect_logs_writer_and_reader_success(caplog):
     """Successful startup emits a positive INFO confirmation for both writer
     and reader so operators can verify connectivity without inspecting the URL
     in logs."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock()
@@ -181,7 +181,7 @@ async def test_connect_logs_writer_and_reader_success(caplog):
 
 @pytest.mark.asyncio
 async def test_disconnect_continues_when_one_side_fails():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.disconnect = AsyncMock(side_effect=RuntimeError("writer down"))
@@ -200,7 +200,7 @@ def test_is_connected_reflects_writer_only():
     a degraded reader should report True so that PrismaClient.connect()'s
     health check does not re-trigger a writer reconnect (which only fixes
     writer-side problems and would loop indefinitely)."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
@@ -219,7 +219,7 @@ def test_is_connected_reflects_writer_only():
 
 
 def test_token_refresh_delegates_to_both_writer_and_reader():
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.start_token_refresh_task = AsyncMock()
@@ -242,7 +242,7 @@ def test_token_refresh_delegates_to_both_writer_and_reader():
 
 
 def test_routed_actions_falls_back_to_writer_for_unknown_methods():
-    from litellm.proxy.db.routing_prisma_wrapper import _RoutedActions
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import _RoutedActions
 
     writer_actions = _model_actions_mock("writer")
     writer_actions.some_custom_method = "writer-custom"
@@ -258,7 +258,7 @@ def test_routed_actions_respects_should_use_reader_flag():
     """When the routing wrapper marks the reader unavailable, _RoutedActions
     must redirect reads to the writer instead — without needing to re-fetch
     the actions accessor."""
-    from litellm.proxy.db.routing_prisma_wrapper import _RoutedActions
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import _RoutedActions
 
     writer_actions = _model_actions_mock("writer")
     reader_actions = _model_actions_mock("reader")
@@ -283,7 +283,7 @@ def test_routed_actions_respects_should_use_reader_flag():
 async def test_connect_swallows_reader_failure_and_falls_back_to_writer():
     """A reader connect failure must NOT abort proxy startup. The wrapper
     flips into degraded mode so subsequent reads route to the writer."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock()
@@ -302,7 +302,7 @@ async def test_connect_swallows_reader_failure_and_falls_back_to_writer():
 async def test_reads_route_to_writer_when_reader_unavailable():
     """Top-level read methods and per-model reads must fall through to the
     writer while the reader is degraded."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.litellm_usertable = _model_actions_mock("writer_users")
@@ -324,7 +324,7 @@ async def test_reads_route_to_writer_when_reader_unavailable():
 async def test_recreate_prisma_client_recreates_both_writer_and_reader():
     """Writer reconnect path calls recreate_prisma_client. The routing wrapper
     must recreate BOTH clients so a DB-wide event doesn't leave a stale reader."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -350,7 +350,7 @@ async def test_recreate_prisma_client_recreates_both_writer_and_reader():
 async def test_recreate_recovers_reader_after_prior_degradation():
     """If a previous connect/recreate degraded the reader, a successful
     recreate must clear the flag so reads start hitting the reader again."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -371,7 +371,7 @@ async def test_recreate_recovers_reader_after_prior_degradation():
 async def test_recreate_degrades_reader_if_reader_recreate_fails():
     """If the reader recreate fails, writer recreate still succeeds and the
     routing wrapper degrades (does not raise)."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -395,7 +395,7 @@ async def test_recreate_degrades_reader_if_reader_recreate_fails():
 async def test_recreate_degrades_reader_when_replica_url_missing():
     """Non-IAM reader needs DATABASE_URL_READ_REPLICA. If it's missing
     (configuration drift), the wrapper degrades instead of raising."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -419,7 +419,7 @@ async def test_recreate_degrades_reader_when_replica_url_missing():
 async def test_recreate_iam_reader_refreshes_token():
     """IAM-enabled readers must refresh their token (reader has its own parsed
     endpoint) and pass the fresh URL to recreate_prisma_client."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -443,7 +443,7 @@ async def test_recreate_degrades_when_iam_token_generation_returns_none():
     """If `get_rds_iam_token` returns None (e.g. AWS-side failure), the wrapper
     must degrade rather than crash — this exercises the explicit `raise
     RuntimeError` inside `_recreate_reader`'s IAM branch."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock()
@@ -464,7 +464,7 @@ def test_writer_and_reader_properties_expose_underlying_wrappers():
     """The `writer` and `reader` properties are used by PrismaClient.writer_db
     to smoke-test the writer specifically during reconnect — they must return
     the exact wrappers passed in."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, _, reader, _ = _make_wrappers()
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
@@ -477,8 +477,8 @@ def test_per_model_accessor_falls_back_when_reader_lacks_attr():
     """If the reader Prisma client somehow lacks a model accessor that the
     writer has (older client / partial mock), the wrapper must fall back to
     the writer accessor instead of raising AttributeError to the caller."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     # Plain class with only the accessor set on the writer side. Using a real
     # class instead of MagicMock so attribute access raises AttributeError
@@ -504,7 +504,7 @@ async def test_writer_recreate_passes_http_client_through(monkeypatch):
     """When PrismaClient is constructed with an http_client, recreate must
     forward it to the new Prisma() so connection settings persist across
     reconnects."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     captured_kwargs: Dict[str, Any] = {}
 
@@ -534,7 +534,7 @@ async def test_writer_recreate_passes_http_client_through(monkeypatch):
 
 
 def test_parse_iam_endpoint_from_url_extracts_all_fields():
-    from litellm.proxy.db.prisma_client import parse_iam_endpoint_from_url
+    from token_iq.gateway.proxy.db.prisma_client import parse_iam_endpoint_from_url
 
     ep = parse_iam_endpoint_from_url(
         "postgresql://litellm_user:initial-token@aurora-reader.example.com:6543/litellm?schema=public"
@@ -547,7 +547,7 @@ def test_parse_iam_endpoint_from_url_extracts_all_fields():
 
 
 def test_parse_iam_endpoint_defaults_port_to_5432_and_skips_schema():
-    from litellm.proxy.db.prisma_client import parse_iam_endpoint_from_url
+    from token_iq.gateway.proxy.db.prisma_client import parse_iam_endpoint_from_url
 
     ep = parse_iam_endpoint_from_url("postgresql://u@host/dbname")
     assert ep.host == "host"
@@ -558,7 +558,7 @@ def test_parse_iam_endpoint_defaults_port_to_5432_and_skips_schema():
 
 
 def test_parse_iam_endpoint_rejects_url_without_user_or_dbname():
-    from litellm.proxy.db.prisma_client import parse_iam_endpoint_from_url
+    from token_iq.gateway.proxy.db.prisma_client import parse_iam_endpoint_from_url
 
     with pytest.raises(ValueError, match="missing host or username"):
         parse_iam_endpoint_from_url("postgresql://host:5432/db")
@@ -567,7 +567,7 @@ def test_parse_iam_endpoint_rejects_url_without_user_or_dbname():
 
 
 def test_iam_endpoint_build_url_inserts_token_verbatim():
-    from litellm.proxy.db.prisma_client import IAMEndpoint
+    from token_iq.gateway.proxy.db.prisma_client import IAMEndpoint
 
     # `generate_iam_auth_token` already URL-encodes the presigned token, so
     # `build_url` must NOT encode again — double-encoding turned `%3D` into
@@ -585,7 +585,7 @@ async def test_iam_refresh_logs_carry_log_prefix(caplog):
     """When `log_prefix` is set on a PrismaWrapper, every IAM-related log
     line emitted by that wrapper must start with the prefix so writer and
     reader can be told apart in interleaved output."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     wrapper = PrismaWrapper(
         original_prisma=MagicMock(),
@@ -614,7 +614,7 @@ async def test_iam_refresh_logs_carry_log_prefix(caplog):
 def test_get_rds_iam_token_returns_none_when_iam_disabled():
     """`get_rds_iam_token` short-circuits to None when iam_token_db_auth is
     False — covers the early-return guard at the top of the method."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     wrapper = PrismaWrapper(original_prisma=MagicMock(), iam_token_db_auth=False)
     assert wrapper.get_rds_iam_token() is None
@@ -628,7 +628,7 @@ async def test_getattr_does_not_block_inside_running_loop_on_expired_token(monke
     pattern deadlocks the loop (loop thread blocks waiting for a coroutine
     that needs the loop to run) and times out at 30s — exactly what was
     breaking the reader on first query."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     # Stale URL — `is_token_expired` returns True because the password isn't
     # a parseable IAM token, so we exercise the expired branch.
@@ -674,7 +674,7 @@ def test_writer_get_rds_iam_token_defaults_port_when_unset(monkeypatch, unset_da
     `generate_iam_auth_token` makes botocore embed the literal string
     \"None\" in the presigned URL during signing and crashes with
     `ValueError: Port could not be cast to integer value as 'None'`."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     monkeypatch.setenv("DATABASE_HOST", "writer.aurora.local")
     monkeypatch.delenv("DATABASE_PORT", raising=False)
@@ -690,7 +690,7 @@ def test_writer_get_rds_iam_token_defaults_port_when_unset(monkeypatch, unset_da
 
     fake_module = MagicMock()
     fake_module.generate_iam_auth_token = fake_generate
-    monkeypatch.setitem(sys.modules, "litellm.proxy.auth.rds_iam_token", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.auth.rds_iam_token", fake_module)
 
     writer = PrismaWrapper(
         original_prisma=MagicMock(),
@@ -707,7 +707,7 @@ def test_writer_get_rds_iam_token_uses_database_host_env_vars(monkeypatch, unset
     from the legacy DATABASE_HOST/PORT/USER/NAME env vars and writes the URL
     back to DATABASE_URL — this is the pre-read-replica behavior the patch
     must preserve."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     monkeypatch.setenv("DATABASE_HOST", "writer.aurora.local")
     monkeypatch.setenv("DATABASE_PORT", "5432")
@@ -725,7 +725,7 @@ def test_writer_get_rds_iam_token_uses_database_host_env_vars(monkeypatch, unset
 
     fake_module = MagicMock()
     fake_module.generate_iam_auth_token = fake_generate
-    monkeypatch.setitem(sys.modules, "litellm.proxy.auth.rds_iam_token", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.auth.rds_iam_token", fake_module)
 
     writer = PrismaWrapper(
         original_prisma=MagicMock(),
@@ -749,7 +749,7 @@ def test_writer_get_rds_iam_token_uses_database_host_env_vars(monkeypatch, unset
 def test_reader_iam_refresh_uses_parsed_endpoint(monkeypatch):
     """The reader generates fresh tokens against its parsed endpoint and
     writes the new URL to DATABASE_URL_READ_REPLICA — not DATABASE_URL."""
-    from litellm.proxy.db.prisma_client import IAMEndpoint, PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import IAMEndpoint, PrismaWrapper
 
     # Pre-seed env vars so we can prove the reader does NOT touch DATABASE_URL.
     monkeypatch.setenv("DATABASE_URL", "writer-url-untouched")
@@ -765,7 +765,7 @@ def test_reader_iam_refresh_uses_parsed_endpoint(monkeypatch):
 
     fake_module = MagicMock()
     fake_module.generate_iam_auth_token = fake_generate
-    monkeypatch.setitem(sys.modules, "litellm.proxy.auth.rds_iam_token", fake_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.auth.rds_iam_token", fake_module)
 
     endpoint = IAMEndpoint(
         host="reader.aurora.local",
@@ -805,7 +805,7 @@ async def test_reader_recreate_uses_datasource_override(monkeypatch):
     """Reader recreate must pass `datasource={"url": ...}` to Prisma() — Prisma
     only auto-reads DATABASE_URL, so without the override the new reader URL
     would be silently ignored."""
-    from litellm.proxy.db.prisma_client import IAMEndpoint, PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import IAMEndpoint, PrismaWrapper
 
     captured_kwargs: Dict[str, Any] = {}
 
@@ -842,7 +842,7 @@ async def test_writer_recreate_does_not_use_datasource(monkeypatch):
     """Writer keeps relying on Prisma reading DATABASE_URL from env — datasource
     override must NOT leak into the writer path (would override the freshly
     rotated env var)."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
 
     captured_kwargs: Dict[str, Any] = {}
 
@@ -878,8 +878,8 @@ def test_prisma_client_init_falls_back_to_writer_when_reader_iam_token_fails(
     writer-only `PrismaWrapper`. The runtime contract in
     `RoutingPrismaWrapper.connect` already says reader-side failures are
     non-fatal — but that code never runs if construction throws first."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     monkeypatch.setenv("IAM_TOKEN_DB_AUTH", "true")
     monkeypatch.setenv(
@@ -905,10 +905,10 @@ def test_prisma_client_init_falls_back_to_writer_when_reader_iam_token_fails(
 
     fake_iam_module.generate_iam_auth_token = boom
     monkeypatch.setitem(
-        sys.modules, "litellm.proxy.auth.rds_iam_token", fake_iam_module
+        sys.modules, "token_iq.gateway.proxy.auth.rds_iam_token", fake_iam_module
     )
 
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
         client = PrismaClient(
@@ -934,7 +934,7 @@ async def test_connect_degrades_writer_when_reader_available():
     allow_requests_on_db_unavailable is set, leaving the proxy with no Prisma
     client at all, so DB-stored models never load and every request 400s.
     Degrading instead keeps reads (key auth, model loads) on the replica."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock(side_effect=RuntimeError("primary unreachable"))
@@ -958,7 +958,7 @@ async def test_connect_raises_when_writer_and_reader_both_fail():
     """Full DB outage: with neither side reachable the wrapper must raise the
     writer's error so existing allow_requests_on_db_unavailable startup
     handling applies unchanged."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock(side_effect=RuntimeError("primary down"))
@@ -972,7 +972,7 @@ async def test_connect_raises_when_writer_and_reader_both_fail():
 @pytest.mark.asyncio
 async def test_connect_logs_writer_degradation(caplog):
     """Operators need a clear signal that the proxy booted without a writer."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
     writer_inner.connect = AsyncMock(side_effect=RuntimeError("primary unreachable"))
@@ -992,7 +992,7 @@ async def test_connect_logs_writer_degradation(caplog):
 async def test_recreate_clears_writer_unavailable():
     """A successful writer recreate (health watchdog reconnect once the
     primary is back) must clear the degraded-writer flag."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock(return_value=True)
@@ -1013,7 +1013,7 @@ async def test_recreate_clears_writer_unavailable():
 async def test_recreate_keeps_writer_unavailable_when_writer_recreate_fails():
     """While the primary is still down, a failed writer recreate must leave
     the degraded flag set so the watchdog keeps retrying."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer = MagicMock()
     writer.recreate_prisma_client = AsyncMock(
@@ -1039,9 +1039,9 @@ def test_prisma_client_premints_an_entra_token_for_the_reader(monkeypatch):
     """Under Azure Entra auth the reader has to be pre-minted the same way the RDS
     reader already is: Prisma is constructed with a `datasource` URL, so a reader built
     from the operator's placeholder URL would never carry a real token."""
-    from litellm.proxy.db.prisma_client import PrismaWrapper
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
-    from litellm.proxy.db.token_auth import AzureEntraTokenAuth
+    from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.token_auth import AzureEntraTokenAuth
 
     monkeypatch.setenv("AZURE_POSTGRESQL_AUTH", "true")
     monkeypatch.delenv("IAM_TOKEN_DB_AUTH", raising=False)
@@ -1064,10 +1064,10 @@ def test_prisma_client_premints_an_entra_token_for_the_reader(monkeypatch):
     monkeypatch.setitem(sys.modules, "prisma", fake_prisma_module)
 
     with patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: "ENTRA-TOKEN",
     ):
-        from litellm.proxy.utils import PrismaClient
+        from token_iq.gateway.proxy.utils import PrismaClient
 
         client = PrismaClient(
             database_url="postgresql://litellm@writer.postgres.database.azure.com:5432/litellm",

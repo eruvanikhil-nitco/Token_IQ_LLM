@@ -1,9 +1,9 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
-from litellm.llms.anthropic.experimental_pass_through.messages.utils import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.utils import (
     AnthropicMessagesRequestUtils,
 )
 

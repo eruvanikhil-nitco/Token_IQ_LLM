@@ -7,11 +7,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.spend_tracking.ptu_flat_cost_rollup as ptu_rollup
-from litellm.constants import PTU_ROLLUP_MAX_BACKFILL_DAYS, PTU_SENTINEL_API_KEY
-from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
-from litellm.types.router import ModelInfo
-from litellm.proxy.spend_tracking.ptu_flat_cost_rollup import (
+import token_iq.gateway.proxy.spend_tracking.ptu_flat_cost_rollup as ptu_rollup
+from token_iq.gateway.constants import PTU_ROLLUP_MAX_BACKFILL_DAYS, PTU_SENTINEL_API_KEY
+from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+from token_iq.gateway.types.router import ModelInfo
+from token_iq.gateway.proxy.spend_tracking.ptu_flat_cost_rollup import (
     PTUModel,
     _active_hours_on_day,
     _compute_daily_flat_cost,
@@ -2025,7 +2025,7 @@ async def test_a_router_left_on_the_proxy_module_is_not_scanned(monkeypatch):
     """A run scans the router its caller hands it and nothing else. Reading the proxy module's
     global instead made every run depend on whatever else in the process had set one, which
     is what a caller passing no router is asking not to happen."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     ambient = _router_holding(_router_entry(model_id="ambient-1", model_info=dict(_VALID_PTU)))
     monkeypatch.setattr(proxy_server, "llm_router", ambient, raising=False)

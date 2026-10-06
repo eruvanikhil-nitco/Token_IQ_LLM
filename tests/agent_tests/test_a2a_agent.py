@@ -54,7 +54,7 @@ class MockA2AClient:
 
 @pytest.fixture
 def mock_a2a_client(monkeypatch):
-    import litellm.a2a_protocol.main as a2a_main
+    import token_iq.gateway.a2a_protocol.main as a2a_main
 
     async def _fake_create_a2a_client(
         base_url, timeout=60.0, extra_headers=None, streaming=False
@@ -68,7 +68,7 @@ def mock_a2a_client(monkeypatch):
 async def test_a2a_non_streaming(mock_a2a_client):
     """Test non-streaming A2A request."""
     from a2a.compat.v0_3.types import MessageSendParams, SendMessageRequest
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     request = SendMessageRequest(
         id=str(uuid4()),
@@ -94,7 +94,7 @@ async def test_a2a_non_streaming(mock_a2a_client):
 async def test_a2a_streaming(mock_a2a_client):
     """Test streaming A2A request."""
     from a2a.compat.v0_3.types import MessageSendParams, SendStreamingMessageRequest
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     request = SendStreamingMessageRequest(
         id=str(uuid4()),

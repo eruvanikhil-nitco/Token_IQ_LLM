@@ -8,11 +8,11 @@ from typing import Optional
 import httpx
 import pytest
 
-import litellm
-from litellm import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse
 from base_llm_unit_tests import BaseLLMChatTest
 import asyncio
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     ChatCompletionAnnotation,
     ChatCompletionAnnotationURLCitation,
 )
@@ -130,9 +130,9 @@ async def test_openai_prediction_param_with_caching():
     """
     Tests using `prediction` parameter with caching
     """
-    from litellm.caching.caching import LiteLLMCacheType
+    from token_iq.gateway.caching.caching import LiteLLMCacheType
     import logging
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     verbose_logger.setLevel(logging.DEBUG)
     import time
@@ -288,9 +288,9 @@ class TestOpenAIChatCompletion(BaseLLMChatTest):
         pass
 
 
-@patch("litellm.main.openai_chat_completions._get_openai_client")
+@patch("token_iq.gateway.main.openai_chat_completions._get_openai_client")
 def test_openai_max_retries_0(mock_get_openai_client):
-    import litellm
+    from token_iq import gateway as litellm
 
     litellm.set_verbose = True
     response = litellm.completion(
@@ -303,7 +303,7 @@ def test_openai_max_retries_0(mock_get_openai_client):
     assert mock_get_openai_client.call_args.kwargs["max_retries"] == 0
 
 
-@patch("litellm.main.openai_chat_completions._get_openai_client")
+@patch("token_iq.gateway.main.openai_chat_completions._get_openai_client")
 def test_openai_image_generation_forwards_organization(mock_get_openai_client):
     """Ensure organization flows to OpenAI client for image generation."""
 
@@ -365,7 +365,7 @@ def test_o1_parallel_tool_calls(model):
 
 
 def test_openai_chat_completion_streaming_handler_reasoning_content():
-    from litellm.llms.openai.chat.gpt_transformation import (
+    from token_iq.gateway.llms.openai.chat.gpt_transformation import (
         OpenAIChatCompletionStreamingHandler,
     )
     from unittest.mock import MagicMock
@@ -474,7 +474,7 @@ class TestOpenAIGPT4OAudioTranscription(BaseLLMAudioTranscriptionTest):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model", ["gpt-4o"])
 async def test_openai_pdf_url(model):
-    from litellm.utils import return_raw_request, CallTypes
+    from token_iq.gateway.utils import return_raw_request, CallTypes
 
     request = return_raw_request(
         CallTypes.completion,
@@ -504,7 +504,7 @@ async def test_openai_pdf_url(model):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_openai_codex_stream(sync_mode):
-    from litellm.main import stream_chunk_builder
+    from token_iq.gateway.main import stream_chunk_builder
 
     kwargs = {
         "model": "openai/gpt-5.3-codex",
@@ -532,7 +532,7 @@ async def test_openai_codex_stream(sync_mode):
 @pytest.mark.asyncio
 async def test_openai_codex(sync_mode):
 
-    from litellm import Router
+    from token_iq.gateway import Router
 
     router = Router(
         model_list=[
@@ -564,8 +564,8 @@ async def test_openai_via_gemini_streaming_bridge():
     """
     Test that the openai via gemini streaming bridge works correctly
     """
-    from litellm import Router
-    from litellm.types.utils import ModelResponseStream
+    from token_iq.gateway import Router
+    from token_iq.gateway.types.utils import ModelResponseStream
 
     router = Router(
         model_list=[
@@ -1449,7 +1449,7 @@ def test_responses_gpt54_with_xhigh_reasoning():
     Ensure chat->responses bridge sends the correct request payload for
     openai/responses/gpt-5.4 with reasoning_effort="xhigh".
     """
-    with patch("litellm.responses") as mock_responses:
+    with patch("token_iq.gateway.responses") as mock_responses:
         # Stop execution right after request generation to avoid external API calls.
         mock_responses.side_effect = RuntimeError("stop_after_request_build")
 

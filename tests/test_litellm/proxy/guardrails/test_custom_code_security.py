@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
-from litellm.exceptions import ModifyResponseException
-from litellm.proxy.guardrails.guardrail_hooks.custom_code.custom_code_guardrail import (
+from token_iq.gateway.exceptions import ModifyResponseException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.custom_code.custom_code_guardrail import (
     CustomCodeCompilationError,
     CustomCodeGuardrail,
 )
@@ -144,7 +144,7 @@ async def test_async_guardrail_compiles_and_runs():
         "    return allow()\n"
     )
     guardrail = _compile(code)
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     result = await guardrail.apply_guardrail(
         inputs=GenericGuardrailAPIInputs(texts=["test"]),

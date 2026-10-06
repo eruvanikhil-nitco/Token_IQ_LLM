@@ -5,11 +5,11 @@ Responses API request tools they were flattened from
 
 import copy
 
-from litellm.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import GuardrailToolParam
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_api import GuardrailToolParam
 
 
 def _groups(tools):

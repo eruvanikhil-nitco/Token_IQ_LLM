@@ -5,9 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import DefaultInternalUserParams, LitellmUserRoles
-from litellm.proxy.proxy_server import app
-from litellm.types.proxy.management_endpoints.ui_sso import (
+from token_iq.gateway.proxy._types import DefaultInternalUserParams, LitellmUserRoles
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     DefaultTeamSSOParams,
     SSOConfig,
 )
@@ -61,7 +61,7 @@ def mock_proxy_config(monkeypatch):
     async def mock_save_environment_variables(updates):
         saved_env_updates.append(updates)
 
-    from litellm.proxy.proxy_server import proxy_config
+    from token_iq.gateway.proxy.proxy_server import proxy_config
 
     monkeypatch.setattr(proxy_config, "get_config", mock_get_config)
     monkeypatch.setattr(proxy_config, "save_config", mock_save_config)
@@ -79,8 +79,8 @@ def mock_proxy_config(monkeypatch):
 @pytest.fixture
 def mock_auth():
     """Mock the authentication to bypass auth checks using FastAPI dependency overrides"""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.proxy_server import app
 
     async def mock_user_api_key_auth():
         return {"user_id": "test_user"}
@@ -132,7 +132,7 @@ class TestProxySettingEndpoints:
             "environment_variables": {},
         }
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         async def mock_get_config():
             return empty_config
@@ -154,9 +154,9 @@ class TestProxySettingEndpoints:
         """Test updating the internal user settings"""
         # Mock litellm.default_internal_user_params
 
-        import litellm
+        from token_iq import gateway as litellm
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.setattr(litellm, "default_internal_user_params", {})
 
         # New settings to update
@@ -226,9 +226,9 @@ class TestProxySettingEndpoints:
     ):
         """Test updating the default team settings"""
         # Mock litellm.default_team_params
-        import litellm
+        from token_iq import gateway as litellm
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.setattr(litellm, "default_team_params", {})
 
         # New settings to update
@@ -295,9 +295,9 @@ class TestProxySettingEndpoints:
         self, mock_proxy_config, mock_auth, monkeypatch
     ):
         """Test updating default team settings with team_member_permissions"""
-        import litellm
+        from token_iq import gateway as litellm
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.setattr(litellm, "default_team_params", {})
 
         new_settings = {
@@ -337,10 +337,10 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(
             return_value=mock_db_record
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock decryption to return the values as-is (simulating decryption)
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -403,12 +403,12 @@ class TestProxySettingEndpoints:
             mock_db_record = MagicMock()
             mock_db_record.sso_settings = sso_settings
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(return_value=mock_db_record)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # The resolver decrypts stored values via decrypt_value_helper; make it an
         # identity so the plaintext fixtures round-trip.
         monkeypatch.setattr(
-            "litellm.proxy.config_resolvers.sso.decrypt_value_helper",
+            "token_iq.gateway.proxy.config_resolvers.sso.decrypt_value_helper",
             lambda value, key, exception_type="error", return_original_value=False: value,
         )
 
@@ -538,7 +538,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -547,10 +547,10 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_config = MagicMock()
         mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -624,7 +624,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(return_value=None)
@@ -632,9 +632,9 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_config = MagicMock()
         mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -689,7 +689,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(return_value=None)
@@ -699,9 +699,9 @@ class TestProxySettingEndpoints:
             side_effect=ValueError("cleanup failed")
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -711,7 +711,7 @@ class TestProxySettingEndpoints:
 
         create_config_audit_log = AsyncMock()
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.create_config_audit_log",
+            "token_iq.gateway.proxy.proxy_server.create_config_audit_log",
             create_config_audit_log,
         )
 
@@ -746,7 +746,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -766,10 +766,10 @@ class TestProxySettingEndpoints:
             return_value=env_var_entry
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -826,7 +826,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -845,10 +845,10 @@ class TestProxySettingEndpoints:
             return_value=env_var_entry
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -897,7 +897,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -916,10 +916,10 @@ class TestProxySettingEndpoints:
             return_value=env_var_entry
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -975,7 +975,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -984,10 +984,10 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_config = MagicMock()
         mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -1043,7 +1043,7 @@ class TestProxySettingEndpoints:
     def test_update_ui_theme_settings(self, mock_proxy_config, mock_auth, monkeypatch):
         """Test updating UI theme settings"""
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         new_theme = {"logo_url": "https://example.com/new-logo.png"}
 
@@ -1076,7 +1076,7 @@ class TestProxySettingEndpoints:
     ):
         """Test updating UI theme settings with favicon_url"""
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         new_theme = {
             "logo_url": "https://example.com/new-logo.png",
@@ -1111,7 +1111,7 @@ class TestProxySettingEndpoints:
     ):
         """A dark-mode logo is stored and applied to the live process like the light one."""
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         new_theme = {
             "logo_url": "https://example.com/logo.png",
@@ -1137,7 +1137,7 @@ class TestProxySettingEndpoints:
         """The dark logo is served by the unauthenticated /get_image, so a local
         filesystem path must be refused exactly as it is for the light logo."""
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         response = client.patch(
             "/update/ui_theme_settings",
@@ -1156,12 +1156,12 @@ class TestProxySettingEndpoints:
         so a var missing from the update path would read back from an env value the
         save never cleared, and the settings page would show a field it cannot unset.
         """
-        from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+        from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
             _UI_THEME_FIELD_ENV_VARS,
         )
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         response = client.patch("/update/ui_theme_settings", json={})
 
@@ -1186,7 +1186,7 @@ class TestProxySettingEndpoints:
     ):
         """Test clearing favicon_url from UI theme settings"""
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         new_theme = {
             "favicon_url": "https://example.com/custom-favicon.ico",
@@ -1258,7 +1258,7 @@ class TestProxySettingEndpoints:
         The env fallback only fills fields the stored config leaves blank, so the
         UI-driven flow is unchanged while an unstored field still resolves.
         """
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         stored_config = {
             "litellm_settings": {
@@ -1325,7 +1325,7 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(
             return_value=mock_db_record
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         response = client.get("/get/ui_settings")
 
@@ -1353,8 +1353,8 @@ class TestProxySettingEndpoints:
 
         from pydantic.fields import FieldInfo
 
-        from litellm.proxy.ui_crud_endpoints import proxy_setting_endpoints
-        from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+        from token_iq.gateway.proxy.ui_crud_endpoints import proxy_setting_endpoints
+        from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
             _EXTRA_UI_SETTINGS_FIELDS,
             ALLOWED_UI_SETTINGS_FIELDS,
             register_extra_ui_setting,
@@ -1374,7 +1374,7 @@ class TestProxySettingEndpoints:
 
             mock_prisma = MagicMock()
             mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-            monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+            monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
             response = client.get("/get/ui_settings")
 
@@ -1402,7 +1402,7 @@ class TestProxySettingEndpoints:
         """Ensure internal users and viewers can fetch UI settings"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy.ui_crud_endpoints import proxy_setting_endpoints
+        from token_iq.gateway.proxy.ui_crud_endpoints import proxy_setting_endpoints
 
         mock_prisma = MagicMock()
         mock_db_record = MagicMock()
@@ -1410,7 +1410,7 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(
             return_value=mock_db_record
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         class MockUser:
             def __init__(self, role):
@@ -1443,8 +1443,8 @@ class TestProxySettingEndpoints:
         """Test updating UI settings with an allowlisted field"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         # Override the FastAPI dependency with a proper mock
         mock_user_auth = UserAPIKeyAuth(
@@ -1453,11 +1453,11 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {"disable_model_add_for_internal_users": True}
 
@@ -1485,8 +1485,8 @@ class TestProxySettingEndpoints:
         """Test non-allowlisted UI settings are ignored on update"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         # Override the FastAPI dependency with a proper mock
         mock_user_auth = UserAPIKeyAuth(
@@ -1495,11 +1495,11 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {
             "disable_model_add_for_internal_users": False,
@@ -1530,8 +1530,8 @@ class TestProxySettingEndpoints:
         """Public AI Hub auth is an existing UI setting and must remain writable."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
@@ -1539,11 +1539,11 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {"require_auth_for_public_ai_hub": True}
 
@@ -1567,8 +1567,8 @@ class TestProxySettingEndpoints:
         """BYOK flag must be allowlisted and persisted to litellm_uisettings."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
@@ -1576,11 +1576,11 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {"forward_llm_provider_auth_headers": True}
 
@@ -1606,8 +1606,8 @@ class TestProxySettingEndpoints:
         """BYOK flag must be synced into general_settings dict so the request path sees it."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
@@ -1615,18 +1615,18 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Reset general_settings so the test is hermetic
         general_settings: dict = {}
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.general_settings", general_settings
+            "token_iq.gateway.proxy.proxy_server.general_settings", general_settings
         )
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {"forward_llm_provider_auth_headers": True}
 
@@ -1644,8 +1644,8 @@ class TestProxySettingEndpoints:
         """Public readiness details flag must be synced so the health route sees it."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
@@ -1653,17 +1653,17 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         general_settings: dict = {}
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.general_settings", general_settings
+            "token_iq.gateway.proxy.proxy_server.general_settings", general_settings
         )
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         payload = {"allow_public_health_readiness_details": True}
 
@@ -1681,8 +1681,8 @@ class TestProxySettingEndpoints:
         """disable_key_generate_for_org_admin must be allowlisted, persisted, and synced to general_settings."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
@@ -1690,17 +1690,17 @@ class TestProxySettingEndpoints:
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         general_settings: dict = {}
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.general_settings", general_settings
+            "token_iq.gateway.proxy.proxy_server.general_settings", general_settings
         )
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         flag_name = "disable_key_generate_for_org_admin"
         payload = {flag_name: True}
@@ -1746,7 +1746,7 @@ class TestProxySettingEndpoints:
             return_value=mock_db_record
         )
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # The resolver decrypts each stored value via decrypt_value_helper; map
         # the ciphertext fixtures to their plaintext.
@@ -1761,7 +1761,7 @@ class TestProxySettingEndpoints:
             return decrypted_by_ciphertext.get(value, value)
 
         monkeypatch.setattr(
-            "litellm.proxy.config_resolvers.sso.decrypt_value_helper", mock_decrypt
+            "token_iq.gateway.proxy.config_resolvers.sso.decrypt_value_helper", mock_decrypt
         )
 
         response = client.get("/get/sso_settings")
@@ -1804,8 +1804,8 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_config.update = AsyncMock()
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Track what was encrypted
         encrypted_data = {}
@@ -1819,7 +1819,7 @@ class TestProxySettingEndpoints:
             encrypted_data.update(encrypted)
             return encrypted
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(proxy_config, "_encrypt_env_variables", mock_encrypt)
 
@@ -1873,7 +1873,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
@@ -1894,9 +1894,9 @@ class TestProxySettingEndpoints:
             return_value=env_var_entry
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -1925,7 +1925,7 @@ class TestProxySettingEndpoints:
         from unittest.mock import AsyncMock, MagicMock
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
@@ -1943,9 +1943,9 @@ class TestProxySettingEndpoints:
             return_value=env_var_entry
         )
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -1974,14 +1974,14 @@ class TestProxySettingEndpoints:
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(return_value=None)
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock the decryption method
         def mock_decrypt_and_set(environment_variables):
             # Should receive empty dict
             return environment_variables
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config, "_decrypt_and_set_db_env_variables", mock_decrypt_and_set
@@ -2007,7 +2007,7 @@ class TestProxySettingEndpoints:
         self, mock_proxy_config, mock_auth, monkeypatch
     ):
         """Test updating SSO settings when database is not connected"""
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
         new_sso_settings = {
             "google_client_id": "new_google_id",
@@ -2024,7 +2024,7 @@ class TestProxySettingEndpoints:
         self, mock_proxy_config, mock_auth, monkeypatch
     ):
         """Test getting SSO settings when database is not connected"""
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
         response = client.get("/get/sso_settings")
 
@@ -2039,7 +2039,7 @@ class TestProxySettingEndpoints:
         """Test getting SSO settings when role_mappings is present in database"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         # Mock the prisma client with database record containing role_mappings
         mock_prisma = MagicMock()
@@ -2058,10 +2058,10 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(
             return_value=mock_db_record
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock decryption to return the values as-is (role_mappings should not be passed to decryption)
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         def mock_decrypt(environment_variables):
             # role_mappings should not be in environment_variables since it's extracted before decryption
@@ -2095,10 +2095,10 @@ class TestProxySettingEndpoints:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
         # Mock the prisma client
         mock_prisma = MagicMock()
@@ -2107,10 +2107,10 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_config = MagicMock()
         mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=None)
         mock_prisma.db.litellm_config.update = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Mock encryption to return values as-is
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -2187,8 +2187,8 @@ class TestProxySettingEndpoints:
         import asyncio
         import os
 
-        from litellm.proxy._types import LitellmUserRoles
-        from litellm.proxy.management_endpoints.ui_sso import _setup_role_mappings
+        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy.management_endpoints.ui_sso import _setup_role_mappings
 
         # Set up environment variables for custom role mappings using valid Python dict format
         monkeypatch.setenv(
@@ -2235,7 +2235,7 @@ class TestProxySettingEndpoints:
         import asyncio
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy.management_endpoints.ui_sso import _setup_role_mappings
+        from token_iq.gateway.proxy.management_endpoints.ui_sso import _setup_role_mappings
 
         # Ensure environment variables are not set
         monkeypatch.delenv("GENERIC_ROLE_MAPPINGS_ROLES", raising=False)
@@ -2257,7 +2257,7 @@ class TestProxySettingEndpoints:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         monkeypatch.setenv(
             "GENERIC_ROLE_MAPPINGS_ROLES",
@@ -2282,9 +2282,9 @@ class TestProxySettingEndpoints:
         mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(
             return_value=mock_db_record
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
-        from litellm.proxy.proxy_server import proxy_config
+        from token_iq.gateway.proxy.proxy_server import proxy_config
 
         monkeypatch.setattr(
             proxy_config,
@@ -2330,10 +2330,10 @@ def test_update_internal_user_settings_writes_audit_log(mock_proxy_config, monke
     changed."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2341,7 +2341,7 @@ def test_update_internal_user_settings_writes_audit_log(mock_proxy_config, monke
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
     monkeypatch.setattr(litellm, "default_internal_user_params", {})
 
@@ -2383,12 +2383,12 @@ def test_update_internal_user_settings_returns_200_when_audit_write_raises(
     audit-log failure must never surface as a 500. Scheduling via
     asyncio.create_task keeps the audit call off the request path; this
     test asserts that contract by making the audit helper raise."""
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "default_internal_user_params", {})
 
     async def _raise(**_kwargs):
@@ -2419,10 +2419,10 @@ def test_update_sso_settings_writes_redacted_audit_log(mock_proxy_config, monkey
     with the client secret redacted."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2434,7 +2434,7 @@ def test_update_sso_settings_writes_redacted_audit_log(mock_proxy_config, monkey
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
     monkeypatch.setattr(
         proxy_server_module.proxy_config,
@@ -2484,10 +2484,10 @@ def test_update_sso_settings_audit_captures_redacted_before_snapshot(
     the old nor the new plaintext secret is recorded."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2506,7 +2506,7 @@ def test_update_sso_settings_audit_captures_redacted_before_snapshot(
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
     monkeypatch.setattr(
         proxy_server_module.proxy_config,
@@ -2563,10 +2563,10 @@ def test_add_allowed_ip_writes_audit_log(mock_proxy_config, monkeypatch):
     be audited with the before and after IP list."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2575,7 +2575,7 @@ def test_add_allowed_ip_writes_audit_log(mock_proxy_config, monkeypatch):
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
     monkeypatch.setattr(proxy_server_module, "general_settings", {})
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
 
     async def _admin_auth():
@@ -2609,10 +2609,10 @@ def test_delete_allowed_ip_writes_deleted_audit_log(monkeypatch):
     add path."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2666,10 +2666,10 @@ def test_update_ui_theme_settings_writes_audit_log(mock_proxy_config, monkeypatc
     """Updating the UI theme must be audited under ui_theme_config."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2677,7 +2677,7 @@ def test_update_ui_theme_settings_writes_audit_log(mock_proxy_config, monkeypatc
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
     monkeypatch.setattr(
         proxy_server_module.proxy_config,
@@ -2715,10 +2715,10 @@ def test_update_ui_settings_writes_audit_log(monkeypatch):
     """Updating UI settings must be audited under the UI settings table."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     audit_create = AsyncMock()
     fake_prisma = MagicMock()
@@ -2728,7 +2728,7 @@ def test_update_ui_settings_writes_audit_log(monkeypatch):
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
     monkeypatch.setattr(proxy_server_module, "premium_user", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "store_audit_logs", True)
 
     async def _admin_auth():
@@ -2765,8 +2765,8 @@ def mock_team_lookup(monkeypatch):
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
 
     existing_team_ids: set = set()
 
@@ -2781,10 +2781,10 @@ def mock_team_lookup(monkeypatch):
     member_budget_update = AsyncMock()
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "default_internal_user_params", {})
     monkeypatch.setattr(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.update_default_team_member_budget",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.update_default_team_member_budget",
         member_budget_update,
     )
 
@@ -2819,7 +2819,7 @@ def test_update_internal_user_settings_rejects_unknown_team_object(mock_proxy_co
         "per-member budgets must not be written before the team ids are validated"
     )
 
-    import litellm
+    from token_iq import gateway as litellm
 
     assert litellm.default_internal_user_params == {}
 
@@ -2900,8 +2900,8 @@ def mock_organization_lookup(monkeypatch):
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server_module
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
 
     existing_organization_ids: set = set()
 
@@ -2916,7 +2916,7 @@ def mock_organization_lookup(monkeypatch):
     fake_prisma.db.litellm_organizationtable.find_unique = find_unique
 
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
     monkeypatch.setattr(litellm, "default_team_params", {})
 
     return {
@@ -2941,7 +2941,7 @@ def test_update_default_team_settings_rejects_unknown_organization(
     assert "ghost-org" in resp.json()["detail"]["error"]
     assert mock_proxy_config["save_call_count"]() == 0
 
-    import litellm
+    from token_iq import gateway as litellm
 
     assert litellm.default_team_params == {}
 
@@ -2961,7 +2961,7 @@ def test_update_default_team_settings_saves_when_organization_exists(
     assert resp.json()["settings"]["organization_id"] == "real-org"
     assert mock_proxy_config["save_call_count"]() == 1
 
-    import litellm
+    from token_iq import gateway as litellm
 
     assert litellm.default_team_params["organization_id"] == "real-org"
 
@@ -2982,10 +2982,10 @@ def test_update_default_team_settings_without_organization_skips_lookup(
 
 def test_update_mcp_semantic_filter_settings_requires_proxy_admin(monkeypatch):
     """Non-admin callers must not mutate global MCP semantic filter settings."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
     async def _internal_user_auth():
         return UserAPIKeyAuth(
@@ -3011,15 +3011,15 @@ class TestMcpToolSearchSettingsEndpoints:
 
     @staticmethod
     def _override_auth(role: LitellmUserRoles):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="u", api_key="hashed", user_role=role
         )
 
     def test_get_returns_stored_values_and_field_schema(self, mock_proxy_config, mock_auth, monkeypatch):
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", object())
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", object())
         mock_proxy_config["config"]["litellm_settings"]["mcp_tool_search"] = {
             "embedding_model": "text-embedding-3-small",
             "core_tools": ["treasury-get_rates"],
@@ -3037,7 +3037,7 @@ class TestMcpToolSearchSettingsEndpoints:
         assert resp.json()["field_schema"]["properties"]["core_tools"]["type"] == "array"
 
     def test_update_requires_proxy_admin(self, monkeypatch):
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         self._override_auth(LitellmUserRoles.INTERNAL_USER)
         try:
             resp = client.patch("/update/mcp_tool_search_settings", json={"top_k": 3})
@@ -3046,9 +3046,9 @@ class TestMcpToolSearchSettingsEndpoints:
         assert resp.status_code == 403
 
     def test_update_persists_and_applies_in_memory(self, mock_proxy_config, monkeypatch):
-        import litellm
+        from token_iq import gateway as litellm
 
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.setattr(litellm, "mcp_tool_search", None)
         self._override_auth(LitellmUserRoles.PROXY_ADMIN)
         payload = {
@@ -3068,7 +3068,7 @@ class TestMcpToolSearchSettingsEndpoints:
         assert mock_proxy_config["config"]["litellm_settings"]["mcp_tool_search"] == payload
 
     def test_update_rejects_out_of_range_top_k(self, mock_proxy_config, monkeypatch):
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         self._override_auth(LitellmUserRoles.PROXY_ADMIN)
         try:
             resp = client.patch("/update/mcp_tool_search_settings", json={"top_k": 0})
@@ -3080,8 +3080,8 @@ class TestMcpToolSearchSettingsEndpoints:
 
 def test_upload_logo_requires_proxy_admin(monkeypatch):
     """Any authenticated key could previously write a file to the server's disk here."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     async def _internal_user_auth():
         return UserAPIKeyAuth(
@@ -3103,8 +3103,8 @@ def test_upload_logo_requires_proxy_admin(monkeypatch):
 
 
 def test_upload_logo_allows_proxy_admin(monkeypatch, tmp_path):
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     async def _admin_auth():
         return UserAPIKeyAuth(
@@ -3146,11 +3146,11 @@ class TestPtuCostAttributionUISetting:
             mock_record.ui_settings = stored
         mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=mock_record)
         mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
         return mock_prisma
 
     def test_reported_false_when_the_env_var_is_unset(self, mock_auth, monkeypatch):
-        from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+        from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
 
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
         self._mock_prisma(monkeypatch)
@@ -3161,7 +3161,7 @@ class TestPtuCostAttributionUISetting:
         assert response.json()["values"]["enable_ptu_cost_attribution"] is False
 
     def test_reported_true_once_the_env_var_is_set(self, mock_auth, monkeypatch):
-        from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+        from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
 
         monkeypatch.setenv(PTU_COST_ATTRIBUTION_ENV_VAR, "true")
         self._mock_prisma(monkeypatch)
@@ -3173,7 +3173,7 @@ class TestPtuCostAttributionUISetting:
 
     def test_a_persisted_true_cannot_forge_the_derived_value(self, mock_auth, monkeypatch):
         """A row written before the allowlist existed must not be able to turn the feature on."""
-        from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+        from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
 
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
         self._mock_prisma(monkeypatch, stored={"enable_ptu_cost_attribution": True})
@@ -3184,7 +3184,7 @@ class TestPtuCostAttributionUISetting:
         assert response.json()["values"]["enable_ptu_cost_attribution"] is False
 
     def test_is_not_an_allowlisted_persisted_setting(self):
-        from litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
+        from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
             ALLOWED_UI_SETTINGS_FIELDS,
         )
 
@@ -3194,15 +3194,15 @@ class TestPtuCostAttributionUISetting:
         """Read-modify-write is how a client edits one setting. GET injects the derived key,
         so rejecting it on presence made GET's own output an invalid PATCH body: the caller
         got a 400 and silently lost the edit it actually wanted."""
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
             user_role=LitellmUserRoles.PROXY_ADMIN,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
         mock_prisma = self._mock_prisma(monkeypatch)
 
@@ -3218,15 +3218,15 @@ class TestPtuCostAttributionUISetting:
 
     def test_a_co_submitted_setting_still_applies_alongside_the_derived_key(self, mock_auth, monkeypatch):
         """The derived key riding along must not discard the caller's real edit."""
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
             user_role=LitellmUserRoles.PROXY_ADMIN,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
         mock_prisma = self._mock_prisma(monkeypatch)
 
@@ -3245,14 +3245,14 @@ class TestPtuCostAttributionUISetting:
         assert "enable_ptu_cost_attribution" not in persisted
 
     def test_patch_rejects_the_derived_setting(self, mock_auth, monkeypatch):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
             user_role=LitellmUserRoles.PROXY_ADMIN,
         )
-        monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = self._mock_prisma(monkeypatch)
 
         try:
@@ -3275,7 +3275,7 @@ def test_projects_show_on_a_fresh_installation(monkeypatch):
 
     fake_prisma = MagicMock()
     fake_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", fake_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma)
 
     response = client.get("/get/ui_settings")
 
@@ -3288,16 +3288,16 @@ def test_an_admin_can_turn_projects_off_without_a_paid_feature_refusal(monkeypat
     changed on this build."""
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     upsert = AsyncMock()
     fake_prisma = MagicMock()
     fake_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
     fake_prisma.db.litellm_uisettings.upsert = upsert
     monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
 
     async def _admin_auth():
         return UserAPIKeyAuth(

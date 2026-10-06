@@ -5,14 +5,14 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 import os
 
-import litellm
-from litellm.proxy.proxy_server import app
-from litellm.proxy.utils import PrismaClient, ProxyLogging
-from litellm.proxy.management_endpoints.ui_sso import auth_callback
-from litellm.proxy._types import LitellmUserRoles
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.proxy.management_endpoints.ui_sso import auth_callback
+from token_iq.gateway.proxy._types import LitellmUserRoles
 import jwt
 import time
-from litellm.caching.caching import DualCache
+from token_iq.gateway.caching.caching import DualCache
 
 proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -27,7 +27,7 @@ def mock_env_vars(monkeypatch):
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     ### add connection pool + pool timeout args
     params = {"connection_limit": 100, "pool_timeout": 60}
@@ -55,8 +55,8 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
     """
     Tests that a new SSO Sign In user is by default given an 'INTERNAL_USER_VIEW_ONLY' role
     """
-    from litellm._uuid import uuid
-    import litellm
+    from token_iq.gateway._uuid import uuid
+    from token_iq import gateway as litellm
 
     litellm._turn_on_debug()
 
@@ -133,7 +133,7 @@ async def test_auth_callback_new_user_with_sso_default(
 
     Tests that a new SSO Sign In user is by default given an 'INTERNAL_USER' role
     """
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     # Generate a unique user ID
     unique_user_id = str(uuid.uuid4())

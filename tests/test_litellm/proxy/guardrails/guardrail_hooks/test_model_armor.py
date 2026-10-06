@@ -10,18 +10,19 @@ import pytest
 import httpx
 from fastapi import HTTPException
 
-import litellm
-import litellm.types.utils
-from litellm._logging import verbose_proxy_logger
-from litellm.caching import DualCache
-from litellm.llms.custom_httpx.http_handler import MaskedHTTPStatusError
-from litellm.proxy.guardrails.anthropic_sse import anthropic_sse_error_frames
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.model_armor import ModelArmorGuardrail
-from litellm.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
+from token_iq import gateway as litellm
+import token_iq.gateway.types.utils
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.llms.custom_httpx.http_handler import MaskedHTTPStatusError
+from token_iq.gateway.proxy.guardrails.anthropic_sse import anthropic_sse_error_frames
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor import ModelArmorGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
     ModelArmorAPIError,
 )
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 @pytest.mark.asyncio
@@ -883,7 +884,7 @@ async def test_model_armor_api_error_fail_open_file_scan(fail_on_error: bool):
 def test_model_armor_hot_reload_null_stays_sanitized():
     """update_in_memory_litellm_params assigns raw fields; an explicit null in a
     hot-reloaded config must not disable sanitization."""
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     guardrail = ModelArmorGuardrail(
         template_id="test-template",
@@ -904,8 +905,8 @@ def test_model_armor_hot_reload_null_stays_sanitized():
 def test_model_armor_redactor_depth_cap_fails_closed():
     """Past the recursion cap the redactor must return the redaction sentinel,
     never raw content, and must not raise RecursionError."""
-    from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
+    from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
         _redact_scanned_content,
     )
 
@@ -1016,7 +1017,7 @@ async def test_model_armor_post_call_logging_redacts_scanned_content(sanitize: b
     }
 
     with patch(
-        "litellm.proxy.common_utils.callback_utils.add_guardrail_response_to_standard_logging_object"
+        "token_iq.gateway.proxy.common_utils.callback_utils.add_guardrail_response_to_standard_logging_object"
     ) as add_logging:
         await guardrail.async_post_call_success_hook(
             data=request_data,
@@ -1161,10 +1162,10 @@ async def test_model_armor_match_found_sanitizes_caller_and_logging(sanitize: bo
 
 
 def test_model_armor_sanitize_error_detail_config_wiring():
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor import (
         initialize_guardrail,
     )
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     config = {"guardrail_name": "model-armor-test"}
     params = {
@@ -1188,7 +1189,7 @@ def test_model_armor_sanitize_error_detail_config_wiring():
 
 def test_model_armor_ui_friendly_name():
     """Test the UI-friendly name of the Model Armor guardrail"""
-    from litellm.types.proxy.guardrails.guardrail_hooks.model_armor import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.model_armor import (
         ModelArmorGuardrailConfigModel,
     )
 
@@ -2222,7 +2223,7 @@ async def test_async_moderation_hook_with_sanitization():
         # Should return data with sanitized content
         assert result == request_data
         # Content should be sanitized
-        from litellm.litellm_core_utils.prompt_templates.common_utils import (
+        from token_iq.gateway.core_utils.prompt_templates.common_utils import (
             get_last_user_message,
         )
 
@@ -2809,8 +2810,8 @@ async def test_pre_call_gs_uri_reference_passthrough_when_skip_unscannable_enabl
 
 def test_initialize_guardrail_forwards_skip_unscannable_attachments():
     """skip_unscannable_attachments configured in litellm_params reaches the guardrail instance."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor import initialize_guardrail
-    from litellm.types.guardrails import Guardrail, LitellmParams
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor import initialize_guardrail
+    from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
     litellm_params = LitellmParams(
         guardrail="model_armor",
@@ -2829,8 +2830,8 @@ def test_initialize_guardrail_forwards_skip_unscannable_attachments():
 
 def test_initialize_guardrail_skip_unscannable_defaults_false():
     """A config that omits skip_unscannable_attachments keeps the secure default (block)."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor import initialize_guardrail
-    from litellm.types.guardrails import Guardrail, LitellmParams
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor import initialize_guardrail
+    from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
     litellm_params = LitellmParams(
         guardrail="model_armor",
@@ -2959,7 +2960,7 @@ async def test_pre_call_skips_unsupported_file_type():
 @pytest.mark.asyncio
 async def test_pre_call_blocks_file_over_size_limit():
     """A recognized document over Model Armor's 4 MB limit cannot be scanned, so it is blocked."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.file_scanning import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.file_scanning import (
         MODEL_ARMOR_MAX_FILE_SIZE_BYTES,
     )
 
@@ -2993,7 +2994,7 @@ async def test_pre_call_blocks_file_over_size_limit():
 @pytest.mark.asyncio
 async def test_pre_call_oversize_file_skipped_when_fail_open():
     """With fail_on_error=False the operator opts into fail-open, so an oversized file proceeds."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.file_scanning import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.file_scanning import (
         MODEL_ARMOR_MAX_FILE_SIZE_BYTES,
     )
 
@@ -3624,7 +3625,7 @@ def test_accumulated_responses_are_redactable_as_a_list():
     Regression: a tuple is skipped by redact_nested_match_and_regex_keys (it only recurses into
     dicts and lists), which would leave sensitive match/regex findings un-redacted in logs.
     """
-    from litellm.litellm_core_utils.core_helpers import (
+    from token_iq.gateway.core_utils.core_helpers import (
         redact_nested_match_and_regex_keys,
     )
 
@@ -3890,7 +3891,7 @@ async def _anthropic_sse_stream():
 
 
 def _responses_api_events():
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseCompletedEvent,
         ResponsesAPIResponse,
@@ -4012,7 +4013,7 @@ async def test_streaming_block_emits_anthropic_error_frame():
 @pytest.mark.asyncio
 async def test_streaming_block_emits_responses_api_error_event():
     """A block on /v1/responses must terminate the stream with a Responses ErrorEvent."""
-    from litellm.types.llms.openai import ErrorEvent
+    from token_iq.gateway.types.llms.openai import ErrorEvent
 
     guardrail = _surface_guardrail()
 
@@ -4048,7 +4049,7 @@ async def test_streaming_masking_re_emits_anthropic_sse_with_sanitized_text():
 async def test_streaming_masking_blocks_responses_api_stream():
     """A Responses event stream cannot be rebuilt from sanitized text, so releasing it would
     ship the content the guardrail just rewrote. It is blocked instead."""
-    from litellm.types.llms.openai import ErrorEvent
+    from token_iq.gateway.types.llms.openai import ErrorEvent
 
     guardrail = _surface_guardrail(mask_response_content=True)
 
@@ -4067,7 +4068,7 @@ async def test_streaming_masking_blocks_responses_api_stream():
 async def test_streaming_api_failure_frames_error_per_surface(surface):
     """A Model Armor outage with fail_on_error must terminate the stream in the endpoint's
     own error format rather than leaking an OpenAI SSE frame onto it."""
-    from litellm.types.llms.openai import ErrorEvent
+    from token_iq.gateway.types.llms.openai import ErrorEvent
 
     guardrail = _surface_guardrail(fail_on_error=True)
     chunks = _ANTHROPIC_SSE_CHUNKS if surface == "anthropic_sse" else _responses_api_events()
@@ -4105,7 +4106,7 @@ async def test_streaming_api_failure_frames_error_per_surface(surface):
 async def test_streaming_hook_fails_closed_when_a_surface_stream_cannot_be_assembled(chunks):
     """Forwarding an unscannable /v1/messages or /v1/responses stream would silently disable the
     guardrail, so the stream is refused in its own wire format instead of released unscanned."""
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ErrorEvent,
         OutputTextDeltaEvent,
         ResponsesAPIStreamEvents,
@@ -4145,7 +4146,7 @@ async def test_streaming_hook_forwards_a_preceding_guardrails_error_item():
     """A guardrail earlier in the post_call chain replaces the stream with its own terminal
     error item. That item is not a chat delta, and feeding it to stream_chunk_builder is what
     surfaced the ticket's 500, so it has to be forwarded untouched instead."""
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ErrorEvent,
         ErrorEventError,
         ResponsesAPIStreamEvents,
@@ -4203,7 +4204,7 @@ async def test_streaming_hook_forwards_a_preceding_guardrails_error_frame(chunks
 async def test_streaming_responses_error_falls_back_to_sse_when_the_handler_declines():
     """build_stream_error_items may return None, which must not swallow the block into a clean
     200: the refusal falls back to the chat-completions SSE form that still carries the status."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
         _StreamSurface,
     )
 
@@ -4228,7 +4229,7 @@ async def test_streaming_responses_error_falls_back_to_sse_when_the_handler_decl
 
 
 def _responses_created_event():
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ResponseCreatedEvent,
         ResponsesAPIResponse,
         ResponsesAPIStreamEvents,
@@ -4312,7 +4313,7 @@ async def test_streaming_fail_closed_records_the_applied_guardrail():
 async def test_streaming_responses_tool_call_output_is_scanned():
     """An agentic /v1/responses turn can carry its whole payload in tool-call arguments, which
     is what the chat surface already folds into the scanned text."""
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ResponseCompletedEvent,
         ResponsesAPIResponse,
         ResponsesAPIStreamEvents,
@@ -4401,7 +4402,7 @@ def test_is_sse_error_stream_only_matches_a_stream_that_is_nothing_but_refusals(
     """The chain-aware passthrough turns on this predicate, so anything it calls error-only is
     forwarded to the client untouched. A stream that still carries content must not qualify: the
     frames-only join drops typed chunks, and a content event may carry an empty ``error`` field."""
-    from litellm.proxy.guardrails.anthropic_sse import is_sse_error_stream
+    from token_iq.gateway.proxy.guardrails.anthropic_sse import is_sse_error_stream
 
     assert is_sse_error_stream(chunks) is expected, case
 
@@ -4561,7 +4562,7 @@ def _responses_api_events_truncated(terminal: str):
     turn that broke mid-generation reports an empty ``output`` while the deltas ahead of it already
     spelled the answer out to the client.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseFailedEvent,
         ResponseIncompleteEvent,
@@ -4624,7 +4625,7 @@ async def test_streaming_responses_mcp_argument_deltas_are_scanned_when_the_body
     The delta fallback is read off the event enum rather than listed by hand, so an argument event
     that carries no `output_text` cannot fall out of the scan.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         MCPCallArgumentsDeltaEvent,
         ResponseIncompleteEvent,
         ResponsesAPIResponse,
@@ -4678,7 +4679,7 @@ async def test_streaming_responses_reasoning_summary_deltas_are_scanned_alongsid
     Reading only the body scans the visible answer and hands the client every summary delta
     unscanned, so the body and the deltas are scanned together.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ReasoningSummaryTextDeltaEvent,
         ResponseCompletedEvent,
@@ -4750,7 +4751,7 @@ async def test_streaming_responses_deltas_of_separate_fields_do_not_form_a_findi
     A reasoning summary ending in half a card number and an answer opening with the other half
     each carry nothing to find, and joining them without a break would invent one.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ReasoningSummaryTextDeltaEvent,
         ResponseCompletedEvent,
@@ -4811,7 +4812,7 @@ async def test_streaming_responses_deltas_of_separate_fields_do_not_form_a_findi
 @pytest.mark.asyncio
 async def test_streaming_responses_one_fields_deltas_still_join_into_a_single_finding():
     """A card number split across two deltas of one field is still one card number to scan."""
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseCompletedEvent,
         ResponsesAPIResponse,
@@ -4862,7 +4863,7 @@ async def test_streaming_responses_fields_the_body_repeats_are_not_scanned_a_sec
     Two output_text fields stream as deltas and come back in the completed body, so scanning the
     deltas on top of the body would send Model Armor two copies of everything the client sees.
     """
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseCompletedEvent,
         ResponsesAPIResponse,
@@ -4917,10 +4918,10 @@ async def test_streaming_responses_fields_the_body_repeats_are_not_scanned_a_sec
 
 def test_every_responses_delta_event_is_in_the_scanned_set():
     """Every ``.delta`` the Responses event enum defines is model output on its way to the client."""
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
         _RESPONSES_DELTA_EVENT_TYPES,
     )
-    from litellm.types.llms.openai import ResponsesAPIStreamEvents
+    from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
 
     missing = {
         event.value

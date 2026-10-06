@@ -9,8 +9,8 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 )
 
-from litellm.llms.openai_like.dynamic_config import create_config_class
-from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+from token_iq.gateway.llms.openai_like.dynamic_config import create_config_class
+from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
 EMPIRIOLABS_BASE_URL = "https://api.empiriolabs.ai/v1"
 

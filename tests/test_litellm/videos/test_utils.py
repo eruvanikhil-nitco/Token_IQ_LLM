@@ -1,6 +1,6 @@
 """
-Pure-logic contract tests for litellm/videos/main.py's request utils
-(litellm/videos/utils.py: VideoGenerationRequestUtils).
+Pure-logic contract tests for token_iq/gateway/videos/main.py's request utils
+(token_iq/gateway/videos/utils.py: VideoGenerationRequestUtils).
 
 These lock the exact param-shaping behavior so a mutation that drops a filter,
 flips a precedence, or stops removing a key fails loudly. The only seam is the
@@ -13,8 +13,8 @@ from unittest.mock import MagicMock
 
 
 
-import litellm
-from litellm.videos.utils import VideoGenerationRequestUtils
+from token_iq import gateway as litellm
+from token_iq.gateway.videos.utils import VideoGenerationRequestUtils
 
 get_requested = (
     VideoGenerationRequestUtils.get_requested_video_generation_optional_param

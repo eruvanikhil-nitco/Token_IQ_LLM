@@ -1,7 +1,7 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.types.proxy.management_endpoints.ui_sso import (
+from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     LiteLLM_UpperboundKeyGenerateParams,
 )
 

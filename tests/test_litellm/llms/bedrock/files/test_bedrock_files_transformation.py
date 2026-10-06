@@ -13,7 +13,7 @@ from botocore.auth import S3SigV4Auth, SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials
 
-from litellm.llms.bedrock.files.transformation import BedrockJsonlFilesTransformation
+from token_iq.gateway.llms.bedrock.files.transformation import BedrockJsonlFilesTransformation
 
 
 class TestBedrockFilesTransformation:
@@ -89,7 +89,7 @@ class TestBedrockFilesTransformation:
         - messages use Converse content block format
         - No raw OpenAI keys (max_tokens, temperature) at the top level
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -149,7 +149,7 @@ class TestBedrockFilesTransformation:
         additionalModelRequestFields or system are present but empty in the Converse
         API payload.  The proxy must strip these keys when they carry no data.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -209,7 +209,7 @@ class TestBedrockFilesTransformation:
         - text blocks are converted to {"text": "..."}
         - No raw OpenAI image_url type remains
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -292,7 +292,7 @@ class TestBedrockFilesTransformation:
         Regression test: ensure Anthropic models are still correctly
         transformed after the Converse API provider changes.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -330,7 +330,7 @@ class TestBedrockFilesTransformation:
         Previously the code fell back to us-west-2 even when s3_region_name was set,
         breaking GovCloud (us-gov-west-1) deployments.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -373,7 +373,7 @@ class TestBedrockFilesTransformation:
         assert "litellm-batch-352026" in url
 
     def test_get_complete_file_url_sanitizes_untrusted_filename(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         create_file_data = {
@@ -398,7 +398,7 @@ class TestBedrockFilesTransformation:
         assert parsed_url.query == ""
 
     def test_batch_object_name_sanitizes_model_path(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         object_name = config._get_s3_object_name_from_batch_jsonl(
@@ -417,7 +417,7 @@ class TestBedrockFilesTransformation:
         """
         from unittest.mock import patch
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -471,7 +471,7 @@ class TestBedrockFilesTransformation:
         """
         from unittest.mock import patch
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -519,7 +519,7 @@ class TestBedrockFilesTransformation:
         ), "s3_region_name must override aws_region_name for SigV4 signing"
 
     def _signed_upload_request(self, litellm_params: dict) -> dict:
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         jsonl_content = json.dumps(
@@ -593,7 +593,7 @@ class TestBedrockFilesTransformation:
         """
         import httpx
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         litellm_params: dict = {"s3_bucket_name": "litellm-batch-bucket"}
@@ -645,7 +645,7 @@ class TestBedrockFilesTransformation:
         Regression test: ensure OpenAI-compatible models (e.g. gpt-oss)
         still use passthrough format.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
 
@@ -677,8 +677,8 @@ class TestBedrockFilesTransformation:
         assert model_input["max_tokens"] == 10
 
     def test_resolves_model_alias_before_provider_mapping(self, monkeypatch):
-        import litellm
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq import gateway as litellm
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setitem(
             litellm.model_alias_map,
@@ -711,8 +711,8 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_resolves_model_alias_before_embedding_mapping(self, monkeypatch):
-        import litellm
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq import gateway as litellm
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setitem(
             litellm.model_alias_map,
@@ -741,7 +741,7 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_unmapped_alias_falls_back_to_target_model(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         result = BedrockFilesConfig()._transform_openai_jsonl_content_to_bedrock_jsonl_content(
             [
@@ -775,7 +775,7 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_record_provider_wins_over_target_model(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         result = BedrockFilesConfig()._transform_openai_jsonl_content_to_bedrock_jsonl_content(
             [
@@ -803,7 +803,7 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_embedding_alias_falls_back_to_target_model(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         result = BedrockFilesConfig()._transform_openai_jsonl_content_to_bedrock_jsonl_content(
             [
@@ -827,7 +827,7 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_create_file_request_threads_deployment_model_to_alias_records(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         class CapturingSignConfig(BedrockFilesConfig):
             def __init__(self):
@@ -886,7 +886,7 @@ class TestBedrockFilesEmbeddingTransformation:
         import json
         import os
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         here = os.path.dirname(__file__)
@@ -903,7 +903,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_titan_v2_simple_string_input(self):
         """Single string `input` maps to `{"inputText": <str>}` with no extras."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -924,7 +924,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_titan_v2_dimensions_and_encoding_format(self):
         """OpenAI `dimensions` / `encoding_format` map to Titan v2 schema."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -950,7 +950,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_embedding_routing_falls_back_to_body_shape(self):
         """Records without `url` still route via `input` presence."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -969,7 +969,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_embedding_single_element_list_input_is_accepted(self):
         """A single-element list maps to the same shape as a bare string."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -992,7 +992,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """Multi-element `input` lists are rejected with a clear message."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         with pytest.raises(ValueError, match="one input per JSONL record"):
@@ -1014,7 +1014,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """A record routed to /v1/embeddings without `input` is an error."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         with pytest.raises(ValueError, match="missing required `input`"):
@@ -1031,7 +1031,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_mixed_chat_and_embedding_in_same_batch(self):
         """Chat and embedding records in the same JSONL each take their path."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -1069,7 +1069,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """Cohere/Nova/Titan-G1 embed get a clear NotImplementedError, not a corrupt body."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         for unsupported_model in (
@@ -1092,7 +1092,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_titan_v2_model_name_variants_route_correctly(self):
         """All common Titan v2 model id shapes route through the embedding path."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         for model_id in (
@@ -1119,7 +1119,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """`input: List[int]` (pre-tokenized) is rejected, not silently mis-shaped."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         with pytest.raises(
@@ -1143,7 +1143,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """`input: List[List[int]]` with one element is rejected as pre-tokenized."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         with pytest.raises(NotImplementedError, match="pre-tokenized"):
@@ -1163,7 +1163,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_record_with_both_input_and_messages_routes_to_chat(self):
         """If a record has both fields, chat wins (safer default - see helper docstring)."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         config = BedrockFilesConfig()
         result = config._transform_openai_jsonl_content_to_bedrock_jsonl_content(
@@ -1186,7 +1186,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_titan_v2_marker_boundary_rejects_lookalikes(self):
         """The marker must end at `:`, `/`, or end-of-string to avoid false positives."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         # Look-alikes that must NOT route through the Titan v2 path
         for model in (
@@ -1213,10 +1213,10 @@ class TestBedrockFilesEmbeddingTransformation:
         """Registry-driven happy path: nested
         `provider_specific_entry.bedrock_invocation_schema == "titan_v2"`
         is the authoritative signal."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={
                 "provider_specific_entry": {"bedrock_invocation_schema": "titan_v2"}
             },
@@ -1229,10 +1229,10 @@ class TestBedrockFilesEmbeddingTransformation:
         """Registry resolves with a different schema value (e.g. a hypothetical
         Cohere Embed entry) -> reject. Registry is authoritative; no substring
         second-chance for ids the registry knows."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={
                 "provider_specific_entry": {"bedrock_invocation_schema": "cohere_v3"}
             },
@@ -1249,11 +1249,11 @@ class TestBedrockFilesEmbeddingTransformation:
         """Registry resolves but the entry has no
         `provider_specific_entry.bedrock_invocation_schema` field yet (e.g.
         a stale local registry) -> fall through to substring."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         # No provider_specific_entry at all
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={"mode": "embedding"},
         )
         assert BedrockFilesConfig._is_titan_v2_embed_model(
@@ -1262,7 +1262,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
         # provider_specific_entry present but missing the schema key
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={
                 "mode": "embedding",
                 "provider_specific_entry": {"unrelated": "value"},
@@ -1275,9 +1275,9 @@ class TestBedrockFilesEmbeddingTransformation:
     def test_titan_v2_accepted_when_registry_silent(self, mocker):
         """Marker-only match is fine for ids the registry can't resolve
         (cross-region profile prefixes, ARN forms)."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
-        mocker.patch("litellm.get_model_info", side_effect=Exception("not mapped"))
+        mocker.patch("token_iq.gateway.get_model_info", side_effect=Exception("not mapped"))
         assert BedrockFilesConfig._is_titan_v2_embed_model(
             "us.amazon.titan-embed-text-v2:0"
         )
@@ -1287,11 +1287,11 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_lookup_provider_specific_field_helper(self, mocker):
         """Direct coverage of the nested registry field helper."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         # Happy path: returns the nested field's string value
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={
                 "provider_specific_entry": {"bedrock_invocation_schema": "titan_v2"}
             },
@@ -1304,21 +1304,21 @@ class TestBedrockFilesEmbeddingTransformation:
         )
 
         # Registry raises -> None
-        mocker.patch("litellm.get_model_info", side_effect=Exception("not mapped"))
+        mocker.patch("token_iq.gateway.get_model_info", side_effect=Exception("not mapped"))
         assert (
             BedrockFilesConfig._lookup_provider_specific_field("anything", "any")
             is None
         )
 
         # Registry returns non-dict -> None
-        mocker.patch("litellm.get_model_info", return_value="not a dict")
+        mocker.patch("token_iq.gateway.get_model_info", return_value="not a dict")
         assert (
             BedrockFilesConfig._lookup_provider_specific_field("anything", "any")
             is None
         )
 
         # Registry returns dict without provider_specific_entry -> None
-        mocker.patch("litellm.get_model_info", return_value={"mode": "embedding"})
+        mocker.patch("token_iq.gateway.get_model_info", return_value={"mode": "embedding"})
         assert (
             BedrockFilesConfig._lookup_provider_specific_field(
                 "anything", "bedrock_invocation_schema"
@@ -1328,7 +1328,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
         # provider_specific_entry exists but isn't a dict -> None
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={"provider_specific_entry": "not a dict"},
         )
         assert (
@@ -1340,7 +1340,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
         # provider_specific_entry dict missing the requested field -> None
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={"provider_specific_entry": {"unrelated": "x"}},
         )
         assert (
@@ -1352,7 +1352,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
         # Non-string nested value -> None
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={"provider_specific_entry": {"bedrock_invocation_schema": 42}},
         )
         assert (
@@ -1364,7 +1364,7 @@ class TestBedrockFilesEmbeddingTransformation:
 
         # Empty-string nested value -> None
         mocker.patch(
-            "litellm.get_model_info",
+            "token_iq.gateway.get_model_info",
             return_value={"provider_specific_entry": {"bedrock_invocation_schema": ""}},
         )
         assert (
@@ -1376,8 +1376,8 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_classify_batch_record_helper(self):
         """Helper classifies by `url` first, then by body shape."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.llms.bedrock import BedrockBatchRecordKind
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 
         assert (
             BedrockFilesConfig._classify_batch_record(
@@ -1411,8 +1411,8 @@ class TestBedrockFilesEmbeddingTransformation:
         raises a readable error; routing a non-mapping body anywhere else would
         blow up on attribute access before the caller sees which record is bad.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.llms.bedrock import BedrockBatchRecordKind
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 
         record = {"body": body} if body is not None else {}
         assert BedrockFilesConfig._classify_batch_record(record) is BedrockBatchRecordKind.CHAT
@@ -1424,8 +1424,8 @@ class TestBedrockFilesEmbeddingTransformation:
         here; this guard is what keeps a future caller from quietly shipping an
         embedding body through the chat path.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.llms.bedrock import BedrockBatchRecordKind
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 
         with pytest.raises(ValueError, match="do not have a chat-completion equivalent"):
             BedrockFilesConfig._transform_batch_body_to_chat_body(
@@ -1440,9 +1440,9 @@ class TestBedrockFilesEmbeddingTransformation:
         `input` (and no `messages`) would be mis-routed to the embedding
         transformer, corrupting the modelInput.
         """
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
-        from litellm.types.llms.bedrock import BedrockBatchRecordKind
+        from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 
         # Direct helper assertion
         assert (
@@ -1487,7 +1487,7 @@ class TestBedrockFilesEmbeddingTransformation:
         """Direct coverage of the extracted input-normalization helper."""
         import pytest
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         # Happy paths
         assert BedrockFilesConfig._coerce_embedding_input_to_string("hello") == "hello"
@@ -1516,8 +1516,8 @@ class TestBedrockFilesEmbeddingTransformation:
 
     def test_other_non_embedding_urls_do_not_route_to_embeddings(self):
         """An `input` body only means "embedding" when the url says so."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.llms.bedrock import BedrockBatchRecordKind
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 
         # /v1/completions (legacy completions endpoint)
         assert (
@@ -1556,7 +1556,7 @@ class TestBedrockBatchNonChatEndpointRecords:
     PASSTHROUGH_MODEL = "bedrock/openai.gpt-oss-120b-1:0"
 
     def _transform(self, record: dict) -> dict:
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         result = BedrockFilesConfig()._transform_openai_jsonl_content_to_bedrock_jsonl_content([record])
         assert len(result) == 1
@@ -1765,7 +1765,7 @@ class TestBedrockBatchNonChatEndpointRecords:
         assert json.loads(json.dumps(model_input)) == {"messages": [{"role": "user", "content": "hi"}]}
 
     def test_mixed_endpoints_in_one_file_keep_their_own_shapes(self):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         result = BedrockFilesConfig()._transform_openai_jsonl_content_to_bedrock_jsonl_content(
             [
@@ -1872,7 +1872,7 @@ class TestBedrockFileContentTransformation:
         """The request transform must produce the S3 object URL plus SigV4 GET headers."""
         import hashlib
 
-        from litellm.llms.bedrock.files.transformation import (
+        from token_iq.gateway.llms.bedrock.files.transformation import (
             S3_SIGNED_GET_HEADERS_PARAM,
             BedrockFilesConfig,
         )
@@ -1910,8 +1910,8 @@ class TestBedrockFileContentTransformation:
         """Base64 unified ids carrying llm_output_file_id must resolve to their S3 object."""
         import base64
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.utils import SpecialEnums
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.utils import SpecialEnums
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
         unified_file_id = SpecialEnums.LITELLM_MANAGED_FILE_COMPLETE_STR.value.format(
@@ -1930,7 +1930,7 @@ class TestBedrockFileContentTransformation:
         assert url == self.EXPECTED_URL
 
     def test_transform_file_content_request_rejects_foreign_bucket(self, monkeypatch):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
 
@@ -1944,7 +1944,7 @@ class TestBedrockFileContentTransformation:
             )
 
     def test_transform_file_content_request_rejects_unmanaged_key(self, monkeypatch):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
 
@@ -1957,7 +1957,7 @@ class TestBedrockFileContentTransformation:
 
     def test_extract_s3_uri_rejects_non_managed_file_id(self):
         """A file id that is neither an s3:// URI nor a unified id must be rejected."""
-        from litellm.llms.bedrock.files.transformation import (
+        from token_iq.gateway.llms.bedrock.files.transformation import (
             extract_s3_uri_from_file_id,
         )
 
@@ -1969,7 +1969,7 @@ class TestBedrockFileContentTransformation:
     ):
         """Without a server-configured bucket (env or snapshot), the request must fail
         before any S3 call rather than guessing a bucket from the file id."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
 
@@ -1981,7 +1981,7 @@ class TestBedrockFileContentTransformation:
             )
 
     def test_transform_file_content_request_requires_file_id(self, monkeypatch):
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
 
@@ -2001,7 +2001,7 @@ class TestBedrockFileContentTransformation:
         into the snapshot in production."""
         from types import MappingProxyType
 
-        from litellm.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialLiteLLMParams
 
         snapshot = CredentialLiteLLMParams(**deployment_litellm_params).model_dump(
             exclude_none=True
@@ -2016,7 +2016,7 @@ class TestBedrockFileContentTransformation:
         input bucket, or the very outputs the feature serves are unreachable.
         The snapshot is built through the production credential filter, so this
         fails if s3_output_bucket_name is dropped from that allowlist."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
         monkeypatch.delenv("AWS_S3_OUTPUT_BUCKET_NAME", raising=False)
@@ -2039,7 +2039,7 @@ class TestBedrockFileContentTransformation:
     def test_output_bucket_falls_back_to_env(self, monkeypatch):
         """The output bucket resolves from AWS_S3_OUTPUT_BUCKET_NAME when not in
         the trusted snapshot, mirroring the input-bucket env fallback."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "in-bucket")
         monkeypatch.setenv("AWS_S3_OUTPUT_BUCKET_NAME", "env-out-bucket")
@@ -2060,7 +2060,7 @@ class TestBedrockFileContentTransformation:
     def test_input_bucket_still_validates_when_output_bucket_set(self, monkeypatch):
         """Adding output-bucket support must not break retrieval of input-bucket
         objects when both buckets are configured."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
         monkeypatch.delenv("AWS_S3_OUTPUT_BUCKET_NAME", raising=False)
@@ -2083,7 +2083,7 @@ class TestBedrockFileContentTransformation:
     def test_rejects_bucket_outside_input_and_output(self, monkeypatch):
         """A file id whose bucket is neither the input nor the output bucket is
         still rejected (SSRF / bucket-confusion guard)."""
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
         monkeypatch.delenv("AWS_S3_OUTPUT_BUCKET_NAME", raising=False)
@@ -2104,7 +2104,7 @@ class TestBedrockFileContentTransformation:
         rather than a raw import failure."""
         import sys
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
         monkeypatch.setitem(sys.modules, "botocore.auth", None)
@@ -2120,7 +2120,7 @@ class TestBedrockFileContentTransformation:
         """Per-model s3_bucket_name must be honored via the server-side credential snapshot."""
         from types import MappingProxyType
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
         litellm_params = self._litellm_params()
@@ -2138,7 +2138,7 @@ class TestBedrockFileContentTransformation:
 
     def test_s3_region_name_wins_for_content_signing(self, monkeypatch):
         """s3_region_name must override aws_region_name for both the URL and the signature."""
-        from litellm.llms.bedrock.files.transformation import (
+        from token_iq.gateway.llms.bedrock.files.transformation import (
             S3_SIGNED_GET_HEADERS_PARAM,
             BedrockFilesConfig,
         )
@@ -2158,7 +2158,7 @@ class TestBedrockFileContentTransformation:
         assert "/eu-west-1/s3/aws4_request" in authorization
 
     def test_validate_environment_merges_and_pops_signed_get_headers(self):
-        from litellm.llms.bedrock.files.transformation import (
+        from token_iq.gateway.llms.bedrock.files.transformation import (
             S3_SIGNED_GET_HEADERS_PARAM,
             BedrockFilesConfig,
         )
@@ -2184,8 +2184,8 @@ class TestBedrockFileContentTransformation:
     def test_transform_file_content_response_wraps_binary_content(self):
         import httpx
 
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
-        from litellm.types.llms.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
         raw_response = httpx.Response(
             status_code=200,
@@ -2205,8 +2205,8 @@ class TestBedrockFileContentTransformation:
     def test_transform_file_content_response_raises_on_s3_error(self):
         import httpx
 
-        from litellm.llms.bedrock.common_utils import BedrockError
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.common_utils import BedrockError
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         raw_response = httpx.Response(
             status_code=403,
@@ -2226,7 +2226,7 @@ class TestBedrockFileContentTransformation:
         import httpx
         import respx
 
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
 
@@ -2253,7 +2253,7 @@ class TestBedrockFileContentTransformation:
         import httpx
         import respx
 
-        import litellm
+        from token_iq import gateway as litellm
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
         # respx can only intercept httpx transports
@@ -2344,7 +2344,7 @@ class TestBedrockFilesS3SignatureEncoding:
         )
 
     def test_create_file_signs_spaced_object_key_the_way_s3_does(self) -> None:
-        from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+        from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         content = json.dumps(
             {
@@ -2378,7 +2378,7 @@ class TestBedrockFilesS3SignatureEncoding:
     def test_file_content_signs_spaced_object_key_the_way_s3_does(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from litellm.llms.bedrock.files.transformation import (
+        from token_iq.gateway.llms.bedrock.files.transformation import (
             S3_SIGNED_GET_HEADERS_PARAM,
             BedrockFilesConfig,
         )
@@ -2414,7 +2414,7 @@ def test_sign_s3_request_assumes_role_with_external_id(monkeypatch):
     import boto3
     from botocore.exceptions import ClientError
 
-    from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+    from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
     monkeypatch.delenv("AWS_EXTERNAL_ID", raising=False)
 
@@ -2465,7 +2465,7 @@ def test_sign_s3_get_request_assumes_role_with_external_id(monkeypatch):
     import boto3
     from botocore.exceptions import ClientError
 
-    from litellm.llms.bedrock.files.transformation import (
+    from token_iq.gateway.llms.bedrock.files.transformation import (
         BedrockFilesConfig,
         _BedrockS3RequestParams,
     )

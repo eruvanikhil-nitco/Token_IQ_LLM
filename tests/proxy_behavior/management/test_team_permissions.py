@@ -1,7 +1,7 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
-from litellm.proxy._types import KeyManagementRoutes
+from token_iq.gateway.proxy._types import KeyManagementRoutes
 
 from .actors import Actor
 from .conftest import create_scratch_team

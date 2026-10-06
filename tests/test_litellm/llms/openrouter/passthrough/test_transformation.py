@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from litellm.llms.openrouter.passthrough.transformation import OpenRouterPassthroughConfig
+from token_iq.gateway.llms.openrouter.passthrough.transformation import OpenRouterPassthroughConfig
 
 DEFAULT_BASE = "https://openrouter.ai/api/v1"
 

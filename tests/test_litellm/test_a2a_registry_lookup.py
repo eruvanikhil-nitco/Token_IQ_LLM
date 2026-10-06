@@ -1,15 +1,15 @@
 """
 Test A2A provider registry lookup functionality.
 
-Maps to: litellm/llms/a2a/chat/transformation.py
+Maps to: token_iq/gateway/llms/a2a/chat/transformation.py
 """
 
 
 
 import pytest
 
-import litellm
-from litellm.llms.a2a.chat.transformation import A2AConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.a2a.chat.transformation import A2AConfig
 
 
 def test_resolve_agent_config_from_registry_static_method():
@@ -41,8 +41,8 @@ def test_a2a_registry_integration():
     """Test registry lookup in proxy context"""
 
     try:
-        from litellm.proxy.agent_endpoints.agent_registry import global_agent_registry
-        from litellm.types.agents import AgentResponse
+        from token_iq.gateway.proxy.agent_endpoints.agent_registry import global_agent_registry
+        from token_iq.gateway.types.agents import AgentResponse
 
         # Create test agent
         test_agent = AgentResponse(

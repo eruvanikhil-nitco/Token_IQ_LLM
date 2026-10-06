@@ -18,8 +18,8 @@ import httpx
 import pytest
 from respx import MockRouter
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     Choices,
     Message,
     ModelResponse,
@@ -28,7 +28,7 @@ from litellm import (
     TextChoices,
 )
 
-from litellm.litellm_core_utils.logging_utils import (
+from token_iq.gateway.core_utils.logging_utils import (
     _assemble_complete_response_from_streaming_chunks,
 )
 
@@ -134,7 +134,7 @@ def test_assemble_complete_response_from_streaming_chunks_2(is_async):
     Test 2 - TextCompletionResponse with 1 list of streaming chunks. Assert chunks are added to the streaming_chunks, after final chunk sent assert complete_streaming_response is not None
     """
 
-    from litellm.utils import TextCompletionStreamWrapper
+    from token_iq.gateway.utils import TextCompletionStreamWrapper
 
     _text_completion_stream_wrapper = TextCompletionStreamWrapper(
         completion_stream=None, model="test_model"

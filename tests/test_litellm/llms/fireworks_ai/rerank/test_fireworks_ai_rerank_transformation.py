@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.fireworks_ai.rerank.transformation import FireworksAIRerankConfig
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.llms.fireworks_ai.rerank.transformation import FireworksAIRerankConfig
+from token_iq.gateway.types.rerank import RerankResponse
 
 
 class TestFireworksAIRerankTransform:

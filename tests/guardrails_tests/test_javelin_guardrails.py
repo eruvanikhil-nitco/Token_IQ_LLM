@@ -2,10 +2,10 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException
 
-from litellm.proxy.guardrails.guardrail_hooks.javelin import JavelinGuardrail
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.javelin import JavelinGuardrail
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 
 
 @pytest.mark.asyncio

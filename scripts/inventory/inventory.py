@@ -1,6 +1,6 @@
 """Build the feature inventory skeleton from the reachability graph.
 
-One row per top-level folder in `litellm/` and `litellm/proxy/`, plus the loose Python files
+One row per top-level folder in `litellm/` and `token_iq/gateway/proxy/`, plus the loose Python files
 at those two levels, which the source document's "one row per folder" would have missed.
 
 This writes the measurable columns only. What each folder does, and the proposal, are added

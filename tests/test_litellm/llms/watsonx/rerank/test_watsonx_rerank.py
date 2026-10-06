@@ -10,11 +10,11 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.watsonx.common_utils import (
+from token_iq.gateway.llms.watsonx.common_utils import (
     WatsonXAIError,
 )
-from litellm.llms.watsonx.rerank.transformation import IBMWatsonXRerankConfig
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.llms.watsonx.rerank.transformation import IBMWatsonXRerankConfig
+from token_iq.gateway.types.rerank import RerankResponse
 
 
 class TestIBMWatsonXRerankTransform:

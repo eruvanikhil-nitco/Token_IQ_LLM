@@ -24,7 +24,7 @@ SCRIPT = REPO_ROOT / ".github" / "scripts" / "detect_changes.sh"
 CLASSIFIER = REPO_ROOT / ".circleci" / "scripts" / "classify_changes.sh"
 
 UI_FILE = "ui/litellm-dashboard/src/components/Teams.tsx"
-BACKEND_FILE = "litellm/proxy/proxy_server.py"
+BACKEND_FILE = "token_iq/gateway/proxy/proxy_server.py"
 
 
 def _git(cwd: Path, *args: str) -> None:

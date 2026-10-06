@@ -10,10 +10,11 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-import litellm.utils
-from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
-from litellm.llms.moonshot.chat.transformation import MoonshotChatConfig
+from token_iq import gateway as litellm
+import token_iq.gateway.utils
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
+from token_iq.gateway.llms.moonshot.chat.transformation import MoonshotChatConfig
 
 
 class TestMoonshotConfig:
@@ -209,7 +210,7 @@ class TestMoonshotConfig:
         config = MoonshotChatConfig()
 
         with patch(
-            "litellm.llms.moonshot.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.moonshot.chat.transformation.supports_reasoning",
             return_value=True,
         ):
             for temp in [0.0, 0.5, 1.0, 1.5]:
@@ -226,7 +227,7 @@ class TestMoonshotConfig:
         config = MoonshotChatConfig()
 
         with patch(
-            "litellm.llms.moonshot.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.moonshot.chat.transformation.supports_reasoning",
             return_value=False,
         ):
             result = config.map_openai_params(
@@ -575,7 +576,7 @@ class TestMoonshotConfig:
         ]
 
         with patch(
-            "litellm.llms.moonshot.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.moonshot.chat.transformation.supports_reasoning",
             return_value=True,
         ):
             result = config.transform_request(
@@ -608,7 +609,7 @@ class TestMoonshotConfig:
         ]
 
         with patch(
-            "litellm.llms.moonshot.chat.transformation.supports_reasoning",
+            "token_iq.gateway.llms.moonshot.chat.transformation.supports_reasoning",
             return_value=False,
         ):
             result = config.transform_request(
@@ -630,7 +631,7 @@ class TestMoonshotConfig:
         The issue was that 'reasoning_content' in msg doesn't work for Pydantic models
         because they don't support the 'in' operator the same way as dicts.
         """
-        from litellm.types.utils import Message
+        from token_iq.gateway.types.utils import Message
 
         config = MoonshotChatConfig()
 
@@ -660,8 +661,8 @@ class TestMoonshotConfig:
 
         This tests the complete flow: API response -> Message object -> dict -> fill_reasoning_content
         """
-        from litellm.types.utils import Message
-        from litellm.utils import convert_to_dict
+        from token_iq.gateway.types.utils import Message
+        from token_iq.gateway.utils import convert_to_dict
 
         config = MoonshotChatConfig()
 

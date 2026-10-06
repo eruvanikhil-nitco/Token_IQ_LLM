@@ -1,7 +1,7 @@
 import concurrent.futures
 
-import litellm
-from litellm.batch_completion.main import batch_completion_models_all_responses
+from token_iq import gateway as litellm
+from token_iq.gateway.batch_completion.main import batch_completion_models_all_responses
 
 
 def test_batch_completion_models_all_responses_submits_before_waiting(monkeypatch):

@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class _WireBodyCapture(CustomLogger):

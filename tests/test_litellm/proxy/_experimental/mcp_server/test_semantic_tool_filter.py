@@ -27,7 +27,7 @@ async def test_semantic_filter_basic_filtering():
     When: Query is "send an email"
     Then: Email tools should rank higher than calendar tools
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -86,7 +86,7 @@ async def test_semantic_filter_basic_filtering():
     ]
 
     # Mock router that returns mock embeddings
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -154,7 +154,7 @@ async def test_semantic_filter_top_k_limiting():
     When: top_k=5
     Then: Should return at most 5 tools
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -169,7 +169,7 @@ async def test_semantic_filter_top_k_limiting():
     ]
 
     # Mock router
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -215,7 +215,7 @@ async def test_semantic_filter_disabled():
     """
     Test that when filter is disabled, all tools are returned.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -254,7 +254,7 @@ async def test_semantic_filter_empty_tools():
     """
     Test that filter handles empty tool list gracefully.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -282,7 +282,7 @@ async def test_semantic_filter_extract_user_query():
     """
     Test that user query extraction works correctly from messages.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -333,11 +333,11 @@ async def test_semantic_filter_hook_triggers_on_completion():
     """
     Test that the hook triggers for completion requests with tools.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     # Create mock filter
     mock_router = Mock()
@@ -412,10 +412,10 @@ async def test_semantic_filter_hook_skips_no_tools():
     """
     Test that the hook does NOT trigger when there are no tools.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     # Create mock filter
     mock_router = Mock()
@@ -464,11 +464,11 @@ async def test_semantic_filter_hook_preserves_native_tools():
     Then:  The native tools must survive unconditionally, and only MCP
            tools go through the semantic filter.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -595,10 +595,10 @@ async def test_semantic_filter_hook_all_native_tools():
     Then:  All tools pass through, and NO spurious semantic filter response
            headers are emitted (no litellm_semantic_filter_stats in metadata).
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     mock_router = Mock()
     filter_instance = SemanticMCPToolFilter(
@@ -618,7 +618,7 @@ async def test_semantic_filter_hook_all_native_tools():
         )
     ]
 
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     def mock_embedding_sync(*args, **kwargs):
         return EmbeddingResponse(
@@ -695,11 +695,11 @@ async def test_semantic_filter_hook_responses_api_name_collision():
     Then:  The native tool must NOT be sent to the semantic filter, even
            though its name matches an MCP canonical.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -790,11 +790,11 @@ async def test_semantic_filter_hook_filters_expanded_litellm_proxy_tools():
            were filtered out instead of silently forwarding all tools
            with no stats.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -911,11 +911,11 @@ async def test_semantic_filter_hook_narrows_mcp_reference_for_chat_completions()
     reference also removed the marker the MCP gateway matches on, which
     disabled tool auto-execution for require_approval="never".
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -1025,11 +1025,11 @@ async def test_semantic_filter_hook_zero_matches_exposes_all_tools_on_both_paths
     filter_tools to fail closed must fail this test on both paths at once, instead of
     silently hard-limiting one surface and not the other.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -1133,11 +1133,11 @@ async def test_semantic_filter_hook_filters_expanded_tools_with_string_input():
     expanded-tool filtering must treat it as the user query instead of
     crashing (which would silently disable MCP expansion).
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -1203,10 +1203,10 @@ async def test_semantic_filter_hook_expansion_skips_filter_when_disabled():
     stats, mirroring the generic path's enabled guard. The MCP gateway then
     expands the reference itself, so no tool is narrowed away.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     filter_instance = SemanticMCPToolFilter(
         embedding_model="text-embedding-3-small",
@@ -1276,11 +1276,11 @@ async def test_semantic_filter_hook_preserves_tool_order():
     Then:  The output order must match the original request order,
            NOT native-first.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     mock_router = Mock()
 
@@ -1386,7 +1386,7 @@ class TestGetToolsByNames:
     """
 
     def _make_filter(self):
-        from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+        from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
             SemanticMCPToolFilter,
         )
 
@@ -1555,11 +1555,11 @@ async def test_semantic_filter_headers_hook_emits_only_complete_tool_names():
     rendered a chopped tool name as the last entry. The header must only ever
     contain complete tool names, in their original order, within the cap.
     """
-    from litellm.constants import MAX_MCP_SEMANTIC_FILTER_TOOLS_HEADER_LENGTH
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.constants import MAX_MCP_SEMANTIC_FILTER_TOOLS_HEADER_LENGTH
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     filter_instance = SemanticMCPToolFilter(
         embedding_model="text-embedding-3-small",
@@ -1595,7 +1595,7 @@ async def test_semantic_filter_headers_hook_emits_only_complete_tool_names():
 
 
 def test_truncate_csv_at_tool_name_boundary_edges():
-    from litellm.proxy.hooks.mcp_semantic_filter.hook import (
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter.hook import (
         _truncate_csv_at_tool_name_boundary,
     )
 
@@ -1611,8 +1611,8 @@ def _make_context_window_raising_router(state):
     Mock litellm Router whose embedding call raises ContextWindowExceededError
     once state["raise_context_error"] is flipped to True.
     """
-    import litellm
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     def mock_embedding_sync(*args, **kwargs):
         if state["raise_context_error"]:
@@ -1638,7 +1638,7 @@ def _make_context_window_raising_router(state):
 
 
 def _make_context_window_filter(state, top_k: int = 3):
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -1658,7 +1658,7 @@ async def test_semantic_filter_fails_closed_on_query_time_context_window_error()
     user query must fail closed with a typed error instead of silently
     returning all tools (previously reported as N->N "success").
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticToolFilterContextWindowError,
     )
 
@@ -1690,7 +1690,7 @@ async def test_semantic_filter_records_build_time_context_window_error():
     the build, which previously left the hook unregistered and filtering
     silently disabled) and must fail subsequent filtering closed.
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticToolFilterContextWindowError,
     )
 
@@ -1725,7 +1725,7 @@ async def test_semantic_filter_hook_fails_closed_on_context_window_error():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     state = {"raise_context_error": False}
     filter_instance = _make_context_window_filter(state)
@@ -1772,7 +1772,7 @@ async def test_semantic_filter_hook_fails_closed_on_expanded_tools_context_windo
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     state = {"raise_context_error": False}
     filter_instance = _make_context_window_filter(state)
@@ -1835,7 +1835,7 @@ async def test_semantic_filter_hook_ignores_build_error_for_native_only_tools():
     rely on MCP tool filtering; requests carrying only native tools pass
     through untouched.
     """
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
     state = {"raise_context_error": True}
     filter_instance = _make_context_window_filter(state)
@@ -1882,8 +1882,8 @@ def test_is_context_window_error_detection_variants():
     and a bare error whose message carries a known overflow phrase; a
     generic error must not match.
     """
-    import litellm
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         _is_context_window_error,
     )
 
@@ -1919,8 +1919,8 @@ def test_is_context_window_error_sees_through_trees_the_chain_walk_missed():
     """Overflow shapes the old single-path depth-5 chain walk could not reach: hidden in
     ``__context__`` behind a non-matching ``__cause__``, buried inside an anyio-style
     ``ExceptionGroup``, and chained deeper than five links."""
-    import litellm
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         _is_context_window_error,
     )
 
@@ -1951,7 +1951,7 @@ def _make_keyword_embedding_router(recorded_inputs):
     semantic-router index. Every embedding input batch is appended to
     recorded_inputs.
     """
-    from litellm.types.utils import Embedding, EmbeddingResponse
+    from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     def _vector(text):
         lowered = text.lower()
@@ -1981,7 +1981,7 @@ def _make_keyword_embedding_router(recorded_inputs):
 
 
 def _make_keyword_filter(recorded_inputs, top_k: int = 3):
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 
@@ -2103,7 +2103,7 @@ async def test_request_time_context_window_error_is_request_scoped():
     which EVERY user's MCP requests on the worker were blocked with a 400
     until restart (index poisoning via a single request).
     """
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticToolFilterContextWindowError,
     )
 

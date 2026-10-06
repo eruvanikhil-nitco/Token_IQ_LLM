@@ -3,11 +3,11 @@ import json
 import pytest
 
 
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     TOOL_CALLS_CACHE,
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Choices,
     CompletionTokensDetailsWrapper,
@@ -1493,7 +1493,7 @@ class TestToolTransformation:
 
     def test_transform_vertex_ai_tools(self):
         """Test that Vertex AI tools are passed through as-is"""
-        from litellm.types.llms.vertex_ai import VertexToolName
+        from token_iq.gateway.types.llms.vertex_ai import VertexToolName
 
         # Create a Vertex AI tool using the enum value
         vertex_tool = {VertexToolName.CODE_EXECUTION.value: {}}
@@ -1858,7 +1858,7 @@ class TestToolTransformation:
 
     def test_transform_mixed_tools_list(self):
         """Test transforming a mixed list of different tool types"""
-        from litellm.types.llms.vertex_ai import VertexToolName
+        from token_iq.gateway.types.llms.vertex_ai import VertexToolName
 
         tools = [
             # Regular function tool with anthropic fields
@@ -2441,7 +2441,7 @@ class TestToolTransformation:
         The derived web_search_options is dropped, and toolConfig contains only the function
         tool, never the web_search/image_generation/namespace built-ins as junk toolSpecs.
         """
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             _bedrock_tools_pt,
         )
 
@@ -2912,11 +2912,11 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         # Create a mock stream wrapper
         mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
@@ -3011,8 +3011,8 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -3055,11 +3055,11 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         # Create a mock stream wrapper
         mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
@@ -3267,8 +3267,8 @@ class TestCompletedResponseLatchedOnStreamEnd:
         a stream that already delivered all content chunks)."""
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -3292,7 +3292,7 @@ class TestCompletedResponseLatchedOnStreamEnd:
         latch it onto self.completed_response so downstream wrappers can
         read it. Before the fix the event was returned but
         completed_response stayed None."""
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         complete_response = ModelResponse(
             id="resp_test",
@@ -3345,7 +3345,7 @@ class TestFallbackWrapperStopAsyncIterationFallback:
         import asyncio
         from types import SimpleNamespace
 
-        from litellm.router import Router
+        from token_iq.gateway.router import Router
 
         source = SimpleNamespace(
             response=None,
@@ -3405,7 +3405,7 @@ class TestEnsureOutputItemContentPartAdded:
 
     def _make_iterator(self):
         """Create a minimal LiteLLMCompletionStreamingIterator for testing."""
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -3456,7 +3456,7 @@ class TestEnsureOutputItemContentPartAdded:
 
     def test_message_item_emits_content_part_added(self):
         """content_part.added must follow output_item.added for message items."""
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             ContentPartAddedEvent,
             OutputItemAddedEvent,
             ResponsesAPIStreamEvents,
@@ -3714,7 +3714,7 @@ class TestEnsureOutputItemContentPartAdded:
     def test_streaming_namespace_map_is_built_once(self):
         from unittest.mock import MagicMock, patch
 
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -3761,8 +3761,8 @@ class TestEnsureOutputItemContentPartAdded:
         """
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -3802,7 +3802,7 @@ class TestEnsureOutputItemContentPartAdded:
 
     def test_reasoning_item_does_not_emit_content_part_added(self):
         """Reasoning items should not get a content_part.added event."""
-        from litellm.types.llms.openai import OutputItemAddedEvent
+        from token_iq.gateway.types.llms.openai import OutputItemAddedEvent
 
         iterator = self._make_iterator()
         chunk = self._make_reasoning_chunk()
@@ -4032,8 +4032,8 @@ class TestStreamingSnapshotItemIds:
     def _make_iterator(self):
         from unittest.mock import Mock
 
-        import litellm
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
@@ -4048,7 +4048,7 @@ class TestStreamingSnapshotItemIds:
         )
 
     def _make_chunk(self, content):
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         return ModelResponseStream(
             id=BRIDGED_CHAT_COMPLETION_ID,
@@ -4108,7 +4108,7 @@ class TestStreamingSnapshotItemIds:
             assert not item.id.startswith("chatcmpl-")
 
     def _make_reasoning_chunk(self, reasoning_content):
-        from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         return ModelResponseStream(
             id=BRIDGED_CHAT_COMPLETION_ID,

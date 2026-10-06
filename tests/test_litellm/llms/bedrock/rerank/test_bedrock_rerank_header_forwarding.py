@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.bedrock.base_aws_llm import Boto3CredentialsInfo
-from litellm.llms.bedrock.rerank.handler import BedrockRerankHandler
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.base_aws_llm import Boto3CredentialsInfo
+from token_iq.gateway.llms.bedrock.rerank.handler import BedrockRerankHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 # Mock response for Bedrock rerank
 # Format based on Bedrock rerank API response structure
@@ -79,7 +79,7 @@ def test_bedrock_rerank_header_forwarding_sync(model):
     with (
         patch.object(client, "post") as mock_post,
         patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-            "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+            "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
             return_value=mock_credentials_info,
         ),
         patch("botocore.auth.SigV4Auth") as mock_sigv4,
@@ -172,7 +172,7 @@ async def test_bedrock_rerank_header_forwarding_async(model):
     with (
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
         patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-            "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+            "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
             return_value=mock_credentials_info,
         ),
         patch("botocore.auth.SigV4Auth") as mock_sigv4,
@@ -243,7 +243,7 @@ def test_bedrock_rerank_timeout_sync():
     with (
         patch.object(client, "post") as mock_post,
         patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-            "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+            "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
             return_value=mock_credentials_info,
         ),
         patch("botocore.auth.SigV4Auth") as mock_sigv4,
@@ -287,7 +287,7 @@ async def test_bedrock_rerank_timeout_async():
     with (
         patch.object(client, "post", new_callable=AsyncMock) as mock_post,
         patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-            "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+            "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
             return_value=mock_credentials_info,
         ),
         patch("botocore.auth.SigV4Auth") as mock_sigv4,
@@ -342,7 +342,7 @@ def test_bedrock_rerank_extra_headers_and_headers_merge():
     with (
         patch.object(client, "post") as mock_post,
         patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-            "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+            "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
             return_value=mock_credentials_info,
         ),
         patch("botocore.auth.SigV4Auth") as mock_sigv4,
@@ -476,7 +476,7 @@ async def test_bedrock_rerank_records_llm_api_duration():
     client.client = httpx.AsyncClient(transport=httpx.MockTransport(handle))
 
     with patch(  # test-quality-ok: boto credential lookup needs live AWS; the HTTP boundary is already a MockTransport
-        "litellm.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
+        "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
         return_value=create_mock_credentials(),
     ):
         response = await litellm.arerank(

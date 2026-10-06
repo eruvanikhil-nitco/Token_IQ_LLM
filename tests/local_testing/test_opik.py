@@ -7,8 +7,8 @@ import logging
 
 import pytest
 
-import litellm
-from litellm._logging import verbose_logger
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
 from unittest.mock import AsyncMock, Mock
 
 verbose_logger.setLevel(logging.DEBUG)
@@ -25,7 +25,7 @@ async def test_opik_logging_http_request():
     - Test that HTTP requests are made to Opik
     - Traces and spans are batched correctly
     """
-    from litellm.integrations.opik.opik import OpikLogger
+    from token_iq.gateway.integrations.opik.opik import OpikLogger
 
     os.environ["OPIK_URL_OVERRIDE"] = "https://fake.comet.com/opik/api"
     os.environ["OPIK_API_KEY"] = "anything"
@@ -87,7 +87,7 @@ def test_sync_opik_logging_http_request():
     - Traces and spans are batched correctly
     """
     try:
-        from litellm.integrations.opik.opik import OpikLogger
+        from token_iq.gateway.integrations.opik.opik import OpikLogger
 
         os.environ["OPIK_URL_OVERRIDE"] = "https://fake.comet.com/opik/api"
         os.environ["OPIK_API_KEY"] = "anything"
@@ -131,7 +131,7 @@ def test_sync_opik_logging_http_request():
 @pytest.mark.skip(reason="local-only test, to test if everything works fine.")
 async def test_opik_logging():
     try:
-        from litellm.integrations.opik.opik import OpikLogger
+        from token_iq.gateway.integrations.opik.opik import OpikLogger
 
         # Initialize OpikLogger
         test_opik_logger = OpikLogger()
@@ -183,7 +183,7 @@ def test_opik_attach_to_existing_trace():
     - Verify span has correct trace_id and parent_span_id
     """
     try:
-        from litellm.integrations.opik.opik import OpikLogger
+        from token_iq.gateway.integrations.opik.opik import OpikLogger
 
         os.environ["OPIK_URL_OVERRIDE"] = "https://fake.comet.com/opik/api"
         os.environ["OPIK_API_KEY"] = "anything"
@@ -263,7 +263,7 @@ def test_opik_create_new_trace():
     - Verify tags are included in both trace and span
     """
     try:
-        from litellm.integrations.opik.opik import OpikLogger
+        from token_iq.gateway.integrations.opik.opik import OpikLogger
 
         os.environ["OPIK_URL_OVERRIDE"] = "https://fake.comet.com/opik/api"
         os.environ["OPIK_API_KEY"] = "anything"

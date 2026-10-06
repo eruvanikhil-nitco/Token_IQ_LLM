@@ -11,14 +11,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-import litellm
-from litellm.proxy.enterprise.enterprise_hooks.openai_moderation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.enterprise.enterprise_hooks.openai_moderation import (
     _ENTERPRISE_OpenAI_Moderation,
 )
-from litellm import Router, mock_completion
-from litellm.proxy.utils import ProxyLogging, hash_token
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway.proxy.utils import ProxyLogging, hash_token
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 
 ### UNIT TESTS FOR OpenAI Moderation ###
 
@@ -29,7 +29,7 @@ async def test_openai_moderation_error_raising(monkeypatch):
     Tests to see OpenAI Moderation raises an error for a flagged response
     """
     from unittest.mock import AsyncMock, MagicMock
-    from litellm.types.llms.openai import OpenAIModerationResponse
+    from token_iq.gateway.types.llms.openai import OpenAIModerationResponse
 
     litellm.openai_moderations_model_name = "text-moderation-latest"
     openai_mod = _ENTERPRISE_OpenAI_Moderation()
@@ -59,7 +59,7 @@ async def test_openai_moderation_error_raising(monkeypatch):
 
     llm_router.amoderation = mock_amoderation
 
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "llm_router", llm_router)
 
@@ -90,14 +90,14 @@ async def test_openai_moderation_responses_api_input_field():
     handles different input types: plain text strings, structured messages, and lists.
     """
     from unittest.mock import patch
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OpenAIModerationResponse,
         OpenAIModerationResult,
     )
-    from litellm.proxy.guardrails.guardrail_hooks.openai.moderations import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai.moderations import (
         OpenAIModerationGuardrail,
     )
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     # Initialize the open-source OpenAI Moderation guardrail
     openai_mod = OpenAIModerationGuardrail(

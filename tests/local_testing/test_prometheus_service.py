@@ -6,12 +6,12 @@ import os
 import io, asyncio
 
 import pytest
-from litellm import acompletion, Cache
-from litellm._service_logger import ServiceLogging
-from litellm.integrations.prometheus_services import PrometheusServicesLogger
-from litellm.proxy.utils import ServiceTypes
+from token_iq.gateway import acompletion, Cache
+from token_iq.gateway._service_logger import ServiceLogging
+from token_iq.gateway.integrations.prometheus_services import PrometheusServicesLogger
+from token_iq.gateway.proxy.utils import ServiceTypes
 from unittest.mock import patch, AsyncMock
-import litellm
+from token_iq import gateway as litellm
 
 """
 - Check if it receives a call when redis is used 
@@ -68,7 +68,7 @@ async def test_completion_with_caching_bad_call():
     litellm.set_verbose = True
 
     try:
-        from litellm.caching.caching import RedisCache
+        from token_iq.gateway.caching.caching import RedisCache
 
         litellm.service_callback = ["prometheus_system"]
         sl = ServiceLogging(mock_testing=True)

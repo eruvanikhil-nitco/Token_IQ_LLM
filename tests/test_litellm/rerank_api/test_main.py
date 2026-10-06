@@ -6,7 +6,7 @@ import pytest
 import respx
 
 
-import litellm
+from token_iq import gateway as litellm
 
 MARKER_QUERY = "MARKER_QUERY_do_not_log_at_info"
 MARKER_DOC = "MARKER_DOC_sensitive_customer_text"
@@ -42,7 +42,7 @@ def test_rerank_does_not_log_request_content_at_info(caplog):
     caplog.set_level(logging.DEBUG, logger="LiteLLM")
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=_mock_cohere_response(),
     ):
         litellm.rerank(
@@ -178,7 +178,7 @@ async def test_arerank_declared_authenticating_provider_skips_resolution(monkeyp
     get_llm_provider runs the blocking OAuth device flow for github_copilot/chatgpt,
     so arerank must adopt the declared provider instead of resolving it, while the
     except path still maps with that declared provider."""
-    from litellm.llms.base_llm.chat.transformation import BaseLLMException
+    from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
     resolution_calls = []
 
@@ -190,7 +190,7 @@ async def test_arerank_declared_authenticating_provider_skips_resolution(monkeyp
         raise BaseLLMException(status_code=401, message='{"error":"bad key"}')
 
     monkeypatch.setattr(litellm, "get_llm_provider", record_resolution)
-    monkeypatch.setattr("litellm.rerank_api.main.rerank", rerank_raises_provider_error)
+    monkeypatch.setattr("token_iq.gateway.rerank_api.main.rerank", rerank_raises_provider_error)
 
     with pytest.raises(litellm.AuthenticationError) as exc_info:
         await litellm.arerank(

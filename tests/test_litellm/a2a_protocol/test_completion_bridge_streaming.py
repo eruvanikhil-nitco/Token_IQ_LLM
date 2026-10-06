@@ -17,7 +17,7 @@ class TestA2AStreamingTransformation:
     """Test the A2A streaming transformation creates proper events."""
 
     def test_a2a_metadata_forwarded_to_completion_params(self):
-        from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
             A2ACompletionBridgeTransformation,
         )
 
@@ -47,7 +47,7 @@ class TestA2AStreamingTransformation:
         }
 
     def test_configured_metadata_wins_over_forwarded_a2a_metadata(self):
-        from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
             A2ACompletionBridgeTransformation,
         )
 
@@ -79,7 +79,7 @@ class TestA2AStreamingTransformation:
         }
 
     def test_langgraph_transform_preserves_message_metadata(self):
-        from litellm.llms.langgraph.chat.transformation import LangGraphConfig
+        from token_iq.gateway.llms.langgraph.chat.transformation import LangGraphConfig
 
         config = LangGraphConfig()
         request = config.transform_request(
@@ -101,7 +101,7 @@ class TestA2AStreamingTransformation:
 
     def test_create_task_event(self):
         """Test that create_task_event produces proper A2A task event structure."""
-        from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
             A2ACompletionBridgeTransformation,
             A2AStreamingContext,
         )
@@ -128,7 +128,7 @@ class TestA2AStreamingTransformation:
 
     def test_create_status_update_working(self):
         """Test that create_status_update_event produces proper working status."""
-        from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
             A2ACompletionBridgeTransformation,
             A2AStreamingContext,
         )
@@ -154,7 +154,7 @@ class TestA2AStreamingTransformation:
 
     def test_create_artifact_update(self):
         """Test that create_artifact_update_event produces proper artifact event."""
-        from litellm.a2a_protocol.litellm_completion_bridge.transformation import (
+        from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
             A2ACompletionBridgeTransformation,
             A2AStreamingContext,
         )
@@ -183,7 +183,7 @@ class TestA2AStreamingTransformation:
 @pytest.mark.asyncio
 async def test_handle_streaming_emits_proper_events():
     """Test that handle_streaming emits events in correct order with proper structure."""
-    from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+    from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
         A2ACompletionBridgeHandler,
     )
 
@@ -202,7 +202,7 @@ async def test_handle_streaming_emits_proper_events():
         yield mock_chunk1
         yield mock_chunk2
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = mock_streaming_response()
 
         params = {
@@ -247,7 +247,7 @@ async def test_handle_streaming_emits_proper_events():
 @pytest.mark.asyncio
 async def test_handle_streaming_forwards_api_key():
     """Test that handle_streaming forwards api_key from litellm_params to acompletion."""
-    from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+    from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
         A2ACompletionBridgeHandler,
     )
 
@@ -259,7 +259,7 @@ async def test_handle_streaming_forwards_api_key():
     async def mock_streaming_response():
         yield mock_chunk
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = mock_streaming_response()
 
         params = {
@@ -294,7 +294,7 @@ async def test_handle_streaming_forwards_api_key():
 @pytest.mark.asyncio
 async def test_handle_non_streaming_forwards_api_key():
     """Test that handle_non_streaming forwards api_key from litellm_params to acompletion."""
-    from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+    from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
         A2ACompletionBridgeHandler,
     )
 
@@ -304,7 +304,7 @@ async def test_handle_non_streaming_forwards_api_key():
     mock_response.choices[0].message.content = "Hello!"
     mock_response.id = "resp-123"
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = mock_response
 
         params = {

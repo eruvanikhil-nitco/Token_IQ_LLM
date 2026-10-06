@@ -2,10 +2,10 @@
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.authz_code_refresher import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.authz_code_refresher import (
     AuthorizationCodeRefresher,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     OAuthToken,
 )
 

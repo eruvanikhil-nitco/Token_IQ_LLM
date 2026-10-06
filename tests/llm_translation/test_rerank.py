@@ -14,11 +14,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.types.rerank import RerankResponse
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.types.rerank import RerankResponse
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 def assert_response_shape(response, custom_llm_provider):
@@ -174,7 +174,7 @@ async def test_rerank_custom_api_base(version):
         api_base += "v1/rerank"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.arerank(
@@ -250,7 +250,7 @@ async def test_rerank_custom_callbacks():
 
 
 def test_complete_base_url_cohere():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     litellm.api_base = "http://localhost:4000"
@@ -291,7 +291,7 @@ def test_complete_base_url_cohere():
 )
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_basic_rerank_caching(sync_mode, top_n_1, top_n_2, expect_cache_hit):
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     litellm.set_verbose = True
     litellm.cache = Cache(type="local")
@@ -365,7 +365,7 @@ def test_rerank_response_assertions():
 
 
 def test_cohere_rerank_v2_client():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     litellm.api_base = "http://localhost:4000"

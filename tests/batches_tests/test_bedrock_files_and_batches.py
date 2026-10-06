@@ -12,10 +12,10 @@ load_dotenv()
 
 import pytest
 from typing import Optional
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import patch, MagicMock
 import httpx
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 _BEDROCK_TEST_AWS_ENV = {
@@ -180,7 +180,7 @@ async def test_async_file_and_batch():
         print("CREATED FILE RESPONSE=", file_obj)
 
         with patch(
-            "litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
+            "token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client",
             return_value=capture_client,
         ):
             # create batch
@@ -259,7 +259,7 @@ async def test_mock_bedrock_file_url_mapping():
     assert file_obj.id.startswith("s3://")
 
     # Verify mapping
-    from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+    from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
     bedrock_config = BedrockFilesConfig()
     expected_s3_uri, _ = bedrock_config._convert_https_url_to_s3_uri(captured_put_url)
@@ -299,7 +299,7 @@ async def test_bedrock_retrieve_batch():
     with (
         patch("boto3.client", return_value=mock_bedrock_client),
         patch(
-            "litellm.llms.bedrock.batches.transformation.BedrockBatchesConfig.get_credentials",
+            "token_iq.gateway.llms.bedrock.batches.transformation.BedrockBatchesConfig.get_credentials",
             return_value=mock_creds,
         ),
     ):
@@ -331,7 +331,7 @@ def test_bedrock_batch_with_encryption_key_in_post_request():
     Test that s3_encryption_key_id is included in the AWS POST request payload.
     """
     import json
-    import litellm
+    from token_iq import gateway as litellm
 
     test_kms_key_id = (
         "arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
@@ -357,7 +357,7 @@ def test_bedrock_batch_with_encryption_key_in_post_request():
     with (
         patch.dict(os.environ, _BEDROCK_TEST_AWS_ENV),
         patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             side_effect=mock_post,
         ),
     ):
@@ -388,7 +388,7 @@ def test_bedrock_batch_with_encryption_key_in_post_request():
 
 
 def test_bedrock_file_upload_signing_uses_deployment_credentials(monkeypatch):
-    from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+    from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
     config = BedrockFilesConfig()
     captured = {}
@@ -425,7 +425,7 @@ def test_bedrock_file_upload_signing_uses_deployment_credentials(monkeypatch):
 
 
 def test_bedrock_batch_signing_uses_deployment_credentials(monkeypatch):
-    from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
+    from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
 
     config = BedrockBatchesConfig()
     captured = {}
@@ -459,7 +459,7 @@ def test_bedrock_batch_signing_uses_deployment_credentials(monkeypatch):
 
 
 def test_bedrock_batch_retrieval_signing_uses_deployment_credentials(monkeypatch):
-    from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
+    from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
 
     config = BedrockBatchesConfig()
     captured = {}
@@ -487,7 +487,7 @@ def test_bedrock_batch_retrieval_signing_uses_deployment_credentials(monkeypatch
 
 
 def test_bedrock_deployment_credentials_block_caller_profile_override(monkeypatch):
-    from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
+    from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
 
     config = BedrockBatchesConfig()
     captured = {}
@@ -518,7 +518,7 @@ def test_bedrock_deployment_credentials_block_caller_profile_override(monkeypatc
 
 
 def test_bedrock_file_upload_s3_region_survives_deployment_region_merge(monkeypatch):
-    from litellm.llms.bedrock.files.transformation import BedrockFilesConfig
+    from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
     config = BedrockFilesConfig()
     captured = {}

@@ -10,11 +10,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.openai.moderations import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai.moderations import (
     OpenAIModerationGuardrail,
 )
-from litellm.types.llms.openai import OpenAIModerationResponse, OpenAIModerationResult
+from token_iq.gateway.types.llms.openai import OpenAIModerationResponse, OpenAIModerationResult
 
 
 @pytest.mark.asyncio
@@ -34,11 +34,11 @@ async def test_openai_moderation_guardrail_init():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
     """Test that OpenAI moderation guardrail adds itself to litellm callbacks during initialization"""
-    import litellm
-    from litellm.proxy.guardrails.guardrail_hooks.openai import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai import (
         initialize_guardrail as openai_initialize_guardrail,
     )
-    from litellm.types.guardrails import (
+    from token_iq.gateway.types.guardrails import (
         Guardrail,
         LitellmParams,
         SupportedGuardrailIntegrations,
@@ -82,7 +82,7 @@ async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_safe_content():
     """Test OpenAI moderation guardrail with safe content via apply_guardrail"""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -146,7 +146,7 @@ async def test_openai_moderation_guardrail_safe_content():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_apply_guardrail():
     """Test OpenAI moderation guardrail apply_guardrail method (unified guardrail interface)"""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -204,7 +204,7 @@ async def test_openai_moderation_guardrail_apply_guardrail():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_harmful_content():
     """Test OpenAI moderation guardrail with harmful content via apply_guardrail"""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -272,7 +272,7 @@ async def test_openai_moderation_guardrail_harmful_content():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_streaming_safe_content():
     """Test OpenAI moderation guardrail with streaming safe content via UnifiedLLMGuardrails"""
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         UnifiedLLMGuardrails,
     )
 
@@ -352,7 +352,7 @@ async def test_openai_moderation_guardrail_streaming_safe_content():
         with (
             patch.object(guardrail, "async_make_request", return_value=mock_response),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=mock_model_response,
             ),
         ):
@@ -383,7 +383,7 @@ async def test_openai_moderation_guardrail_streaming_safe_content():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_streaming_harmful_content():
     """Test OpenAI moderation guardrail with streaming harmful content via UnifiedLLMGuardrails"""
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         UnifiedLLMGuardrails,
     )
 
@@ -448,8 +448,8 @@ async def test_openai_moderation_guardrail_streaming_harmful_content():
                 yield chunk
 
         # Mock for stream_chunk_builder - use real litellm types so isinstance checks pass
-        from litellm.types.utils import ModelResponse
-        import litellm
+        from token_iq.gateway.types.utils import ModelResponse
+        from token_iq import gateway as litellm
 
         mock_model_response = ModelResponse(
             id="mock-response",
@@ -469,7 +469,7 @@ async def test_openai_moderation_guardrail_streaming_harmful_content():
         with (
             patch.object(guardrail, "async_make_request", return_value=mock_response),
             patch(
-                "litellm.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
+                "token_iq.gateway.llms.openai.chat.guardrail_translation.handler.stream_chunk_builder",
                 return_value=mock_model_response,
             ),
         ):
@@ -507,7 +507,7 @@ async def test_openai_moderation_guardrail_streaming_harmful_content():
 async def test_openai_moderation_guardrail_logs_full_response_safe_content():
     """Test that safe content logs the full moderation response (categories, scores)
     in StandardLoggingGuardrailInformation, not just 'allow'."""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -580,7 +580,7 @@ async def test_openai_moderation_guardrail_logs_full_response_safe_content():
 async def test_openai_moderation_guardrail_logs_full_response_harmful_content():
     """Test that harmful content logs guardrail_intervened status with the full
     moderation response, not just the exception string."""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -655,12 +655,12 @@ async def test_openai_moderation_post_call_request_data_passthrough():
     via the unified guardrail dispatcher (Bug 1 fix)."""
     from unittest.mock import AsyncMock
 
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         UnifiedLLMGuardrails,
     )
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
-    import litellm
+    from token_iq import gateway as litellm
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -733,7 +733,7 @@ async def test_openai_moderation_post_call_request_data_passthrough():
         # Guardrail info in the REAL request_data (not a throwaway). The unified hook
         # seeds litellm_metadata, so read the bucket the resolver names rather than
         # assuming "metadata"; the spend log reads it the same way.
-        from litellm.litellm_core_utils.core_helpers import (
+        from token_iq.gateway.core_utils.core_helpers import (
             get_metadata_variable_name_from_kwargs,
         )
 
@@ -837,7 +837,7 @@ async def test_openai_moderation_logs_violation_categories_harmful_content():
     response blob (LIT-3801)."""
     from fastapi import HTTPException
 
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(guardrail_name="test-openai-moderation")
@@ -892,7 +892,7 @@ async def test_openai_moderation_logs_violation_categories_harmful_content():
 async def test_openai_moderation_no_violation_categories_safe_content():
     """Safe content carries no violation_categories key, so the short attribute
     is absent rather than empty on allowed requests (LIT-3801)."""
-    from litellm.types.utils import GenericGuardrailAPIInputs
+    from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(guardrail_name="test-openai-moderation")
@@ -956,11 +956,11 @@ async def test_openai_moderation_guardrail_streaming_overrides():
 @pytest.mark.asyncio
 async def test_openai_moderation_initialize_guardrail_forwards_streaming_flags():
     """initialize_guardrail forwards streaming knobs from litellm_params (extra='allow')."""
-    import litellm
-    from litellm.proxy.guardrails.guardrail_hooks.openai import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai import (
         initialize_guardrail as openai_initialize_guardrail,
     )
-    from litellm.types.guardrails import (
+    from token_iq.gateway.types.guardrails import (
         Guardrail,
         LitellmParams,
         SupportedGuardrailIntegrations,

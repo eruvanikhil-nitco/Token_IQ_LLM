@@ -6,7 +6,7 @@ Ref: https://github.com/BerriAI/litellm/issues/23872
 
 import pytest
 
-from litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler import (
     VertexAIPartnerModelsTokenCounter,
 )
 
@@ -74,7 +74,7 @@ class TestCountTokensLocationResolution:
             async def post(self, url, headers=None, json=None, **kwargs):
                 return FakeResponse()
 
-        import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+        import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
         monkeypatch.setattr(
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
@@ -135,7 +135,7 @@ class TestCountTokensLocationResolution:
             async def post(self, url, headers=None, json=None, **kwargs):
                 return FakeResponse()
 
-        import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+        import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
         monkeypatch.setattr(
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
@@ -191,7 +191,7 @@ class TestCountTokensLocationResolution:
             async def post(self, url, headers=None, json=None, **kwargs):
                 return FakeResponse()
 
-        import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+        import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
         monkeypatch.setattr(
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
@@ -275,7 +275,7 @@ class TestCountTokensVersionSuffixStripping:
                 captured_json.update(json or {})
                 return FakeResponse()
 
-        import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+        import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
         monkeypatch.setattr(
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()

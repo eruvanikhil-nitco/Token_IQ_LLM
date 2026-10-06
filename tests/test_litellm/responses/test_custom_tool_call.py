@@ -14,10 +14,10 @@ from typing import Dict, Any, List
 
 from openai.types.responses import ResponseFunctionToolCall
 
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.responses.litellm_completion_transformation.custom_tools import (
+from token_iq.gateway.responses.litellm_completion_transformation.custom_tools import (
     extract_custom_tool_names,
     is_custom_tool_call,
     openai_shaped_tool_call_item_id,
@@ -27,7 +27,7 @@ from litellm.responses.litellm_completion_transformation.custom_tools import (
     _MAX_ARGUMENTS_LEN,
 )
 
-from litellm.types.responses.main import CustomToolCallOutputItem
+from token_iq.gateway.types.responses.main import CustomToolCallOutputItem
 
 
 class TestCustomToolUtilities:
@@ -205,7 +205,7 @@ class TestTransformationCustomTools:
     def test_transform_apply_patch_function_call_to_custom_tool_call(self):
         """Test that apply_patch function_call is converted to custom_tool_call."""
         # Simulate a Chat Completion response with apply_patch function call
-        from litellm.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
 
         tool_call = ChatCompletionMessageToolCall(
             id="call_abc123",
@@ -296,7 +296,7 @@ class TestTransformationCustomTools:
 
     def test_transform_regular_function_call_unchanged(self):
         """Test that regular function calls remain as ResponseFunctionToolCall."""
-        from litellm.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
 
         tool_call = ChatCompletionMessageToolCall(
             id="call_xyz789",
@@ -333,7 +333,7 @@ class TestTransformationCustomTools:
         """Anthropic tool ids (toolu_/srvtoolu_) surfacing through the bridge
         must be emitted with fc/ctc-prefixed item ids so a Responses client can
         replay them to OpenAI verbatim, while call_id stays raw for pairing."""
-        from litellm.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
 
         client_call = ChatCompletionMessageToolCall(
             id="toolu_01ClientCall",
@@ -377,7 +377,7 @@ class TestTransformationCustomTools:
 
     def test_transform_mixed_tool_calls(self):
         """Test transformation with both custom and regular tool calls."""
-        from litellm.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ModelResponse, Choices, Message, ChatCompletionMessageToolCall, Function
 
         custom_call = ChatCompletionMessageToolCall(
             id="call_001",

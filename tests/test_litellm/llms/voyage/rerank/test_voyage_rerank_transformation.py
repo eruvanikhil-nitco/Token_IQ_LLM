@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.voyage.rerank.transformation import VoyageRerankConfig
-from litellm.types.rerank import RerankResponse
+from token_iq.gateway.llms.voyage.rerank.transformation import VoyageRerankConfig
+from token_iq.gateway.types.rerank import RerankResponse
 
 
 class TestVoyageRerankTransform:
@@ -266,7 +266,7 @@ class TestVoyageRerankTransform:
         assert "top_n" in supported_params
         assert "return_documents" in supported_params
 
-    @patch("litellm.llms.voyage.rerank.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.voyage.rerank.transformation.get_secret_str")
     def test_validate_environment_missing_api_key(self, mock_get_secret_str):
         """Test that validate_environment raises error when API key is missing."""
         # Mock get_secret_str to return None for both environment variables
@@ -291,7 +291,7 @@ class TestVoyageRerankTransform:
 
     def test_calculate_rerank_cost(self):
         """Test cost calculation for Voyage AI rerank."""
-        from litellm.types.rerank import RerankBilledUnits
+        from token_iq.gateway.types.rerank import RerankBilledUnits
 
         billed_units = RerankBilledUnits(total_tokens=1000)
         model_info = {"input_cost_per_token": 0.00000005}  # $0.05 per 1M tokens

@@ -3,14 +3,14 @@ import json
 import pytest
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import time
 import base64
 
-import litellm
+from token_iq import gateway as litellm
 from abc import ABC, abstractmethod
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 class BaseVectorStoreTest(ABC):

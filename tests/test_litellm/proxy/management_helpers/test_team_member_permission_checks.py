@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from litellm.proxy._types import KeyManagementRoutes, Member, ProxyException
-from litellm.proxy.management_helpers.team_member_permission_checks import (
+from token_iq.gateway.proxy._types import KeyManagementRoutes, Member, ProxyException
+from token_iq.gateway.proxy.management_helpers.team_member_permission_checks import (
     BASELINE_TEAM_MEMBER_PERMISSIONS,
     TeamMemberPermissionChecks,
 )
@@ -73,9 +73,9 @@ class TestGetPermissionsForTeamMember:
 class TestGetDefaultTeamParam:
     def test_returns_none_when_no_config(self, monkeypatch):
         """Returns None when litellm.default_team_params is None."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
@@ -86,9 +86,9 @@ class TestGetDefaultTeamParam:
 
     def test_returns_none_when_field_not_set(self, monkeypatch):
         """Returns None when default_team_params exists but the field is not set."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
@@ -99,9 +99,9 @@ class TestGetDefaultTeamParam:
 
     def test_returns_permissions_from_dict_config(self, monkeypatch):
         """Returns permissions when default_team_params is a dict."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
@@ -116,9 +116,9 @@ class TestGetDefaultTeamParam:
 
     def test_returns_scalar_fields_from_dict_config(self, monkeypatch):
         """Returns scalar fields (max_budget, tpm_limit, etc.) from dict config."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
@@ -140,12 +140,12 @@ class TestGetDefaultTeamParam:
 
     def test_returns_permissions_from_pydantic_config(self, monkeypatch):
         """Returns permissions when default_team_params is a DefaultTeamSSOParams object."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
-        from litellm.types.proxy.management_endpoints.ui_sso import (
+        from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
         )
 
@@ -162,12 +162,12 @@ class TestGetDefaultTeamParam:
 
     def test_returns_scalar_fields_from_pydantic_config(self, monkeypatch):
         """Returns scalar fields from DefaultTeamSSOParams object."""
-        import litellm
+        from token_iq import gateway as litellm
 
-        from litellm.proxy.management_endpoints.team_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
-        from litellm.types.proxy.management_endpoints.ui_sso import (
+        from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
         )
 
@@ -189,8 +189,8 @@ class TestCanTeamMemberExecuteKeyManagementEndpoint:
     @pytest.mark.asyncio
     async def test_raises_when_user_not_in_keys_team(self, monkeypatch):
         """Non-members should be blocked from team-scoped key management endpoints."""
-        from litellm.proxy.management_endpoints import key_management_endpoints
-        from litellm.proxy.management_helpers import (
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_helpers import (
             team_member_permission_checks as module,
         )
 
@@ -227,8 +227,8 @@ class TestCanTeamMemberExecuteKeyManagementEndpoint:
     @pytest.mark.asyncio
     async def test_allows_team_admin_in_keys_team(self, monkeypatch):
         """Team admins of the key's team should be allowed."""
-        from litellm.proxy.management_endpoints import key_management_endpoints
-        from litellm.proxy.management_helpers import (
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_helpers import (
             team_member_permission_checks as module,
         )
 
@@ -283,7 +283,7 @@ class TestEnforceMemberCanAssignAccessGroups:
     def test_no_access_group_ids_is_noop(self, monkeypatch):
         """When no access groups are requested the gate never raises, even
         for a gated member with no opt-in permission."""
-        from litellm.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
 
         monkeypatch.setattr(
             key_management_endpoints,
@@ -301,7 +301,7 @@ class TestEnforceMemberCanAssignAccessGroups:
 
     def test_proxy_admin_bypasses(self, monkeypatch):
         """Proxy admins may assign access groups regardless of team opt-in."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         TeamMemberPermissionChecks.enforce_member_can_assign_access_groups(
             user_api_key_dict=self._user(role=LitellmUserRoles.PROXY_ADMIN.value),
@@ -328,7 +328,7 @@ class TestEnforceMemberCanAssignAccessGroups:
     def test_personal_key_proxy_admin_can_assign(self):
         """Proxy admins bypass the personal-key gate and may assign access
         groups on personal keys."""
-        from litellm.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import LitellmUserRoles
 
         TeamMemberPermissionChecks.enforce_member_can_assign_access_groups(
             user_api_key_dict=self._user(role=LitellmUserRoles.PROXY_ADMIN.value),
@@ -352,7 +352,7 @@ class TestEnforceMemberCanAssignAccessGroups:
 
     def test_team_admin_bypasses(self, monkeypatch):
         """Team admins may assign access groups even without the opt-in perm."""
-        from litellm.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
 
         monkeypatch.setattr(
             key_management_endpoints,
@@ -370,7 +370,7 @@ class TestEnforceMemberCanAssignAccessGroups:
         """A non-admin member without the opt-in permission gets a 403."""
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
 
         monkeypatch.setattr(
             key_management_endpoints,
@@ -389,7 +389,7 @@ class TestEnforceMemberCanAssignAccessGroups:
 
     def test_member_allowed_with_opt_in(self, monkeypatch):
         """A non-admin member is allowed once the team opts in via the perm."""
-        from litellm.proxy.management_endpoints import key_management_endpoints
+        from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
 
         monkeypatch.setattr(
             key_management_endpoints,

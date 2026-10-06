@@ -31,19 +31,19 @@ import pytest
 import respx
 from fastapi import HTTPException
 
-import litellm
+from token_iq import gateway as litellm
 
-from litellm.proxy.guardrails.guardrail_hooks.headroom.headroom import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.headroom.headroom import (
     HeadroomGuardrail,
     extract_hashes_from_messages,
     has_headroom_retrieve_tool,
     HEADROOM_RETRIEVE_TOOL_NAME,
 )
-from litellm.proxy.spend_tracking.compression_savings import (
+from token_iq.gateway.proxy.spend_tracking.compression_savings import (
     extract_compression_saved_tokens,
 )
-from litellm.types.integrations.custom_logger import HEADROOM_CONVERTED_STREAM_KEY
-from litellm.types.utils import (
+from token_iq.gateway.types.integrations.custom_logger import HEADROOM_CONVERTED_STREAM_KEY
+from token_iq.gateway.types.utils import (
     CallTypes,
     GenericGuardrailAPIInputs,
 )
@@ -936,7 +936,7 @@ async def test_passthrough_handler_does_not_log_headroom_as_run(
     shape and no-ops, so it must not appear in the spend log's
     standard_logging_guardrail_information as a successful run.
     """
-    from litellm.llms.pass_through.guardrail_translation.handler import (
+    from token_iq.gateway.llms.pass_through.guardrail_translation.handler import (
         PassThroughEndpointHandler,
     )
 
@@ -2278,7 +2278,7 @@ async def test_retrieved_content_protected_when_mcp_tool_name_is_truncated(guard
     the OpenAI-translated view the guardrail scans, dropping the suffix. The call
     id read from the request's own Anthropic tool_use (never truncated) still
     pairs the retrieved row so it is held back."""
-    from litellm.llms.anthropic.experimental_pass_through.adapters.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
         truncate_tool_name,
     )
 
@@ -2329,7 +2329,7 @@ def test_raw_retrieve_call_ids_covers_both_shapes_and_ignores_others():
     """Retrieve ids are read from OpenAI tool_calls and Anthropic tool_use blocks;
     non-retrieve calls, non-tool_use blocks, string content, and non-list inputs
     yield nothing."""
-    from litellm.proxy.guardrails.guardrail_hooks.headroom.headroom import _raw_retrieve_call_ids
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.headroom.headroom import _raw_retrieve_call_ids
 
     messages = [
         {

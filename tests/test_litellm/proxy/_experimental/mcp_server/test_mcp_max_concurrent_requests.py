@@ -4,9 +4,9 @@ from typing import Dict, Optional
 import pytest
 from unittest.mock import patch
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.types.mcp import MCPAuth, MCPTransport
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 HOLD_SECONDS = 0.1
 

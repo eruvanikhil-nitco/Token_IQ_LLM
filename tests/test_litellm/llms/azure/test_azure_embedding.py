@@ -8,8 +8,8 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
 )
 
-from litellm.llms.azure.azure import AzureChatCompletion
-from litellm.types.utils import EmbeddingResponse, Usage
+from token_iq.gateway.llms.azure.azure import AzureChatCompletion
+from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
 
 def _make_embedding_response() -> EmbeddingResponse:

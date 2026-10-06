@@ -5,16 +5,16 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.azure.containers.transformation import AzureContainerConfig
-from litellm.llms.base_llm.containers.transformation import BaseContainerConfig
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.containers.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.containers.transformation import AzureContainerConfig
+from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.containers.main import (
     ContainerListResponse,
     ContainerObject,
     DeleteContainerResult,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
 
 class TestAzureContainerConfig:
@@ -138,7 +138,7 @@ class TestAzureContainerConfig:
             self.config.get_complete_url(api_base=None, litellm_params={})
 
     def test_transform_container_create_request(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         litellm_params = GenericLiteLLMParams()
         headers = {"api-key": "test-key"}
@@ -181,7 +181,7 @@ class TestAzureContainerConfig:
         assert container.status == "running"
 
     def test_transform_container_list_request(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
         litellm_params = GenericLiteLLMParams()
@@ -228,7 +228,7 @@ class TestAzureContainerConfig:
         assert container_list.first_id == "cntr_1"
 
     def test_transform_container_retrieve_request(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         container_id = "cntr_azure_abc"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -246,7 +246,7 @@ class TestAzureContainerConfig:
         assert params == {}
 
     def test_transform_container_delete_request(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         container_id = "cntr_azure_del"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -280,7 +280,7 @@ class TestAzureContainerConfig:
         assert delete_result.deleted is True
 
     def test_transform_container_file_list_request(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         container_id = "cntr_azure_files"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -300,7 +300,7 @@ class TestAzureContainerConfig:
 
     def test_transform_requests_preserve_query_string_after_path(self):
         """api-version must not appear before /{container_id}/... (Azure bases include ?)."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -346,7 +346,7 @@ class TestAzureContainerConfig:
         assert url_fc.index("/content") < url_fc.index("?")
 
     def test_transform_requests_encode_path_ids_before_query_string(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -369,8 +369,8 @@ class TestAzureContainerConfig:
         assert url == expected_url
 
     def test_provider_config_manager_returns_azure_config(self):
-        from litellm.types.utils import LlmProviders
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.types.utils import LlmProviders
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_container_config(
             provider=LlmProviders.AZURE
@@ -380,7 +380,7 @@ class TestAzureContainerConfig:
         assert isinstance(config, AzureContainerConfig)
 
     def test_proxy_handler_factory_returns_azure_config(self):
-        from litellm.proxy.container_endpoints.handler_factory import (
+        from token_iq.gateway.proxy.container_endpoints.handler_factory import (
             _get_container_provider_config,
         )
 
@@ -390,7 +390,7 @@ class TestAzureContainerConfig:
         assert isinstance(config, AzureContainerConfig)
 
     def test_proxy_handler_factory_raises_for_unsupported_provider(self):
-        from litellm.proxy.container_endpoints.handler_factory import (
+        from token_iq.gateway.proxy.container_endpoints.handler_factory import (
             _get_container_provider_config,
         )
 
@@ -420,7 +420,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_query_never_splits_before_container_segment(self):
         """Forbid the broken shape: …/containers?api-version=v1/cntr_…"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -449,7 +449,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_full_chain_bare_resource_root_like_env(self):
         """Mimics AZURE_API_BASE=https://resource.openai.azure.com — no ? in env."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         resource_root = "https://my-resource.openai.azure.com"
         container_base = self.config.get_complete_url(
@@ -482,7 +482,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_all_crud_urls_with_azure_style_api_base(self):
         """Retrieve, delete, list files, and file content all keep ?api-version last."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = (
             "https://iamkankute-5584-resource.openai.azure.com/openai/v1/containers"
@@ -534,7 +534,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_api_base_with_extra_query_params(self):
         """Multiple query params must stay at the end after path join."""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -565,7 +565,7 @@ class TestAzureContainerKnownFailureRegressions:
         model_id without container_id on POST /v1/containers must not gain
         access to an arbitrary deployment UUID.
         """
-        from litellm.router import Router
+        from token_iq.gateway.router import Router
 
         router = Router(
             model_list=[
@@ -641,7 +641,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_proxy_resolves_azure_text_same_as_azure(self):
         """Router/proxy treat azure_text like azure for container config."""
-        from litellm.proxy.container_endpoints.handler_factory import (
+        from token_iq.gateway.proxy.container_endpoints.handler_factory import (
             _get_container_provider_config,
         )
 
@@ -656,7 +656,7 @@ class TestAzureContainerKnownFailureRegressions:
     ):
         from starlette.requests import Request
 
-        from litellm.proxy.container_endpoints import handler_factory
+        from token_iq.gateway.proxy.container_endpoints import handler_factory
 
         encoded_id = ResponsesAPIRequestUtils._build_container_id(
             custom_llm_provider="azure",
@@ -677,7 +677,7 @@ class TestAzureContainerKnownFailureRegressions:
             captured["route_type"] = route_type
             return {"id": "cfile_abc"}
 
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
@@ -727,7 +727,7 @@ class TestAzureContainerKnownFailureRegressions:
         from fastapi import Response
         from starlette.requests import Request
 
-        from litellm.proxy.container_endpoints import handler_factory
+        from token_iq.gateway.proxy.container_endpoints import handler_factory
 
         encoded_id = ResponsesAPIRequestUtils._build_container_id(
             custom_llm_provider="azure",
@@ -749,7 +749,7 @@ class TestAzureContainerKnownFailureRegressions:
             fastapi_response.headers["x-litellm-call-id"] = "call-123"
             return b"csv-bytes"
 
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
 
@@ -801,11 +801,11 @@ class TestAzureContainerKnownFailureRegressions:
     ):
         from starlette.requests import Request
 
-        from litellm.proxy.common_request_processing import (
+        from token_iq.gateway.proxy.common_request_processing import (
             ProxyBaseLLMRequestProcessing,
         )
-        from litellm.proxy.common_utils import http_parsing_utils
-        from litellm.proxy.container_endpoints import handler_factory
+        from token_iq.gateway.proxy.common_utils import http_parsing_utils
+        from token_iq.gateway.proxy.container_endpoints import handler_factory
 
         encoded_id = ResponsesAPIRequestUtils._build_container_id(
             custom_llm_provider="azure",
@@ -889,7 +889,7 @@ class TestAzureContainerKnownFailureRegressions:
         the router's _init_containers_api_endpoints reads kwargs["model_id"]
         which is set here.
         """
-        from litellm.proxy.container_endpoints.ownership import (
+        from token_iq.gateway.proxy.container_endpoints.ownership import (
             get_container_forwarding_params,
         )
 
@@ -926,8 +926,8 @@ class TestAzureContainerKnownFailureRegressions:
         from types import SimpleNamespace
         from unittest.mock import AsyncMock
 
-        from litellm.proxy.container_endpoints import ownership
-        from litellm.proxy.container_endpoints.ownership import (
+        from token_iq.gateway.proxy.container_endpoints import ownership
+        from token_iq.gateway.proxy.container_endpoints.ownership import (
             get_container_forwarding_params,
         )
 
@@ -977,7 +977,7 @@ class TestAzureContainerKnownFailureRegressions:
         still route through _ageneric_api_call_with_fallbacks using the
         model_id forwarded from the proxy ownership check so that deployment
         credentials (api_base) are applied."""
-        from litellm.router import Router
+        from token_iq.gateway.router import Router
 
         router = Router(
             model_list=[

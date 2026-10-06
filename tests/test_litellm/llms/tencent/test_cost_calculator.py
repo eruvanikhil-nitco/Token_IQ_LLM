@@ -1,8 +1,8 @@
 import pytest
 
-import litellm
-from litellm.llms.tencent.cost_calculator import cost_per_token
-from litellm.types.utils import Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.tencent.cost_calculator import cost_per_token
+from token_iq.gateway.types.utils import Usage
 
 
 
@@ -16,7 +16,7 @@ def test_cost_per_token_uses_tencent_model_pricing(local_model_cost_map):
 
 
 def test_top_level_dispatcher_routes_tencent_to_wrapper(local_model_cost_map):
-    from litellm.cost_calculator import cost_per_token as dispatch_cost_per_token
+    from token_iq.gateway.cost_calculator import cost_per_token as dispatch_cost_per_token
 
     prompt_cost, completion_cost = dispatch_cost_per_token(
         model="tencent/deepseek-v4-pro",

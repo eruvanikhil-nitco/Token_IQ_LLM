@@ -2,18 +2,18 @@ import base64
 
 import pytest
 
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     convert_to_gemini_tool_call_result,
 )
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
     _transform_request_body,
     check_if_part_exists_in_parts,
     _get_highest_media_resolution,
     _extract_max_media_resolution_from_messages,
 )
-from litellm.types.llms.vertex_ai import BlobType
-from litellm.types.utils import Message
+from token_iq.gateway.types.llms.vertex_ai import BlobType
+from token_iq.gateway.types.utils import Message
 
 
 def test_check_if_part_exists_in_parts():
@@ -92,7 +92,7 @@ def test_check_if_part_exists_in_parts_camel_case_snake_case():
 
 def test_cached_content_respects_modify_params_for_cache_incompatible_fields():
     """Regression: cachedContent drops system/tools/toolConfig only when modify_params=True."""
-    import litellm
+    from token_iq import gateway as litellm
 
     cache_name = "projects/p/locations/us-central1/cachedContents/abc123"
     messages = [
@@ -414,10 +414,10 @@ def test_empty_content_handling():
 
 def test_thought_signature_extraction_from_response():
     """Test that thought signatures are extracted from Gemini response parts and stored in provider_specific_fields"""
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.vertex_ai import HttpxPartType
+    from token_iq.gateway.types.llms.vertex_ai import HttpxPartType
 
     # Test case: Single function call with thought signature
     test_signature = "Co4CAdHtim/rWgXbz2Ghp4tShzLeMASrPw6JJyYIC3cbVyZnKzU3uv8/wVzyS2sKRPL2m8QQHHXbNQhEEz500G7n/4ZMmksdTtfQcJMoT76S1DGwhnAiLwTgWCNXs3lEb4M19EVYoWFxhrH5Lr9YMIquoU9U4paydGwvZyIyigamIg4B6WnxrRsf0KZV12gJed0DZuKczvOFtHz3zUnmZRlOiTzd5gBVyQM+5jv1VI8m4WUKd6cN/5a5ZvaA0ggiO6kdVhlpIVs7GczSEVJD8KH4u02X7VSnb7CvykqDntZzV0y8rZFBEFGKrChmeHlWXP4D1IB3F9KQyhuLgWImMzg4BajKVxxMU737JGnNISy5"
@@ -447,10 +447,10 @@ def test_thought_signature_extraction_from_response():
 
 def test_thought_signature_parallel_function_calls():
     """Test that only the first function call in parallel calls has thought signature"""
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.vertex_ai import HttpxPartType
+    from token_iq.gateway.types.llms.vertex_ai import HttpxPartType
 
     test_signature = "Co4CAdHtim/rWgXbz2Ghp4tShzLeMASrPw6JJyYIC3cbVyZnKzU3uv8/wVzyS2sKRPL2m8QQHHXbNQhEEz500G7n/4ZMmksdTtfQcJMoT76S1DGwhnAiLwTgWCNXs3lEb4M19EVYoWFxhrH5Lr9YMIquoU9U4paydGwvZyIyigamIg4B6WnxrRsf0KZV12gJed0DZuKczvOFtHz3zUnmZRlOiTzd5gBVyQM+5jv1VI8m4WUKd6cN/5a5ZvaA0ggiO6kdVhlpIVs7GczSEVJD8KH4u02X7VSnb7CvykqDntZzV0y8rZFBEFGKrChmeHlWXP4D1IB3F9KQyhuLgWImMzg4BajKVxxMU737JGnNISy5"
 
@@ -491,7 +491,7 @@ def test_thought_signature_parallel_function_calls():
 
 def test_thought_signature_preservation_in_conversion():
     """Test that thought signatures are preserved when converting assistant messages back to Gemini format"""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -542,7 +542,7 @@ def test_thought_signature_preservation_in_conversion():
 
 def test_thought_signature_sequential_function_calls():
     """Test that each sequential function call preserves its own thought signature"""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -602,10 +602,10 @@ def test_thought_signature_sequential_function_calls():
 
 def test_thought_signature_with_function_call_mode():
     """Test thought signature extraction in function_call mode (is_function_call=True)"""
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.vertex_ai import HttpxPartType
+    from token_iq.gateway.types.llms.vertex_ai import HttpxPartType
 
     test_signature = "Co4CAdHtim/rWgXbz2Ghp4tShzLeMASrPw6JJyYIC3cbVyZnKzU3uv8/wVzyS2sKRPL2m8QQHHXbNQhEEz500G7n/4ZMmksdTtfQcJMoT76S1DGwhnAiLwTgWCNXs3lEb4M19EVYoWFxhrH5Lr9YMIquoU9U4paydGwvZyIyigamIg4B6WnxrRsf0KZV12gJed0DZuKczvOFtHz3zUnmZRlOiTzd5gBVyQM+5jv1VI8m4WUKd6cN/5a5ZvaA0ggiO6kdVhlpIVs7GczSEVJD8KH4u02X7VSnb7CvykqDntZzV0y8rZFBEFGKrChmeHlWXP4D1IB3F9KQyhuLgWImMzg4BajKVxxMU737JGnNISy5"
 
@@ -638,7 +638,7 @@ def test_dummy_signature_added_for_gemini_3_conversation_history():
     """Test that dummy signatures are added when transferring conversation history from older models (like gemini-2.5-flash) to gemini-3."""
     import base64
 
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -679,7 +679,7 @@ def test_dummy_signature_added_for_gemini_3_conversation_history():
 
 def test_dummy_signature_not_added_for_gemini_2_5():
     """Test that dummy signatures are NOT added when target model is not gemini-3."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -714,7 +714,7 @@ def test_dummy_signature_not_added_for_gemini_2_5():
 
 def test_dummy_signature_not_added_when_signature_exists():
     """Test that dummy signatures are NOT added when a real signature already exists."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -756,7 +756,7 @@ def test_dummy_signature_with_function_call_mode():
     """Test that dummy signatures are added for function_call mode when converting to gemini-3."""
     import base64
 
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -814,7 +814,7 @@ def _parallel_tool_calls_signed_via_id(*signatures):
     The signature rides in the tool call id behind __thought__, which is what an
     OpenAI-format client echoes back on the next turn.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _encode_tool_call_id_with_signature,
     )
 
@@ -838,7 +838,7 @@ PLACEHOLDER_SIGNATURE = base64.b64encode(b"skip_thought_signature_validator").de
 def test_dummy_signature_only_on_first_parallel_tool_call():
     """Google documents the placeholder as a last resort that degrades quality, so an unsigned
     parallel turn replayed to gemini-3 gets a budget of exactly one."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -860,7 +860,7 @@ def test_dummy_signature_only_on_first_parallel_tool_call():
 def test_real_signature_on_first_parallel_tool_call_leaves_siblings_empty():
     """Gemini signs only the first of N parallel function calls, so a faithful replay has
     nothing to attach to the siblings."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -882,7 +882,7 @@ def test_real_signature_on_first_parallel_tool_call_leaves_siblings_empty():
 def test_real_signature_on_later_parallel_tool_call_is_preserved():
     """Clients may reorder or drop calls, so a signature that lands on a non-first call is
     still the model's own and must survive the round trip."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -902,7 +902,7 @@ def test_real_signature_on_later_parallel_tool_call_is_preserved():
 
 def test_no_signatures_on_parallel_tool_calls_for_gemini_2_5():
     """Non-gemini-3 models never get a placeholder signature, on any call."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -921,7 +921,7 @@ def test_no_signatures_on_parallel_tool_calls_for_gemini_2_5():
 
 def test_signature_embedded_in_tool_call_id_only_on_first_parallel_call():
     """The production shape: the signature arrives inside the first call's id, siblings have bare ids."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -944,7 +944,7 @@ def test_signature_embedded_in_tool_call_id_only_on_first_parallel_call():
 
 def test_tool_level_provider_specific_fields_signature_leaves_siblings_empty():
     """A signature on the tool call itself, rather than on its function, behaves the same way."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -966,7 +966,7 @@ def test_tool_level_provider_specific_fields_signature_leaves_siblings_empty():
 def test_placeholder_lands_on_first_emitted_part_not_first_tool_call_entry():
     """A non-function entry (e.g. an OpenAI custom tool call) emits no part, so it must not
     consume the one placeholder slot and leave the real first function call bare."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -986,7 +986,7 @@ def test_placeholder_lands_on_first_emitted_part_not_first_tool_call_entry():
 
 def test_no_placeholder_when_model_is_unknown():
     """Without a model there is nothing to prove the target needs a placeholder, so none is added."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -1004,7 +1004,7 @@ def test_no_placeholder_when_model_is_unknown():
 
 def test_real_signature_forwarded_to_gemini_2_5_without_placeholder_siblings():
     """Older models still receive a real signature that a client replays, and still get no placeholder."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -1024,7 +1024,7 @@ def test_real_signature_forwarded_to_gemini_2_5_without_placeholder_siblings():
 
 def test_parallel_tool_call_history_replayed_through_full_message_conversion():
     """End to end through the message-history converter, the path a real /chat/completions replay takes."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -1062,7 +1062,7 @@ def test_natively_signed_parallel_turn_never_carries_a_placeholder(model):
     """
     import json
 
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -1108,7 +1108,7 @@ def test_natively_signed_parallel_turn_never_carries_a_placeholder(model):
 def test_placeholder_scoped_to_first_call_across_gemini_3_variants(model):
     """The gemini-3 gate is a substring match, so every family member and prefix form has to
     land on the same one-placeholder budget rather than only the versions we happened to try."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_invoke,
     )
 
@@ -1130,7 +1130,7 @@ def test_placeholder_scoped_to_first_call_across_gemini_3_variants(model):
 def test_signed_text_part_survives_alongside_unsigned_parallel_tool_calls():
     """Text-part and function-call signatures are collected by separate code paths, so scoping the
     placeholder must not disturb a real signature that arrived on the text part."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -1777,7 +1777,7 @@ def test_file_data_field_order():
     """
     import json
 
-    from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 
     # Test with HTTPS URL and explicit format (audio file)
     file_url = "https://generativelanguage.googleapis.com/v1beta/files/test123"
@@ -1815,7 +1815,7 @@ def test_file_data_field_order_gcs_urls():
     """Test that GCS URLs also maintain correct field order."""
     import json
 
-    from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 
     # Test with GCS URL
     gcs_url = "gs://bucket/audio.mp3"
@@ -1850,7 +1850,7 @@ def test_gemini_files_api_uri_without_format():
 
     Related issue: https://github.com/BerriAI/litellm/issues/24907
     """
-    from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 
     file_url = "https://generativelanguage.googleapis.com/v1beta/files/37eh7rsw1vfe"
 
@@ -1872,7 +1872,7 @@ def test_gemini_files_api_uri_with_format():
 
     Related issue: https://github.com/BerriAI/litellm/issues/24907
     """
-    from litellm.llms.vertex_ai.gemini.transformation import _process_gemini_media
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 
     file_url = "https://generativelanguage.googleapis.com/v1beta/files/n1vhxa28lyaw"
 
@@ -1899,7 +1899,7 @@ def test_extract_file_data_with_path_object():
     import tempfile
     from pathlib import Path
 
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         extract_file_data,
     )
 
@@ -1938,7 +1938,7 @@ def test_extract_file_data_with_pathlib_path():
     import tempfile
     from pathlib import Path
 
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         extract_file_data,
     )
 
@@ -1962,7 +1962,7 @@ def test_extract_file_data_with_pathlib_path():
 
 def test_extract_file_data_with_tuple_format():
     """Test that tuple format (with explicit content_type) still works correctly."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         extract_file_data,
     )
 
@@ -1985,7 +1985,7 @@ def test_extract_file_data_fallback_to_octet_stream():
     import tempfile
     from pathlib import Path
 
-    from litellm.litellm_core_utils.prompt_templates.common_utils import (
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         extract_file_data,
     )
 
@@ -2469,10 +2469,10 @@ def test_multi_turn_function_calling_roles():
 
 def test_gemini_thought_signature_preservation_real_response():
     """Test that thought signatures are preserved on the text part if originally there, without dropping or duplicating (real response case)."""
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2540,7 +2540,7 @@ def test_gemini_thought_signature_preservation_real_response():
 
 def test_gemini_thought_signature_deduplication_assumed_response():
     """Test that thought signatures are deduplicated and not attached to the text part if already present in the tool call (assumed response case)."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2579,7 +2579,7 @@ def test_gemini_thought_signature_deduplication_assumed_response():
 
 def test_gemini_thought_signature_pure_text():
     """Test that thought signatures are preserved on the text part for responses with no tool calls."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2606,7 +2606,7 @@ def test_gemini_thought_signature_pure_text():
 
 def test_gemini_thought_signature_pure_tool_call():
     """Test that thought signatures are preserved on the tool call for responses with no intermediate text."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2643,7 +2643,7 @@ def test_gemini_thought_signature_pure_tool_call():
 
 def test_gemini_distinct_text_and_tool_signatures_are_both_preserved():
     """A text-part signature that differs from the tool-call signature must stay on the text part."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2676,10 +2676,10 @@ def test_gemini_distinct_text_and_tool_signatures_are_both_preserved():
 def test_gemini_25_text_signature_survives_replay_to_gemini_3():
     """gemini-2.5 history (signed text, unsigned tool call) replayed to gemini-3 keeps the real
     text signature; the dummy signature synthesized for the unsigned tool call must not suppress it."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         _get_dummy_thought_signature,
     )
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 
@@ -2709,10 +2709,10 @@ def test_gemini_25_text_signature_survives_replay_to_gemini_3():
 def test_gemini_function_call_signature_round_trip_no_duplicate():
     """End to end: a gemini-3-style response (unsigned text + signed functionCall) parsed and
     re-serialized sends the signature exactly once, on the function-call part."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -2752,7 +2752,7 @@ def test_gemini_function_call_signature_round_trip_no_duplicate():
 
 def test_gemini_server_side_tool_signature_not_duplicated_on_text():
     """A signature already re-injected on a server-side toolCall part is not attached to the text part again."""
-    from litellm.llms.vertex_ai.gemini.transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
         _gemini_convert_messages_with_history,
     )
 

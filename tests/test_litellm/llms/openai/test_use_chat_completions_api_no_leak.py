@@ -10,9 +10,9 @@ body. OpenAI/Anthropic reject unknown body params with HTTP 400.
 from unittest.mock import MagicMock
 
 
-import litellm
-from litellm.types.utils import all_litellm_params
-from litellm.utils import get_non_default_completion_params
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import all_litellm_params
+from token_iq.gateway.utils import get_non_default_completion_params
 
 
 def test_use_chat_completions_api_is_a_known_litellm_param():

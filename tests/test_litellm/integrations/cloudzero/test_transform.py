@@ -5,8 +5,8 @@ import polars as pl
 import pytest
 
 
-from litellm.integrations.cloudzero.transform import CBFTransformer
-from litellm.types.integrations.cloudzero import CBFRecord
+from token_iq.gateway.integrations.cloudzero.transform import CBFTransformer
+from token_iq.gateway.types.integrations.cloudzero import CBFRecord
 
 
 class TestCBFTransformer:

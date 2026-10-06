@@ -2,7 +2,7 @@ import os
 import pytest
 from unittest.mock import patch, AsyncMock
 
-import litellm
+from token_iq import gateway as litellm
 import json
 from base_responses_api import BaseResponsesAPITest
 
@@ -45,7 +45,7 @@ async def test_mock_basic_google_ai_studio_responses_api_with_tools():
         ],
     )
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = mock_response
 
         request_model = "gemini/gemini-2.5-flash"
@@ -130,7 +130,7 @@ async def test_gemini_3_responses_api_with_thought_signatures():
     )
 
     # Validate response structure
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     assert isinstance(
         response, ResponsesAPIResponse

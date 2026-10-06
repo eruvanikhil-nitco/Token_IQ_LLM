@@ -1,10 +1,10 @@
 import os
 import pytest
-import litellm
-from litellm import completion
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import patch
-from litellm.llms.heroku.chat.transformation import HerokuChatConfig
+from token_iq.gateway.llms.heroku.chat.transformation import HerokuChatConfig
 
 os.environ["HEROKU_API_BASE"] = "https://us.inference.heroku.com"
 os.environ["HEROKU_API_KEY"] = "fake-heroku-key"

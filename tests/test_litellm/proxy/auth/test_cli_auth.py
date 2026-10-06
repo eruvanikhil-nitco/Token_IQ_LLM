@@ -1,5 +1,5 @@
 """
-Tests for litellm/proxy/client/cli/commands/auth.py
+Tests for token_iq/gateway/proxy/client/cli/commands/auth.py
 
 This module tests the auth commands and their associated functionality.
 """
@@ -7,7 +7,7 @@ This module tests the auth commands and their associated functionality.
 import pytest
 import requests
 from unittest.mock import patch, Mock, call
-from litellm.proxy.client.cli.commands.auth import (
+from token_iq.gateway.proxy.client.cli.commands.auth import (
     _normalize_teams,
     _poll_for_ready_data,
     _poll_for_authentication,
@@ -58,7 +58,7 @@ async def test_normalize_teams_with_details_with_aliases():
     ]
 
 
-@patch("litellm.proxy.client.cli.commands.auth.requests.post")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.requests.post")
 def test_start_cli_sso_flow_rejects_invalid_response(request_mock):
     """Test CLI SSO start rejects malformed server responses and names the missing fields"""
     response = Mock()
@@ -72,10 +72,10 @@ def test_start_cli_sso_flow_rejects_invalid_response(request_mock):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth.requests.get",
+    "token_iq.gateway.proxy.client.cli.commands.auth.requests.get",
     side_effect=[Mock(status_code=404)],
 )
-@patch("litellm.proxy.client.cli.commands.auth.time.sleep")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.time.sleep")
 async def test_poll_for_ready_404(sleep_mock, request_mock):
     """Test polling treats HTTP 404 as a permanent error and raises instead of retrying"""
     with pytest.raises(ValueError, match="rejected the login session with HTTP 404"):
@@ -87,15 +87,15 @@ async def test_poll_for_ready_404(sleep_mock, request_mock):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth.requests.get",
+    "token_iq.gateway.proxy.client.cli.commands.auth.requests.get",
     side_effect=[
         Mock(
             status_code=200, json=Mock(return_value={"status": "ready", "json": "data"})
         )
     ],
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
-@patch("litellm.proxy.client.cli.commands.auth.time.sleep")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.time.sleep")
 async def test_poll_for_ready_200_ready(sleep_mock, click_mock, request_mock):
     """Test poll_for_ready function"""
     actual = _poll_for_ready_data(
@@ -109,7 +109,7 @@ async def test_poll_for_ready_200_ready(sleep_mock, click_mock, request_mock):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth.requests.get",
+    "token_iq.gateway.proxy.client.cli.commands.auth.requests.get",
     side_effect=[
         Mock(
             status_code=200,
@@ -120,8 +120,8 @@ async def test_poll_for_ready_200_ready(sleep_mock, click_mock, request_mock):
         ),
     ],
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
-@patch("litellm.proxy.client.cli.commands.auth.time.sleep")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.time.sleep")
 async def test_poll_for_ready_single_pending(sleep_mock, click_mock, request_mock):
     """Test poll_for_ready function"""
     actual = _poll_for_ready_data(
@@ -140,7 +140,7 @@ async def test_poll_for_ready_single_pending(sleep_mock, click_mock, request_moc
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth.requests.get",
+    "token_iq.gateway.proxy.client.cli.commands.auth.requests.get",
     side_effect=[
         Mock(
             status_code=200,
@@ -152,8 +152,8 @@ async def test_poll_for_ready_single_pending(sleep_mock, click_mock, request_moc
         ),
     ],
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
-@patch("litellm.proxy.client.cli.commands.auth.time.sleep")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.time.sleep")
 async def test_poll_for_ready_pending(sleep_mock, click_mock, request_mock):
     """Test poll_for_ready function"""
     actual = _poll_for_ready_data(
@@ -177,14 +177,14 @@ async def test_poll_for_ready_pending(sleep_mock, click_mock, request_mock):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth.requests.get",
+    "token_iq.gateway.proxy.client.cli.commands.auth.requests.get",
     side_effect=[
         requests.RequestException("ERROR"),
         requests.RequestException("ERROR"),
     ],
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
-@patch("litellm.proxy.client.cli.commands.auth.time.sleep")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.time.sleep")
 async def test_poll_for_ready_connection_failure(sleep_mock, click_mock, request_mock):
     """Test poll_for_ready function"""
     actual = _poll_for_ready_data(
@@ -201,9 +201,9 @@ async def test_poll_for_ready_connection_failure(sleep_mock, click_mock, request
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
-@patch("litellm.proxy.client.cli.commands.auth._poll_for_ready_data", return_value=None)
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth._poll_for_ready_data", return_value=None)
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
 async def test_poll_for_authentication_no_data(click_mock, poll_mock, handle_mock):
     """Test poll_for_authentication function"""
     actual = _poll_for_authentication("https://litellm.com", "key-123", "poll-secret")
@@ -218,12 +218,12 @@ async def test_poll_for_authentication_no_data(click_mock, poll_mock, handle_moc
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
 @patch(
-    "litellm.proxy.client.cli.commands.auth._poll_for_ready_data",
+    "token_iq.gateway.proxy.client.cli.commands.auth._poll_for_ready_data",
     return_value={"requires_team_selection": True, "teams": [], "team_details": []},
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
 async def test_poll_for_authentication_no_teams(click_mock, poll_mock, handle_mock):
     """Test poll_for_authentication function"""
     actual = _poll_for_authentication("https://litellm.com", "key-123", "poll-secret")
@@ -240,18 +240,18 @@ async def test_poll_for_authentication_no_teams(click_mock, poll_mock, handle_mo
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth._handle_team_selection_during_polling",
+    "token_iq.gateway.proxy.client.cli.commands.auth._handle_team_selection_during_polling",
     return_value="jwt-123",
 )
 @patch(
-    "litellm.proxy.client.cli.commands.auth._poll_for_ready_data",
+    "token_iq.gateway.proxy.client.cli.commands.auth._poll_for_ready_data",
     return_value={
         "requires_team_selection": True,
         "teams": [1, 2],
         "user_id": "user-123",
     },
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
 async def test_poll_for_authentication_team_selection_success(
     click_mock, poll_mock, handle_mock
 ):
@@ -282,18 +282,18 @@ async def test_poll_for_authentication_team_selection_success(
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.client.cli.commands.auth._handle_team_selection_during_polling",
+    "token_iq.gateway.proxy.client.cli.commands.auth._handle_team_selection_during_polling",
     return_value=None,
 )
 @patch(
-    "litellm.proxy.client.cli.commands.auth._poll_for_ready_data",
+    "token_iq.gateway.proxy.client.cli.commands.auth._poll_for_ready_data",
     return_value={
         "requires_team_selection": True,
         "teams": ["team-1"],
         "user_id": "user-123",
     },
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
 async def test_poll_for_authentication_team_selection_cancelled(
     click_mock, poll_mock, handle_mock
 ):
@@ -316,9 +316,9 @@ async def test_poll_for_authentication_team_selection_cancelled(
 
 
 @pytest.mark.asyncio
-@patch("litellm.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth._handle_team_selection_during_polling")
 @patch(
-    "litellm.proxy.client.cli.commands.auth._poll_for_ready_data",
+    "token_iq.gateway.proxy.client.cli.commands.auth._poll_for_ready_data",
     return_value={
         "key": "jwt-456",
         "user_id": "user-456",
@@ -326,7 +326,7 @@ async def test_poll_for_authentication_team_selection_cancelled(
         "team_id": "team-1",
     },
 )
-@patch("litellm.proxy.client.cli.commands.auth.click.echo")
+@patch("token_iq.gateway.proxy.client.cli.commands.auth.click.echo")
 async def test_poll_for_authentication_auto_assigned_team(
     click_mock, poll_mock, handle_mock
 ):

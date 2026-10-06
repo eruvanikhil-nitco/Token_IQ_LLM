@@ -2,7 +2,7 @@ from typing import Any, Dict, Tuple
 
 import pytest
 
-from litellm.proxy.client.cli.commands.autoroute.config import (
+from token_iq.gateway.proxy.client.cli.commands.autoroute.config import (
     DEFAULT_KEYWORD_TIER_RULES,
     AutorouteConfig,
     ConfigGenerationError,
@@ -100,7 +100,7 @@ class TestBuildGeneratedModelList:
     def test_no_wildcard_deployment_is_generated(self):
         # A bare "*" model_name looks like the obvious catch-all, but Router's auto-router
         # registry is keyed by the literal requested model string with no wildcard resolution
-        # (litellm/router.py:10711-10717), so a "*" entry here would silently never match real
+        # (token_iq/gateway/router.py:10711-10717), so a "*" entry here would silently never match real
         # traffic. Regression guard: don't reintroduce it.
         config = _base_config()
         model_list = build_generated_model_list(config)

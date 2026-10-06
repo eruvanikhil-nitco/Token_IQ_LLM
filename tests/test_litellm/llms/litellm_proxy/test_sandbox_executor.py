@@ -2,7 +2,7 @@ import sys
 import types
 from types import SimpleNamespace
 
-from litellm.llms.litellm_proxy.skills.sandbox_executor import SkillsSandboxExecutor
+from token_iq.gateway.llms.litellm_proxy.skills.sandbox_executor import SkillsSandboxExecutor
 
 
 class _FakeSandboxSession:

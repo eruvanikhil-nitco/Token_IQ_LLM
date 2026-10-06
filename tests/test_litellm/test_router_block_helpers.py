@@ -1,6 +1,6 @@
 """Unit tests for Router block helper methods (coverage gate)."""
 
-from litellm import Router
+from token_iq.gateway import Router
 
 
 def _make_router(model_name: str, blocked: bool = False) -> Router:

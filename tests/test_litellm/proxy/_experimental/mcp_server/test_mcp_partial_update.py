@@ -13,11 +13,11 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from prisma import Json
 
-from litellm.proxy._experimental.mcp_server.db import (
+from token_iq.gateway.proxy._experimental.mcp_server.db import (
     create_mcp_server,
     update_mcp_server,
 )
-from litellm.proxy._types import NewMCPServerRequest, UpdateMCPServerRequest
+from token_iq.gateway.proxy._types import NewMCPServerRequest, UpdateMCPServerRequest
 
 
 def _credentials_cleared(value) -> bool:

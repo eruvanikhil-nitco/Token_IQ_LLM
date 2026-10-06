@@ -5,7 +5,7 @@ import time
 import httpx
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 OPENAI_API_BASE = "https://example.openai.test/v1"
 
@@ -60,7 +60,7 @@ def _stream_payload(response_id="chatcmpl-stream"):
 def _mock_openai_completion_transport(
     monkeypatch, *, stream=False, response_id="chatcmpl-test"
 ):
-    from litellm.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+    from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
 
     calls = {"count": 0}
 
@@ -153,7 +153,7 @@ async def test_litellm_overhead_stream(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_litellm_overhead_cache_hit(monkeypatch):
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     calls = _mock_openai_completion_transport(monkeypatch, response_id="chatcmpl-cache")
     litellm.cache = Cache()

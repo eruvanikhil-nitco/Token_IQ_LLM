@@ -6,12 +6,12 @@ from typing import Optional
 import yaml
 from click.testing import CliRunner
 
-from litellm.proxy.client.cli.commands.autoroute import commands as commands_module
-from litellm.proxy.client.cli.commands.autoroute import process as process_module
-from litellm.proxy.client.cli.commands.autoroute.commands import down, up
-from litellm.proxy.client.cli.commands.autoroute.process import PidRecord, ProcessLaunchError, write_pid_record
-from litellm.proxy.client.cli.commands.up import BackupRecord as ClaudeBackupRecord
-from litellm.proxy.client.cli.commands.up import write_backup
+from token_iq.gateway.proxy.client.cli.commands.autoroute import commands as commands_module
+from token_iq.gateway.proxy.client.cli.commands.autoroute import process as process_module
+from token_iq.gateway.proxy.client.cli.commands.autoroute.commands import down, up
+from token_iq.gateway.proxy.client.cli.commands.autoroute.process import PidRecord, ProcessLaunchError, write_pid_record
+from token_iq.gateway.proxy.client.cli.commands.up import BackupRecord as ClaudeBackupRecord
+from token_iq.gateway.proxy.client.cli.commands.up import write_backup
 
 
 class FakeProcess:

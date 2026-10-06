@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm.proxy._types import LiteLLM_TeamTable, LiteLLM_UserTable, Member
-from litellm.proxy.auth.handle_jwt import JWTAuthManager
+from token_iq.gateway.proxy._types import LiteLLM_TeamTable, LiteLLM_UserTable, Member
+from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager
 
 
 def test_get_team_models_for_all_models_and_team_only_models():
-    from litellm.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
 
     team_models = ["all-proxy-models", "team-only-model", "team-only-model-2"]
     proxy_model_list = ["model1", "model2", "model3"]
@@ -27,7 +27,7 @@ def test_get_team_models_all_proxy_models_includes_access_groups():
     the result should include model access group names (e.g. 'claude-model-group')
     in addition to individual model names.
     """
-    from litellm.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
 
     team_models = ["all-proxy-models"]
     proxy_model_list = ["model1", "model2"]
@@ -54,7 +54,7 @@ def test_get_team_models_all_proxy_models_without_include_flag():
     When include_model_access_groups=False, access group names should NOT
     appear in the result even with 'all-proxy-models'.
     """
-    from litellm.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
 
     team_models = ["all-proxy-models"]
     proxy_model_list = ["model1", "model2"]
@@ -80,8 +80,8 @@ def test_get_key_models_all_proxy_models_includes_access_groups():
     When a key has 'all-proxy-models' and include_model_access_groups=True,
     the result should include model access group names.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
 
     user_api_key_dict = UserAPIKeyAuth(
         models=["all-proxy-models"],
@@ -110,8 +110,8 @@ def test_get_key_models_passes_include_model_access_groups():
     include_model_access_groups=True, the group name should be retained
     (not stripped by _get_models_from_access_groups).
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
 
     user_api_key_dict = UserAPIKeyAuth(
         models=["group-a"],
@@ -137,8 +137,8 @@ def test_get_key_models_keeps_literal_model_colliding_with_group_name():
     """A name that is BOTH a deployed model and an access group grants both at
     runtime (_check_model_access_helper unions them), so the listing must keep
     the literal model alongside the group members instead of dropping it."""
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
 
     user_api_key_dict = UserAPIKeyAuth(models=["beta-models"], api_key="test-key")
 
@@ -153,7 +153,7 @@ def test_get_key_models_keeps_literal_model_colliding_with_group_name():
 
 def test_get_team_models_keeps_literal_model_colliding_with_group_name():
     """Team flavor of the collision case: literal deployment survives group expansion."""
-    from litellm.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
 
     result = get_team_models(
         team_models=["beta-models"],
@@ -166,7 +166,7 @@ def test_get_team_models_keeps_literal_model_colliding_with_group_name():
 
 def test_get_team_models_drops_group_name_that_is_not_a_deployed_model():
     """No collision: a pure access-group name is still replaced by its members."""
-    from litellm.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
 
     result = get_team_models(
         team_models=["beta-models"],
@@ -183,8 +183,8 @@ def test_get_key_models_does_not_mutate_input():
     _get_models_from_access_groups uses .pop()/.extend() which would corrupt
     cached UserAPIKeyAuth objects if all_models were an alias instead of a copy.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
 
     original_models = ["group-a", "extra-model"]
     user_api_key_dict = UserAPIKeyAuth(
@@ -255,8 +255,8 @@ def test_get_complete_model_list_order(
     """
     Test that get_complete_model_list preserves order
     """
-    from litellm.proxy.auth.model_checks import get_complete_model_list
-    from litellm import Router
+    from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
+    from token_iq.gateway import Router
 
     assert (
         get_complete_model_list(
@@ -277,8 +277,8 @@ def test_get_complete_model_list_byok_wildcard_expansion():
     no deployment for them - BYOK case where team has openai/* but proxy has
     no openai config.
     """
-    from litellm.proxy.auth.model_checks import get_complete_model_list
-    from litellm import Router
+    from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
+    from token_iq.gateway import Router
 
     # Router with empty model_list - no openai/* deployment (BYOK scenario)
     result = get_complete_model_list(
@@ -302,11 +302,11 @@ def test_get_complete_model_list_expands_team_scoped_wildcard_with_stored_creden
     Team-scoped BYOK wildcard deployments are stored under an internal model_name,
     with the public wildcard name in model_info.team_public_model_name.
     """
-    import litellm
-    from litellm import Router
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.auth.model_checks import get_complete_model_list
-    from litellm.types.utils import CredentialItem
+    from token_iq import gateway as litellm
+    from token_iq.gateway import Router
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
+    from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
         litellm,
@@ -373,11 +373,11 @@ def test_get_complete_model_list_expands_team_scoped_wildcard_with_stored_creden
 def test_wildcard_credential_hydration_preserves_deployment_params(
     monkeypatch,
 ):
-    import litellm
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.auth.model_checks import get_known_models_from_wildcard
-    from litellm.types.router import LiteLLM_Params
-    from litellm.types.utils import CredentialItem
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
+    from token_iq.gateway.types.router import LiteLLM_Params
+    from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
         litellm,
@@ -439,9 +439,9 @@ def test_wildcard_custom_prefix_does_not_stack_provider_prefix(monkeypatch):
     instances) must not stack the provider's own prefix onto the expanded model ids. The expanded
     ids should be ``ollama_server1/gemma3:1b`` rather than ``ollama_server1/ollama/gemma3:1b``.
     """
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.auth.model_checks import get_known_models_from_wildcard
-    from litellm.types.router import LiteLLM_Params
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
+    from token_iq.gateway.types.router import LiteLLM_Params
 
     monkeypatch.setattr(
         model_checks,
@@ -468,9 +468,9 @@ def test_wildcard_custom_prefix_keeps_org_segment_for_non_provider_first_segment
     provider (e.g. ``meta-llama/Llama-3-8B``), stripping the first slash segment would drop the
     org and produce an uncallable id. The org segment must be preserved.
     """
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.auth.model_checks import get_known_models_from_wildcard
-    from litellm.types.router import LiteLLM_Params
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
+    from token_iq.gateway.types.router import LiteLLM_Params
 
     monkeypatch.setattr(
         model_checks,
@@ -491,10 +491,10 @@ def test_wildcard_custom_prefix_keeps_org_segment_for_non_provider_first_segment
 def test_wildcard_credential_hydration_preserves_missing_credential_name(
     monkeypatch,
 ):
-    import litellm
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.auth.model_checks import get_known_models_from_wildcard
-    from litellm.types.router import LiteLLM_Params
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
+    from token_iq.gateway.types.router import LiteLLM_Params
 
     monkeypatch.setattr(litellm, "credential_list", [])
 
@@ -530,12 +530,12 @@ def test_wildcard_credential_hydration_preserves_missing_credential_name(
 async def test_get_available_models_for_user_expands_query_team_wildcard(
     monkeypatch,
 ):
-    import litellm
-    from litellm import Router
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.utils import get_available_models_for_user
-    from litellm.types.utils import CredentialItem
+    from token_iq import gateway as litellm
+    from token_iq.gateway import Router
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import get_available_models_for_user
+    from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
         litellm,
@@ -592,8 +592,8 @@ async def test_get_available_models_for_user_expands_query_team_wildcard(
 def test_get_key_models_all_team_models_recursive_team():
     """GH#30619: when key and team both have all-team-models,
     the sentinel should expand to proxy_model_list."""
-    from litellm.proxy.auth.model_checks import get_key_models
-    from litellm.proxy._types import SpecialModelNames
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import SpecialModelNames
 
     user_api_key_dict = type(
         "obj",
@@ -611,8 +611,8 @@ def test_get_key_models_all_team_models_recursive_team():
 
 
 def test_get_key_models_all_team_models_keeps_mixed_team_entries():
-    from litellm.proxy.auth.model_checks import get_key_models
-    from litellm.proxy._types import SpecialModelNames
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import SpecialModelNames
 
     user_api_key_dict = type(
         "obj",
@@ -633,8 +633,8 @@ def test_get_key_models_all_team_models_keeps_mixed_team_entries():
 
 def test_get_team_models_all_team_models_expands():
     """GH#30619: all-team-models in team_models should expand."""
-    from litellm.proxy.auth.model_checks import get_team_models
-    from litellm.proxy._types import SpecialModelNames
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy._types import SpecialModelNames
 
     result = get_team_models(
         [SpecialModelNames.all_team_models.value],
@@ -648,8 +648,8 @@ def test_get_team_models_all_team_models_expands():
 def test_get_team_models_all_team_models_expands_with_access_groups():
     """GH#30619: all-team-models with include_model_access_groups
     should include access group keys."""
-    from litellm.proxy.auth.model_checks import get_team_models
-    from litellm.proxy._types import SpecialModelNames
+    from token_iq.gateway.proxy.auth.model_checks import get_team_models
+    from token_iq.gateway.proxy._types import SpecialModelNames
 
     result = get_team_models(
         [SpecialModelNames.all_team_models.value],
@@ -669,8 +669,8 @@ def test_get_key_models_teamless_all_team_models_returns_unrestricted():
     models field empty ([] = unrestricted). The sentinel must not leak into
     the returned list. Fails if someone adds a team_id guard to the sentinel
     expansion in get_key_models."""
-    from litellm.proxy._types import SpecialModelNames
-    from litellm.proxy.auth.model_checks import get_key_models
+    from token_iq.gateway.proxy._types import SpecialModelNames
+    from token_iq.gateway.proxy.auth.model_checks import get_key_models
 
     user_api_key_dict = type(
         "obj",
@@ -689,7 +689,7 @@ def test_get_key_models_teamless_all_team_models_returns_unrestricted():
 
 def test_expand_wildcard_deployments_non_wildcard_passthrough():
     """Non-wildcard deployments must be returned unchanged."""
-    from litellm.proxy.auth.model_checks import (
+    from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,
     )
 
@@ -701,7 +701,7 @@ def test_expand_wildcard_deployments_non_wildcard_passthrough():
 def test_expand_wildcard_deployments_openai_wildcard():
     """openai/* should expand into ≥1 known openai model entries."""
 
-    from litellm.proxy.auth.model_checks import (
+    from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,
     )
 
@@ -711,7 +711,7 @@ def test_expand_wildcard_deployments_openai_wildcard():
         "litellm_params": {"model": "openai/*"},
     }
     with patch(
-        "litellm.proxy.auth.model_checks.get_known_models_from_wildcard",
+        "token_iq.gateway.proxy.auth.model_checks.get_known_models_from_wildcard",
         return_value=fake_models,
     ):
         result = expand_wildcard_deployments_for_model_info([deployment])
@@ -723,7 +723,7 @@ def test_expand_wildcard_deployments_openai_wildcard():
 
 def test_expand_wildcard_concrete_model_name_with_wildcard_litellm_params():
     """Concrete model_name must not be overwritten when only litellm_params.model is wildcard."""
-    from litellm.proxy.auth.model_checks import (
+    from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,
     )
 
@@ -738,7 +738,7 @@ def test_expand_wildcard_concrete_model_name_with_wildcard_litellm_params():
 
 def test_expand_wildcard_invalid_litellm_params_passthrough():
     """Deployments with invalid litellm_params must pass through unchanged (no 500)."""
-    from litellm.proxy.auth.model_checks import (
+    from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,
     )
 
@@ -758,8 +758,8 @@ def test_add_known_models_refreshes_models_by_provider_for_wildcard_expansion():
     """models_by_provider was a frozen import-time snapshot of set unions, so cost map
     reloads (which call add_known_models) never reached wildcard expansion until a
     process restart (LIT-4947)."""
-    import litellm
-    from litellm.proxy.auth.model_checks import get_known_models_from_wildcard
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
 
     fake_model = "vertex_ai/gemini-lit4947-regression"
     captured_reference = litellm.models_by_provider
@@ -780,7 +780,7 @@ def test_add_known_models_refreshes_models_by_provider_for_wildcard_expansion():
     assert fake_model not in litellm.models_by_provider["vertex_ai"]
 
 def test_get_complete_model_list_drops_no_default_models_sentinel():
-    from litellm.proxy.auth.model_checks import get_complete_model_list
+    from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
 
     result = get_complete_model_list(
         key_models=["no-default-models", "model-a"],
@@ -793,7 +793,7 @@ def test_get_complete_model_list_drops_no_default_models_sentinel():
 
 
 def test_get_complete_model_list_sentinel_only_grants_nothing():
-    from litellm.proxy.auth.model_checks import get_complete_model_list
+    from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
 
     result = get_complete_model_list(
         key_models=["no-default-models"],

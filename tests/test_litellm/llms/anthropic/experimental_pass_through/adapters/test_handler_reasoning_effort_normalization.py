@@ -8,7 +8,7 @@ leaves the adapter, in the shape the target expects.
 
 import pytest
 
-from litellm.llms.anthropic.experimental_pass_through.adapters.handler import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
     LiteLLMMessagesToCompletionTransformationHandler,
 )
 

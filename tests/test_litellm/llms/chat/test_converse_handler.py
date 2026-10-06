@@ -4,11 +4,11 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.bedrock.chat import BedrockConverseLLM
-from litellm.llms.bedrock.chat.converse_handler import make_sync_call
-from litellm.llms.bedrock.common_utils import _get_all_bedrock_regions
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.chat import BedrockConverseLLM
+from token_iq.gateway.llms.bedrock.chat.converse_handler import make_sync_call
+from token_iq.gateway.llms.bedrock.common_utils import _get_all_bedrock_regions
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 

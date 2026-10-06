@@ -4,14 +4,14 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import httpx
 import pytest
 
-from litellm.llms.base_llm.vector_store.transformation import (
+from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     RouterVectorStoreEmbeddingExecutor,
 )
-from litellm.llms.s3_vectors.vector_stores.transformation import (
+from token_iq.gateway.llms.s3_vectors.vector_stores.transformation import (
     S3VectorsVectorStoreConfig,
 )
-from litellm.types.utils import EmbeddingResponse
-from litellm.types.vector_stores import VectorStoreSearchResponse
+from token_iq.gateway.types.utils import EmbeddingResponse
+from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
 QUERY_VECTOR = [0.1, 0.2, 0.3]
 
@@ -187,7 +187,7 @@ class TestS3VectorsVectorStoreConfig:
         request_metadata = {"user_api_key_team_id": "team-a"}
 
         mock_bare = AsyncMock(return_value=_embedding_response(QUERY_VECTOR))
-        with patch("litellm.aembedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose call the test asserts on
+        with patch("token_iq.gateway.aembedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose call the test asserts on
             _, request_body = await config.atransform_search_vector_store_request(
                 **_search_kwargs(
                     embedding_executor=RouterVectorStoreEmbeddingExecutor(router=router, metadata=request_metadata)
@@ -204,7 +204,7 @@ class TestS3VectorsVectorStoreConfig:
         config = S3VectorsVectorStoreConfig()
 
         mock_bare = AsyncMock(return_value=_embedding_response([0.6, 0.7]))
-        with patch("litellm.aembedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose request body the test asserts on
+        with patch("token_iq.gateway.aembedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose request body the test asserts on
             _, request_body = await config.atransform_search_vector_store_request(**_search_kwargs())
 
         mock_bare.assert_awaited_once_with(model="text-embedding-3-small", input=["test query"])
@@ -214,7 +214,7 @@ class TestS3VectorsVectorStoreConfig:
         config = S3VectorsVectorStoreConfig()
 
         mock_bare = MagicMock(return_value=_embedding_response([0.8, 0.9]))
-        with patch("litellm.embedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose request body the test asserts on
+        with patch("token_iq.gateway.embedding", new=mock_bare):  # test-quality-ok: stubs the bare-embedding fallback whose request body the test asserts on
             _, request_body = config.transform_search_vector_store_request(
                 **_search_kwargs(litellm_params={"embedding_model": "my-embedding-model"})
             )

@@ -16,8 +16,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm import Router
-from litellm.types.llms.openai import (
+from token_iq.gateway import Router
+from token_iq.gateway.types.llms.openai import (
     ResponseAPIUsage,
     ResponseCompletedEvent,
     ResponsesAPIResponse,
@@ -97,7 +97,7 @@ def test_extract_partial_responses_usage_bridge_iterator_no_completed_response()
     and raised AttributeError, masking the real provider error and bypassing
     fallbacks. The attribute must always exist and default to None.
     """
-    from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+    from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
         LiteLLMCompletionStreamingIterator,
     )
 
@@ -187,7 +187,7 @@ async def test_aresponses_streaming_iterator_passthrough():
     Without MidStreamFallbackError, the wrapper yields source events
     unchanged and returns a BaseResponsesAPIStreamingIterator subclass.
     """
-    from litellm.responses.streaming_iterator import (
+    from token_iq.gateway.responses.streaming_iterator import (
         BaseResponsesAPIStreamingIterator,
     )
 
@@ -265,7 +265,7 @@ async def test_aresponses_with_streaming_fallbacks_non_streaming_passthrough():
 @pytest.mark.asyncio
 async def test_aresponses_with_streaming_fallbacks_wraps_streaming_iterator():
     """Streaming response is wrapped via _aresponses_streaming_iterator."""
-    from litellm.responses.streaming_iterator import (
+    from token_iq.gateway.responses.streaming_iterator import (
         BaseResponsesAPIStreamingIterator,
     )
 
@@ -302,12 +302,12 @@ async def test_aresponses_fallback_on_in_stream_error_event():
     import json
     from unittest.mock import Mock
 
-    import litellm
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-    from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
-    from litellm.types.llms.openai import ErrorEvent, ErrorEventError
+    from token_iq import gateway as litellm
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+    from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
+    from token_iq.gateway.types.llms.openai import ErrorEvent, ErrorEventError
 
     router = _make_router()
 
@@ -385,11 +385,11 @@ async def test_aresponses_fallback_uses_continuation_input_after_partial_content
     import json
     from unittest.mock import Mock
 
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-    from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
-    from litellm.types.llms.openai import ErrorEvent, ErrorEventError
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+    from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
+    from token_iq.gateway.types.llms.openai import ErrorEvent, ErrorEventError
 
     router = _make_router()
 
@@ -475,7 +475,7 @@ async def test_aresponses_fallback_uses_continuation_input_after_partial_content
 async def test_aresponses_client_error_event_skips_fallback():
     """A 400-mapped in-stream error (raised as APIError, not MidStreamFallbackError)
     must surface to the caller without invoking the router's fallback path."""
-    import litellm
+    from token_iq import gateway as litellm
 
     router = _make_router()
 

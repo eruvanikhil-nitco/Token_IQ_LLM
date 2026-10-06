@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock
 from typing import Literal
 
 import pytest
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging
-from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
-from litellm.proxy.hooks.cache_control_check import _PROXY_CacheControlCheck
-from litellm._service_logger import ServiceLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
+from token_iq.gateway.proxy.hooks.cache_control_check import _PROXY_CacheControlCheck
+from token_iq.gateway._service_logger import ServiceLogging
 import asyncio
 
 

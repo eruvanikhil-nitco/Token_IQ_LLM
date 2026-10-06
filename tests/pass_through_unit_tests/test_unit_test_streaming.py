@@ -5,17 +5,17 @@ from unittest.mock import AsyncMock, Mock, patch, MagicMock
 
 import httpx
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from typing import AsyncGenerator
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
 
@@ -106,7 +106,7 @@ async def test_route_streaming_logging_runs_async_handler_for_sdk_passthrough():
     """
     import time
 
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.types.utils import CallTypes
 
     logging_obj = LiteLLMLoggingObj(
         model="claude-sonnet-4-5",
@@ -169,7 +169,7 @@ async def test_handle_logging_runs_async_handler_for_passthrough():
     """
     import time
 
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.types.utils import CallTypes
 
     logging_obj = LiteLLMLoggingObj(
         model="claude-sonnet-4-5",

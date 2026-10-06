@@ -2,7 +2,7 @@
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestProviderRegistration:
@@ -42,7 +42,7 @@ class TestProviderRegistration:
         assert api_base == "https://api.soniox.com"
 
     def test_should_return_soniox_config_from_provider_config_manager(self):
-        from litellm.utils import ProviderConfigManager
+        from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_audio_transcription_config(
             model="stt-async-v4",

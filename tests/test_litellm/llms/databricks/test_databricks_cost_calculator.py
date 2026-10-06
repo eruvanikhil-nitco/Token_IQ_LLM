@@ -5,9 +5,9 @@ from typing import Final
 
 import pytest
 
-import litellm
-from litellm.llms.databricks.cost_calculator import cost_per_token
-from litellm.types.utils import ModelInfo, Usage
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.databricks.cost_calculator import cost_per_token
+from token_iq.gateway.types.utils import ModelInfo, Usage
 
 REPO_ROOT: Final = Path(__file__).parents[4]
 MAIN_PRICES: Final = REPO_ROOT / "model_prices_and_context_window.json"

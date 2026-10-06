@@ -5,7 +5,7 @@ Simple test to validate MCP permissions are enforced when calling MCP routes wit
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_JWTAuth,
     LiteLLM_TeamTable,
     LiteLLM_ObjectPermissionTable,
@@ -24,7 +24,7 @@ async def test_simple_jwt_mcp_permissions_enforced():
 
     Expected: Only ["github-mcp", "slack-mcp"] should be allowed
     """
-    from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+    from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
         MCPRequestHandler,
     )
 
@@ -50,9 +50,9 @@ async def test_simple_jwt_mcp_permissions_enforced():
 
     # 3. Mock the team object lookup (object_permission attached) and prisma_client
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             new_callable=AsyncMock,
             return_value=team_obj,
         ) as mock_get_team,
@@ -86,7 +86,7 @@ async def test_simple_jwt_no_team_no_mcp_servers():
     """
     Simple test: JWT user with no team should get no MCP servers.
     """
-    from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+    from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
         MCPRequestHandler,
     )
 
@@ -111,7 +111,7 @@ async def test_simple_jwt_team_id_required_for_mcp_permissions():
     This is the key insight - if JWT auth doesn't set team_id,
     team MCP permissions won't be enforced.
     """
-    from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+    from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
         MCPRequestHandler,
     )
 
@@ -135,9 +135,9 @@ async def test_simple_jwt_team_id_required_for_mcp_permissions():
     team_obj.object_permission = team_perm
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             new_callable=AsyncMock,
             return_value=team_obj,
         ) as mock_get_team,
@@ -176,9 +176,9 @@ async def test_jwt_auth_sets_team_id_for_mcp_route():
     This is the critical test - when user calls /mcp/tools/list with JWT,
     the team_id from JWT groups must be set on UserAPIKeyAuth.
     """
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Setup
     jwt_handler = JWTHandler()
@@ -206,7 +206,7 @@ async def test_jwt_auth_sets_team_id_for_mcp_route():
         mock_auth.return_value = jwt_payload
 
         with patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team:
             mock_get_team.return_value = team
 
@@ -245,9 +245,9 @@ async def test_mcp_route_without_model_still_returns_team_id():
     4. Route check passes because "mcp_routes" is in team_allowed_routes
     5. team_id is returned and set on UserAPIKeyAuth
     """
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Setup
     jwt_handler = JWTHandler()
@@ -279,7 +279,7 @@ async def test_mcp_route_without_model_still_returns_team_id():
         mock_auth.return_value = jwt_payload
 
         with patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team:
             mock_get_team.return_value = team
 

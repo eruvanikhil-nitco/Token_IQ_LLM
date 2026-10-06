@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import anyio
 import httpx
 import pytest
-from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import StaticHeaderAuth
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import StaticHeaderAuth
 from mcp import McpError
 from mcp.shared.message import SessionMessage
 from mcp.types import (
@@ -25,8 +25,8 @@ from mcp.types import (
 
 # Add the parent directory to the path so we can import litellm
 
-import litellm.experimental_mcp_client.client as mcp_client_module
-from litellm.experimental_mcp_client.client import (
+import token_iq.gateway.experimental_mcp_client.client as mcp_client_module
+from token_iq.gateway.experimental_mcp_client.client import (
     MCP_STREAMABLE_HTTP_REQUIREMENT,
     MCPClient,
     _as_read_timeout,
@@ -34,15 +34,15 @@ from litellm.experimental_mcp_client.client import (
     missing_streamable_http_client_error,
     strip_auth_scheme,
 )
-from litellm.proxy._experimental.mcp_server.faults.list_outcomes import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import (
     classify_list_exception,
     list_fault_http_status,
 )
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
     _format_byok_openapi_auth_header,
 )
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
-from litellm.types.mcp import MCPAuth, MCPStdioConfig, MCPTransport
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.types.mcp import MCPAuth, MCPStdioConfig, MCPTransport
 
 
 class _FakeExceptionGroup(Exception):
@@ -86,8 +86,8 @@ class TestMCPClient:
             await client.run_with_session(_noop)
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.stdio_client")
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.stdio_client")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_mcp_client_stdio_connect_success(self, mock_session, mock_stdio_client):
         """Test successful stdio connection"""
         # Setup mocks - create proper async context manager
@@ -139,7 +139,7 @@ class TestMCPClient:
         mock_streamable_http_client.return_value = mock_http_ctx
 
         # Mock the session
-        with patch("litellm.experimental_mcp_client.client.ClientSession") as mock_session:
+        with patch("token_iq.gateway.experimental_mcp_client.client.ClientSession") as mock_session:
             mock_session_instance = AsyncMock()
             mock_session_instance.initialize = AsyncMock()
             mock_session_ctx = AsyncMock()
@@ -185,7 +185,7 @@ class TestMCPClient:
         mock_sse_client.return_value = mock_sse_ctx
 
         # Mock the session
-        with patch("litellm.experimental_mcp_client.client.ClientSession") as mock_session:
+        with patch("token_iq.gateway.experimental_mcp_client.client.ClientSession") as mock_session:
             mock_session_instance = AsyncMock()
             mock_session_instance.initialize = AsyncMock()
             mock_session_ctx = AsyncMock()
@@ -237,7 +237,7 @@ class TestMCPClient:
         mock_streamable_http_client.return_value = mock_http_ctx
 
         # Mock the session
-        with patch("litellm.experimental_mcp_client.client.ClientSession") as mock_session:
+        with patch("token_iq.gateway.experimental_mcp_client.client.ClientSession") as mock_session:
             mock_session_instance = AsyncMock()
             mock_session_instance.initialize = AsyncMock()
             mock_session_ctx = AsyncMock()
@@ -377,7 +377,7 @@ class TestMCPClientInstructionsCapture:
         assert client._last_initialize_instructions is None
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_captures_instructions_from_initialize(self, mock_session_cls):
         """Instructions from upstream initialize() are captured and stripped."""
         client = MCPClient(
@@ -406,7 +406,7 @@ class TestMCPClientInstructionsCapture:
         assert client._last_initialize_instructions == "upstream says hello"
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_none_instructions_stays_none(self, mock_session_cls):
         """When upstream returns no instructions the field stays None."""
         client = MCPClient(
@@ -496,7 +496,7 @@ class TestExecuteSessionOperationSurfacesTransportError:
         return transport_ctx
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_surfaces_connect_error_over_cancelled(self, mock_session_cls):
         client = MCPClient(server_url="http://example.com/mcp", transport_type="http")
         self._make_session(
@@ -513,7 +513,7 @@ class TestExecuteSessionOperationSurfacesTransportError:
             await client._execute_session_operation(transport_ctx, _op)
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_genuine_cancellation_is_not_replaced(self, mock_session_cls):
         client = MCPClient(server_url="http://example.com/mcp", transport_type="http")
         self._make_session(mock_session_cls, AsyncMock(side_effect=asyncio.CancelledError()))
@@ -526,7 +526,7 @@ class TestExecuteSessionOperationSurfacesTransportError:
             await client._execute_session_operation(transport_ctx, _op)
 
     @pytest.mark.asyncio
-    @patch("litellm.experimental_mcp_client.client.ClientSession")
+    @patch("token_iq.gateway.experimental_mcp_client.client.ClientSession")
     async def test_cleanup_error_after_success_is_swallowed(self, mock_session_cls):
         client = MCPClient(server_url="http://example.com/mcp", transport_type="http")
         init_result = MagicMock()
@@ -1178,7 +1178,7 @@ async def test_authorization_is_left_to_httpx_and_needs_no_guard():
     # The default slot is already protected by httpx, so the client must not install a guard for it
     # and must not interfere with the ordinary Authorization path.
     url = "https://upstream.example.com/mcp"
-    from litellm.types.mcp import credential_redirect_hook
+    from token_iq.gateway.types.mcp import credential_redirect_hook
 
     def guard_for(client: MCPClient):
         return credential_redirect_hook(client.server_url, client._credential_slot)

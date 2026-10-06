@@ -8,15 +8,15 @@ from click.testing import CliRunner
 
 
 
-from litellm.proxy.client.cli import cli
-from litellm.proxy.client.cli.commands.config import (
+from token_iq.gateway.proxy.client.cli import cli
+from token_iq.gateway.proxy.client.cli.commands.config import (
     get_config_file_path,
     get_config_value,
     load_config,
     save_config,
 )
-from litellm.litellm_core_utils.private_json import write_private_json
-from litellm.proxy.client.cli.interface import show_commands
+from token_iq.gateway.core_utils.private_json import write_private_json
+from token_iq.gateway.proxy.client.cli.interface import show_commands
 
 
 @pytest.fixture
@@ -217,7 +217,7 @@ class TestHiddenCommands:
         """Hiding is about the listing only; anyone already scripting the command keeps working."""
         save_config({"hidden_commands": "codex"})
 
-        with patch("litellm.proxy.client.cli.commands.agents.run_agent") as run_agent_mock:
+        with patch("token_iq.gateway.proxy.client.cli.commands.agents.run_agent") as run_agent_mock:
             result = cli_runner.invoke(
                 cli,
                 ["--base-url", "http://localhost:4000", "--api-key", "sk-key", "codex", "exec", "do a thing"],
@@ -268,7 +268,7 @@ class TestConfigHelpers:
         """Path.home() raises RuntimeError in HOME-less containers; invocations that
         never needed the home dir (--api-key supplied) must keep working."""
         monkeypatch.setattr(
-            "litellm.proxy.client.cli.commands.config.get_config_file_path",
+            "token_iq.gateway.proxy.client.cli.commands.config.get_config_file_path",
             _raise_home_unresolvable,
         )
 
@@ -352,7 +352,7 @@ class TestWritePrivateJson:
         def _interrupt(*args: object, **kwargs: object) -> None:
             raise KeyboardInterrupt()
 
-        monkeypatch.setattr("litellm.litellm_core_utils.private_json.json.dump", _interrupt)
+        monkeypatch.setattr("token_iq.gateway.core_utils.private_json.json.dump", _interrupt)
         target = tmp_path / "config.json"
 
         with pytest.raises(KeyboardInterrupt):

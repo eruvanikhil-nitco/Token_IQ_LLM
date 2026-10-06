@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, Mock, patch
 import aiohttp
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
-from litellm.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
 
 
 class TestBaseLLMAIOHTTPHandler:
@@ -175,7 +175,7 @@ class TestBaseLLMAIOHTTPHandler:
         # Verify cleanup happened
         mock_session.close.assert_called_once()
 
-    @patch("litellm.llms.custom_httpx.aiohttp_handler.aiohttp.ClientSession")
+    @patch("token_iq.gateway.llms.custom_httpx.aiohttp_handler.aiohttp.ClientSession")
     def test_lazy_session_creation(self, mock_client_session):
         """Test that session is created lazily only when needed"""
         handler = BaseLLMAIOHTTPHandler()

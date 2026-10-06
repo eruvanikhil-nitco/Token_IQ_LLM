@@ -1,15 +1,15 @@
 import json
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 
-from litellm.llms.ollama.completion.transformation import (
+from token_iq.gateway.llms.ollama.completion.transformation import (
     OllamaConfig,
     OllamaTextCompletionResponseIterator,
 )
-from litellm.types.utils import Message, ModelResponse, ModelResponseStream
+from token_iq.gateway.types.utils import Message, ModelResponse, ModelResponseStream
 
 
 class TestOllamaConfig:

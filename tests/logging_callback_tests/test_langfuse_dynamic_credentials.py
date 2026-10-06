@@ -1,9 +1,9 @@
 import sys
 from types import ModuleType, SimpleNamespace
 
-import litellm
-from litellm.integrations.langfuse.langfuse import resolve_langfuse_credentials
-from litellm.integrations.langfuse.langfuse_handler import LangFuseHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.langfuse.langfuse import resolve_langfuse_credentials
+from token_iq.gateway.integrations.langfuse.langfuse_handler import LangFuseHandler
 
 
 def test_resolve_langfuse_credentials_does_not_use_env_for_dynamic_host(monkeypatch):
@@ -52,7 +52,7 @@ def test_resolve_langfuse_credentials_keeps_env_for_global_config(monkeypatch):
 
 
 def test_upstream_langfuse_debug_env_is_passed(monkeypatch):
-    from litellm.integrations.langfuse.langfuse import LangFuseLogger
+    from token_iq.gateway.integrations.langfuse.langfuse import LangFuseLogger
 
     class FakeLangfuse:
         instances = []
@@ -110,7 +110,7 @@ def test_langfuse_handler_accepts_secret_key_alias(monkeypatch):
             captured["cached_logging_obj"] = logging_obj
 
     monkeypatch.setattr(
-        "litellm.integrations.langfuse.langfuse_handler.LangFuseLogger",
+        "token_iq.gateway.integrations.langfuse.langfuse_handler.LangFuseLogger",
         FakeLangFuseLogger,
     )
 

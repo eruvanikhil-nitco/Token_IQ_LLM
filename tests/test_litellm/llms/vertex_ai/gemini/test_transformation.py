@@ -1,13 +1,13 @@
 
 import pytest
 
-from litellm.llms.vertex_ai.gemini import transformation
-from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+from token_iq.gateway.llms.vertex_ai.gemini import transformation
+from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     VertexGeminiConfig,
 )
-from litellm.types.llms import openai
-from litellm.types import completion
-from litellm.types.llms.vertex_ai import RequestBody
+from token_iq.gateway.types.llms import openai
+from token_iq.gateway.types import completion
+from token_iq.gateway.types.llms.vertex_ai import RequestBody
 
 
 @pytest.mark.asyncio

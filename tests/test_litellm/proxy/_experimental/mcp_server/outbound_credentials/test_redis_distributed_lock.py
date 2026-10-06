@@ -2,10 +2,10 @@
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.redis_distributed_lock import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.redis_distributed_lock import (
     RedisDistributedLock,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.redis_refresh_coordinator import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.redis_refresh_coordinator import (
     LockAcquisition,
 )
 

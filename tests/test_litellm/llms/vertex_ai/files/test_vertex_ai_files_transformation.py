@@ -12,13 +12,13 @@ import httpx
 import pytest
 from unittest.mock import MagicMock
 
-from litellm.llms.vertex_ai.files.transformation import (
+from token_iq.gateway.llms.vertex_ai.files.transformation import (
     VertexAIFilesConfig,
     _get_litellm_batch_custom_id_from_labels,
     _openai_batch_jsonl_entry_to_vertex_rows,
     _sanitize_gcp_label_value,
 )
-from litellm.types.llms.openai import OpenAIFileObject, HttpxBinaryResponseContent
+from token_iq.gateway.types.llms.openai import OpenAIFileObject, HttpxBinaryResponseContent
 from openai.types.file_deleted import FileDeleted
 
 
@@ -302,7 +302,7 @@ class TestTransformFileContent:
         """When `litellm.disable_vertex_batch_output_transformation` is True the
         Vertex predictions.jsonl content must be returned untouched, so callers
         that parse raw `candidates`/`modelVersion` keep working."""
-        import litellm
+        from token_iq import gateway as litellm
 
         raw_jsonl = json.dumps(
             {
@@ -517,7 +517,7 @@ class TestVertexBatchOutputTransformation:
         so this test invokes the single-line transformer directly with a vertex_gemini_config
         stub that raises during transformation.
         """
-        from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+        from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
             VertexGeminiConfig,
         )
 
@@ -785,8 +785,8 @@ class TestVertexBatchOutputTransformation:
         import gc
         import tracemalloc
 
-        from litellm.litellm_core_utils.litellm_logging import Logging
-        from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+        from token_iq.gateway.core_utils.litellm_logging import Logging
+        from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
             VertexGeminiConfig,
         )
 
@@ -1197,7 +1197,7 @@ class TestConfiguredBucketNameResolution:
             config._get_configured_bucket_name({})
 
     def test_legacy_kwarg_survives_get_litellm_params(self):
-        from litellm.litellm_core_utils.get_litellm_params import (
+        from token_iq.gateway.core_utils.get_litellm_params import (
             OPTIONAL_KWARGS_KEYS,
             get_litellm_params,
         )

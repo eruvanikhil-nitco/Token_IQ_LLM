@@ -9,9 +9,10 @@ from click.testing import CliRunner
 
 
 
-import litellm.proxy.client.cli
-from litellm._version import version as litellm_version
-from litellm.proxy.client.cli import cli
+import token_iq.gateway.proxy.client.cli
+from token_iq import gateway as litellm
+from token_iq.gateway._version import version as litellm_version
+from token_iq.gateway.proxy.client.cli import cli
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def test_cli_version_flag(cli_runner):
     """Test that --version prints the correct version, server URL, and server version, and exits successfully"""
     with (
         patch(
-            "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+            "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
             return_value="1.2.3",
         ),
         patch.dict(os.environ, {"LITELLM_PROXY_URL": "http://localhost:4000"}),
@@ -77,7 +78,7 @@ def test_cli_version_command(cli_runner):
     """Test that 'version' command prints the correct version, server URL, and server version, and exits successfully"""
     with (
         patch(
-            "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+            "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
             return_value="1.2.3",
         ),
         patch.dict(os.environ, {"LITELLM_PROXY_URL": "http://localhost:4000"}),
@@ -107,7 +108,7 @@ def _write_config_file(home: Path, config: dict[str, str]) -> None:
 
 def _invoke_version(cli_runner: CliRunner, *args: str):
     with patch(
-        "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+        "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
         return_value="1.2.3",
     ):
         return cli_runner.invoke(cli, [*args, "version"])
@@ -180,7 +181,7 @@ def test_version_flag_reads_config_file_base_url(cli_runner, isolated_home):
     _write_config_file(isolated_home, {"base_url": "https://config-proxy.example.com"})
 
     with patch(
-        "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+        "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
         return_value="1.2.3",
     ):
         result = cli_runner.invoke(cli, ["--version"])
@@ -194,7 +195,7 @@ def test_version_flag_prefers_env_var_over_config_file(cli_runner, isolated_home
     monkeypatch.setenv("LITELLM_PROXY_URL", "http://env-proxy.example.com:5000")
 
     with patch(
-        "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+        "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
         return_value="1.2.3",
     ):
         result = cli_runner.invoke(cli, ["--version"])
@@ -209,7 +210,7 @@ def test_version_flag_prefers_explicit_base_url_over_config_file(cli_runner, iso
     _write_config_file(isolated_home, {"base_url": "https://config-proxy.example.com"})
 
     with patch(
-        "litellm.proxy.client.health.HealthManagementClient.get_server_version",
+        "token_iq.gateway.proxy.client.health.HealthManagementClient.get_server_version",
         return_value="1.2.3",
     ):
         result = cli_runner.invoke(cli, ["--base-url", "https://flag-proxy.example.com", "--version"])
@@ -225,7 +226,7 @@ def test_version_flag_never_sends_api_key_to_unnamed_server(cli_runner, isolated
     _write_config_file(isolated_home, {"base_url": "https://config-proxy.example.com"})
     monkeypatch.setenv("LITELLM_PROXY_API_KEY", "sk-intended-for-flag-proxy")
 
-    with patch("litellm.proxy.client.http_client.requests.request") as mock_request:
+    with patch("token_iq.gateway.proxy.client.http_client.requests.request") as mock_request:
         mock_request.return_value.json.return_value = {"litellm_version": "1.2.3"}
         mock_request.return_value.raise_for_status.return_value = None
         result = cli_runner.invoke(cli, ["--base-url", "https://flag-proxy.example.com", "--version"])

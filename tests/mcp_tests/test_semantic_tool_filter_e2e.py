@@ -30,9 +30,9 @@ except ImportError:
 )
 async def test_e2e_semantic_filter():
     """E2E: Load router/filter and verify hook filters tools."""
-    from litellm import Router
-    from litellm.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
-    from litellm.proxy._experimental.mcp_server.semantic_tool_filter import (
+    from token_iq.gateway import Router
+    from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
+    from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         SemanticMCPToolFilter,
     )
 

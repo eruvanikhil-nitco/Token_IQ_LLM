@@ -5,13 +5,13 @@ from typing import Any
 
 import pytest
 
-from litellm.proxy.db.budget_window_spend_writer import (
+from token_iq.gateway.proxy.db.budget_window_spend_writer import (
     WindowSeedTotals,
     commit_window_spend_updates,
     roll_window_spend_row,
     spend_logs_seed_totals,
 )
-from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
     build_window_spend_transaction,
 )
 

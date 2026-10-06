@@ -10,8 +10,8 @@ Covers:
 
 import pytest
 
-from litellm.litellm_core_utils.llm_cost_calc.utils import generic_cost_per_token
-from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
+from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
+from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
     _build_part_for_input,
     _is_multimodal_input,
     process_embed_content_response,
@@ -19,8 +19,8 @@ from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation
     transform_openai_input_gemini_content,
     transform_openai_input_gemini_embed_content,
 )
-from litellm.types.llms.vertex_ai import VertexAIBatchEmbeddingsResponseObject
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.types.llms.vertex_ai import VertexAIBatchEmbeddingsResponseObject
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 IMAGE_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII"

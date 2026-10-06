@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy.db.db_transaction_queue.redis_update_buffer import RedisUpdateBuffer
-from litellm.proxy.proxy_server import ProxyStartupEvent
+from token_iq.gateway.proxy.db.db_transaction_queue.redis_update_buffer import RedisUpdateBuffer
+from token_iq.gateway.proxy.proxy_server import ProxyStartupEvent
 
 
 @pytest.fixture
@@ -85,11 +85,11 @@ async def test_store_in_memory_spend_updates_restores_on_rpush_failure(redis_upd
     put back into the in-memory queues so the next scheduler tick retries.
     Without this, any transient Redis hiccup silently loses spend data.
     """
-    from litellm.proxy._types import Litellm_EntityType
-    from litellm.proxy.db.db_transaction_queue.daily_spend_update_queue import (
+    from token_iq.gateway.proxy._types import Litellm_EntityType
+    from token_iq.gateway.proxy.db.db_transaction_queue.daily_spend_update_queue import (
         DailySpendUpdateQueue,
     )
-    from litellm.proxy.db.db_transaction_queue.spend_update_queue import (
+    from token_iq.gateway.proxy.db.db_transaction_queue.spend_update_queue import (
         SpendUpdateQueue,
     )
 
@@ -270,7 +270,7 @@ async def test_get_all_transactions_from_redis_buffer_pipeline(redis_update_buff
 
     # Verify pipeline was called once with correct keys
     mock_redis_cache.async_lpop_pipeline.assert_called_once()
-    from litellm.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
+    from token_iq.gateway.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
 
     popped_keys = [op["key"] for op in mock_redis_cache.async_lpop_pipeline.call_args.kwargs["lpop_list"]]
     assert popped_keys[7] == REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
@@ -290,7 +290,7 @@ async def test_restore_transactions_to_redis_pushes_only_provided(redis_update_b
     restore_transactions_to_redis re-pushes only the transaction sets it was
     given, to their matching buffer keys, so uncommitted spend can be retried.
     """
-    from litellm.constants import (
+    from token_iq.gateway.constants import (
         REDIS_DAILY_SPEND_UPDATE_BUFFER_KEY,
         REDIS_UPDATE_BUFFER_KEY,
     )
@@ -322,8 +322,8 @@ async def test_restore_transactions_to_redis_pushes_only_provided(redis_update_b
 async def test_restored_window_spend_transactions_drain_back_unchanged(redis_update_buffer, mock_redis_cache):
     """A window commit that fails after the destructive lpop must be re-pushed
     in the store path's encoding, so the next drain returns the same increments."""
-    from litellm.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
-    from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+    from token_iq.gateway.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
+    from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
         build_window_spend_transaction,
     )
 
@@ -418,7 +418,7 @@ def test_get_transaction_buffer_redis_cache_builds_from_env(monkeypatch):
     monkeypatch.setenv("REDIS_HOST", "localhost")
     monkeypatch.setenv("REDIS_PORT", "6379")
 
-    with patch("litellm.proxy.proxy_server.RedisCache") as mock_redis_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.RedisCache") as mock_redis_cache:
         result = ProxyStartupEvent._get_transaction_buffer_redis_cache(
             general_settings={"use_redis_transaction_buffer": True},
         )
@@ -441,7 +441,7 @@ def test_get_transaction_buffer_redis_cache_none_without_redis_env():
     When use_redis_transaction_buffer=true but no REDIS_* env vars are set,
     no standalone cache is built (startup validation then raises the config error).
     """
-    with patch("litellm._redis._redis_kwargs_from_environment", return_value={}):
+    with patch("token_iq.gateway._redis._redis_kwargs_from_environment", return_value={}):
         result = ProxyStartupEvent._get_transaction_buffer_redis_cache(
             general_settings={"use_redis_transaction_buffer": True},
         )
@@ -455,7 +455,7 @@ def test_get_transaction_buffer_redis_cache_none_without_host_or_url():
     let startup validation surface the config error instead of crashing.
     """
     with patch(
-        "litellm._redis._redis_kwargs_from_environment",
+        "token_iq.gateway._redis._redis_kwargs_from_environment",
         return_value={"socket_timeout": 5.0},
     ):
         result = ProxyStartupEvent._get_transaction_buffer_redis_cache(
@@ -471,7 +471,7 @@ def test_get_transaction_buffer_redis_cache_parses_string_flag(monkeypatch):
     """
     monkeypatch.setenv("REDIS_HOST", "localhost")
 
-    with patch("litellm.proxy.proxy_server.RedisCache") as mock_redis_cache:
+    with patch("token_iq.gateway.proxy.proxy_server.RedisCache") as mock_redis_cache:
         result = ProxyStartupEvent._get_transaction_buffer_redis_cache(
             general_settings={"use_redis_transaction_buffer": "true"},
         )
@@ -486,8 +486,8 @@ async def test_store_in_memory_spend_updates_pushes_budget_window_spend(redis_up
     otherwise multi-pod deployments never persist per-window spend."""
     from datetime import datetime, timezone
 
-    from litellm.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
-    from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+    from token_iq.gateway.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
+    from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
         WindowSpendUpdateQueue,
         build_window_spend_transaction,
     )
@@ -546,7 +546,7 @@ async def test_budget_window_payloads_keep_request_ids_for_older_workers(redis_u
     the key would cost a rolling deploy those increments."""
     from datetime import datetime, timezone
 
-    from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+    from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
         WindowSpendUpdateQueue,
         build_window_spend_transaction,
     )
@@ -580,7 +580,7 @@ async def test_store_in_memory_spend_updates_restores_budget_window_spend_on_rpu
     silently drop per-window spend without the restore."""
     from datetime import datetime, timezone
 
-    from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+    from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
         WindowSpendUpdateQueue,
         build_window_spend_transaction,
     )

@@ -11,11 +11,11 @@ completion runs.
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     convert_to_model_response_object,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 SIMPLE_MESSAGES = [{"role": "user", "content": "Hello, how are you?"}]
 

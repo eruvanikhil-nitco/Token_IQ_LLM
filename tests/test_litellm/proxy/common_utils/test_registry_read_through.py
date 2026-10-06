@@ -3,7 +3,7 @@ from typing import Final
 
 import pytest
 
-from litellm.proxy.common_utils.registry_read_through import RegistryReadThrough
+from token_iq.gateway.proxy.common_utils.registry_read_through import RegistryReadThrough
 
 
 class ResyncSpy:
@@ -140,7 +140,7 @@ class FakeAgentRow:
 
 @pytest.fixture
 def clean_agent_registry():
-    from litellm.proxy.agent_endpoints.agent_registry import global_agent_registry
+    from token_iq.gateway.proxy.agent_endpoints.agent_registry import global_agent_registry
 
     original_agents: Final = list(global_agent_registry.agent_list)
     original_config_agents: Final = getattr(global_agent_registry, "config_agents", ())
@@ -159,8 +159,8 @@ async def test_get_agent_with_read_through_recovers_agent_created_on_sibling_rep
 ):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import get_agent_with_read_through
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import get_agent_with_read_through
 
     agent_id: Final = "read-through-db-agent-id"
     prisma_client: Final = MagicMock()
@@ -185,8 +185,8 @@ async def test_get_agent_with_read_through_recovers_agent_created_on_sibling_rep
 async def test_get_agent_with_read_through_recovers_agent_by_name(clean_agent_registry, monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import get_agent_with_read_through
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import get_agent_with_read_through
 
     agent_name: Final = "read-through-db-agent-by-name"
     prisma_client: Final = MagicMock()
@@ -210,8 +210,8 @@ async def test_get_agent_with_read_through_recovers_agent_by_name(clean_agent_re
 async def test_get_agent_with_read_through_returns_none_for_unknown_agent(clean_agent_registry, monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import get_agent_with_read_through
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import get_agent_with_read_through
 
     prisma_client: Final = MagicMock()
     prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=None)
@@ -226,8 +226,8 @@ async def test_get_agent_with_read_through_returns_none_for_unknown_agent(clean_
 async def test_resync_agents_already_registered_skips_db(clean_agent_registry, monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_agents
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_agents
 
     agent_id: Final = "read-through-dedup-agent-id"
     prisma_client: Final = MagicMock()
@@ -269,11 +269,11 @@ class FakeGuardrailRow:
 async def test_get_guardrail_with_read_through_recovers_guardrail_created_on_sibling_replica(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import (
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import (
         get_initialized_guardrail_with_read_through,
     )
-    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
 
     guardrail_id: Final = "read-through-db-guardrail-id"
     guardrail_name: Final = "read-through-db-guardrail"
@@ -302,8 +302,8 @@ async def test_get_guardrail_with_read_through_recovers_guardrail_created_on_sib
 async def test_get_guardrail_with_read_through_returns_none_for_unknown_guardrail(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import (
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import (
         get_initialized_guardrail_with_read_through,
     )
 
@@ -319,8 +319,8 @@ async def test_get_guardrail_with_read_through_returns_none_for_unknown_guardrai
 async def test_resync_guardrails_never_loads_non_active_rows(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_guardrails
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_guardrails
 
     pending_name: Final = "pending-review-guardrail"
     prisma_client: Final = MagicMock()
@@ -338,10 +338,10 @@ async def test_resync_guardrails_never_loads_non_active_rows(monkeypatch):
 async def test_resync_guardrails_syncs_under_guardrail_reconcile_lock(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.common_utils.registry_read_through as read_through_module
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_guardrails
-    from litellm.proxy.guardrails.guardrail_registry import (
+    import token_iq.gateway.proxy.common_utils.registry_read_through as read_through_module
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_guardrails
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import (
         GUARDRAIL_RECONCILE_LOCK,
         IN_MEMORY_GUARDRAIL_HANDLER,
     )
@@ -370,8 +370,8 @@ async def test_resync_guardrails_syncs_under_guardrail_reconcile_lock(monkeypatc
 async def test_resync_model_deployments_mutates_router_under_model_reconcile_lock(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_model_deployments
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_model_deployments
 
     prisma_client: Final = MagicMock()
     prisma_client.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[MagicMock()])
@@ -397,8 +397,8 @@ async def test_resync_model_deployments_mutates_router_under_model_reconcile_loc
 async def test_resync_model_deployments_respects_supported_db_objects(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_model_deployments
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_model_deployments
 
     prisma_client: Final = MagicMock()
     prisma_client.db.litellm_proxymodeltable.find_many = AsyncMock(
@@ -415,8 +415,8 @@ async def test_resync_model_deployments_respects_supported_db_objects(monkeypatc
 async def test_resync_guardrails_respects_supported_db_objects(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_guardrails
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_guardrails
 
     prisma_client: Final = MagicMock()
     prisma_client.db.litellm_guardrailstable.find_unique = AsyncMock(
@@ -433,8 +433,8 @@ async def test_resync_guardrails_respects_supported_db_objects(monkeypatch):
 async def test_resync_agents_respects_supported_db_objects(clean_agent_registry, monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.common_utils.registry_read_through import _resync_agents
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_agents
 
     prisma_client: Final = MagicMock()
     prisma_client.db.litellm_agentstable.find_unique = AsyncMock(
@@ -451,10 +451,10 @@ async def test_resync_agents_respects_supported_db_objects(clean_agent_registry,
 async def test_resync_agents_waits_for_agent_reload_and_skips_duplicate_registration(clean_agent_registry, monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
 
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy.agent_endpoints.agent_registry import AGENT_RECONCILE_LOCK
-    from litellm.proxy.common_utils.registry_read_through import _resync_agents
-    from litellm.types.agents import AgentResponse
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy.agent_endpoints.agent_registry import AGENT_RECONCILE_LOCK
+    from token_iq.gateway.proxy.common_utils.registry_read_through import _resync_agents
+    from token_iq.gateway.types.agents import AgentResponse
 
     agent_id: Final = "reload-race-agent-id"
     prisma_client: Final = MagicMock()

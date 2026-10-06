@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.common_utils.periodic_reload_schedule import (
+from token_iq.gateway.proxy.common_utils.periodic_reload_schedule import (
     ReloadSchedule,
     clear_reload_interval,
     next_run_at,

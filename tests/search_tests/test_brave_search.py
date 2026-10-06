@@ -7,7 +7,7 @@ import pytest
 from urllib.parse import urlparse, parse_qs
 from unittest.mock import AsyncMock, patch, MagicMock
 
-import litellm
+from token_iq import gateway as litellm
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 
@@ -45,7 +45,7 @@ class TestBraveSearch(BaseSearchTest):
 
         # Mock the httpx AsyncClient get method
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = mock_response

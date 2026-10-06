@@ -8,10 +8,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 import respx
 
-import litellm
-from litellm import completion
-from litellm.llms.vercel_ai_gateway.chat.transformation import VercelAIGatewayConfig
-from litellm.cost_calculator import cost_per_token
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.vercel_ai_gateway.chat.transformation import VercelAIGatewayConfig
+from token_iq.gateway.cost_calculator import cost_per_token
 import math
 
 
@@ -45,7 +45,7 @@ def test_vercel_ai_gateway_config_initialization():
 
 def test_get_llm_provider_vercel_ai_gateway():
     """Test that get_llm_provider correctly identifies vercel_ai_gateway"""
-    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+    from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
     # Test with vercel_ai_gateway/provider/model-name format
     model, provider, api_key, api_base = get_llm_provider(
@@ -242,7 +242,7 @@ def test_vercel_ai_gateway_models_endpoint():
     """Test the get_models functionality"""
     config = VercelAIGatewayConfig()
 
-    with patch("litellm.module_level_client.get") as mock_get:
+    with patch("token_iq.gateway.module_level_client.get") as mock_get:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -268,7 +268,7 @@ def test_vercel_ai_gateway_models_endpoint_failure():
     """Test the get_models functionality with failure"""
     config = VercelAIGatewayConfig()
 
-    with patch("litellm.module_level_client.get") as mock_get:
+    with patch("token_iq.gateway.module_level_client.get") as mock_get:
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.text = "Not found"

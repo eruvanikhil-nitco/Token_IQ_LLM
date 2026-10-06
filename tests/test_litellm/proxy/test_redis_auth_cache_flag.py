@@ -11,10 +11,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-import litellm.proxy.proxy_server as ps
-from litellm.caching.caching import RedisCache
-from litellm.caching.dual_cache import DualCache
+from token_iq import gateway as litellm
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.caching.caching import RedisCache
+from token_iq.gateway.caching.dual_cache import DualCache
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +74,7 @@ def _patched_init_cache(litellm_settings: dict, cache_params: dict):
         patch.object(ps, "cli_sso_session_cache", fresh_cli_sso_cache),
         patch.object(ps, "llm_router", None),
         # Cache is locally imported inside _init_cache: patch it at source.
-        patch("litellm.Cache", return_value=mock_litellm_cache),
+        patch("token_iq.gateway.Cache", return_value=mock_litellm_cache),
     ):
         litellm.cache = None
         ps.ProxyConfig()._init_cache(cache_params, enable_redis_auth_cache)

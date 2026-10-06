@@ -11,11 +11,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._experimental.mcp_server.exceptions import (
+from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
     MCPServerListError,
     MCPUpstreamAuthError,
 )
-from litellm.proxy._experimental.mcp_server.faults.list_outcomes import ServerListFault
+from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import ServerListFault
 
 # Add the parent directory to the path so we can import litellm
 
@@ -32,8 +32,8 @@ from mcp.types import (
 from mcp.types import Tool as MCPTool
 from pydantic import AnyUrl
 
-from litellm.constants import MCP_METADATA_TIMEOUT
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+from token_iq.gateway.constants import MCP_METADATA_TIMEOUT
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
     MCPServerManager,
     _deserialize_json_dict,
     _flow_endpoints_missing,
@@ -45,7 +45,7 @@ from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
     _resolve_openapi_tool_auth,
     _should_strip_caller_authorization,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_MCPServerTable,
     LiteLLM_ObjectPermissionTable,
     LitellmUserRoles,
@@ -55,20 +55,20 @@ from litellm.proxy._types import (
     MCPTransport,
     UserAPIKeyAuth,
 )
-from litellm.types.llms.custom_http import httpxSpecialProvider
-from litellm.types.mcp import MCPAuth, MCPAuthType
-from litellm.types.mcp_server.mcp_server_manager import MCPOAuthMetadata, MCPServer
+from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
+from token_iq.gateway.types.mcp import MCPAuth, MCPAuthType
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPOAuthMetadata, MCPServer
 
 
 def _reload_mcp_manager_module():
-    utils_module = sys.modules["litellm.proxy._experimental.mcp_server.utils"]
-    manager_module = sys.modules["litellm.proxy._experimental.mcp_server.mcp_server_manager"]
+    utils_module = sys.modules["token_iq.gateway.proxy._experimental.mcp_server.utils"]
+    manager_module = sys.modules["token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager"]
     importlib.reload(utils_module)
     reloaded = importlib.reload(manager_module)
     # After reload, server.py still holds a stale reference to the old
     # global_mcp_server_manager. Update it so tests that exercise server.py
     # functions (e.g. _get_tools_from_mcp_servers) use the fresh instance.
-    server_module = sys.modules.get("litellm.proxy._experimental.mcp_server.server")
+    server_module = sys.modules.get("token_iq.gateway.proxy._experimental.mcp_server.server")
     if server_module is not None and hasattr(server_module, "global_mcp_server_manager"):
         server_module.global_mcp_server_manager = reloaded.global_mcp_server_manager
     return reloaded
@@ -150,7 +150,7 @@ class TestMCPServerManager:
         assert client.stdio_config["command"] == "node"
         assert client.stdio_config["args"] == ["server.js"]
         # NPM_CONFIG_CACHE is injected automatically for container compatibility
-        from litellm.constants import MCP_NPM_CACHE_DIR
+        from token_iq.gateway.constants import MCP_NPM_CACHE_DIR
 
         assert client.stdio_config["env"]["NODE_ENV"] == "test"
         assert client.stdio_config["env"]["NPM_CONFIG_CACHE"] == MCP_NPM_CACHE_DIR
@@ -160,13 +160,13 @@ class TestMCPServerManager:
         """A caller-supplied per-request override must not substitute the stored authorization_code
         token: _create_mcp_client keeps the v2 spec and resolves through the injected provider
         rather than deferring to the v1 caller-override path."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import (
             Ok,
         )
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         calls = []
 
@@ -195,13 +195,13 @@ class TestMCPServerManager:
         """A caller-supplied per-request override must not disable the ID-JAG exchange and forward an
         arbitrary bearer upstream: _create_mcp_client keeps the v2 spec and resolves through the
         injected provider rather than deferring to the v1 caller-override path."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import (
             Ok,
         )
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         calls = []
 
@@ -244,7 +244,7 @@ class TestMCPServerManager:
         operator misconfiguration (HTTP 500) before any client is built."""
         from fastapi import HTTPException
 
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         fields = {
             "client_id": "gateway-client",
@@ -276,7 +276,7 @@ class TestMCPServerManager:
     async def test_create_mcp_client_stdio_injects_npm_config_cache(self):
         """Test that _create_mcp_client injects NPM_CONFIG_CACHE when not already set,
         and preserves user-provided NPM_CONFIG_CACHE when present."""
-        from litellm.constants import MCP_NPM_CACHE_DIR
+        from token_iq.gateway.constants import MCP_NPM_CACHE_DIR
 
         manager = MCPServerManager()
 
@@ -548,7 +548,7 @@ class TestMCPServerManager:
             patch.object(manager, "_discover_oauth_metadata_for_server", new=discovery),
             patch.object(manager, "initialize_tool_name_to_mcp_server_name_mapping"),
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager._oauth_discovery_now",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager._oauth_discovery_now",
                 new=discovery_clock,
             ),
         ):
@@ -601,7 +601,7 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCP_METADATA_TIMEOUT",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCP_METADATA_TIMEOUT",
                 0.01,
             ),
             patch.object(manager, "_discover_oauth_metadata_for_server", side_effect=never_returns) as discovery,
@@ -768,11 +768,11 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
                 return_value=repository,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
         ):
@@ -828,11 +828,11 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
                 return_value=repository,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch.object(
@@ -903,7 +903,7 @@ class TestMCPServerManager:
                 "ensure_oauth_metadata_discovered",
                 new=ensure_oauth_metadata_discovered,
             ),
-            patch("litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient"),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient"),
         ):
             await manager._create_mcp_client(server)
 
@@ -1656,7 +1656,7 @@ class TestMCPServerManager:
         won't help) and a genuine non-auth failure (e.g. 503) both keep the default isError
         degradation and stay a visible warning, mirroring the list path, rather than being relayed as
         a re-auth challenge."""
-        from litellm.experimental_mcp_client.client import MCPClient
+        from token_iq.gateway.experimental_mcp_client.client import MCPClient
 
         server = self._passthrough_call_server(MCPAuth.true_passthrough, server_id=f"pt-{status_code}")
         manager = MCPServerManager()
@@ -1665,7 +1665,7 @@ class TestMCPServerManager:
         mock_client.error_tool_result = MCPClient.error_tool_result
         manager._create_mcp_client = AsyncMock(return_value=mock_client)
 
-        import litellm.proxy._experimental.mcp_server.mcp_server_manager as _mgr_mod
+        import token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager as _mgr_mod
 
         with patch.object(_mgr_mod, "verbose_logger") as mock_log:
             result = await self._run_call_regular(manager, server)
@@ -1725,8 +1725,8 @@ class TestMCPServerManager:
         # must reconstruct it onto the MCPServer, and the v2 adapter must map it onto the resolver
         # config. Without threading it through, an entra_obo server persisted via the API silently
         # falls back to rfc8693 and posts the wrong grant to the IdP.
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import TokenExchangeConfig
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import TokenExchangeConfig
 
         manager = MCPServerManager()
         row = LiteLLM_MCPServerTable(
@@ -2324,10 +2324,10 @@ class TestMCPServerManager:
         """A caller-supplied per-server header (x-mcp-*) must NOT disable the OBO exchange:
         _create_mcp_client keeps the v2 spec and runs the resolver (which exchanges the subject),
         rather than deferring to v1 and forwarding the caller's header verbatim upstream."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         exchanged_subjects = []
 
@@ -2354,10 +2354,10 @@ class TestMCPServerManager:
         """A guardrail/static Authorization (e.g. MCPJWTSigner) must NOT shadow the exchanged OBO
         token. The resolver-owned credential is authoritative: the conflicting header is dropped and
         the minted token is what reaches the upstream, not the injected JWT."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2382,10 +2382,10 @@ class TestMCPServerManager:
         the gateway-minted client_credentials bearer. Dropping the resolved auth here would also
         drop the one-shot 401 refetch that rides on it, so the resolver-owned credential is
         authoritative exactly as for token_exchange and authorization_code."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2433,10 +2433,10 @@ class TestMCPServerManager:
         """The dual-credential case: an ESB wants the gateway-minted token on its own header while a
         separate static Authorization passes through to the origin. Dropping Authorization here (the
         old name-blind behavior) deletes the second credential and the upstream 401s."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2456,10 +2456,10 @@ class TestMCPServerManager:
         """The negative class of the test above: when the two DO collide the resolver-owned
         credential is still authoritative, so the knob cannot be used to smuggle a second
         credential into the same slot."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2484,10 +2484,10 @@ class TestMCPServerManager:
         downstream consumer of that dict. httpx happens to collapse the two on the wire, which is
         exactly why this needs pinning rather than being left to luck.
         """
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2504,7 +2504,7 @@ class TestMCPServerManager:
         assert (client.extra_headers or {})["X-Trace"] == "keep"
 
     def test_without_header_drops_only_the_named_header(self):
-        from litellm.types.mcp import DEFAULT_CREDENTIAL_HEADER, without_header
+        from token_iq.gateway.types.mcp import DEFAULT_CREDENTIAL_HEADER, without_header
 
         headers = {"Authorization": "Bearer a", "esb-oauth": "Bearer b", "X-Trace": "t"}
         assert without_header(headers, "ESB-OAuth") == {"Authorization": "Bearer a", "X-Trace": "t"}
@@ -2515,8 +2515,8 @@ class TestMCPServerManager:
         """A subject the IdP rejects must raise the RFC 9728 401 challenge from the preflight, so a
         single-server route fails observably at the transport edge instead of the old behavior of
         the session opening and list_tools masking the failed exchange as an empty tool list."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Error
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import CredError
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Error
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import CredError
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2540,8 +2540,8 @@ class TestMCPServerManager:
     async def test_preflight_token_exchange_maps_gateway_fault_to_public_status(self):
         """A gateway-fault CredError (e.g. invalid_client) must surface its public status (500)
         from the preflight, not the OBO 401 challenge and not an empty-success session."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Error
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import CredError
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Error
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import CredError
 
         class _FakeProvider:
             async def resolve_credentials(self, subject, server):
@@ -2562,10 +2562,10 @@ class TestMCPServerManager:
     async def test_preflight_token_exchange_noop_on_success_and_without_subject(self):
         """A successful exchange returns without raising, and a request with no bearer never
         reaches the resolver (the no-subject case is the existing preemptive challenge's job)."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         resolved = []
 
@@ -2620,7 +2620,7 @@ class TestMCPServerManager:
         """OAuth pass-through must not forward the caller's Authorization to upstream
         when LiteLLM admission consumed the bearer as its API key — otherwise the
         LiteLLM key the caller used for admission would leak upstream."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -2677,7 +2677,7 @@ class TestMCPServerManager:
         caller-forwarded Authorization into extra_headers — the resolver injects the
         stored per-user token, and apply-if-absent would otherwise let the caller's
         header override another user's stored credential (matches v1's overwrite)."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         # oauth2, not M2M, not delegate => to_server_spec maps it to AuthorizationCodeConfig
@@ -2730,7 +2730,7 @@ class TestMCPServerManager:
             assert "authorization" not in {k.lower() for k in captured_extra_headers}
 
     def test_without_header_drops_only_the_credential(self):
-        from litellm.types.mcp import without_header
+        from token_iq.gateway.types.mcp import without_header
 
         # None / empty -> None
         assert without_header(None, "Authorization") is None
@@ -2747,7 +2747,7 @@ class TestMCPServerManager:
         """OAuth pass-through forwards Authorization upstream when x-litellm-api-key
         provides admission — in that case Authorization carries the upstream OAuth
         bearer, not the LiteLLM key."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -2804,7 +2804,7 @@ class TestMCPServerManager:
         credential is the upstream bearer in Authorization, and LiteLLM admission
         is anonymous (no api_key on user_api_key_auth). Authorization must be
         forwarded so the delegated flow can complete."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -2879,7 +2879,7 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_call_regular_mcp_tool_true_passthrough_forwards_authorization(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         server = MCPServer(
             server_id="server-true-passthrough",
@@ -2898,7 +2898,7 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_call_regular_mcp_tool_oauth_delegate_forwards_separate_authorization(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         server = MCPServer(
             server_id="server-oauth-delegate",
@@ -2920,7 +2920,7 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_call_regular_mcp_tool_oauth_delegate_never_forwards_admission_key(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         server = MCPServer(
             server_id="server-oauth-delegate-leak",
@@ -2938,7 +2938,7 @@ class TestMCPServerManager:
         assert not extra_headers or "authorization" not in {k.lower() for k in extra_headers}
 
     def test_should_strip_caller_authorization_new_modes(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         true_passthrough = MCPServer(
             server_id="tp",
@@ -2987,7 +2987,7 @@ class TestMCPServerManager:
         """JWT / SSO / OIDC / session admission yields a UserAPIKeyAuth with a user_id but
         api_key=None; the caller's Authorization was that credential and must be stripped for
         oauth_delegate when no separate x-litellm-api-key carried admission (LIT-3794-class leak)."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         oauth_delegate = MCPServer(
             server_id="od-jwt",
@@ -3018,7 +3018,7 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_call_regular_mcp_tool_oauth_delegate_never_forwards_jwt_admission(self):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         server = MCPServer(
             server_id="od-jwt-e2e",
@@ -3058,10 +3058,10 @@ class TestMCPServerManager:
         )
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
                 new_callable=AsyncMock,
             ) as mock_resolve,
-            patch("litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
+            patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
         ):
             await manager._create_mcp_client(server=server, extra_headers={"Authorization": "Bearer upstream-token"})
         mock_resolve.assert_not_awaited()
@@ -3078,13 +3078,13 @@ class TestMCPServerManager:
         """A configured OBO server is owned end to end by the v2 token_exchange arm, even when the
         caller supplies an x-mcp-* override. This is what makes the v1 OBO handler unreachable, so if
         it ever defers to v1 again the deleted handler is silently needed back."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
             OAuthToken,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.resolver import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.resolver import (
             UpstreamCredentialProvider,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _StubExchanger:
             def __init__(self):
@@ -3111,10 +3111,10 @@ class TestMCPServerManager:
         )
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
                 new_callable=AsyncMock,
             ) as mock_resolve,
-            patch("litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
+            patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
         ):
             await manager._create_mcp_client(
                 server=server,
@@ -3154,10 +3154,10 @@ class TestMCPServerManager:
         )
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.resolve_mcp_auth",
                 new_callable=AsyncMock,
             ) as mock_resolve,
-            patch("litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
+            patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPClient") as mock_client_cls,
         ):
             await manager._create_mcp_client(
                 server=server,
@@ -3170,7 +3170,7 @@ class TestMCPServerManager:
         assert not kwargs["extra_headers"] or "authorization" not in {k.lower() for k in kwargs["extra_headers"]}
 
     def test_consumes_caller_authorization_per_mode(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _consumes_caller_authorization,
         )
 
@@ -3206,7 +3206,7 @@ class TestMCPServerManager:
         )
 
     def test_caller_authorization_fans_out_only_with_second_consumer(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _caller_authorization_fans_out,
         )
 
@@ -3482,7 +3482,7 @@ class TestMCPServerManager:
         mock_client.get = AsyncMock(return_value=mock_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -3517,7 +3517,7 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=mock_client,
             ) as get_client,
             patch.object(
@@ -3572,7 +3572,7 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(
@@ -3619,7 +3619,7 @@ class TestMCPServerManager:
         mock_client.get = AsyncMock(side_effect=build_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             # The Azure issuer is cross-origin against the server_url — use
@@ -3667,7 +3667,7 @@ class TestMCPServerManager:
         mock_client = MagicMock()
         mock_client.get = AsyncMock(side_effect=build_response)
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(issuer, issuer, require_issuer=issuer)
@@ -3697,7 +3697,7 @@ class TestMCPServerManager:
         mock_client = MagicMock()
         mock_client.get = AsyncMock(side_effect=build_response)
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(issuer, issuer, require_issuer=issuer)
@@ -3722,7 +3722,7 @@ class TestMCPServerManager:
         mock_client.get = AsyncMock(return_value=mock_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(issuer, issuer)
@@ -3750,7 +3750,7 @@ class TestMCPServerManager:
         mock_client.get = AsyncMock(return_value=mock_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             azure = await manager._fetch_single_authorization_server_metadata(issuer, issuer, require_issuer=issuer)
@@ -3791,7 +3791,7 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(
@@ -3885,9 +3885,9 @@ class TestMCPServerManager:
         assert server.scopes is None
 
         # And the exchange precondition now fails closed before any IdP call.
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Error
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Error
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_exchanger import (
             OboTokenExchanger,
         )
 
@@ -3908,7 +3908,7 @@ class TestMCPServerManager:
         key (the config counterpart of the REST/UI columns) and reaches the resolver spec;
         omitted keys resolve to their documented defaults. token_exchange servers need no
         oauth2_flow (that requirement is oauth2-only)."""
-        from litellm.types.mcp import DEFAULT_SUBJECT_TOKEN_TYPE
+        from token_iq.gateway.types.mcp import DEFAULT_SUBJECT_TOKEN_TYPE
 
         manager = MCPServerManager()
         config = {
@@ -3950,7 +3950,7 @@ class TestMCPServerManager:
         assert minimal.subject_token_type == DEFAULT_SUBJECT_TOKEN_TYPE
         assert minimal.token_exchange_profile == "rfc8693"
 
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.adapter import to_server_spec
 
         spec = to_server_spec(full)
         assert spec is not None
@@ -4519,15 +4519,15 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator.create_tool_function",
+                "token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator.create_tool_function",
                 side_effect=fake_create_tool_function,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.openapi_to_mcp_generator.build_input_schema",
+                "token_iq.gateway.proxy._experimental.mcp_server.openapi_to_mcp_generator.build_input_schema",
                 return_value={"type": "object", "properties": {}, "required": []},
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.tool_registry.global_mcp_tool_registry.register_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.tool_registry.global_mcp_tool_registry.register_tool",
                 return_value=None,
             ),
         ):
@@ -4811,7 +4811,7 @@ class TestMCPServerManager:
         Authorization from auth_value, so an injected JWT would clobber the
         user's per-server OAuth token. Regression test for that interaction.
         """
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -4827,11 +4827,11 @@ class TestMCPServerManager:
 
         with (
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer.get_mcp_jwt_signer",
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer.get_mcp_jwt_signer",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer.inject_mcp_jwt_headers_for_upstream",
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_jwt_signer.mcp_jwt_signer.inject_mcp_jwt_headers_for_upstream",
                 new=AsyncMock(return_value={"Authorization": "Bearer signed-jwt"}),
             ) as mock_inject,
         ):
@@ -5034,7 +5034,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_resolve_oauth2_headers_skipped_when_not_user_oauth(self):
         """Returns input headers unchanged when server does not need user OAuth."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5053,7 +5053,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_resolve_oauth2_headers_returns_client_supplied_token(self):
         """Returns the client's oauth2_headers as-is when already set."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5074,7 +5074,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_resolve_oauth2_headers_looks_up_stored_token(self):
         """Falls back to stored per-user OAuth headers for a non-migrated (delegate) oauth2 server."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5088,7 +5088,7 @@ class TestMCPServerManager:
         stored = {"Authorization": "Bearer stored-user-token"}
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
             new=AsyncMock(return_value=stored),
         ) as mock_lookup:
             result = await manager._resolve_oauth2_headers_for_tool_call(
@@ -5103,7 +5103,7 @@ class TestMCPServerManager:
         """A migrated authorization_code server is owned by the v2 resolver, so v1 must not also
         build the token into extra_headers (which the v2 graft would defer to and shadow).
         """
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5115,7 +5115,7 @@ class TestMCPServerManager:
         user_auth = UserAPIKeyAuth(api_key="sk-test", user_id="alice")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
             new=AsyncMock(return_value={"Authorization": "Bearer should-not-be-used"}),
         ) as mock_lookup:
             result = await manager._resolve_oauth2_headers_for_tool_call(
@@ -5128,7 +5128,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_resolve_oauth2_headers_swallows_lookup_exception(self):
         """Returns supplied headers (None) when the v1 stored-token lookup raises (delegate path)."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5141,7 +5141,7 @@ class TestMCPServerManager:
         user_auth = UserAPIKeyAuth(api_key="sk-test", user_id="alice")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
             new=AsyncMock(side_effect=RuntimeError("redis down")),
         ):
             result = await manager._resolve_oauth2_headers_for_tool_call(
@@ -5152,7 +5152,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_has_user_oauth_token_delegates_to_provider(self):
         """has_user_oauth_token maps the server and delegates the verdict to the v2 resolver."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         for verdict in (True, False):
 
@@ -5173,7 +5173,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_has_user_oauth_token_short_circuits_for_unmigrated_server(self):
         """A server the resolver does not own (None spec, e.g. delegate) is False without a call."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         calls: list = []
 
@@ -5284,7 +5284,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_resolve_oauth2_headers_no_user_id(self):
         """Skip lookup entirely when user_api_key_auth has no user_id."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -5297,7 +5297,7 @@ class TestMCPServerManager:
         user_auth = UserAPIKeyAuth(api_key="sk-test")
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._get_user_oauth_extra_headers_from_db",
             new=AsyncMock(return_value={"Authorization": "Bearer x"}),
         ) as mock_lookup:
             result = await manager._resolve_oauth2_headers_for_tool_call(
@@ -5376,7 +5376,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_rest_endpoint_filters_by_allowed_tools(self):
         """Test that REST endpoint _get_tools_for_single_server respects allowed_tools configuration"""
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import (
             _get_tools_for_single_server,
         )
 
@@ -5406,7 +5406,7 @@ class TestMCPServerManager:
         tool3.inputSchema = {}
 
         # Mock the global_mcp_server_manager._get_tools_from_server
-        from litellm.proxy._experimental.mcp_server import rest_endpoints
+        from token_iq.gateway.proxy._experimental.mcp_server import rest_endpoints
 
         with patch.object(
             rest_endpoints.global_mcp_server_manager,
@@ -5426,7 +5426,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_rest_endpoint_shows_all_when_allowed_tools_is_none(self):
         """Test that REST endpoint shows all tools when allowed_tools is None (backwards compatibility)"""
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import (
             _get_tools_for_single_server,
         )
 
@@ -5456,7 +5456,7 @@ class TestMCPServerManager:
         tool3.inputSchema = {}
 
         # Mock the global_mcp_server_manager._get_tools_from_server
-        from litellm.proxy._experimental.mcp_server import rest_endpoints
+        from token_iq.gateway.proxy._experimental.mcp_server import rest_endpoints
 
         with patch.object(
             rest_endpoints.global_mcp_server_manager,
@@ -5476,7 +5476,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_rest_endpoint_shows_all_when_allowed_tools_is_empty_list(self):
         """Test that REST endpoint shows all tools when allowed_tools is empty list (backwards compatibility)"""
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import (
             _get_tools_for_single_server,
         )
 
@@ -5501,7 +5501,7 @@ class TestMCPServerManager:
         tool2.inputSchema = {}
 
         # Mock the global_mcp_server_manager._get_tools_from_server
-        from litellm.proxy._experimental.mcp_server import rest_endpoints
+        from token_iq.gateway.proxy._experimental.mcp_server import rest_endpoints
 
         with patch.object(
             rest_endpoints.global_mcp_server_manager,
@@ -5555,7 +5555,7 @@ class TestMCPServerManager:
         """
         Test that key can call tool when it's in mcp_tool_permissions allowed list.
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5598,7 +5598,7 @@ class TestMCPServerManager:
         """
         Test that key cannot call tool when it's NOT in mcp_tool_permissions allowed list.
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5644,7 +5644,7 @@ class TestMCPServerManager:
         """
         Test check_tool_permission_for_key_team directly - should allow permitted tool.
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5677,7 +5677,7 @@ class TestMCPServerManager:
         """
         Test check_tool_permission_for_key_team directly - should block unpermitted tool.
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5717,7 +5717,7 @@ class TestMCPServerManager:
         """
         Test check_tool_permission_for_key_team - should allow all tools when no restrictions set.
         """
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5882,10 +5882,10 @@ class TestMCPServerManager:
         when called. This verifies the fix where user_api_key_auth is passed through
         litellm_metadata from responses API.
         """
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
 
@@ -5935,10 +5935,10 @@ class TestMCPServerManager:
     async def test_no_mcp_servers_sentinel_blocks_allow_all_keys(self):
         """A key scoped to no-mcp-servers gets zero servers even when allow_all_keys
         servers exist, and the inner resolver is never consulted."""
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         manager = MCPServerManager()
         object_permission = LiteLLM_ObjectPermissionTable(
@@ -5969,11 +5969,11 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_no_mcp_servers_sentinel_excludes_submitted_byom_servers(self):
-        from litellm.proxy import proxy_server as proxy_server_module
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         class _Cache:
             async def async_get_cache(self, key: str):
@@ -6017,11 +6017,11 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_explicitly_scoped_key_excludes_submitted_byom_servers(self):
-        from litellm.proxy import proxy_server as proxy_server_module
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, UserAPIKeyAuth
 
         cache = MagicMock()
         cache.async_get_cache = AsyncMock(return_value=["submitted-server"])
@@ -6069,14 +6069,14 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_toolset_scope_excludes_submitted_byom_servers(self):
-        from litellm.proxy import proxy_server as proxy_server_module
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._experimental.mcp_server.mcp_context import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_context import (
             _mcp_active_toolset_id,
         )
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         cache = MagicMock()
         cache.async_get_cache = AsyncMock(return_value=["submitted-server"])
@@ -6117,7 +6117,7 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_invalidate_byom_submitted_servers_cache_deletes_key(self):
-        from litellm.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
 
         cache = MagicMock()
         cache.async_delete_cache = AsyncMock()
@@ -6131,8 +6131,8 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_get_active_submitted_ids_cache_miss_queries_db_and_caches(self):
-        from litellm.proxy import proxy_server as proxy_server_module
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         cache = MagicMock()
         cache.async_get_cache = AsyncMock(return_value=None)
@@ -6151,7 +6151,7 @@ class TestMCPServerManager:
             patch.object(proxy_server_module, "user_api_key_cache", cache),
             patch.object(proxy_server_module, "prisma_client", MagicMock()),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.get_active_submitted_mcp_server_ids_for_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.get_active_submitted_mcp_server_ids_for_user",
                 AsyncMock(return_value=["submitted-server", "unknown-server"]),
             ),
         ):
@@ -6166,11 +6166,11 @@ class TestMCPServerManager:
 
     @pytest.mark.asyncio
     async def test_get_allowed_mcp_servers_fallback_keeps_submitted_byom_servers(self):
-        from litellm.proxy import proxy_server as proxy_server_module
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy import proxy_server as proxy_server_module
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         class _Cache:
             async def async_get_cache(self, key: str):
@@ -6208,7 +6208,7 @@ class TestMCPServerManager:
     @pytest.mark.asyncio
     async def test_get_allowed_mcp_servers_anonymous_delegate_requires_oauth2(self):
         """Anonymous delegated auth listing should only include oauth2 servers."""
-        from litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
+        from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
             MCPRequestHandler,
         )
 
@@ -6256,7 +6256,7 @@ class TestMCPServerManager:
         when extracting server name from prefixed tool name (second case).
         This ensures the fix for using server_name instead of name works correctly.
         """
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
         )
 
@@ -6376,7 +6376,7 @@ class TestMCPServerTimestamps:
         )
 
         # prisma_client None -> the write-back no-ops; this test isolates the discovery behavior.
-        with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
             server = await manager.build_mcp_server_from_table(record, credentials_are_encrypted=False)
 
         assert calls == [False]  # discovery ran once, origin fallback disabled for OBO
@@ -6442,12 +6442,12 @@ class TestMCPServerTimestamps:
         repo_instance = MagicMock()
         repo_instance.table.update = AsyncMock()
         with (
-            patch("litellm.proxy._experimental.mcp_server.db.update_mcp_server", new=update_mcp_server_mock),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db.update_mcp_server", new=update_mcp_server_mock),
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
                 return_value=repo_instance,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         ):
             for auth_type, flow in ((MCPAuth.oauth2, "authorization_code"), (MCPAuth.oauth2_token_exchange, None)):
                 record = LiteLLM_MCPServerTable(
@@ -6620,11 +6620,11 @@ class TestMCPServerTimestamps:
             build_mock = AsyncMock(return_value=previous_entry)
             with (
                 patch(
-                    "litellm.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
+                    "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCPServerRepository",
                     return_value=repo_instance,
                 ),
                 patch(
-                    "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                    "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                     return_value=MagicMock(),
                 ),
                 patch.object(manager, "build_mcp_server_from_table", new=build_mock),
@@ -6701,7 +6701,7 @@ class TestMCPServerTimestamps:
             credentials={"client_id": "cid", "client_secret": "csec"},
         )
 
-        with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
             await manager.update_server(record)
 
         rebuilt = manager.registry["lkg-1"]
@@ -6712,7 +6712,7 @@ class TestMCPServerTimestamps:
 
     def test_carry_forward_skips_when_url_or_auth_type_changed(self):
         """Stale endpoints from a different upstream or auth mode must not carry forward."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _carry_forward_resolved_oauth_endpoints,
         )
 
@@ -6751,7 +6751,7 @@ class TestMCPServerTimestamps:
         this, re-pointing authorize to server B while the same MCP url keeps serving A's token
         endpoint recreates the RFC 9700 mix-up, durably, and the discovery gate alone cannot catch
         it because the stale endpoint comes from the registry, not from discovery."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _carry_forward_resolved_oauth_endpoints,
         )
 
@@ -6785,7 +6785,7 @@ class TestMCPServerTimestamps:
         endpoint) adopts the previous authorize endpoint AND its token endpoint together as a
         consistent group, and a rebuild that re-pins the same authorize endpoint (formatting aside)
         keeps carrying the corroborated token endpoint."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _carry_forward_resolved_oauth_endpoints,
         )
 
@@ -6833,7 +6833,7 @@ class TestMCPServerTimestamps:
         endpoint the issuer anchor distrusts would keep being served across rebuilds. Resource-driven
         scopes still carry as last-known-good. Anchoring is keyed on the explicit issuer_is_anchored
         flag, not on issuer truthiness, so a discovered issuer does not trip this fail-closed branch."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _carry_forward_resolved_oauth_endpoints,
         )
 
@@ -6873,7 +6873,7 @@ class TestMCPServerTimestamps:
         must still carry forward as last-known-good, the same as any resource-rooted server. This is the
         regression the explicit issuer_is_anchored flag prevents: keying fail-closed on issuer truthiness
         alone would drop the working endpoints the moment the server learned its issuer."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _carry_forward_resolved_oauth_endpoints,
         )
 
@@ -6912,7 +6912,7 @@ class TestMCPServerTimestamps:
         """The corroboration check must not fail on formatting-only differences an IdP legitimately
         emits: default port, trailing slash, host case, and query string are not identity, but a
         non-default port is."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _normalized_authorize_endpoint,
         )
 
@@ -6926,7 +6926,7 @@ class TestMCPServerTimestamps:
         """Issuer equality tolerates only URL-insignificant differences (scheme/host case, default
         port, a trailing slash). A different host, a non-string, an empty string, or a None issuer
         never matches, so a document that omits issuer fails closed under issuer-anchored discovery."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import _issuer_matches
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import _issuer_matches
 
         assert _issuer_matches("https://mcp.slack.com", "https://mcp.slack.com")
         assert _issuer_matches("https://MCP.slack.com/", "https://mcp.slack.com")
@@ -7124,7 +7124,7 @@ class TestMCPServerTimestamps:
     @pytest.mark.asyncio
     async def test_create_mcp_client_falls_back_to_global_timeout(self):
         """_create_mcp_client must fall back to MCP_CLIENT_TIMEOUT when server.timeout is None."""
-        from litellm.constants import MCP_CLIENT_TIMEOUT
+        from token_iq.gateway.constants import MCP_CLIENT_TIMEOUT
 
         manager = MCPServerManager()
         server = MCPServer(
@@ -7419,7 +7419,7 @@ class TestInternalDelegatePkceWarningLog:
 
     def test_warn_skipped_for_client_credentials(self, caplog):
         caplog.set_level(logging.WARNING, logger="LiteLLM")
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _warn_internal_delegate_pkce_if_applicable,
         )
 
@@ -7802,7 +7802,7 @@ class TestOAuthDiscoverySSRFGuard:
             return [(family, _socket.SOCK_STREAM, 0, "", (ip, port)) for ip in mapping[host]]
 
         monkeypatch.setattr(
-            "litellm.litellm_core_utils.url_utils.socket.getaddrinfo",
+            "token_iq.gateway.core_utils.url_utils.socket.getaddrinfo",
             fake_getaddrinfo,
         )
 
@@ -7845,7 +7845,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(
@@ -7873,7 +7873,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock(return_value=mock_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -7896,7 +7896,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -7915,7 +7915,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -7943,7 +7943,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -7966,7 +7966,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -7983,7 +7983,7 @@ class TestOAuthDiscoverySSRFGuard:
         # POSIX doesn't strictly forbid an empty success-list from getaddrinfo.
         # async_safe_get must fail closed rather than making a network call.
         monkeypatch.setattr(
-            "litellm.litellm_core_utils.url_utils.socket.getaddrinfo",
+            "token_iq.gateway.core_utils.url_utils.socket.getaddrinfo",
             lambda *a, **k: [],
         )
         manager = MCPServerManager()
@@ -7992,7 +7992,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             servers, scopes = await manager._fetch_oauth_metadata_from_resource(
@@ -8023,7 +8023,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock(return_value=redirect_response)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(
@@ -8057,7 +8057,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock(side_effect=fake_get)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             await manager._fetch_oauth_metadata_from_resource(
@@ -8088,7 +8088,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock(side_effect=fake_get)
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             await manager._fetch_single_authorization_server_metadata(
@@ -8107,7 +8107,7 @@ class TestOAuthDiscoverySSRFGuard:
         mock_client.get = AsyncMock()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
             return_value=mock_client,
         ):
             result = await manager._fetch_single_authorization_server_metadata(
@@ -8180,10 +8180,10 @@ class TestApprovalStatusGate:
 
     async def test_update_server_eviction_clears_openapi_routing_artifacts(self, tmp_path):
         """Rejecting a server must remove its OpenAPI tools and name mappings."""
-        from litellm.proxy._experimental.mcp_server.tool_registry import (
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_registry import (
             global_mcp_tool_registry,
         )
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
         )
@@ -8362,7 +8362,7 @@ class TestUserEnvVarsCacheEviction:
 
     @staticmethod
     def _patch_cache(monkeypatch, max_size):
-        from litellm.proxy._experimental.mcp_server import mcp_server_manager as m
+        from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as m
 
         cache: Dict[Any, Any] = {}
         monkeypatch.setattr(m, "_user_env_vars_cache", cache)
@@ -8421,7 +8421,7 @@ class TestGetPublicMCPServers:
             manager.config_mcp_servers[s.server_id] = s
         return manager
 
-    @patch("litellm.public_mcp_servers", None)
+    @patch("token_iq.gateway.public_mcp_servers", None)
     def test_returns_empty_when_whitelist_is_none(self):
         """No /make_public call yet → hub returns nothing, regardless of
         per-server flags."""
@@ -8433,13 +8433,13 @@ class TestGetPublicMCPServers:
         )
         assert manager.get_public_mcp_servers() == []
 
-    @patch("litellm.public_mcp_servers", [])
+    @patch("token_iq.gateway.public_mcp_servers", [])
     def test_returns_empty_when_whitelist_is_empty(self):
         """Explicit empty whitelist → hub returns nothing."""
         manager = self._make_manager([self._make_server("a", available_on_public_internet=True)])
         assert manager.get_public_mcp_servers() == []
 
-    @patch("litellm.public_mcp_servers", ["a"])
+    @patch("token_iq.gateway.public_mcp_servers", ["a"])
     def test_returns_only_whitelisted_when_flag_defaults_to_true(self):
         """
         Regression: prior to the fix, every server with
@@ -8455,7 +8455,7 @@ class TestGetPublicMCPServers:
         result = manager.get_public_mcp_servers()
         assert [s.server_id for s in result] == ["a"]
 
-    @patch("litellm.public_mcp_servers", ["a"])
+    @patch("token_iq.gateway.public_mcp_servers", ["a"])
     def test_does_not_leak_servers_via_internal_flag(self):
         """
         available_on_public_internet is an IP-gating flag, not a hub flag.
@@ -8471,7 +8471,7 @@ class TestGetPublicMCPServers:
         result = manager.get_public_mcp_servers()
         assert [s.server_id for s in result] == ["a"]
 
-    @patch("litellm.public_mcp_servers", ["does-not-exist"])
+    @patch("token_iq.gateway.public_mcp_servers", ["does-not-exist"])
     def test_stale_whitelist_id_returns_empty(self):
         """Whitelist references an unknown server_id → no spurious results."""
         manager = self._make_manager([self._make_server("a", available_on_public_internet=True)])
@@ -8501,8 +8501,8 @@ class TestGetPublicMCPServersLegacyMode:
             manager.config_mcp_servers[s.server_id] = s
         return manager
 
-    @patch("litellm.public_mcp_hub_strict_whitelist", False)
-    @patch("litellm.public_mcp_servers", None)
+    @patch("token_iq.gateway.public_mcp_hub_strict_whitelist", False)
+    @patch("token_iq.gateway.public_mcp_servers", None)
     def test_legacy_returns_default_flag_servers_when_whitelist_is_none(self):
         """Legacy mode + no whitelist → every server with the default
         available_on_public_internet=True appears (old behavior)."""
@@ -8515,8 +8515,8 @@ class TestGetPublicMCPServersLegacyMode:
         result = manager.get_public_mcp_servers()
         assert [s.server_id for s in result] == ["a"]
 
-    @patch("litellm.public_mcp_hub_strict_whitelist", False)
-    @patch("litellm.public_mcp_servers", ["b"])
+    @patch("token_iq.gateway.public_mcp_hub_strict_whitelist", False)
+    @patch("token_iq.gateway.public_mcp_servers", ["b"])
     def test_legacy_unions_whitelist_and_default_flag(self):
         """Legacy mode unions the whitelist with any
         available_on_public_internet=True server."""
@@ -8549,7 +8549,7 @@ class TestCreateMcpClientV2Graft:
         return MCPServer(**base)
 
     async def test_none_mode_resolves_to_noop_auth(self):
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             NoOpAuth,
         )
 
@@ -8568,7 +8568,7 @@ class TestCreateMcpClientV2Graft:
         ],
     )
     async def test_static_family_emits_expected_header(self, auth_type, token, expected_name, expected_value):
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
 
@@ -8584,7 +8584,7 @@ class TestCreateMcpClientV2Graft:
     async def test_basic_mode_base64_encodes(self):
         import base64
 
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
 
@@ -8600,16 +8600,16 @@ class TestCreateMcpClientV2Graft:
     async def test_m2m_client_credentials_resolves_via_v2(self):
         # M2M (oauth2 client_credentials) is migrated: to_server_spec owns the server and the
         # v2 arm mints the token through the injected source; nothing flows to v1's auth_value.
-        from litellm.proxy._experimental.mcp_server.outbound_credentials import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import (
             UpstreamCredentialProvider,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
             ClientCredentialsBearerAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
             OAuthToken,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         class _FakeM2MSource:
             async def get(self, server_id, config):
@@ -8675,8 +8675,8 @@ class TestCreateMcpClientV2Graft:
         assert client._mcp_auth_value == "k-stdio"
 
     async def test_resolver_error_maps_to_http_exception(self):
-        from litellm.proxy._experimental.mcp_server.outbound_credentials import Error
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import Error
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
             CredError,
         )
 
@@ -8716,7 +8716,7 @@ class TestCreateMcpClientV2Graft:
         assert client._get_auth_headers()["Authorization"] == "Bearer hook-jwt"
 
     async def test_none_with_extra_header_stays_v2_without_clobbering(self):
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             NoOpAuth,
         )
 
@@ -8756,7 +8756,7 @@ class TestMCPToolsListAuthSurfacing:
 
     @pytest.mark.asyncio
     async def test_fetch_tools_with_timeout_surfaces_upstream_401(self):
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -8808,7 +8808,7 @@ class TestMCPToolsListAuthSurfacing:
 
     @pytest.mark.asyncio
     async def test_get_tools_from_server_surfaces_unusable_user_token(self):
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -8860,7 +8860,7 @@ class TestMCPToolsListAuthSurfacing:
         answered 401 without the WWW-Authenticate the client needs to start the OAuth flow."""
         import httpx
 
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -8892,10 +8892,10 @@ class TestMCPToolsListAuthSurfacing:
         would fail the RFC 9728 resource match against the gateway URL it dialed."""
         import httpx
 
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         manager = MCPServerManager()
         bridge_server = MCPServer(
@@ -8930,10 +8930,10 @@ class TestMCPToolsListAuthSurfacing:
         clients at the upstream protected-resource metadata, which fails the RFC 9728 resource
         match against the gateway URL they dialed. Stripping it makes the single-server route
         fabricate the gateway well-known challenge, whose content is the bridge facade."""
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         manager = MCPServerManager()
         bridge_server = MCPServer(
@@ -8958,10 +8958,10 @@ class TestMCPToolsListAuthSurfacing:
     @pytest.mark.asyncio
     async def test_get_tools_from_server_suppresses_resolver_challenge_for_dcr_bridge(self):
         """The client-build-time HTTPException conversion path applies the same suppression."""
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
-        from litellm.types.mcp import MCPAuth
+        from token_iq.gateway.types.mcp import MCPAuth
 
         manager = MCPServerManager()
         bridge_server = MCPServer(
@@ -8987,7 +8987,7 @@ class TestMCPToolsListAuthSurfacing:
 
     @pytest.mark.asyncio
     async def test_aggregate_list_tools_absorbs_unauthenticated_server(self):
-        from litellm.proxy._experimental.mcp_server.exceptions import (
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import (
             MCPUpstreamAuthError,
         )
 
@@ -9072,7 +9072,7 @@ class _RetryFakeClient:
     """A fake MCPClient whose call_tool fails on the first attempt and (optionally) succeeds after."""
 
     def __init__(self, *, raises=None, result=None) -> None:
-        from litellm.experimental_mcp_client.client import MCPClient
+        from token_iq.gateway.experimental_mcp_client.client import MCPClient
 
         self._raises = raises
         self._result = result
@@ -9139,7 +9139,7 @@ class TestOBOCallToolRetry:
     async def test_upstream_401_on_id_jag_evicts_the_cached_bearer_and_retries(self):
         """The retry path must invalidate the ID-JAG leg-2 bearer too: without eviction the rebuilt
         client resolves the same rejected token from the cache and the retry 401s identically."""
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
             IdJagConfig,
         )
 
@@ -9442,7 +9442,7 @@ class TestOBOEndpointDiscovery:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(manager, "_fetch_oauth_metadata_from_resource", AsyncMock(return_value=([], None))),
@@ -9467,8 +9467,8 @@ async def test_preflight_challenge_carries_step_up_error_and_claims():
     claims in the single-server 401 challenge, so an MSAL-family client can drive the step-up and retry."""
     import base64
 
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Error
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.types import CredError
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Error
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import CredError
 
     claims = '{"access_token":{"acrs":{"essential":true,"value":"c1"}}}'
 
@@ -9505,7 +9505,7 @@ async def test_preflight_challenge_carries_step_up_error_and_claims():
 async def test_aggregate_list_still_absorbs_step_up_challenged_server():
     """A step-up (claims-bearing) 401 from one server must not change the aggregate contract: the
     multi-server listing still absorbs it and returns the healthy servers' tools."""
-    from litellm.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
+    from token_iq.gateway.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
 
     manager = MCPServerManager()
     good = MCPServer(server_id="good", name="good", transport=MCPTransport.http)
@@ -9701,8 +9701,8 @@ async def test_resolve_toolset_tool_permissions_single_db_fetch_across_checks():
     """The server-level and tool-level permission primitives each resolve the
     key's toolsets during one request; the shared cache must dedupe the DB
     fetch so the request costs a single toolset query however many checks run"""
-    from litellm.caching.caching import DualCache
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         MCPServerManager,
     )
 
@@ -9713,11 +9713,11 @@ async def test_resolve_toolset_tool_permissions_single_db_fetch_across_checks():
 
     with (
         patch(
-            "litellm.proxy._experimental.mcp_server.toolset_db.list_mcp_toolsets",
+            "token_iq.gateway.proxy._experimental.mcp_server.toolset_db.list_mcp_toolsets",
             list_toolsets_mock,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", DualCache()),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", DualCache()),
     ):
         first = await manager.resolve_toolset_tool_permissions(toolset_ids=["ts-1"])
         second = await manager.resolve_toolset_tool_permissions(toolset_ids=["ts-1"])
@@ -9734,10 +9734,10 @@ class TestMaterializeAuthHeaders:
 
     @pytest.mark.asyncio
     async def test_static_header_auth_materializes_its_header(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _materialize_auth_headers,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             StaticHeaderAuth,
         )
 
@@ -9746,13 +9746,13 @@ class TestMaterializeAuthHeaders:
 
     @pytest.mark.asyncio
     async def test_client_credentials_bearer_auth_materializes_bearer(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _materialize_auth_headers,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
             ClientCredentialsBearerAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
             ClientCredentialsConfig,
         )
 
@@ -9767,13 +9767,13 @@ class TestMaterializeAuthHeaders:
     async def test_materialize_follows_the_minted_token_to_a_custom_header(self):
         # The OpenAPI arm reads header_name off the auth object rather than assuming Authorization,
         # so it carries the knob with no per-arm change. This pins that it stays that way.
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _materialize_auth_headers,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.client_credentials import (
             ClientCredentialsBearerAuth,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.types import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types import (
             ClientCredentialsConfig,
         )
 
@@ -9786,10 +9786,10 @@ class TestMaterializeAuthHeaders:
 
     @pytest.mark.asyncio
     async def test_noop_and_none_materialize_to_none(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _materialize_auth_headers,
         )
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
             NoOpAuth,
         )
 
@@ -9910,7 +9910,7 @@ class TestDiscoveryFailureLogging:
         secret_url = "https://typo-host.example.com/mcp/s/PATHSECRET/mcp"
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=self._connect_error_client(secret_url),
             ),
             caplog.at_level(logging.WARNING, logger="LiteLLM"),
@@ -9930,7 +9930,7 @@ class TestDiscoveryFailureLogging:
         url = "https://typo-host.example.com/mcp"
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=self._connect_error_client(url),
             ),
             caplog.at_level(logging.WARNING, logger="LiteLLM"),
@@ -9947,7 +9947,7 @@ class TestDiscoveryFailureLogging:
         client.get = AsyncMock(return_value=httpx.Response(404, request=httpx.Request("GET", url)))
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=client,
             ),
             caplog.at_level(logging.WARNING, logger="LiteLLM"),
@@ -10272,7 +10272,7 @@ class TestServerToolListsHonorThePrefixBoundary:
 
     @pytest.mark.asyncio
     async def test_wire_form_allowlist_entry_follows_a_non_default_separator(self):
-        from litellm.proxy._experimental.mcp_server import utils as mcp_utils
+        from token_iq.gateway.proxy._experimental.mcp_server import utils as mcp_utils
 
         server = self._aliased_server(allowed_tools=["petstore__getpetbyid"])
 
@@ -10426,7 +10426,7 @@ class TestOpenAPIRegistryKeyMatchesRegistration:
 
     @staticmethod
     def _register(server: MCPServer, base_tool_name: str) -> str:
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
         )
@@ -10434,7 +10434,7 @@ class TestOpenAPIRegistryKeyMatchesRegistration:
         return add_server_prefix_to_name(base_tool_name, get_server_prefix(server))
 
     async def _call(self, server: MCPServer, registered_key: str, bare_tool_name: str) -> CallToolResult:
-        from litellm.proxy._experimental.mcp_server.tool_registry import (
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_registry import (
             global_mcp_tool_registry,
         )
 
@@ -10508,7 +10508,7 @@ class TestOpenAPIRegistryKeyMatchesRegistration:
 
     @pytest.mark.asyncio
     async def test_dispatch_follows_a_non_default_prefix_separator(self):
-        from litellm.proxy._experimental.mcp_server import utils as mcp_utils
+        from token_iq.gateway.proxy._experimental.mcp_server import utils as mcp_utils
 
         server = MCPServer(
             server_id="dd7f2b9e-2c4a-4f1b-9e0a-8d3c6b5a4f21",
@@ -10625,7 +10625,7 @@ class TestSessionResourceScopeIntersect:
     exception fallback so a resolver fault never widens a scoped bearer."""
 
     def _admitted_auth(self, scope):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         auth = UserAPIKeyAuth(user_id="scoped-user")
         auth.mcp_admitted_user_subject = True
@@ -10633,15 +10633,15 @@ class TestSessionResourceScopeIntersect:
         return auth
 
     def test_scope_reader_is_none_for_keys_and_unscoped_subjects(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         assert MCPServerManager._admitted_session_resource_scope(None) is None
         assert MCPServerManager._admitted_session_resource_scope(UserAPIKeyAuth(user_id="u")) is None
         assert MCPServerManager._admitted_session_resource_scope(self._admitted_auth(None)) is None
 
     def test_scope_reader_returns_sealed_scope_for_admitted_subjects(self):
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
 
         assert MCPServerManager._admitted_session_resource_scope(self._admitted_auth("b")) == "b"
 
@@ -10653,10 +10653,10 @@ class TestSessionResourceScopeIntersect:
         single-exit shape, the old early return would hand a per-server bearer the registry."""
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-        from litellm.proxy._types import LitellmUserRoles
-        from litellm.types.mcp import MCPTransport
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.types.mcp import MCPTransport
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
         manager = MCPServerManager()
         for sid in ("granted-id", "other-id"):
@@ -10686,14 +10686,14 @@ class TestSessionResourceScopeIntersect:
         than the whole set."""
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
 
         manager = MCPServerManager()
         auth = self._admitted_auth("granted-id")
         with (
             patch.object(MCPServerManager, "get_allow_all_keys_server_ids", return_value=["open-id", "granted-id"]),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 return_value=["granted-id", "other-id"],
             ),
@@ -10710,7 +10710,7 @@ class TestSessionResourceScopeIntersect:
         with (
             patch.object(MCPServerManager, "get_allow_all_keys_server_ids", return_value=["open-id", "granted-id"]),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 side_effect=RuntimeError("resolver down"),
             ),
@@ -10783,7 +10783,7 @@ class TestClientForwardedDiscoveryFailureIsNotFatal:
             {"new": AsyncMock(return_value=None)} if failure == "incomplete" else {"side_effect": never_returns}
         )
         with (
-            patch("litellm.proxy._experimental.mcp_server.mcp_server_manager.MCP_METADATA_TIMEOUT", 0.01),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.MCP_METADATA_TIMEOUT", 0.01),
             patch.object(manager, "_discover_oauth_metadata_for_server", **discovery_patch),
         ):
             if not serves_without_endpoints:
@@ -10984,8 +10984,8 @@ class TestOpenApiHandlerRelaysUpstreamAuth:
 
     @pytest.mark.asyncio
     async def test_upstream_auth_error_keeps_its_type(self):
-        from litellm.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
-        from litellm.proxy._experimental.mcp_server.tool_registry import global_mcp_tool_registry
+        from token_iq.gateway.proxy._experimental.mcp_server.exceptions import MCPUpstreamAuthError
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_registry import global_mcp_tool_registry
 
         manager = MCPServerManager()
         server = self._server()
@@ -11004,7 +11004,7 @@ class TestOpenApiHandlerRelaysUpstreamAuth:
 
     @pytest.mark.asyncio
     async def test_other_failures_still_become_an_error_result(self):
-        from litellm.proxy._experimental.mcp_server.tool_registry import global_mcp_tool_registry
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_registry import global_mcp_tool_registry
 
         manager = MCPServerManager()
 
@@ -11057,8 +11057,8 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
 
     @staticmethod
     def _recording_provider() -> MagicMock:
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import StaticHeaderAuth
-        from litellm.proxy._experimental.mcp_server.outbound_credentials.result import Ok
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import StaticHeaderAuth
+        from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.result import Ok
 
         provider: Final = MagicMock()
         provider.resolve_credentials = AsyncMock(

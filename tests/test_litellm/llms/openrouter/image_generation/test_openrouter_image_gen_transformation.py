@@ -5,11 +5,11 @@ import httpx
 import pytest
 
 
-from litellm.llms.openrouter.image_generation.transformation import (
+from token_iq.gateway.llms.openrouter.image_generation.transformation import (
     OpenRouterImageGenerationConfig,
 )
-from litellm.llms.openrouter.common_utils import OpenRouterException
-from litellm.types.utils import ImageResponse
+from token_iq.gateway.llms.openrouter.common_utils import OpenRouterException
+from token_iq.gateway.types.utils import ImageResponse
 
 
 class TestOpenRouterImageGenerationTransformation:
@@ -203,7 +203,7 @@ class TestOpenRouterImageGenerationTransformation:
 
         assert result == custom_base
 
-    @patch("litellm.llms.openrouter.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.openrouter.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         """Test that validate_environment correctly sets authorization header."""
         headers = {}
@@ -221,7 +221,7 @@ class TestOpenRouterImageGenerationTransformation:
         assert result["Authorization"] == f"Bearer {api_key}"
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.openrouter.image_generation.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.openrouter.image_generation.transformation.get_secret_str")
     def test_validate_environment_with_secret_key(self, mock_get_secret):
         """Test that validate_environment uses secret API key when api_key is None."""
         mock_get_secret.return_value = "secret_api_key"

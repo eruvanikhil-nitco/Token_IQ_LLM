@@ -1,6 +1,6 @@
 """
 Unit tests for ``VertexAIBatchTransformation``
-(litellm/llms/vertex_ai/batches/transformation.py).
+(token_iq/gateway/llms/vertex_ai/batches/transformation.py).
 
 This module is pure transformation logic: it maps OpenAI-shaped batch requests
 into Vertex AI ``VertexAIBatchPredictionJob`` payloads, and maps Vertex AI batch
@@ -18,14 +18,14 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.llms.vertex_ai.batches.transformation import (  # noqa: E402
+from token_iq.gateway.llms.vertex_ai.batches.transformation import (  # noqa: E402
     VertexAIBatchTransformation,
 )
-from litellm.llms.vertex_ai.common_utils import (  # noqa: E402
+from token_iq.gateway.llms.vertex_ai.common_utils import (  # noqa: E402
     VertexAIError,
     _convert_vertex_datetime_to_openai_datetime,
 )
-from litellm.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
 
 T = VertexAIBatchTransformation
 
@@ -42,7 +42,7 @@ INPUT_FILE = (
 
 def test_transform_openai_request_builds_full_vertex_job():
     with patch(
-        "litellm.llms.vertex_ai.batches.transformation.uuid.uuid4",
+        "token_iq.gateway.llms.vertex_ai.batches.transformation.uuid.uuid4",
         return_value="fixed-uuid",
     ):
         job = T.transform_openai_batch_request_to_vertex_ai_batch_request({"input_file_id": INPUT_FILE})

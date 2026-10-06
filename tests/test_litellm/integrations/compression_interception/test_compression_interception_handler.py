@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.integrations.compression_interception.handler import (
+from token_iq.gateway.integrations.compression_interception.handler import (
     CompressionInterceptionLogger,
 )
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 def test_initialize_from_proxy_config():
@@ -97,7 +97,7 @@ async def test_pre_call_hook_compresses_messages_and_injects_tool(monkeypatch):
     # scope, so we must patch the binding on the handler module — patching
     # ``litellm.compress`` has no effect on the already-bound reference.
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         _fake_compress,
     )
 
@@ -147,7 +147,7 @@ async def test_pre_call_hook_below_trigger_does_not_inject_empty_tools(monkeypat
         }
 
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         _fake_compress_noop,
     )
 
@@ -419,7 +419,7 @@ async def test_pre_call_hook_records_compression_savings_in_litellm_metadata(mon
     """
     logger = CompressionInterceptionLogger()
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         lambda **kwargs: _stub_compress_result(12000, 5000, {"auth.py": "content"}),
     )
 
@@ -448,7 +448,7 @@ async def test_pre_call_hook_creates_litellm_metadata_when_absent(monkeypatch):
     """SDK-direct calls have no litellm_metadata dict yet; the hook creates it."""
     logger = CompressionInterceptionLogger()
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         lambda **kwargs: _stub_compress_result(300, 100, {"k": "v"}),
     )
 
@@ -480,7 +480,7 @@ async def test_pre_call_hook_invalid_token_counts_fail_open(monkeypatch, origina
     """Invalid token counts must never crash the request; savings simply are not recorded."""
     logger = CompressionInterceptionLogger()
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         lambda **kwargs: _stub_compress_result(original_tokens, compressed_tokens, {"k": "v"}),
     )
 
@@ -502,7 +502,7 @@ async def test_pre_call_hook_no_compression_records_no_savings(monkeypatch):
     """When compression is a no-op (empty cache) nothing is recorded."""
     logger = CompressionInterceptionLogger()
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.compress",
+        "token_iq.gateway.integrations.compression_interception.handler.compress",
         lambda **kwargs: {
             "messages": [],
             "original_tokens": 100,

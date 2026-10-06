@@ -2,7 +2,7 @@
 Test filter_out_litellm_params helper function.
 """
 
-from litellm.utils import filter_out_litellm_params
+from token_iq.gateway.utils import filter_out_litellm_params
 
 
 def test_filter_out_litellm_params():

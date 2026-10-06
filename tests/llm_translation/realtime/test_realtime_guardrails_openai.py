@@ -21,10 +21,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.litellm_core_utils.realtime_streaming import RealTimeStreaming
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.core_utils.realtime_streaming import RealTimeStreaming
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime"

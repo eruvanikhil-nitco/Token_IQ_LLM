@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 NOW = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
@@ -122,7 +122,7 @@ async def test_only_an_admin_may_read_provider_connections():
 
     from token_iq.api.provider_connections import provider_connections
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
             await provider_connections(user_api_key_dict=NON_ADMIN)
 
@@ -135,7 +135,7 @@ async def test_provider_connections_without_a_database_answers_500_not_a_crash()
 
     from token_iq.api.provider_connections import provider_connections
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:
             await provider_connections(user_api_key_dict=ADMIN)
 
@@ -149,7 +149,7 @@ async def test_only_an_admin_may_read_sync_history():
 
     from token_iq.api.provider_connections import provider_sync_history
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
             await provider_sync_history(provider="openrouter", limit=50, user_api_key_dict=NON_ADMIN)
 
@@ -162,7 +162,7 @@ async def test_sync_history_without_a_database_answers_500_not_a_crash():
 
     from token_iq.api.provider_connections import provider_sync_history
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:
             await provider_sync_history(provider="openrouter", limit=50, user_api_key_dict=ADMIN)
 

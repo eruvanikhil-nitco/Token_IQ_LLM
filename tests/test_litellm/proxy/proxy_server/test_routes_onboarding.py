@@ -74,7 +74,7 @@ def _install_tx_context(mock_prisma):
 
 def test_onboarding_get_token_happy(client, monkeypatch, mock_prisma):
     """Valid invite link → returns dict with login_url, token, user_email."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite()
     user_obj = _make_user_obj()
@@ -112,7 +112,7 @@ def test_onboarding_get_token_happy(client, monkeypatch, mock_prisma):
 
 def test_onboarding_get_token_master_key_missing_500(client, monkeypatch, mock_prisma):
     """No master_key configured → 500 with the master_key error payload."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", None)
@@ -130,7 +130,7 @@ def test_onboarding_get_token_invalid_invite_link_401(
     client, monkeypatch, mock_prisma
 ):
     """Unknown invite link → 401 with the not-in-db error message."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -148,7 +148,7 @@ def test_onboarding_get_token_invalid_invite_link_401(
 
 def test_onboarding_get_token_expired_invite_401(client, monkeypatch, mock_prisma):
     """Invite whose expires_at is in the past → 401 expired."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     expired_invite = _make_invite(
         expires_at=datetime.now(timezone.utc) - timedelta(days=2)
@@ -166,7 +166,7 @@ def test_onboarding_get_token_expired_invite_401(client, monkeypatch, mock_prism
 
 def test_onboarding_get_token_missing_query_param_422(client, monkeypatch, mock_prisma):
     """No ``invite_link`` query param → FastAPI 422 with a non-empty detail array."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
@@ -204,7 +204,7 @@ def _make_onboarding_jwt(
 
 def test_claim_onboarding_link_happy(client, monkeypatch, mock_prisma):
     """Valid claim → returns login_url, token, user_email, user."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite()
     user_obj = _make_user_obj()
@@ -248,7 +248,7 @@ def test_claim_onboarding_link_happy(client, monkeypatch, mock_prisma):
 
 def test_claim_onboarding_link_invalid_invite_401(client, monkeypatch, mock_prisma):
     """Unknown invite link → 401 with not-in-db error."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -274,7 +274,7 @@ def test_claim_onboarding_link_user_id_mismatch_401(
     client, monkeypatch, mock_prisma
 ):
     """Invitation belongs to a different user_id → 401 with mismatch error."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite(user_id="user-real-owner")
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite
@@ -299,7 +299,7 @@ def test_claim_onboarding_link_user_id_mismatch_401(
 
 def test_claim_onboarding_link_missing_field_422(client, monkeypatch, mock_prisma):
     """Missing required body field → FastAPI 422 with detail listing the missing field."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
@@ -321,7 +321,7 @@ def test_claim_onboarding_link_bad_onboarding_jwt_401(
     client, monkeypatch, mock_prisma
 ):
     """Onboarding JWT decodes but token_type / invitation_link don't match → 401."""
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite()
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite

@@ -1,4 +1,4 @@
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionDeltaToolCall,
     Delta,
     Function,

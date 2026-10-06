@@ -1,5 +1,5 @@
 """
-Dispatch-contract tests for litellm/videos/main.py
+Dispatch-contract tests for token_iq/gateway/videos/main.py
 
 Each public video operation is a pair: a sync `video_*` worker (decorated with
 @client) that resolves the provider, fetches the provider config, logs, and then
@@ -38,11 +38,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.types.videos.main import CharacterObject, VideoObject
-from litellm.types.videos.utils import encode_video_id_with_provider
-from litellm.videos import main as videos_main
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.types.videos.main import CharacterObject, VideoObject
+from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
+from token_iq.gateway.videos import main as videos_main
 
 # A real model-encoded video id: decodes (for real) to provider "azure". Used to
 # prove the sync workers derive custom_llm_provider from the id, not a hardcode.

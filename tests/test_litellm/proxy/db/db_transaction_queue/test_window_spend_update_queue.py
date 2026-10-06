@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
     WindowSpendUpdateQueue,
     build_window_spend_transaction,
     to_naive_utc,

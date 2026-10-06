@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 def test_vertex_ai_bge_embedding_with_custom_api_base():
@@ -31,7 +31,7 @@ def test_vertex_ai_bge_embedding_with_custom_api_base():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
             side_effect=mock_auth_token,
         ),
     ):
@@ -110,7 +110,7 @@ def test_vertex_ai_bge_with_endpoint_id_pattern():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
             side_effect=mock_auth_token,
         ),
     ):
@@ -197,7 +197,7 @@ def test_vertex_ai_bge_psc_endpoint_url_construction():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_embeddings.embedding_handler.VertexEmbedding._ensure_access_token",
             side_effect=mock_auth_token,
         ),
     ):

@@ -6,13 +6,13 @@ from unittest.mock import patch
 import pytest
 from redis.asyncio import Redis
 
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.proxy.common_utils.auth_cache_invalidation_pubsub import (
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub import (
     AUTH_CACHE_INVALIDATION_CHANNEL,
     AuthCacheInvalidationSubscriber,
     publish_auth_cache_invalidation,
 )
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
 
 class _RecordingRedisClient(Redis):
@@ -78,7 +78,7 @@ def _invalidation_message(cache_key: str) -> dict:
 async def test_publish_sends_cache_key_json_on_channel() -> None:
     client = _RecordingRedisClient()
     with patch(
-        "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
+        "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
         return_value=_FakeRedisCache(client=client),
     ):
         await publish_auth_cache_invalidation(cache_key="project_id:p-1")
@@ -90,7 +90,7 @@ async def test_publish_sends_cache_key_json_on_channel() -> None:
 async def test_publish_uses_namespaced_channel() -> None:
     client = _RecordingRedisClient()
     with patch(
-        "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
+        "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
         return_value=_FakeRedisCache(client=client, namespace="ns1"),
     ):
         await publish_auth_cache_invalidation(cache_key="project_id:p-1")
@@ -101,7 +101,7 @@ async def test_publish_uses_namespaced_channel() -> None:
 @pytest.mark.asyncio
 async def test_publish_noops_without_coordination_redis() -> None:
     with patch(
-        "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
+        "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
         return_value=None,
     ):
         await publish_auth_cache_invalidation(cache_key="project_id:p-1")
@@ -110,7 +110,7 @@ async def test_publish_noops_without_coordination_redis() -> None:
 @pytest.mark.asyncio
 async def test_publish_swallows_redis_errors() -> None:
     with patch(
-        "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
+        "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.coordination_redis_cache",
         return_value=_FakeRedisCache(client=_FailingPublishRedisClient()),
     ):
         await publish_auth_cache_invalidation(cache_key="project_id:p-1")

@@ -1,4 +1,4 @@
-from litellm.types.files import (
+from token_iq.gateway.types.files import (
     FILE_EXTENSIONS,
     FILE_MIME_TYPES,
     FileType,

@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.db.spend_log_tool_index import (
+from token_iq.gateway.proxy.db.spend_log_tool_index import (
     ToolUsageTransaction,
     build_tool_usage_transaction,
     flush_tool_usage_transactions,
@@ -300,7 +300,7 @@ class TestFlushToolUsageTransactions:
         async def fake_sleep(seconds: float) -> None:
             sleeps.append(seconds)
 
-        monkeypatch.setattr("litellm.proxy.db.spend_log_tool_index.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("token_iq.gateway.proxy.db.spend_log_tool_index.asyncio.sleep", fake_sleep)
         await flush_tool_usage_transactions(prisma_client=prisma, transactions=[_transaction("r1")])
         assert prisma.db.batch_.call_count == 2
         assert len(sleeps) == 1
@@ -316,7 +316,7 @@ class TestFlushToolUsageTransactions:
         async def fake_sleep(seconds: float) -> None:
             return None
 
-        monkeypatch.setattr("litellm.proxy.db.spend_log_tool_index.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("token_iq.gateway.proxy.db.spend_log_tool_index.asyncio.sleep", fake_sleep)
         with pytest.raises(httpx.ConnectError):
             await flush_tool_usage_transactions(
                 prisma_client=prisma, transactions=[_transaction("r1")], n_retry_times=2

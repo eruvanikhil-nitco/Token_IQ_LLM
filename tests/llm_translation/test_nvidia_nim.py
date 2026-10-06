@@ -8,9 +8,9 @@ import httpx
 import pytest
 from unittest.mock import patch, MagicMock
 
-import litellm
-from litellm import Choices, Message, ModelResponse, EmbeddingResponse, Usage
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import Choices, Message, ModelResponse, EmbeddingResponse, Usage
+from token_iq.gateway import completion
 from base_rerank_unit_tests import BaseLLMRerankTest
 
 
@@ -215,7 +215,7 @@ async def test_nvidia_nim_rerank_ranking_endpoint():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Use "ranking/" prefix to force /v1/ranking endpoint
@@ -300,11 +300,11 @@ class TestNvidiaNim(BaseLLMRerankTest):
 
         with (
             patch(
-                "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
                 return_value=mock_response,
             ),
             patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 return_value=mock_response,
             ),
         ):

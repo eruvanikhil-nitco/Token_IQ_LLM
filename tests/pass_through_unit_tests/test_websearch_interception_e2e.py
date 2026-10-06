@@ -8,12 +8,12 @@ Tests both streaming and non-streaming requests.
 import sys
 
 
-import litellm
-from litellm.integrations.websearch_interception import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.websearch_interception import (
     WebSearchInterceptionLogger,
 )
-from litellm.anthropic_interface import messages
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.anthropic_interface import messages
+from token_iq.gateway.types.utils import LlmProviders
 
 
 async def test_websearch_interception_non_streaming():
@@ -28,8 +28,8 @@ async def test_websearch_interception_non_streaming():
     print("=" * 80)
 
     # Initialize real router with search_tools configuration
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm import Router
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway import Router
 
     # Create real router with search_tools
     router = Router(
@@ -658,7 +658,7 @@ async def test_litellm_standard_websearch_tool():
     print("E2E TEST: LiteLLM Standard WebSearch Tool")
     print("=" * 80)
 
-    from litellm.integrations.websearch_interception import get_litellm_web_search_tool
+    from token_iq.gateway.integrations.websearch_interception import get_litellm_web_search_tool
 
     print("\n✅ Using existing router configuration")
     print("✅ WebSearch interception already enabled for Bedrock")
@@ -848,7 +848,7 @@ def test_is_web_search_tool_detection():
     print("UNIT TEST: Web Search Tool Detection")
     print("=" * 80)
 
-    from litellm.integrations.websearch_interception import is_web_search_tool
+    from token_iq.gateway.integrations.websearch_interception import is_web_search_tool
 
     test_cases = [
         ({"name": "litellm_web_search"}, True, "LiteLLM standard tool"),
@@ -919,7 +919,7 @@ async def test_pre_request_hook_modifies_request_body():
     """
     import asyncio
     from unittest.mock import AsyncMock, patch, MagicMock
-    from litellm.constants import LITELLM_WEB_SEARCH_TOOL_NAME
+    from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
 
     litellm._turn_on_debug()
 
@@ -977,7 +977,7 @@ async def test_pre_request_hook_modifies_request_body():
         captured_request["model"] = model
 
         # Return a mock response (non-streaming)
-        from litellm.types.llms.anthropic_messages.anthropic_response import (
+        from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
             AnthropicMessagesResponse,
         )
 
@@ -993,10 +993,10 @@ async def test_pre_request_hook_modifies_request_body():
 
     # Patch the anthropic_messages_handler function (called after hooks)
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.handler.anthropic_messages_handler",
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler.anthropic_messages_handler",
         side_effect=mock_anthropic_messages_handler,
     ), patch(  # test-quality-ok: the hook imports this process-global router at call time; no injection seam exists to register search_tools
-        "litellm.proxy.proxy_server.llm_router",
+        "token_iq.gateway.proxy.proxy_server.llm_router",
         mock_router,
     ):
 

@@ -6,15 +6,15 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.exceptions import UnsupportedParamsError
-from litellm.llms.base_llm.chat.transformation import LiteLLMLoggingObj
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.llms.openai.chat.gpt_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import UnsupportedParamsError
+from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.openai.chat.gpt_transformation import (
     OpenAIChatCompletionStreamingHandler,
 )
-from litellm.llms.together_ai.chat.transformation import TogetherAIChatConfig
-from litellm.types.utils import LlmProviders, ModelResponse
+from token_iq.gateway.llms.together_ai.chat.transformation import TogetherAIChatConfig
+from token_iq.gateway.types.utils import LlmProviders, ModelResponse
 
 TOOL_CALLING_MODEL = "openai/gpt-oss-20b"
 REASONING_MODEL = "deepseek-ai/DeepSeek-V3.1"
@@ -57,7 +57,7 @@ def _map_reasoning_effort(model: str, effort: str) -> dict:
 @pytest.fixture(autouse=True)
 def force_local_model_cost(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+    from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
     monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
 
@@ -87,7 +87,7 @@ def registry_disables_response_schema(monkeypatch):
 
 @pytest.fixture
 def together_warning_log(caplog):
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     verbose_logger.addHandler(caplog.handler)
     with caplog.at_level(logging.WARNING, logger="LiteLLM"):
@@ -500,7 +500,7 @@ async def test_async_transform_request_keeps_reasoning_content_strips_internal_f
 
 
 def test_completion_sends_chat_template_kwargs_and_preserved_reasoning():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     captured_requests: list[httpx.Request] = []
 
@@ -547,7 +547,7 @@ def test_together_ai_config_alias_points_at_chat_config():
 
 
 def test_provider_config_manager_returns_together_chat_config():
-    from litellm.utils import ProviderConfigManager
+    from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_chat_config(model=REASONING_MODEL, provider=LlmProviders.TOGETHER_AI)
 
@@ -555,7 +555,7 @@ def test_provider_config_manager_returns_together_chat_config():
 
 
 def test_completion_routes_through_together_chat_config():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     captured_requests = []
 
@@ -601,7 +601,7 @@ def test_completion_routes_through_together_chat_config():
 
 
 def test_completion_unmapped_model_sends_tools_to_together():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     captured_requests = []
 
@@ -658,7 +658,7 @@ def test_completion_unmapped_model_sends_tools_to_together():
 
 
 def _capture_completion_request(model: str, **completion_kwargs) -> dict:
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     captured_requests = []
 

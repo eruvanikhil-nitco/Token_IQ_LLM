@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 import httpx
 
 
-from litellm.llms.azure.passthrough.transformation import AzurePassthroughConfig
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.llms.azure.passthrough.transformation import AzurePassthroughConfig
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def _azure_chat_completion_body():

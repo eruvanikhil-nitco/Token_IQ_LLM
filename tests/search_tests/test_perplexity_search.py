@@ -31,8 +31,8 @@ class TestRouterSearch:
         """
         Test router's asearch method with search_tools configuration.
         """
-        from litellm import Router
-        import litellm
+        from token_iq.gateway import Router
+        from token_iq import gateway as litellm
 
         litellm._turn_on_debug()
 

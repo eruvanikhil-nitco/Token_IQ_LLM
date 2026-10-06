@@ -1,9 +1,9 @@
 import traceback
 from flask import Flask, request, Response
 from flask_cors import CORS
-import litellm
+from token_iq import gateway as litellm
 from util import handle_error
-from litellm import completion
+from token_iq.gateway import completion
 import os
 import dotenv
 import time

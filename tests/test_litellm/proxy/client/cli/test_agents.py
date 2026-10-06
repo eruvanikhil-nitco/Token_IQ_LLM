@@ -10,7 +10,7 @@ from click.testing import CliRunner
 
 
 
-from litellm.proxy.client.cli.commands.agents import (
+from token_iq.gateway.proxy.client.cli.commands.agents import (
     AgentRunError,
     _hand_off,
     _replace_process,
@@ -23,7 +23,7 @@ from litellm.proxy.client.cli.commands.agents import (
     verify_proxy_key,
 )
 
-AGENTS_MODULE = "litellm.proxy.client.cli.commands.agents"
+AGENTS_MODULE = "token_iq.gateway.proxy.client.cli.commands.agents"
 
 
 def _agent_command(name):
@@ -737,7 +737,7 @@ class TestAgentCommands:
         assert "could not reach proxy" in result.output
 
     def test_interactive_session_reattaches_terminal_before_handoff(self):
-        from litellm.proxy.client.cli.commands.agents import (
+        from token_iq.gateway.proxy.client.cli.commands.agents import (
             _restore_controlling_terminal,
         )
 

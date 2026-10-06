@@ -2,16 +2,16 @@
 
 import pytest
 
-from litellm.constants import (
+from token_iq.gateway.constants import (
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_MEDIUM_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_XHIGH_THINKING_BUDGET,
 )
-from litellm.llms.anthropic.common_utils import AnthropicError
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
-from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeMessagesConfig,
 )
 

@@ -1,13 +1,13 @@
 import pytest
 
-from litellm.proxy.management_endpoints.mcp_connector_import import (
+from token_iq.gateway.proxy.management_endpoints.mcp_connector_import import (
     ConnectorConversionError,
     ConvertedConnector,
     MCPConnectorImportRequest,
     convert_connector_entries,
     sanitize_connector_name,
 )
-from litellm.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
 
 
 def _single(payload: dict) -> ConvertedConnector | ConnectorConversionError:

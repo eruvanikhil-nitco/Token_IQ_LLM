@@ -10,9 +10,9 @@ from typing import Dict, Any
 
 # Add the path to find the modules
 
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.types.mcp import MCPAuth
-from litellm.proxy._types import LiteLLM_MCPServerTable
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.proxy._types import LiteLLM_MCPServerTable
 
 
 class TestMCPCustomFields:

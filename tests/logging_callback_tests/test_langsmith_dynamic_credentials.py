@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.integrations.langsmith import LangsmithLogger
+from token_iq.gateway.integrations.langsmith import LangsmithLogger
 
 
 @pytest.mark.asyncio

@@ -12,16 +12,16 @@ import pytest
 from fastapi import Request
 from pydantic import ValidationError
 
-import litellm.proxy.auth.ip_address_utils as ip_mod
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy._types import ConfigGeneralSettings
-from litellm.proxy.auth.ip_address_utils import (
+import token_iq.gateway.proxy.auth.ip_address_utils as ip_mod
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy._types import ConfigGeneralSettings
+from token_iq.gateway.proxy.auth.ip_address_utils import (
     IPAddressUtils,
     _HopCount,
     _HopCountInvalid,
     _HopCountUnset,
 )
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def _make_server(server_id, available_on_public_internet=False):
@@ -35,7 +35,7 @@ def _make_server(server_id, available_on_public_internet=False):
 
 
 def _make_manager(servers):
-    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+    from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         MCPServerManager,
     )
 
@@ -253,7 +253,7 @@ class TestResolveNumTrustedHops:
 
     def test_below_minimum_warns_so_misconfig_is_visible(self):
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger"
         ) as mock_logger:
             assert IPAddressUtils._resolve_num_trusted_hops(0) == _HopCountInvalid()
             assert IPAddressUtils._resolve_num_trusted_hops(-3) == _HopCountInvalid()
@@ -261,14 +261,14 @@ class TestResolveNumTrustedHops:
 
     def test_unset_does_not_warn(self):
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger"
         ) as mock_logger:
             assert IPAddressUtils._resolve_num_trusted_hops(None) == _HopCountUnset()
         mock_logger.warning.assert_not_called()
 
     def test_valid_value_does_not_warn(self):
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger"
         ) as mock_logger:
             assert IPAddressUtils._resolve_num_trusted_hops(2) == _HopCount(2)
         mock_logger.warning.assert_not_called()
@@ -399,7 +399,7 @@ class TestXffPresentButDisabledWarning:
     IP) yet still serve the request, so a crafted header can't DoS a no-LB deploy."""
 
     def _reset_warning_flag(self):
-        from litellm.proxy.auth import ip_address_utils
+        from token_iq.gateway.proxy.auth import ip_address_utils
 
         ip_address_utils._warned_xff_present_but_disabled = False
 
@@ -415,7 +415,7 @@ class TestXffPresentButDisabledWarning:
         request = self._request_with_xff()
 
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
         ) as mock_error:
             result = IPAddressUtils.get_mcp_client_ip(
                 request, general_settings={"use_x_forwarded_for": False}
@@ -430,7 +430,7 @@ class TestXffPresentButDisabledWarning:
         self._reset_warning_flag()
 
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
         ) as mock_error:
             IPAddressUtils.get_mcp_client_ip(
                 self._request_with_xff(),
@@ -448,7 +448,7 @@ class TestXffPresentButDisabledWarning:
         self._reset_warning_flag()
 
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
         ) as mock_error:
             IPAddressUtils.get_mcp_client_ip(
                 self._request_with_xff(),
@@ -478,7 +478,7 @@ class TestXffPresentButDisabledWarning:
         request.headers = {}
 
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
         ) as mock_error:
             IPAddressUtils.get_mcp_client_ip(
                 request, general_settings={"use_x_forwarded_for": False}
@@ -490,7 +490,7 @@ class TestXffPresentButDisabledWarning:
         self._reset_warning_flag()
 
         with patch(
-            "litellm.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
+            "token_iq.gateway.proxy.auth.ip_address_utils.verbose_proxy_logger.error"
         ) as mock_error:
             IPAddressUtils.get_mcp_client_ip(
                 self._request_with_xff(),
@@ -506,8 +506,8 @@ class TestXffPresentButDisabledWarning:
 class TestMCPServerIPFiltering:
     """Tests that external callers only see public MCP servers."""
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_external_ip_only_sees_public_servers(self):
         pub = _make_server("pub", available_on_public_internet=True)
         priv = _make_server("priv", available_on_public_internet=False)
@@ -516,8 +516,8 @@ class TestMCPServerIPFiltering:
         result = manager.filter_server_ids_by_ip(["pub", "priv"], client_ip="8.8.8.8")
         assert result == ["pub"]
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_internal_ip_sees_all_servers(self):
         pub = _make_server("pub", available_on_public_internet=True)
         priv = _make_server("priv", available_on_public_internet=False)
@@ -528,8 +528,8 @@ class TestMCPServerIPFiltering:
         )
         assert result == ["pub", "priv"]
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_no_ip_means_no_filtering(self):
         priv = _make_server("priv", available_on_public_internet=False)
         manager = _make_manager([priv])
@@ -541,8 +541,8 @@ class TestMCPServerIPFiltering:
 class TestFilterServerIdsByIpWithInfo:
     """Tests that filter_server_ids_by_ip_with_info returns accurate block counts."""
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_external_ip_reports_blocked_count(self):
         pub = _make_server("pub", available_on_public_internet=True)
         priv = _make_server("priv", available_on_public_internet=False)
@@ -554,8 +554,8 @@ class TestFilterServerIdsByIpWithInfo:
         assert allowed == ["pub"]
         assert blocked == 1
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_internal_ip_reports_zero_blocked(self):
         pub = _make_server("pub", available_on_public_internet=True)
         priv = _make_server("priv", available_on_public_internet=False)
@@ -567,8 +567,8 @@ class TestFilterServerIdsByIpWithInfo:
         assert allowed == ["pub", "priv"]
         assert blocked == 0
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_no_ip_returns_all_with_zero_blocked(self):
         priv = _make_server("priv", available_on_public_internet=False)
         manager = _make_manager([priv])
@@ -579,8 +579,8 @@ class TestFilterServerIdsByIpWithInfo:
         assert allowed == ["priv"]
         assert blocked == 0
 
-    @patch("litellm.public_mcp_servers", [])
-    @patch("litellm.proxy.proxy_server.general_settings", {})
+    @patch("token_iq.gateway.public_mcp_servers", [])
+    @patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
     def test_all_private_external_ip_reports_all_blocked(self):
         priv1 = _make_server("priv1", available_on_public_internet=False)
         priv2 = _make_server("priv2", available_on_public_internet=False)

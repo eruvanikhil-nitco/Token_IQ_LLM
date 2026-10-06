@@ -1,9 +1,9 @@
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.utils import CostCalculatorUtils
-from litellm.llms.fal_ai.cost_calculator import cost_calculator
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.utils import CostCalculatorUtils
+from token_iq.gateway.llms.fal_ai.cost_calculator import cost_calculator
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 @pytest.fixture(autouse=True)

@@ -6,8 +6,8 @@ import time
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.router_utils.health_state_cache import DeploymentHealthCache
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_utils.health_state_cache import DeploymentHealthCache
 
 
 @pytest.fixture

@@ -2,13 +2,13 @@ import os
 
 
 import pytest
-from litellm.integrations.langfuse.langfuse import (
+from token_iq.gateway.integrations.langfuse.langfuse import (
     LangFuseLogger,
 )
-from litellm.integrations.langfuse.langfuse_handler import LangFuseHandler
-from litellm.litellm_core_utils.litellm_logging import DynamicLoggingCache
+from token_iq.gateway.integrations.langfuse.langfuse_handler import LangFuseHandler
+from token_iq.gateway.core_utils.litellm_logging import DynamicLoggingCache
 from unittest.mock import Mock, patch
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingModelInformation,
     StandardLoggingMetadata,
@@ -306,8 +306,8 @@ def test_get_langfuse_flush_interval():
 
 
 def test_langfuse_e2e_sync(monkeypatch):
-    from litellm import completion
-    import litellm
+    from token_iq.gateway import completion
+    from token_iq import gateway as litellm
     import respx
     import httpx
     import time
@@ -453,7 +453,7 @@ def test_masking_function_isolated_from_other_loggers():
     Test that langfuse_masking_function is extracted from metadata and stored separately.
     This ensures the callable doesn't leak to other logging integrations.
     """
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         scrub_sensitive_keys_in_metadata,
     )
 
@@ -485,7 +485,7 @@ def test_masking_function_not_in_metadata_when_not_provided():
     """
     Test that scrub_sensitive_keys_in_metadata works normally when no masking function is provided.
     """
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         scrub_sensitive_keys_in_metadata,
     )
 
@@ -510,7 +510,7 @@ def test_langfuse_model_parameters_no_secret_leakage():
     authorization headers, etc.) are NOT passed to Langfuse as modelParameters.
     Only whitelisted model parameters (temperature, top_p, etc.) should survive.
     """
-    from litellm.litellm_core_utils.model_param_helper import ModelParamHelper
+    from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
 
     optional_params_with_secrets = {
         # Safe params that should be kept
@@ -570,7 +570,7 @@ def test_langfuse_v2_uses_standard_logging_model_parameters():
     assert sanitized["temperature"] == 0.5
 
     # When standard_logging_object is None, ModelParamHelper should filter
-    from litellm.litellm_core_utils.model_param_helper import ModelParamHelper
+    from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
 
     fallback_sanitized = ModelParamHelper.get_standard_logging_model_parameters(
         optional_params_with_secrets

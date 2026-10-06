@@ -17,10 +17,10 @@ from typing import List
 import pytest
 
 
-from litellm.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
     AnthropicStreamWrapper,
 )
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
 
 
 class MockCompletionStreamWithContentAfterStopReason:

@@ -8,7 +8,7 @@
 # load_dotenv()
 # import os, io
 
-# # this file is to test litellm/proxy
+# # this file is to test token_iq/gateway/proxy
 
 # sys.path.insert(
 #     0, os.path.abspath("../..")

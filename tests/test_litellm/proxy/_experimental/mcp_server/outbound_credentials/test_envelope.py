@@ -19,7 +19,7 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretStr, ValidationError
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.envelope import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.envelope import (
     ENVELOPE_ISSUER,
     ENVELOPE_PREFIX,
     MAX_ENVELOPE_BYTES,
@@ -50,7 +50,7 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials.envelope import
     open_refresh_envelope,
     user_identity,
 )
-from litellm.proxy.common_utils.encrypt_decrypt_utils import decrypt_value, encrypt_value
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import decrypt_value, encrypt_value
 
 _NOW = datetime(2026, 7, 9, 12, 0, 0, tzinfo=timezone.utc)
 _SIGNING_KEY = "unit-test-signing-key-0123456789abcdef0123456789abcdef"
@@ -480,7 +480,7 @@ def test_open_size_guard_measures_bytes_not_characters():
     _decode_claims to fail loudly proves the guard short-circuits before decode."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server.outbound_credentials import envelope
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import envelope
 
     multibyte_body = "é" * 7000  # 7000 chars, 14000 UTF-8 bytes
     candidate = ENVELOPE_PREFIX + multibyte_body
@@ -500,7 +500,7 @@ def test_open_size_guard_rejects_oversize_character_count_before_decode():
     character precheck makes this O(1) since UTF-8 byte length is never below character length."""
     from unittest.mock import patch
 
-    from litellm.proxy._experimental.mcp_server.outbound_credentials import envelope
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import envelope
 
     candidate = ENVELOPE_PREFIX + ("a" * (MAX_ENVELOPE_BYTES + 1))
     assert len(candidate) > MAX_ENVELOPE_BYTES

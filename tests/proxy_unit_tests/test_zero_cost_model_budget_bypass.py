@@ -11,9 +11,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     LiteLLM_TeamMembership,
@@ -21,15 +21,15 @@ from litellm.proxy._types import (
     LiteLLM_UserTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks import (
+from token_iq.gateway.proxy.auth.auth_checks import (
     _check_team_member_budget,
     _is_model_cost_zero,
     _team_max_budget_check,
     common_checks,
 )
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
 
 @pytest.fixture
@@ -110,7 +110,7 @@ class TestIsModelCostZero:
 
     def test_paid_model_in_router(self, mock_router_with_zero_cost_model):
         """Test that a paid model is correctly identified as non-zero cost."""
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             # Mock the return value for gpt-3.5-turbo
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
@@ -142,7 +142,7 @@ class TestIsModelCostZero:
 
     def test_mixed_cost_models(self, mock_router_with_zero_cost_model):
         """Test that a list with mixed cost models returns False."""
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
@@ -203,7 +203,7 @@ class TestUserBudgetBypass:
 
         request_body = {"model": "cloud-model"}
 
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
@@ -283,7 +283,7 @@ class TestEndUserBudgetBypass:
 
         request_body = {"model": "cloud-model", "user": "end-user-123"}
 
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
@@ -366,7 +366,7 @@ class TestTeamBudgetBypass:
 
         request_body = {"model": "cloud-model"}
 
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
@@ -425,7 +425,7 @@ class TestTeamMemberBudgetBypass:
 
         # Mock get_team_membership
         with patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership"
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership"
         ) as mock_get_membership:
             mock_get_membership.return_value = team_membership
 
@@ -476,11 +476,11 @@ class TestTeamMemberBudgetBypass:
         request_body = {"model": "cloud-model"}
 
         with patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership"
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership"
         ) as mock_get_membership:
             mock_get_membership.return_value = team_membership
 
-            with patch("litellm.get_model_info") as mock_get_model_info:
+            with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
                 mock_get_model_info.return_value = {
                     "input_cost_per_token": 0.0000015,
                     "output_cost_per_token": 0.000002,
@@ -511,7 +511,7 @@ class TestEdgeCases:
 
     def test_model_not_in_router(self, mock_router_with_zero_cost_model):
         """Test behavior when model is not found in router."""
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             # Simulate model not found
             mock_get_model_info.side_effect = Exception("Model not found")
             result = _is_model_cost_zero(
@@ -533,7 +533,7 @@ class TestEdgeCases:
 
         request_body = {"model": "cloud-model"}
 
-        with patch("litellm.get_model_info") as mock_get_model_info:
+        with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
             mock_get_model_info.return_value = {
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,

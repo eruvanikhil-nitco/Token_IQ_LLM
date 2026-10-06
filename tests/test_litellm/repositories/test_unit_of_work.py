@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Mapping, Tuple
 
 import pytest
 
-from litellm.repositories.unit_of_work import (
+from token_iq.gateway.repositories.unit_of_work import (
     LinkedSpendResetWrites,
     budget_cascade_unit_of_work,
     spend_reset_unit_of_work,

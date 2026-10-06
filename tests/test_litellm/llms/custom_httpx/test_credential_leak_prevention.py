@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 
-from litellm.llms.custom_httpx.http_handler import (
+from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
     MaskedHTTPStatusError,

@@ -15,7 +15,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials import (
     ApiKeyConfig,
     AuthorizationCodeConfig,
     AwsSigV4Config,
@@ -38,15 +38,15 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials import (
     TokenExchangeConfig,
     UpstreamCredentialProvider,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.oauth_token_store import (
     OAuthToken,
     TokenStoreUnavailable,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.sso_assertion_store import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.sso_assertion_store import (
     AssertionStoreUnavailable,
     SSOIdentityAssertion,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.token_endpoint import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.token_endpoint import (
     ExchangedToken,
 )
 

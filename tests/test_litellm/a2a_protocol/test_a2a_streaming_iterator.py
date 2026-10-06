@@ -10,12 +10,12 @@ from types import SimpleNamespace
 
 import pytest
 
-import litellm
-from litellm.a2a_protocol import streaming_iterator as a2a_streaming_iterator_module
-from litellm.a2a_protocol.streaming_iterator import A2AStreamingIterator
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils import thread_pool_executor as thread_pool_executor_module
-from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.a2a_protocol import streaming_iterator as a2a_streaming_iterator_module
+from token_iq.gateway.a2a_protocol.streaming_iterator import A2AStreamingIterator
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
+from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
 
 
 class RecordingCustomLogger(CustomLogger):

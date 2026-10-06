@@ -10,19 +10,19 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
 )
 
-from litellm.llms.ollama.chat.transformation import (
+from token_iq.gateway.llms.ollama.chat.transformation import (
     OllamaChatConfig,
     OllamaChatCompletionResponseIterator,
 )
 
-from litellm.types.llms.openai import AllMessageValues
-from litellm.utils import get_optional_params
+from token_iq.gateway.types.llms.openai import AllMessageValues
+from token_iq.gateway.utils import get_optional_params
 
 import json
 from unittest.mock import MagicMock
 
-import litellm
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 
 class TestEvent(BaseModel):
@@ -382,7 +382,7 @@ class TestOllamaToolCalling:
         import json
         from unittest.mock import MagicMock
 
-        from litellm.types.utils import Choices, Message, ModelResponse
+        from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         config = OllamaChatConfig()
 

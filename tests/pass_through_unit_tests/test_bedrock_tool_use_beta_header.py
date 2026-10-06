@@ -8,7 +8,7 @@ for Bedrock Invoke API, which doesn't support it and returns a 400 "invalid beta
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio

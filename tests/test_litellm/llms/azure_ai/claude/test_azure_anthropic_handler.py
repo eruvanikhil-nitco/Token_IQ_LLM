@@ -10,8 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.azure_ai.anthropic.handler import AzureAnthropicChatCompletion
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.llms.azure_ai.anthropic.handler import AzureAnthropicChatCompletion
+from token_iq.gateway.types.utils import ModelResponse
 
 
 class TestAzureAnthropicChatCompletion:
@@ -23,8 +23,8 @@ class TestAzureAnthropicChatCompletion:
         assert hasattr(handler, "acompletion_function")
         assert hasattr(handler, "acompletion_stream_function")
 
-    @patch("litellm.utils.ProviderConfigManager")
-    @patch("litellm.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
+    @patch("token_iq.gateway.utils.ProviderConfigManager")
+    @patch("token_iq.gateway.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
     def test_completion_uses_azure_anthropic_config(
         self, mock_azure_config, mock_provider_manager
     ):
@@ -88,9 +88,9 @@ class TestAzureAnthropicChatCompletion:
             mock_azure_config.assert_called_once()
             mock_config_instance.validate_environment.assert_called_once()
 
-    @patch("litellm.llms.anthropic.chat.handler.make_sync_call")
-    @patch("litellm.utils.ProviderConfigManager")
-    @patch("litellm.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
+    @patch("token_iq.gateway.llms.anthropic.chat.handler.make_sync_call")
+    @patch("token_iq.gateway.utils.ProviderConfigManager")
+    @patch("token_iq.gateway.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
     def test_completion_streaming(
         self, mock_azure_config, mock_provider_manager, mock_make_sync_call
     ):
@@ -158,9 +158,9 @@ class TestAzureAnthropicChatCompletion:
         mock_make_sync_call.assert_called_once()
         assert result is not None
 
-    @patch("litellm.llms.custom_httpx.http_handler._get_httpx_client")
-    @patch("litellm.utils.ProviderConfigManager")
-    @patch("litellm.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
+    @patch("token_iq.gateway.llms.custom_httpx.http_handler._get_httpx_client")
+    @patch("token_iq.gateway.utils.ProviderConfigManager")
+    @patch("token_iq.gateway.llms.azure_ai.anthropic.handler.AzureAnthropicConfig")
     def test_completion_non_streaming(
         self, mock_azure_config, mock_provider_manager, mock_get_client
     ):

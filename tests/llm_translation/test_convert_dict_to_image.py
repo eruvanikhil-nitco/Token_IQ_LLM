@@ -2,11 +2,11 @@ import json
 from datetime import datetime
 
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from datetime import timedelta
-from litellm.types.utils import ImageResponse, ImageObject
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq.gateway.types.utils import ImageResponse, ImageObject
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     LiteLLMResponseObjectHandler,
 )
 

@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import respx
 
-import litellm
-from litellm.litellm_core_utils.health_check_helpers import HealthCheckHelpers
-from litellm.proxy import health_check as hc_module
-from litellm.proxy.health_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.health_check_helpers import HealthCheckHelpers
+from token_iq.gateway.proxy import health_check as hc_module
+from token_iq.gateway.proxy.health_check import (
     _is_strategy_router_deployment,
     _resolve_health_check_max_tokens,
     _resolve_health_check_mode,
@@ -65,10 +65,10 @@ async def test_ahealth_check_wildcard_models_respects_max_tokens():
     """
     with (
         patch(
-            "litellm.litellm_core_utils.llm_request_utils.pick_cheapest_chat_models_from_llm_provider",
+            "token_iq.gateway.core_utils.llm_request_utils.pick_cheapest_chat_models_from_llm_provider",
             return_value=["gpt-4o-mini"],
         ),
-        patch("litellm.acompletion", new_callable=AsyncMock),
+        patch("token_iq.gateway.acompletion", new_callable=AsyncMock),
     ):
         # Test Case 1: No max_tokens passed, should default to 16
         model_params = {}

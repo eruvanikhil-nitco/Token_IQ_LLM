@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.s3_v2 import S3Logger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.s3_v2 import S3Logger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 class TestS3V2UnitTests:
@@ -15,7 +15,7 @@ class TestS3V2UnitTests:
         """Test that S3 v2 source code only imports and uses safe_dumps"""
         import inspect
 
-        from litellm.integrations import s3_v2
+        from token_iq.gateway.integrations import s3_v2
 
         # Get the source code of the s3_v2 module
         source_code = inspect.getsource(s3_v2)
@@ -26,12 +26,12 @@ class TestS3V2UnitTests:
         ), "S3 v2 should not use json.dumps directly"
 
     @patch("asyncio.create_task")
-    @patch("litellm.integrations.s3_v2.CustomBatchLogger.periodic_flush")
+    @patch("token_iq.gateway.integrations.s3_v2.CustomBatchLogger.periodic_flush")
     def test_s3_v2_endpoint_url(self, mock_periodic_flush, mock_create_task):
         """testing s3 endpoint url"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+        from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
         # Mock periodic_flush and create_task to prevent async task creation during init
         mock_periodic_flush.return_value = None
@@ -128,7 +128,7 @@ class TestS3V2UnitTests:
         mock_sync_client.put.return_value = mock_response
 
         with patch(
-            "litellm.integrations.s3_v2._get_httpx_client",
+            "token_iq.gateway.integrations.s3_v2._get_httpx_client",
             return_value=mock_sync_client,
         ):
             s3_logger_sync.upload_data_to_s3(test_element)
@@ -175,12 +175,12 @@ class TestS3V2UnitTests:
         assert result == {"downloaded": "data"}
 
     @patch("asyncio.create_task")
-    @patch("litellm.integrations.s3_v2.CustomBatchLogger.periodic_flush")
+    @patch("token_iq.gateway.integrations.s3_v2.CustomBatchLogger.periodic_flush")
     def test_s3_v2_virtual_hosted_style(self, mock_periodic_flush, mock_create_task):
         """Test s3_use_virtual_hosted_style parameter for virtual-hosted-style URLs"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+        from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
         # Mock periodic_flush and create_task to prevent async task creation during init
         mock_periodic_flush.return_value = None
@@ -287,7 +287,7 @@ class TestS3V2UnitTests:
         mock_sync_client.put.return_value = mock_response
 
         with patch(
-            "litellm.integrations.s3_v2._get_httpx_client",
+            "token_iq.gateway.integrations.s3_v2._get_httpx_client",
             return_value=mock_sync_client,
         ):
             s3_logger_sync_virtual.upload_data_to_s3(test_element)
@@ -337,14 +337,14 @@ class TestS3V2UnitTests:
         assert result == {"downloaded": "data"}
 
     @patch("asyncio.create_task")
-    @patch("litellm.integrations.s3_v2.CustomBatchLogger.periodic_flush")
+    @patch("token_iq.gateway.integrations.s3_v2.CustomBatchLogger.periodic_flush")
     def test_s3_v2_put_url_encodes_spaces_in_object_key(
         self, mock_periodic_flush, mock_create_task
     ):
         import requests
         from unittest.mock import AsyncMock
 
-        from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+        from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
         mock_periodic_flush.return_value = None
         mock_create_task.return_value = None
@@ -389,7 +389,7 @@ async def test_async_upload_retries_on_s3_503():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -430,7 +430,7 @@ async def test_async_upload_retries_on_s3_500():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -469,7 +469,7 @@ async def test_async_upload_exhausts_retries_on_persistent_503():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -513,7 +513,7 @@ async def test_async_upload_no_retry_on_4xx():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -549,7 +549,7 @@ def test_sync_upload_retries_on_s3_503():
     """
     from unittest.mock import MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -574,7 +574,7 @@ def test_sync_upload_retries_on_s3_503():
     mock_sync_client.put = MagicMock(side_effect=[response_503, response_200])
 
     with patch(
-        "litellm.integrations.s3_v2._get_httpx_client",
+        "token_iq.gateway.integrations.s3_v2._get_httpx_client",
         return_value=mock_sync_client,
     ):
         with patch("time.sleep") as mock_sleep:
@@ -760,7 +760,7 @@ async def test_s3_verify_false_handling(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, patch
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
@@ -779,7 +779,7 @@ async def test_s3_verify_false_handling(monkeypatch: pytest.MonkeyPatch):
 
     with patch("asyncio.create_task"):
         with patch(
-            "litellm.integrations.s3_v2.get_async_httpx_client"
+            "token_iq.gateway.integrations.s3_v2.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_get_client.return_value = mock_client
@@ -813,7 +813,7 @@ async def test_s3_verify_none_handling(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, patch
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Set up s3_callback_params without s3_verify
     monkeypatch.setattr(
@@ -829,7 +829,7 @@ async def test_s3_verify_none_handling(monkeypatch: pytest.MonkeyPatch):
 
     with patch("asyncio.create_task"):
         with patch(
-            "litellm.integrations.s3_v2.get_async_httpx_client"
+            "token_iq.gateway.integrations.s3_v2.get_async_httpx_client"
         ) as mock_get_client:
             mock_client = AsyncMock()
             mock_get_client.return_value = mock_client
@@ -861,7 +861,7 @@ async def test_s3_verify_false_creates_httpx_client_with_verify_false(monkeypatc
     """
     from unittest.mock import patch
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
@@ -902,8 +902,8 @@ async def test_s3_verify_false_async_client(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    import litellm
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
@@ -1023,7 +1023,7 @@ def test_s3_object_key_prefix_combinations(
     """
     Validate correct S3 prefix composition for team alias + key alias combinations.
     """
-    with patch("litellm.integrations.s3_v2.get_s3_object_key") as mock_get_key:
+    with patch("token_iq.gateway.integrations.s3_v2.get_s3_object_key") as mock_get_key:
         mock_get_key.return_value = "mocked/s3/object/key.json"
 
         logger = S3Logger(
@@ -1061,7 +1061,7 @@ def test_prefix_priority_and_path_construction():
     """
     Validate that prefix components are ordered and joined with '/' only once.
     """
-    with patch("litellm.integrations.s3_v2.get_s3_object_key") as mock_get_key:
+    with patch("token_iq.gateway.integrations.s3_v2.get_s3_object_key") as mock_get_key:
         mock_get_key.return_value = "mocked/key"
 
         logger = S3Logger(s3_use_team_prefix=True, s3_use_key_prefix=True)
@@ -1088,7 +1088,7 @@ def test_prefix_absent_when_flags_disabled():
     """
     Verify prefix is omitted entirely when prefix flags are False.
     """
-    with patch("litellm.integrations.s3_v2.get_s3_object_key") as mock_get_key:
+    with patch("token_iq.gateway.integrations.s3_v2.get_s3_object_key") as mock_get_key:
         mock_get_key.return_value = "mocked/key"
 
         logger = S3Logger(s3_use_team_prefix=False, s3_use_key_prefix=False)
@@ -1132,7 +1132,7 @@ async def test_combined_prefix_reflects_in_s3_object_key():
 def test_s3_object_key_sanitizes_slashes_in_file_name():
     """Response ids containing slashes (e.g. bedrock batch job ARNs) must not
     create nested S3 folders; only path/prefix/date slashes are separators."""
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     start_time = datetime(2026, 2, 11, 0, 35, 18, 391582)
     file_name = "time-00-35-18-391582_arn:aws:bedrock:us-east-1:123456789012:model-invocation-job/gl18r6skk9yy"
@@ -1179,8 +1179,8 @@ def _oversized_response_id() -> str:
 
 def test_s3_object_key_at_the_byte_limit_is_left_alone():
     """A key that still fits is left byte-identical."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     start_time = datetime(2026, 8, 24, 6, 18, 41, 948021)
     fixed_len = len("input/2026-08-24/.json")
@@ -1196,8 +1196,8 @@ def test_s3_object_key_is_bounded_for_oversized_response_id():
     """An oversized Responses API id is shortened to a readable head plus a digest."""
     import hashlib
 
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     start_time = datetime(2026, 8, 24, 6, 18, 41, 948021)
     file_name = f"time-06-18-41-948021_{_oversized_response_id()}"
@@ -1222,8 +1222,8 @@ def test_s3_object_key_is_bounded_for_oversized_response_id():
 )
 def test_s3_object_key_is_bounded_for_long_paths_and_aliases(s3_path: str, prefix: str):
     """Long paths, team aliases and key aliases stay within the cap."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     key = get_s3_object_key(
         s3_path=s3_path,
@@ -1240,8 +1240,8 @@ def test_s3_object_key_is_bounded_for_long_paths_and_aliases(s3_path: str, prefi
 
 def test_s3_object_key_trimmed_prefixes_stay_distinct_per_operator():
     """Prefixes that differ only past the trim point keep separate folders."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     start_time = datetime(2026, 8, 24, 6, 18, 41, 948021)
     keys = [
@@ -1261,8 +1261,8 @@ def test_s3_object_key_trimmed_prefixes_stay_distinct_per_operator():
 
 def test_s3_object_key_bounded_prefix_never_splits_a_multibyte_character():
     """A multibyte prefix is trimmed on a character boundary."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     s3_path = "\u65e5\u672c\u8a9e" * 200
 
@@ -1280,7 +1280,7 @@ def test_s3_object_key_bounded_prefix_never_splits_a_multibyte_character():
 
 def test_s3_object_key_stays_unique_for_ids_sharing_a_head():
     """Ids sharing a visible head still get distinct keys."""
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     start_time = datetime(2026, 8, 24, 6, 18, 41, 948021)
     keys = {
@@ -1300,7 +1300,7 @@ def test_s3_object_key_bounding_matches_the_documented_layout():
     """The bounded key is `<prefix>/<date>/<head>_<sha256>.json`."""
     import hashlib
 
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     file_name = f"time-06-18-41-948021_{_oversized_response_id()}"
 
@@ -1317,8 +1317,8 @@ def test_s3_object_key_bounding_matches_the_documented_layout():
 
 def test_s3_object_key_keeps_the_configured_prefix_when_only_the_id_overflows():
     """A 940 byte configured prefix survives whole when only the id overflows."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     prefix = "team-" + "b" * 934 + "/"
 
@@ -1335,8 +1335,8 @@ def test_s3_object_key_keeps_the_configured_prefix_when_only_the_id_overflows():
 
 def test_s3_object_key_spends_the_whole_budget_when_the_prefix_must_be_trimmed():
     """A trimmed prefix keeps every byte the budget allows, not whole segments."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     s3_path = "p" * 400 + "/" + "q" * 600
 
@@ -1353,8 +1353,8 @@ def test_s3_object_key_spends_the_whole_budget_when_the_prefix_must_be_trimmed()
 
 def test_s3_object_key_keeps_a_single_segment_path_as_far_as_it_fits():
     """A path with no separator is kept as far as it fits, never dropped to the bucket root."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
-    from litellm.integrations.s3 import get_s3_object_key
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_key
 
     key = get_s3_object_key(
         s3_path="a" * 1050,
@@ -1369,7 +1369,7 @@ def test_s3_object_key_keeps_a_single_segment_path_as_far_as_it_fits():
 
 def test_create_s3_batch_logging_element_bounds_key_and_keeps_full_response_id():
     """The batch element bounds the key and keeps the full response id in the payload."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
 
     logger = S3Logger(s3_use_team_prefix=True, s3_use_key_prefix=True)
     response_id = _oversized_response_id()
@@ -1389,8 +1389,8 @@ def test_create_s3_batch_logging_element_bounds_key_and_keeps_full_response_id()
 
 def test_s3_object_download_filename_is_bounded_for_oversized_response_id():
     """The Content-Disposition filename is bounded too, or the PUT fails with MetadataTooLarge."""
-    from litellm.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES
-    from litellm.integrations.s3 import get_s3_object_download_filename
+    from token_iq.gateway.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES
+    from token_iq.gateway.integrations.s3 import get_s3_object_download_filename
 
     file_name = get_s3_object_download_filename(datetime(2026, 8, 24, 6, 18, 41, 948021), _oversized_response_id())
 
@@ -1401,7 +1401,7 @@ def test_s3_object_download_filename_is_bounded_for_oversized_response_id():
 
 def test_s3_object_download_filenames_stay_distinct_when_shortened():
     """Shortened filenames stay distinct."""
-    from litellm.integrations.s3 import get_s3_object_download_filename
+    from token_iq.gateway.integrations.s3 import get_s3_object_download_filename
 
     start_time = datetime(2026, 8, 24, 6, 18, 41, 948021)
     file_names = {
@@ -1414,7 +1414,7 @@ def test_s3_object_download_filenames_stay_distinct_when_shortened():
 
 def test_s3_object_download_filename_short_id_is_unchanged():
     """An ordinary response id keeps the filename it had before."""
-    from litellm.integrations.s3 import get_s3_object_download_filename
+    from token_iq.gateway.integrations.s3 import get_s3_object_download_filename
 
     file_name = get_s3_object_download_filename(datetime(2026, 8, 24, 6, 18, 41, 948021), "resp_abc123")
 
@@ -1423,7 +1423,7 @@ def test_s3_object_download_filename_short_id_is_unchanged():
 
 def test_create_s3_batch_logging_element_bounds_the_download_filename():
     """The batch element carries a bounded Content-Disposition filename."""
-    from litellm.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES
+    from token_iq.gateway.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES
 
     logger = S3Logger()
     payload = StandardLoggingPayload(id=_oversized_response_id(), metadata={}, messages=[])
@@ -1437,7 +1437,7 @@ def test_create_s3_batch_logging_element_bounds_the_download_filename():
 @pytest.mark.asyncio
 async def test_audit_log_object_key_is_bounded_for_a_long_configured_path():
     """Audit log keys are bounded by the same builder."""
-    from litellm.constants import MAX_S3_OBJECT_KEY_BYTES
+    from token_iq.gateway.constants import MAX_S3_OBJECT_KEY_BYTES
 
     logger = S3Logger()
     logger.s3_path = "audit-archive/" + "z" * 1100
@@ -1451,7 +1451,7 @@ async def test_audit_log_object_key_is_bounded_for_a_long_configured_path():
 
 def test_s3_object_download_filename_drops_characters_that_break_the_header():
     """A quote or separator in the response id cannot escape the quoted header value."""
-    from litellm.integrations.s3 import get_s3_object_download_filename
+    from token_iq.gateway.integrations.s3 import get_s3_object_download_filename
 
     file_name = get_s3_object_download_filename(datetime(2026, 8, 24, 6, 18, 41, 948021), 'resp_a"b/c')
 
@@ -1464,7 +1464,7 @@ def test_s3_object_download_filename_drops_characters_that_break_the_header():
 def test_s3_callback_params_override_uses_alternate_dict(monkeypatch):
     """`s3_callback_params_override` makes the logger read its config from
     the override dict instead of `litellm.s3_callback_params`."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
     logger = S3Logger(
@@ -1482,7 +1482,7 @@ def test_s3_callback_params_override_uses_alternate_dict(monkeypatch):
 def test_s3_callback_params_override_does_not_mutate_inputs(monkeypatch):
     """Resolving `os.environ/X` markers must not mutate the override dict
     or `litellm.s3_callback_params`."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setenv("MY_AUDIT_BUCKET", "resolved-bucket")
     override = {"s3_bucket_name": "os.environ/MY_AUDIT_BUCKET"}
@@ -1497,7 +1497,7 @@ def test_s3_callback_params_override_does_not_mutate_inputs(monkeypatch):
 
 def test_s3_callback_params_override_none_falls_back_to_global(monkeypatch):
     """No override → behaves exactly as today (reads `litellm.s3_callback_params`)."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "from-global"})
     logger = S3Logger()
@@ -1506,7 +1506,7 @@ def test_s3_callback_params_override_none_falls_back_to_global(monkeypatch):
 
 def test_s3_callback_params_override_empty_dict_is_opt_in(monkeypatch):
     """An empty override dict skips the global entirely (env/IAM-only config)."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "from-global"})
     logger = S3Logger(s3_callback_params_override={})
@@ -1517,7 +1517,7 @@ def _expected_content_md5(payload: dict) -> str:
     import base64
     import hashlib
 
-    from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
+    from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 
     json_string = safe_dumps(payload)
     return base64.b64encode(
@@ -1546,7 +1546,7 @@ async def test_async_upload_sets_content_md5_header(monkeypatch):
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1580,7 +1580,7 @@ def test_sync_upload_sets_content_md5_header(monkeypatch):
     """The sync upload path must also send Content-MD5 for Object Lock buckets."""
     from unittest.mock import MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1604,7 +1604,7 @@ def test_sync_upload_sets_content_md5_header(monkeypatch):
     mock_sync_client.put.return_value = response
 
     with patch(
-        "litellm.integrations.s3_v2._get_httpx_client",
+        "token_iq.gateway.integrations.s3_v2._get_httpx_client",
         return_value=mock_sync_client,
     ):
         logger.upload_data_to_s3(test_element)
@@ -1622,7 +1622,7 @@ async def test_async_upload_sets_server_side_encryption_header_when_configured()
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1652,7 +1652,7 @@ async def test_async_upload_sets_server_side_encryption_header_when_configured()
 
 def test_s3_server_side_encryption_read_from_callback_params(monkeypatch):
     """s3_server_side_encryption can be configured via s3_callback_params."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -1675,7 +1675,7 @@ async def test_async_upload_sets_sse_kms_key_id_header_when_configured():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1711,7 +1711,7 @@ def test_sync_upload_sets_sse_kms_key_id_header_when_configured():
     """The sync upload path must carry the same SSE-KMS headers."""
     from unittest.mock import MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1735,7 +1735,7 @@ def test_sync_upload_sets_sse_kms_key_id_header_when_configured():
     mock_sync_client.put.return_value = response
 
     with patch(
-        "litellm.integrations.s3_v2._get_httpx_client",
+        "token_iq.gateway.integrations.s3_v2._get_httpx_client",
         return_value=mock_sync_client,
     ):
         logger.upload_data_to_s3(test_element)
@@ -1752,7 +1752,7 @@ async def test_async_upload_omits_kms_key_id_header_when_not_configured():
     """SSE without a key id must not emit the KMS key id header."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1783,7 +1783,7 @@ async def test_async_upload_omits_kms_key_id_header_when_not_configured():
 
 def test_s3_sse_kms_key_id_read_from_callback_params(monkeypatch):
     """s3_sse_kms_key_id can be configured via s3_callback_params."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -1806,7 +1806,7 @@ async def test_async_upload_infers_aws_kms_when_only_key_id_set():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     logger = S3Logger(
         s3_bucket_name="test-bucket",
@@ -1839,7 +1839,7 @@ async def test_async_upload_infers_aws_kms_when_only_key_id_set():
 
 def test_s3_sse_kms_key_id_read_from_audit_override_params(monkeypatch):
     """The audit-log override path must honor s3_sse_kms_key_id too."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-logs-bucket"})
     logger = S3Logger(
@@ -1857,7 +1857,7 @@ def test_kms_key_id_dropped_when_algorithm_is_not_kms(monkeypatch):
     AES256 plus a KMS key id is an invalid S3 combination; the key id must be
     dropped at init so uploads keep working instead of silently 400ing.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -1878,7 +1878,7 @@ def test_non_string_algorithm_is_dropped_and_valid_key_id_is_rescued(monkeypatch
     A YAML boolean in s3_server_side_encryption must not crash logger init and
     must not discard the valid key id; aws:kms is inferred from the key id.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -1896,7 +1896,7 @@ def test_non_string_algorithm_is_dropped_and_valid_key_id_is_rescued(monkeypatch
 
 def test_non_string_key_id_is_dropped_and_valid_algorithm_is_kept(monkeypatch):
     """A mistyped key id (unquoted YAML number) must not disable the valid algorithm."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(
         litellm,
@@ -1971,7 +1971,7 @@ def _logger_for_signing() -> S3Logger:
 
 
 def _element_with_space():
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     return s3BatchLoggingElement(
         s3_object_key=_KEY_WITH_SPACE,
@@ -2012,7 +2012,7 @@ def test_sync_upload_signs_object_key_with_space_the_way_s3_does():
     mock_sync_client = MagicMock()
     mock_sync_client.put.return_value = response
 
-    with patch("litellm.integrations.s3_v2._get_httpx_client", return_value=mock_sync_client):
+    with patch("token_iq.gateway.integrations.s3_v2._get_httpx_client", return_value=mock_sync_client):
         logger.upload_data_to_s3(_element_with_space())
 
     call = mock_sync_client.put.call_args
@@ -2058,7 +2058,7 @@ _RESERVED_CHAR_KEYS = (
 
 
 def _element_for(s3_object_key: str):
-    from litellm.types.integrations.s3_v2 import s3BatchLoggingElement
+    from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     return s3BatchLoggingElement(
         s3_object_key=s3_object_key,
@@ -2109,7 +2109,7 @@ def test_sync_upload_percent_encodes_reserved_characters_in_object_key(s3_object
     mock_sync_client = MagicMock()
     mock_sync_client.put.return_value = response
 
-    with patch("litellm.integrations.s3_v2._get_httpx_client", return_value=mock_sync_client):
+    with patch("token_iq.gateway.integrations.s3_v2._get_httpx_client", return_value=mock_sync_client):
         logger.upload_data_to_s3(_element_for(s3_object_key))
 
     call = mock_sync_client.put.call_args

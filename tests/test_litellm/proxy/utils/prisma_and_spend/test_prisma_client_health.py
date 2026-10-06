@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 @pytest.mark.asyncio
@@ -91,7 +91,7 @@ async def test_set_spend_logs_row_count_in_proxy_state_writes_to_state(
     fake_state = MagicMock()
     fake_state.set_proxy_state_variable = MagicMock()
 
-    import litellm.proxy.proxy_server as proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as proxy_server_mod
 
     monkeypatch.setattr(proxy_server_mod, "proxy_state", fake_state, raising=False)
 
@@ -107,7 +107,7 @@ async def test_set_spend_logs_row_count_error_raises_through_backoff(
 ) -> None:
     fake_state = MagicMock()
     fake_state.set_proxy_state_variable = MagicMock(side_effect=RuntimeError("boom"))
-    import litellm.proxy.proxy_server as proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as proxy_server_mod
 
     monkeypatch.setattr(proxy_server_mod, "proxy_state", fake_state, raising=False)
 
@@ -164,7 +164,7 @@ def test_clean_details_invalid_payload_returns_none(
     """When ``safe_dumps`` itself blows up (e.g. an internal exception), the
     error path swallows it and returns None.
     """
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     def _explode(_: Any) -> str:
         raise RuntimeError("safe_dumps broken")

@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 import os
-from litellm import Router
+from token_iq.gateway import Router
 
 
 # Mark as async test

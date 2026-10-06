@@ -14,8 +14,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 import requests
 
-from litellm.litellm_core_utils.cli_token_utils import is_cli_token_fresh
-from litellm.proxy.client.cli.commands.pkce_login import (
+from token_iq.gateway.core_utils.cli_token_utils import is_cli_token_fresh
+from token_iq.gateway.proxy.client.cli.commands.pkce_login import (
     CallbackCode,
     CallbackDenied,
     CliAuthContract,

@@ -7,10 +7,10 @@ the litellm_responses bridge provider, which calls litellm.responses() internall
 
 import os
 
-from litellm.interactions.litellm_responses_transformation.transformation import (
+from token_iq.gateway.interactions.litellm_responses_transformation.transformation import (
     LiteLLMResponsesInteractionsConfig,
 )
-from litellm.types.interactions import Turn
+from token_iq.gateway.types.interactions import Turn
 from tests.test_litellm.interactions.base_interactions_test import (
     BaseInteractionsTest,
 )

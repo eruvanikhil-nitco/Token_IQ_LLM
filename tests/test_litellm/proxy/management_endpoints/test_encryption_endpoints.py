@@ -12,10 +12,10 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy import proxy_server
-from litellm.proxy._types import LitellmUserRoles
-from litellm.proxy.management_endpoints import credential_migration as cm
-from litellm.proxy.management_endpoints.key_management_endpoints import (
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy.management_endpoints import credential_migration as cm
+from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     check_encryption_endpoint,
     migrate_encryption_endpoint,
 )

@@ -10,8 +10,8 @@ import httpx
 import pytest
 
 
-from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-from litellm.llms.custom_httpx.aiohttp_transport import (
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import (
     AiohttpResponseStream,
     LiteLLMAiohttpTransport,
 )
@@ -171,7 +171,7 @@ async def test_aclose_completes_under_cancellation():
 async def test_stream_with_fallbacks_closes_stream_on_generator_close():
     """Closing the FallbackStreamWrapper must aclose() the underlying model_response
     via stream_with_fallbacks' finally block."""
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     stream_closed = False
 
@@ -235,7 +235,7 @@ async def test_stream_with_fallbacks_closes_stream_on_generator_close():
 @pytest.mark.asyncio
 async def test_stream_with_fallbacks_closes_stream_on_normal_completion():
     """stream_with_fallbacks must aclose() model_response even on normal completion."""
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     stream_closed = False
 
@@ -296,8 +296,8 @@ async def test_stream_with_fallbacks_closes_stream_on_normal_completion():
 async def test_stream_with_fallbacks_closes_both_on_fallback_disconnect():
     """When a fallback is triggered and the client disconnects during fallback
     iteration, both model_response and fallback_response must be closed."""
-    from litellm.exceptions import MidStreamFallbackError
-    from litellm.router import Router
+    from token_iq.gateway.exceptions import MidStreamFallbackError
+    from token_iq.gateway.router import Router
 
     model_closed = False
     fallback_closed = False

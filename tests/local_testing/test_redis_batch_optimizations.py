@@ -17,10 +17,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import uuid
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.caching.redis_cache import RedisCache
-from litellm.constants import DEFAULT_MAX_REDIS_BATCH_CACHE_SIZE
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.caching.redis_cache import RedisCache
+from token_iq.gateway.constants import DEFAULT_MAX_REDIS_BATCH_CACHE_SIZE
 
 
 @pytest.fixture

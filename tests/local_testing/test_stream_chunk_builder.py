@@ -5,7 +5,7 @@ import traceback
 
 import pytest
 from typing import List
-from litellm.types.utils import StreamingChoices, ChatCompletionAudioResponse
+from token_iq.gateway.types.utils import StreamingChoices, ChatCompletionAudioResponse
 
 
 def check_non_streaming_response(response):
@@ -21,9 +21,9 @@ def check_non_streaming_response(response):
 import dotenv
 from openai import OpenAI
 
-import litellm
+from token_iq import gateway as litellm
 import stream_chunk_testdata
-from litellm import completion, stream_chunk_builder
+from token_iq.gateway import completion, stream_chunk_builder
 
 dotenv.load_dotenv()
 
@@ -690,7 +690,7 @@ def test_stream_chunk_builder_openai_audio_output_usage():
 
 
 def test_stream_chunk_builder_empty_initial_chunk():
-    from litellm.litellm_core_utils.streaming_chunk_builder_utils import (
+    from token_iq.gateway.core_utils.streaming_chunk_builder_utils import (
         ChunkProcessor,
     )
 
@@ -705,10 +705,10 @@ def test_stream_chunk_builder_empty_initial_chunk():
 
 
 def test_stream_chunk_builder_tool_calls_list():
-    from litellm.litellm_core_utils.streaming_chunk_builder_utils import (
+    from token_iq.gateway.core_utils.streaming_chunk_builder_utils import (
         ChunkProcessor,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionMessageToolCall,
         Function,
         ModelResponseStream,

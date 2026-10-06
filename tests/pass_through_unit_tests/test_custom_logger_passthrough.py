@@ -7,13 +7,13 @@ import pytest
 import asyncio
 
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     pass_through_request,
 )
 

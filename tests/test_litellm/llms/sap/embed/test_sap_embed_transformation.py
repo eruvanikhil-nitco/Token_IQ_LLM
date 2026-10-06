@@ -2,7 +2,7 @@ from unittest.mock import patch, PropertyMock
 
 import pytest
 
-from litellm.llms.sap.embed.transformation import GenAIHubEmbeddingConfig
+from token_iq.gateway.llms.sap.embed.transformation import GenAIHubEmbeddingConfig
 
 
 @pytest.fixture
@@ -32,12 +32,12 @@ def test_basic_config_transform(fake_token_creator, fake_deployment_url):
     }
     with (
         patch(
-            "litellm.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
+            "token_iq.gateway.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.embed.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.embed.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):
@@ -50,12 +50,12 @@ def test_basic_config_transform(fake_token_creator, fake_deployment_url):
 def test_model_params(fake_token_creator, fake_deployment_url):
     with (
         patch(
-            "litellm.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
+            "token_iq.gateway.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.embed.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.embed.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):
@@ -87,12 +87,12 @@ def test_embed_with_masking(fake_token_creator, fake_deployment_url):
     }
     with (
         patch(
-            "litellm.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
+            "token_iq.gateway.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
             new_callable=PropertyMock,
             return_value=fake_deployment_url,
         ),
         patch(
-            "litellm.llms.sap.embed.transformation.get_token_creator",
+            "token_iq.gateway.llms.sap.embed.transformation.get_token_creator",
             return_value=fake_token_creator,
         ),
     ):

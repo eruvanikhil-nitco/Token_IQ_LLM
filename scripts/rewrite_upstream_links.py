@@ -123,7 +123,7 @@ def targets() -> tuple[pathlib.Path, ...]:
         p
         for p in (REPO / "litellm").rglob("*.py")
         # Only the built UI bundle is excluded. Excluding every `_experimental` path also
-        # skipped litellm/proxy/_experimental/mcp_server, which is ordinary source.
+        # skipped token_iq/gateway/proxy/_experimental/mcp_server, which is ordinary source.
         if "out" not in p.parts
         and re.search(UPSTREAM_HOST, p.read_text(encoding="utf-8", errors="ignore"))
     )

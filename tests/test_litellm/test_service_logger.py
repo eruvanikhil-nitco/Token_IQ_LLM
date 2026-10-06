@@ -1,5 +1,5 @@
 """
-Tests for litellm/_service_logger.py
+Tests for token_iq/gateway/_service_logger.py
 
 Regression test for KeyError: 'call_type' when async_log_success_event
 is called without call_type in kwargs (e.g. from batch polling callbacks).
@@ -9,9 +9,9 @@ import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
-import litellm
-from litellm._service_logger import ServiceLogging
-from litellm.types.services import ServiceTypes
+from token_iq import gateway as litellm
+from token_iq.gateway._service_logger import ServiceLogging
+from token_iq.gateway.types.services import ServiceTypes
 
 
 @pytest.mark.asyncio
@@ -138,9 +138,9 @@ def _make_otel_v2_logger():
         InMemorySpanExporter,
     )
 
-    from litellm.integrations.otel import OpenTelemetryV2Config
-    from litellm.integrations.otel.plumbing import providers
-    from litellm.integrations.otel.logger import OpenTelemetryV2
+    from token_iq.gateway.integrations.otel import OpenTelemetryV2Config
+    from token_iq.gateway.integrations.otel.plumbing import providers
+    from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     exporter = InMemorySpanExporter()
@@ -161,7 +161,7 @@ def test_resolve_otel_service_logger_recognizes_otel_string(monkeypatch):
     # The "otel" string path resolves through the proxy's registered logger, so
     # it needs the proxy server module importable.
     try:
-        import litellm.proxy.proxy_server as proxy_server
+        import token_iq.gateway.proxy.proxy_server as proxy_server
     except ImportError:
         pytest.skip("proxy server dependencies not installed")
     service_logger = ServiceLogging()
@@ -181,7 +181,7 @@ def test_resolve_otel_service_logger_ignores_unrelated_callback():
 async def test_service_span_emitted_for_v2_logger_in_service_callback(monkeypatch):
     """End-to-end: a V2 logger registered in ``litellm.service_callback`` produces
     a service span when ``async_service_success_hook`` fires with a parent span."""
-    from litellm.integrations.otel.model.spans import SpanRole
+    from token_iq.gateway.integrations.otel.model.spans import SpanRole
 
     v2_logger, exporter = _make_otel_v2_logger()
     parent = v2_logger._emitter.start_span(
@@ -213,10 +213,10 @@ async def test_service_span_not_duplicated_for_string_and_instance(monkeypatch):
     the dedup guard this produced duplicate ``postgres ...`` / ``redis ...`` spans.
     """
     try:
-        import litellm.proxy.proxy_server as proxy_server
+        import token_iq.gateway.proxy.proxy_server as proxy_server
     except ImportError:
         pytest.skip("proxy server dependencies not installed")
-    from litellm.integrations.otel.model.spans import SpanRole
+    from token_iq.gateway.integrations.otel.model.spans import SpanRole
 
     v2_logger, exporter = _make_otel_v2_logger()
     parent = v2_logger._emitter.start_span(
@@ -250,10 +250,10 @@ async def test_service_failure_span_not_duplicated_for_string_and_instance(
     """Failure path mirror of the dedup guard — one span per failed service event,
     even with both the ``"otel"`` string and the instance in ``service_callback``."""
     try:
-        import litellm.proxy.proxy_server as proxy_server
+        import token_iq.gateway.proxy.proxy_server as proxy_server
     except ImportError:
         pytest.skip("proxy server dependencies not installed")
-    from litellm.integrations.otel.model.spans import SpanRole
+    from token_iq.gateway.integrations.otel.model.spans import SpanRole
 
     v2_logger, exporter = _make_otel_v2_logger()
     parent = v2_logger._emitter.start_span(

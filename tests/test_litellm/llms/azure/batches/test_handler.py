@@ -1,4 +1,4 @@
-"""Unit tests for ``AzureBatchesAPI`` (litellm/llms/azure/batches/handler.py).
+"""Unit tests for ``AzureBatchesAPI`` (token_iq/gateway/llms/azure/batches/handler.py).
 
 The Azure batches handler is HTTP/auth glue: each public method
 (create/retrieve/cancel/list) resolves an Azure OpenAI client via the inherited
@@ -28,9 +28,9 @@ import pytest
 
 from openai import AsyncOpenAI, OpenAI  # noqa: E402
 
-from litellm.llms.azure.azure import AsyncAzureOpenAI, AzureOpenAI  # noqa: E402
-from litellm.llms.azure.batches.handler import AzureBatchesAPI  # noqa: E402
-from litellm.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.llms.azure.azure import AsyncAzureOpenAI, AzureOpenAI  # noqa: E402
+from token_iq.gateway.llms.azure.batches.handler import AzureBatchesAPI  # noqa: E402
+from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
 
 GET_CLIENT = "litellm.llms.azure.batches.handler.AzureBatchesAPI.get_azure_openai_client"
 

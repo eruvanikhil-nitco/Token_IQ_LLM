@@ -26,7 +26,7 @@ class TestExclusions:
         assert is_excluded(pathlib.PurePosixPath("litellm/proxy/_experimental/out/_next/static/chunks/a.js"))
 
     def test_does_not_skip_real_source(self) -> None:
-        assert not is_excluded(pathlib.PurePosixPath("litellm/proxy/proxy_server.py"))
+        assert not is_excluded(pathlib.PurePosixPath("token_iq/gateway/proxy/proxy_server.py"))
         assert not is_excluded(pathlib.PurePosixPath("ui/litellm-dashboard/src/components/leftnav.tsx"))
 
 
@@ -96,7 +96,7 @@ class TestAllowlist:
     def test_product_code_and_docs_are_not_allowlisted(self) -> None:
         # docs/specs/ is deliberately NOT allowlisted: a spec is a current document and phase 10
         # requires it to lose the name like any other.
-        for path in ("litellm/proxy/proxy_server.py", "docs/README.md", "docs/specs/a.md", "schema.prisma"):
+        for path in ("token_iq/gateway/proxy/proxy_server.py", "docs/README.md", "docs/specs/a.md", "schema.prisma"):
             assert not is_allowlisted(pathlib.PurePosixPath(path)), path
 
     def test_allowlisted_occurrences_are_reported_but_kept_out_of_the_target(

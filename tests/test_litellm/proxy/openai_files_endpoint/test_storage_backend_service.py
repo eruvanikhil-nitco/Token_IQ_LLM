@@ -1,9 +1,9 @@
 import pytest
 
-from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.proxy.openai_files_endpoints import storage_backend_service
-from litellm.proxy.openai_files_endpoints.storage_backend_service import (
+from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.openai_files_endpoints import storage_backend_service
+from token_iq.gateway.proxy.openai_files_endpoints.storage_backend_service import (
     StorageBackendFileService,
 )
 

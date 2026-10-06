@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import httpx
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestResponsesSessionChaining:

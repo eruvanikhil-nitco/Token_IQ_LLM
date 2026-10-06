@@ -5,10 +5,10 @@ import base64
 import pytest
 from opentelemetry.trace import NoOpTracer
 
-from litellm.integrations.otel.model.config import ExporterSpec, OpenTelemetryV2Config
-from litellm.integrations.otel.plumbing.providers import parse_headers
-from litellm.integrations.otel.plumbing.routing import TenantTracerCache
-from litellm.integrations.otel.presets import (
+from token_iq.gateway.integrations.otel.model.config import ExporterSpec, OpenTelemetryV2Config
+from token_iq.gateway.integrations.otel.plumbing.providers import parse_headers
+from token_iq.gateway.integrations.otel.plumbing.routing import TenantTracerCache
+from token_iq.gateway.integrations.otel.presets import (
     DYNAMIC_HEADERS_BY_CALLBACK,
     dynamic_otlp_endpoint,
     dynamic_otlp_headers,
@@ -99,7 +99,7 @@ def test_provider_cache_is_bounded_and_evicts_lru(monkeypatch):
     # must be bounded — an unbounded cache lets a caller spawn one provider (and
     # its background exporter thread) per unique credential set. On overflow the
     # least-recently-used provider is evicted and shut down.
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     monkeypatch.setattr(routing_mod, "_MAX_CACHED_PROVIDERS", 2)
     shut_down = []
@@ -311,7 +311,7 @@ def test_eviction_defers_shutdown_while_a_span_is_open(monkeypatch):
     # takes the hold, atomically with the cache update, so a concurrent
     # eviction can never shut a just-selected provider down before the caller
     # records its span.
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     monkeypatch.setattr(routing_mod, "_MAX_CACHED_PROVIDERS", 1)
     shut_down = []
@@ -334,7 +334,7 @@ def test_retired_providers_are_capped(monkeypatch):
     # otherwise pin one live provider per open call, far past the cache bound.
     # Past the cap the stalest retiree is shut down and its later release is a
     # no-op, while the ones still within the cap keep draining.
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     monkeypatch.setattr(routing_mod, "_MAX_CACHED_PROVIDERS", 1)
     monkeypatch.setattr(routing_mod, "_MAX_RETIRED_PROVIDERS", 2)
@@ -358,7 +358,7 @@ def test_retired_providers_are_capped(monkeypatch):
 
 
 def test_release_without_eviction_keeps_provider_alive(monkeypatch):
-    from litellm.integrations.otel.plumbing import routing as routing_mod
+    from token_iq.gateway.integrations.otel.plumbing import routing as routing_mod
 
     shut_down = []
     monkeypatch.setattr(routing_mod, "_shutdown_provider", lambda p: shut_down.append(p))
@@ -373,7 +373,7 @@ def test_release_without_eviction_keeps_provider_alive(monkeypatch):
 
 
 def test_tenant_service_name_precedence_and_blanks():
-    from litellm.integrations.otel.plumbing.routing import tenant_service_name
+    from token_iq.gateway.integrations.otel.plumbing.routing import tenant_service_name
 
     assert tenant_service_name({"otel_service_name": "team-svc"}) == "team-svc"
     assert tenant_service_name({"otel_service_name_override": "override", "otel_service_name": "base"}) == "override"
@@ -383,7 +383,7 @@ def test_tenant_service_name_precedence_and_blanks():
 
 
 def test_key_override_survives_team_metadata_merge():
-    from litellm.integrations.otel.plumbing.routing import tenant_service_name
+    from token_iq.gateway.integrations.otel.plumbing.routing import tenant_service_name
 
     # Request setup merges team metadata over key metadata (last writer wins),
     # so a key keeps its own destination via ``otel_service_name_override``,
@@ -464,7 +464,7 @@ def test_newrelic_dynamic_headers():
 
 
 def test_newrelic_dynamic_endpoint_resolves_from_fixed_table():
-    from litellm.integrations.otel.presets import dynamic_otlp_endpoint
+    from token_iq.gateway.integrations.otel.presets import dynamic_otlp_endpoint
 
     assert dynamic_otlp_endpoint("newrelic", {"newrelic_region": "eu"}) == "https://otlp.eu01.nr-data.net"
     assert dynamic_otlp_endpoint("newrelic", {"newrelic_region": "US"}) == "https://otlp.nr-data.net"
@@ -596,7 +596,7 @@ def test_credential_routed_span_roots_new_trace_and_links_back():
         InMemorySpanExporter,
     )
 
-    from litellm.integrations.otel.logger import _request_trace_links
+    from token_iq.gateway.integrations.otel.logger import _request_trace_links
 
     default_exporter = InMemorySpanExporter()
     default_provider = TracerProvider()
@@ -641,7 +641,7 @@ def test_service_name_route_stays_parented_unlike_credential_route():
 
 
 def test_requires_headers_spec_skipped_without_headers():
-    from litellm.integrations.otel.plumbing.providers import build_tracer_provider
+    from token_iq.gateway.integrations.otel.plumbing.providers import build_tracer_provider
 
     cfg = OpenTelemetryV2Config(
         exporters=[ExporterSpec(kind="otlp_http", endpoint="https://otlp.nr-data.net", requires_headers=True)]

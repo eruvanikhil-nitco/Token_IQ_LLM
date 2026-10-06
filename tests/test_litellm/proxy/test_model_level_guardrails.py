@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.utils import (
     _check_and_merge_model_level_guardrails,
     _merge_guardrails_with_existing,
 )
@@ -163,11 +163,11 @@ async def test_pre_call_hook_runs_once_with_model_level_guardrails():
     (async_pre_call_deployment_hook) must together invoke async_pre_call_hook
     exactly once, not twice.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import CallTypes, UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import CallTypes, UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class CountingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -184,7 +184,7 @@ async def test_pre_call_hook_runs_once_with_model_level_guardrails():
 
     guardrail = CountingGuardrail()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         ProxyLogging._callback_capabilities_cache.clear()
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         user_api_key_dict = UserAPIKeyAuth(api_key="test-key")
@@ -218,11 +218,11 @@ async def test_pre_call_hook_runs_once_when_hook_returns_fresh_dict():
     data that flows downstream, so the deployment hook still skips the guardrail
     even when the proxy loop swapped in a fresh dict that never carried it.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import CallTypes, UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import CallTypes, UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class FreshDictGuardrail(CustomGuardrail):
         def __init__(self):
@@ -239,7 +239,7 @@ async def test_pre_call_hook_runs_once_when_hook_returns_fresh_dict():
 
     guardrail = FreshDictGuardrail()
 
-    with patch("litellm.callbacks", [guardrail]):
+    with patch("token_iq.gateway.callbacks", [guardrail]):
         ProxyLogging._callback_capabilities_cache.clear()
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         user_api_key_dict = UserAPIKeyAuth(api_key="test-key")
@@ -269,9 +269,9 @@ async def test_deployment_hook_runs_pre_call_without_proxy_loop():
     proxy) never runs the proxy pre-call loop, so the deployment hook is the
     only place the guardrail executes and it must still run exactly once.
     """
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import CallTypes
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import CallTypes
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class CountingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -311,12 +311,12 @@ async def test_post_call_success_hook_runs_model_level_guardrail():
     Model-level guardrails configured on a deployment should execute in
     post_call_success_hook (non-streaming path).
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
-    from litellm.types.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
     class TestGuardrail(CustomGuardrail):
         def __init__(self):
@@ -339,8 +339,8 @@ async def test_post_call_success_hook_runs_model_level_guardrail():
     mock_router.get_deployment.return_value = mock_deployment
 
     with (
-        patch("litellm.callbacks", [guardrail]),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.callbacks", [guardrail]),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
     ):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -377,12 +377,12 @@ async def test_post_call_success_hook_skips_guardrail_not_on_model():
     Guardrails NOT configured on the model should not execute when
     no other source (request body, key, team) enables them.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
-    from litellm.types.utils import Choices, Message, ModelResponse, Usage
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
     class TestGuardrail(CustomGuardrail):
         def __init__(self):
@@ -405,8 +405,8 @@ async def test_post_call_success_hook_skips_guardrail_not_on_model():
     mock_router.get_deployment.return_value = mock_deployment
 
     with (
-        patch("litellm.callbacks", [guardrail]),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.callbacks", [guardrail]),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
     ):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -449,11 +449,11 @@ async def test_streaming_iterator_hook_runs_model_level_guardrail():
     async_post_call_streaming_iterator_hook (streaming path) — even when
     `default_on: false` and the guardrail is not in the request body.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class TestStreamingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -480,8 +480,8 @@ async def test_streaming_iterator_hook_runs_model_level_guardrail():
         yield "chunk-2"
 
     with (
-        patch("litellm.callbacks", [guardrail]),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.callbacks", [guardrail]),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
     ):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -510,11 +510,11 @@ async def test_streaming_iterator_hook_skips_guardrail_not_on_model():
     body / key / team) should not execute, even after the dispatcher merge
     runs. Confirms the gate stays closed for unrelated guardrails.
     """
-    from litellm.caching.caching import DualCache
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class TestStreamingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -541,8 +541,8 @@ async def test_streaming_iterator_hook_skips_guardrail_not_on_model():
         yield "chunk-1"
 
     with (
-        patch("litellm.callbacks", [guardrail]),
-        patch("litellm.proxy.proxy_server.llm_router", mock_router),
+        patch("token_iq.gateway.callbacks", [guardrail]),
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
     ):
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -579,7 +579,7 @@ async def test_pre_call_merges_model_level_guardrails_before_pre_call_hook():
     pre_call guardrails (e.g. apply_guardrail event) never see the
     UI/DB-assigned guardrail name.
     """
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
     # Stub router that reports one deployment in the group with one
     # model-level guardrail. Mirrors the real proxy: at pre_call_hook time
@@ -627,19 +627,19 @@ async def test_pre_call_merges_model_level_guardrails_before_pre_call_hook():
 
     with (
         patch(
-            "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
             side_effect=passthrough_add_litellm_data,
         ),
         patch(
-            "litellm.proxy.common_request_processing.litellm.utils.function_setup",
+            "token_iq.gateway.proxy.common_request_processing.litellm.utils.function_setup",
             return_value=(MagicMock(), processing.data),
         ),
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             None,
         ),
     ):
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         await processing.common_processing_pre_call_logic(
             request=MagicMock(headers={}, url=MagicMock(path="/v1/chat/completions")),

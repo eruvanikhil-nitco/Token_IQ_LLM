@@ -7,7 +7,7 @@ without needing a running proxy.
 
 import pytest
 
-from litellm.proxy.management_endpoints.policy_endpoints.endpoints import (
+from token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints import (
     GuardrailTestResultEntry,
     _compute_overall_action,
     _test_guardrail_definitions,

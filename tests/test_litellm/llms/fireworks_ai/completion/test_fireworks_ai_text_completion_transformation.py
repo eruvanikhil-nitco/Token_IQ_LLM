@@ -1,10 +1,10 @@
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
-from litellm.llms.fireworks_ai.completion.transformation import (
+from token_iq.gateway.llms.fireworks_ai.completion.transformation import (
     FireworksAITextCompletionConfig,
 )
 
@@ -13,7 +13,7 @@ from litellm.llms.fireworks_ai.completion.transformation import (
 def force_local_model_cost(monkeypatch):
     """Force local model cost map usage for all tests in this file."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+    from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
     litellm.model_cost = get_model_cost_map()
 

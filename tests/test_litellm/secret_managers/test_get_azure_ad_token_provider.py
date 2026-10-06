@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.secret_managers.get_azure_ad_token_provider import (
+from token_iq.gateway.secret_managers.get_azure_ad_token_provider import (
     get_azure_ad_token_provider,
     infer_credential_type_from_environment,
 )
-from litellm.types.secret_managers.get_azure_ad_token_provider import (
+from token_iq.gateway.types.secret_managers.get_azure_ad_token_provider import (
     AzureCredentialType,
 )
 

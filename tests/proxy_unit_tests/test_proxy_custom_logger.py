@@ -5,18 +5,18 @@ from dotenv import load_dotenv
 load_dotenv()
 import io, asyncio
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import pytest, time
-import litellm
-from litellm import embedding, completion, completion_cost, Timeout
-from litellm import RateLimitError
+from token_iq import gateway as litellm
+from token_iq.gateway import embedding, completion, completion_cost, Timeout
+from token_iq.gateway import RateLimitError
 import importlib, inspect
 
 # test /chat/completion request to the proxy
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     router,
     save_worker_config,
     initialize,
@@ -52,7 +52,7 @@ print("Testing proxy custom logger")
 def test_embedding(client):
     try:
         litellm.set_verbose = False
-        from litellm.proxy.types_utils.utils import get_instance_fn
+        from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
             value="custom_callbacks.my_custom_logger", config_file_path=python_file_path
@@ -133,7 +133,7 @@ def test_chat_completion(client):
     try:
         # Your test data
         litellm.set_verbose = False
-        from litellm.proxy.types_utils.utils import get_instance_fn
+        from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
             value="custom_callbacks.my_custom_logger", config_file_path=python_file_path
@@ -244,7 +244,7 @@ def test_chat_completion_stream(client):
     try:
         # Your test data
         litellm.set_verbose = False
-        from litellm.proxy.types_utils.utils import get_instance_fn
+        from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
             value="custom_callbacks.my_custom_logger", config_file_path=python_file_path

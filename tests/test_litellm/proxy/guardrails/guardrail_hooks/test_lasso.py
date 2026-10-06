@@ -6,15 +6,15 @@ from httpx import Response, Request
 from fastapi import HTTPException
 
 
-import litellm
-from litellm import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.lasso.lasso import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.lasso.lasso import (
     LassoGuardrail,
     LassoGuardrailMissingSecrets,
     LassoGuardrailAPIError,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_lasso_guard_config(monkeypatch):
@@ -82,7 +82,7 @@ class TestLassoGuardrail:
 
     @pytest.mark.asyncio
     async def test_pre_call_no_violations(self):
-        from litellm.integrations.custom_guardrail import dc as global_cache
+        from token_iq.gateway.integrations.custom_guardrail import dc as global_cache
 
         """Test pre-call hook with no violations detected."""
         # Setup guardrail
@@ -127,7 +127,7 @@ class TestLassoGuardrail:
 
         local_cache = DualCache()
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             result = await guardrail.async_pre_call_hook(
@@ -201,7 +201,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             # Should raise HTTPException when BLOCK action is detected
@@ -268,7 +268,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             # Should NOT raise exception for AUTO_MASKING violations
@@ -333,7 +333,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_api_response,
         ):
             result = await guardrail.async_post_call_success_hook(
@@ -412,7 +412,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_api_response,
         ):
             # Should raise HTTPException when BLOCK action is detected
@@ -479,7 +479,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
             with pytest.raises(HTTPException):
@@ -530,7 +530,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             result = await guardrail.async_pre_call_hook(
@@ -573,7 +573,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
             with pytest.raises(HTTPException):
@@ -630,7 +630,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             result = await guardrail.async_pre_call_hook(
@@ -660,7 +660,7 @@ class TestLassoGuardrail:
 
         # Test API connection error
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=Exception("Connection timeout"),
         ):
             with pytest.raises(LassoGuardrailAPIError) as exc_info:
@@ -802,7 +802,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_response,
         ):
             result = await guardrail.async_pre_call_hook(
@@ -885,7 +885,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_api_response,
         ):
             result = await guardrail.async_post_call_success_hook(
@@ -1196,7 +1196,7 @@ class TestLassoGuardrail:
             )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=capture_post,
         ):
             result = await guardrail.async_post_call_success_hook(
@@ -1240,7 +1240,7 @@ class TestLassoGuardrail:
         )
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=mock_api_response,
         ):
             result = await guardrail.async_post_call_success_hook(

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import CostEstimateRequest, CostEstimateResponse
-from litellm.proxy.management_endpoints.cost_tracking_settings import estimate_cost
+from token_iq.gateway.proxy._types import CostEstimateRequest, CostEstimateResponse
+from token_iq.gateway.proxy.management_endpoints.cost_tracking_settings import estimate_cost
 
 
 class TestCostEstimateEndpoint:
@@ -27,11 +27,11 @@ class TestCostEstimateEndpoint:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.cost_tracking_settings.completion_cost"
+            "token_iq.gateway.proxy.management_endpoints.cost_tracking_settings.completion_cost"
         ) as mock_completion_cost:
             mock_completion_cost.return_value = 0.06
 
-            with patch("litellm.get_model_info") as mock_get_model_info:
+            with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
                 mock_get_model_info.return_value = {
                     "input_cost_per_token": 0.00003,
                     "output_cost_per_token": 0.00006,
@@ -60,7 +60,7 @@ class TestCostEstimateEndpoint:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.cost_tracking_settings.completion_cost"
+            "token_iq.gateway.proxy.management_endpoints.cost_tracking_settings.completion_cost"
         ) as mock_completion_cost:
             mock_completion_cost.side_effect = Exception("Model not found in cost map")
 
@@ -105,15 +105,15 @@ class TestCostEstimateEndpoint:
         ]
 
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             mock_router,
         ):
             with patch(
-                "litellm.proxy.management_endpoints.cost_tracking_settings.completion_cost"
+                "token_iq.gateway.proxy.management_endpoints.cost_tracking_settings.completion_cost"
             ) as mock_completion_cost:
                 mock_completion_cost.return_value = 0.05
 
-                with patch("litellm.get_model_info") as mock_get_model_info:
+                with patch("token_iq.gateway.get_model_info") as mock_get_model_info:
                     mock_get_model_info.return_value = {
                         "input_cost_per_token": 0.00003,
                         "output_cost_per_token": 0.00006,

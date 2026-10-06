@@ -9,8 +9,8 @@ import json
 
 import pytest
 
-from litellm.integrations.otel import GenAIOperation
-from litellm.integrations.otel.mappers import (
+from token_iq.gateway.integrations.otel import GenAIOperation
+from token_iq.gateway.integrations.otel.mappers import (
     GenAIMapper,
     LangfuseMapper,
     LangtraceMapper,
@@ -18,7 +18,7 @@ from litellm.integrations.otel.mappers import (
     WeaveMapper,
     resolve_mappers,
 )
-from litellm.integrations.otel.model.payloads import (
+from token_iq.gateway.integrations.otel.model.payloads import (
     LLMCallSpanData,
     LLMRequestParams,
     LLMUsage,
@@ -93,7 +93,7 @@ def test_openinference_mapper_input_output_messages():
 
 
 def test_openinference_mapper_skips_non_llm_roles():
-    from litellm.integrations.otel.model.payloads import GuardrailSpanData
+    from token_iq.gateway.integrations.otel.model.payloads import GuardrailSpanData
 
     assert OpenInferenceMapper().map(GuardrailSpanData("presidio")) == {}
 

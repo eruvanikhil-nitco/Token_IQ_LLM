@@ -1,6 +1,6 @@
 """
 Tests for the cache-hit replay generators in
-``litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response``.
+``litellm.core_utils.llm_response_utils.convert_dict_to_response``.
 
 These generators are used by ``LLMCachingHandler._convert_cached_stream_response``
 to replay a cached non-streaming ``ModelResponse`` as a stream when the
@@ -11,12 +11,12 @@ content frame, restoring per-token cadence on cache hits.
 
 import pytest
 
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     _split_assembled_content_for_replay,
     convert_to_streaming_response,
     convert_to_streaming_response_async,
 )
-from litellm.types.utils import ModelResponseStream
+from token_iq.gateway.types.utils import ModelResponseStream
 
 
 def _async_payload(content="Hello world! How are you?"):

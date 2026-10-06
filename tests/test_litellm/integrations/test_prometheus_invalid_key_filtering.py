@@ -11,8 +11,8 @@ import pytest
 from prometheus_client import REGISTRY
 
 
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 @pytest.fixture(scope="function")

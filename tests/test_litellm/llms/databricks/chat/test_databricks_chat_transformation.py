@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import MagicMock, patch
 
-from litellm.llms.databricks.chat.transformation import (
+from token_iq.gateway.llms.databricks.chat.transformation import (
     DatabricksChatResponseIterator,
     DatabricksConfig,
     _sanitize_empty_content,

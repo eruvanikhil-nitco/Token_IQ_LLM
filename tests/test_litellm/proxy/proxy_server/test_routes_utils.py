@@ -13,9 +13,9 @@ import json
 
 import pytest
 
-import litellm
-from litellm.proxy import proxy_server
-from litellm.router_utils import pattern_match_deployments
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.router_utils import pattern_match_deployments
 
 from .conftest import normalize  # type: ignore[import-not-found]
 
@@ -248,7 +248,7 @@ def patched_transform(monkeypatch):
             "raw_request_headers": {"Authorization": "Bearer redacted"},
         }
 
-    monkeypatch.setattr("litellm.utils.return_raw_request", _fake_return_raw_request)
+    monkeypatch.setattr("token_iq.gateway.utils.return_raw_request", _fake_return_raw_request)
     yield
 
 

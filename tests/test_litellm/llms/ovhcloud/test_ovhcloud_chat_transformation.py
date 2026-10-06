@@ -6,11 +6,11 @@ import os
 
 import pytest
 
-from litellm.llms.ovhcloud.utils import OVHCloudException
-from litellm.utils import get_optional_params
+from token_iq.gateway.llms.ovhcloud.utils import OVHCloudException
+from token_iq.gateway.utils import get_optional_params
 
 
-from litellm.llms.ovhcloud.chat.transformation import (
+from token_iq.gateway.llms.ovhcloud.chat.transformation import (
     OVHCloudChatCompletionStreamingHandler,
     OVHCloudChatConfig,
 )
@@ -175,7 +175,7 @@ class TestOVHCloudConfig:
 
 
 def test_ovhcloud_integration():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     api_key = os.getenv("OVHCLOUD_API_KEY")
 
@@ -202,7 +202,7 @@ def test_OVHCloud_streaming_integration():
     Integration test for streaming - requires real API key
     Run with: pytest -k test_OVHCloud_streaming_integration -s
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     api_key = os.getenv("OVHCLOUD_API_KEY")
 
@@ -256,7 +256,7 @@ def test_ovhcloud_with_custom_base_url():
     """
     Test OVHCloud with custom base URL
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     api_key = os.getenv("OVHCLOUD_API_KEY")
 

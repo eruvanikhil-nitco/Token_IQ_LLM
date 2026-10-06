@@ -5,8 +5,8 @@ from types import MappingProxyType
 
 import pytest
 
-from litellm.proxy.list_api.in_memory import Cells, InMemoryListExecutor
-from litellm.proxy.list_api.list_framework import (
+from token_iq.gateway.proxy.list_api.in_memory import Cells, InMemoryListExecutor
+from token_iq.gateway.proxy.list_api.list_framework import (
     AnyOf,
     Compare,
     IsNull,

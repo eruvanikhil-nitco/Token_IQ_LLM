@@ -8,23 +8,23 @@ from urllib.parse import parse_qs, urlparse
 from unittest.mock import MagicMock
 
 import httpx
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from click.testing import CliRunner
 
-import litellm.llms.xai.oauth as xai_oauth_module
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.llms.xai.oauth import (
+import token_iq.gateway.llms.xai.oauth as xai_oauth_module
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.llms.xai.oauth import (
     XAI_OAUTH_CLIENT_ID,
     XAI_OAUTH_SCOPE,
     XAIOAuthError,
     XAIOAuthAuthenticator,
     XAIOAuthLoginRequiredError,
 )
-from litellm.llms.xai.chat.transformation import XAIChatConfig
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from litellm.types.router import GenericLiteLLMParams
-from litellm.utils import get_optional_params, validate_environment
+from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.utils import get_optional_params, validate_environment
 
 
 def _write_auth_file(tmp_path, payload):
@@ -776,7 +776,7 @@ def test_responses_config_wraps_flagged_oauth_errors_as_authentication_error(
 
 
 def test_proxy_cli_xai_oauth_login_uses_single_authenticator(monkeypatch):
-    from litellm.proxy.proxy_cli import run_server
+    from token_iq.gateway.proxy.proxy_cli import run_server
 
     instances = []
 
@@ -790,7 +790,7 @@ def test_proxy_cli_xai_oauth_login_uses_single_authenticator(monkeypatch):
             return {"expires_at": 1234567890}
 
     monkeypatch.setattr(
-        "litellm.llms.xai.oauth.XAIOAuthAuthenticator", FakeAuthenticator
+        "token_iq.gateway.llms.xai.oauth.XAIOAuthAuthenticator", FakeAuthenticator
     )
 
     result = CliRunner().invoke(run_server, ["xai-oauth", "login"])

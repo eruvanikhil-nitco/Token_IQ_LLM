@@ -16,8 +16,8 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-import litellm
-from litellm.types.rag import RAGIngestOptions
+from token_iq import gateway as litellm
+from token_iq.gateway.types.rag import RAGIngestOptions
 from tests.vector_store_tests.rag.base_rag_tests import BaseRAGTest
 
 
@@ -72,7 +72,7 @@ class TestRAGS3Vectors(BaseRAGTest):
         """Query S3 Vectors index."""
         try:
             # Import the ingestion class to use its query method
-            from litellm.rag.ingestion.s3_vectors_ingestion import (
+            from token_iq.gateway.rag.ingestion.s3_vectors_ingestion import (
                 S3VectorsRAGIngestion,
             )
         except ImportError:

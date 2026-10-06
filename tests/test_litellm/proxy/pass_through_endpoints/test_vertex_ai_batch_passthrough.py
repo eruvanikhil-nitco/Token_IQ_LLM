@@ -9,11 +9,11 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from typing import Dict, Any
 
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
     VertexPassthroughLoggingHandler,
 )
-from litellm.types.utils import SpecialEnums
-from litellm.types.llms.openai import BatchJobStatus
+from token_iq.gateway.types.utils import SpecialEnums
+from token_iq.gateway.types.llms.openai import BatchJobStatus
 
 
 class TestVertexAIBatchPassthroughHandler:
@@ -62,16 +62,16 @@ class TestVertexAIBatchPassthroughHandler:
     ):
         """Test successful batch job creation and tracking"""
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
         ) as mock_logger:
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router"
             ) as mock_get_model_id:
                 with patch(
-                    "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler._store_batch_managed_object"
+                    "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler._store_batch_managed_object"
                 ) as mock_store:
                     with patch(
-                        "litellm.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
+                        "token_iq.gateway.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
                     ) as mock_transformation:
 
                         # Setup mocks
@@ -123,7 +123,7 @@ class TestVertexAIBatchPassthroughHandler:
         mock_httpx_response.json.return_value = {"error": "Invalid request"}
 
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
         ) as mock_logger:
             # Test the handler with failed response
             result = VertexPassthroughLoggingHandler.batch_prediction_jobs_handler(
@@ -146,9 +146,9 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_get_actual_model_id_from_router_with_router(self):
         """Test getting model ID when router is available"""
-        with patch("litellm.proxy.proxy_server.llm_router") as mock_router:
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
             ) as mock_extract:
 
                 # Setup mocks
@@ -168,9 +168,9 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_get_actual_model_id_from_router_without_router(self):
         """Test getting model ID when router is not available"""
-        with patch("litellm.proxy.proxy_server.llm_router", None):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
             ) as mock_extract:
 
                 # Setup mocks
@@ -186,9 +186,9 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_get_actual_model_id_from_router_model_not_found(self):
         """Test getting model ID when model is not found in router"""
-        with patch("litellm.proxy.proxy_server.llm_router") as mock_router:
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.extract_model_name_from_vertex_path"
             ) as mock_extract:
 
                 # Setup mocks - router returns empty list
@@ -232,10 +232,10 @@ class TestVertexAIBatchPassthroughHandler:
     ):
         """Test storing batch managed object for cost tracking"""
         with patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj"
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj"
         ) as mock_proxy_logging_obj:
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
             ) as mock_logger:
 
                 # Setup mock proxy logging obj
@@ -296,9 +296,9 @@ class TestVertexAIBatchPassthroughHandler:
         kwargs lookup. Falls back to "default-user" only when metadata is
         absent."""
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_pl,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_pl,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
             ),
         ):
             mock_pl.get_proxy_hook.return_value = mock_managed_files_hook
@@ -319,9 +319,9 @@ class TestVertexAIBatchPassthroughHandler:
 
     def _store_with_metadata(self, mock_logging_obj, mock_managed_files_hook, metadata):
         with (
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_pl,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_pl,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
             ),
         ):
             mock_pl.get_proxy_hook.return_value = mock_managed_files_hook
@@ -424,16 +424,16 @@ class TestVertexAIBatchPassthroughHandler:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler._store_batch_managed_object"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler._store_batch_managed_object"
             ) as mock_store,
             patch(
-                "litellm.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
+                "token_iq.gateway.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
             ) as mock_transformation,
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router",
                 return_value="gemini-2.5-flash",
             ),
         ):
@@ -464,7 +464,7 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_batch_cost_calculation_integration(self):
         """Single Vertex AI response → non-zero cost with correct token counts."""
-        from litellm.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
+        from token_iq.gateway.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
 
         vertex_ai_batch_responses = [
             {
@@ -489,7 +489,7 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_batch_response_transformation(self):
         """Test transformation of Vertex AI batch responses to OpenAI format"""
-        from litellm.llms.vertex_ai.batches.transformation import (
+        from token_iq.gateway.llms.vertex_ai.batches.transformation import (
             VertexAIBatchTransformation,
         )
 
@@ -516,7 +516,7 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_batch_id_extraction(self):
         """Test extraction of batch ID from Vertex AI response"""
-        from litellm.llms.vertex_ai.batches.transformation import (
+        from token_iq.gateway.llms.vertex_ai.batches.transformation import (
             VertexAIBatchTransformation,
         )
 
@@ -540,7 +540,7 @@ class TestVertexAIBatchPassthroughHandler:
 
     def test_model_name_extraction_from_vertex_path(self):
         """Test extraction of model name from Vertex AI path"""
-        from litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
+        from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
         )
 
@@ -573,19 +573,19 @@ class TestVertexAIBatchPassthroughHandler:
     ):
         """Test the complete batch completion workflow"""
         with patch(
-            "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.verbose_proxy_logger"
         ) as mock_logger:
             with patch(
-                "litellm.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler.VertexPassthroughLoggingHandler.get_actual_model_id_from_router"
             ) as mock_get_model_id:
                 with patch(
-                    "litellm.proxy.proxy_server.proxy_logging_obj"
+                    "token_iq.gateway.proxy.proxy_server.proxy_logging_obj"
                 ) as mock_proxy_logging_obj:
                     mock_proxy_logging_obj.get_proxy_hook.return_value = (
                         mock_managed_files_hook
                     )
                 with patch(
-                    "litellm.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
+                    "token_iq.gateway.llms.vertex_ai.batches.transformation.VertexAIBatchTransformation"
                 ) as mock_transformation:
 
                     # Setup mocks
@@ -641,7 +641,7 @@ class TestVertexAIBatchCostCalculation:
 
     def test_should_aggregate_cost_and_usage_across_responses(self):
         """Two successful responses → costs and token counts are summed."""
-        from litellm.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
+        from token_iq.gateway.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
 
         responses = [
             {
@@ -675,7 +675,7 @@ class TestVertexAIBatchCostCalculation:
 
     def test_should_skip_responses_with_null_response_body(self):
         """Failed lines (response: None) are skipped without error."""
-        from litellm.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
+        from token_iq.gateway.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
 
         responses = [
             {
@@ -712,7 +712,7 @@ class TestVertexAIBatchCostCalculation:
 
     def test_should_return_zeros_for_empty_response_list(self):
         """Empty input → zero cost and zero usage."""
-        from litellm.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
+        from token_iq.gateway.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
 
         result = calculate_vertex_ai_batch_cost_and_usage(
             [], model_name="gemini-2.0-flash-001"
@@ -725,7 +725,7 @@ class TestVertexAIBatchCostCalculation:
 
     def test_should_handle_missing_usage_metadata_gracefully(self):
         """Response without usageMetadata → 0 tokens, 0 cost for that line."""
-        from litellm.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
+        from token_iq.gateway.batches.batch_utils import calculate_vertex_ai_batch_cost_and_usage
 
         responses = [
             {"response": {"candidates": [{"content": {"parts": [{"text": "hi"}]}}]}},
@@ -751,8 +751,8 @@ class TestVertexAIBatchCostCalculation:
         calling calculate_vertex_ai_batch_cost_and_usage (which only reads raw
         usageMetadata fields).
         """
-        import litellm
-        from litellm.batches.batch_utils import calculate_batch_cost_and_usage
+        from token_iq import gateway as litellm
+        from token_iq.gateway.batches.batch_utils import calculate_batch_cost_and_usage
 
         openai_shaped_responses = [
             {
@@ -842,8 +842,8 @@ class TestVertexAIBatchCostCalculation:
         When disable_vertex_batch_output_transformation=True the GCS file is returned
         as raw Vertex predictions.jsonl; the specialized reader must be used.
         """
-        import litellm
-        from litellm.batches.batch_utils import calculate_batch_cost_and_usage
+        from token_iq import gateway as litellm
+        from token_iq.gateway.batches.batch_utils import calculate_batch_cost_and_usage
 
         raw_vertex_responses = [
             {

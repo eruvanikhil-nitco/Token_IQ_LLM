@@ -5,7 +5,7 @@ This follows the same pattern as BaseLLMChatTest in tests/llm_translation/base_l
 """
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 import os
 from abc import ABC, abstractmethod
 

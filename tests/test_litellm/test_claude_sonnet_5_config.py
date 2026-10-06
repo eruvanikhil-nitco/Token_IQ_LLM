@@ -15,9 +15,9 @@ import os
 
 import pytest
 
-import litellm
-from litellm.constants import BEDROCK_CONVERSE_MODELS
-from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import BEDROCK_CONVERSE_MODELS
+from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 

@@ -7,9 +7,9 @@ Validates that:
 """
 
 import pytest
-from litellm.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-from litellm.types.mcp import MCPAuth, MCPTransport, MCPSpecVersion
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport, MCPSpecVersion
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 @pytest.mark.asyncio
@@ -53,7 +53,7 @@ async def test_mcp_server_config_auth_value_header_used(token_key):
     """
     import httpx
 
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.httpx_auth import (
         StaticHeaderAuth,
     )
 

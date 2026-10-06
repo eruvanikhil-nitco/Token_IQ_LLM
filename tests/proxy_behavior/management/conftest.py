@@ -11,7 +11,7 @@ import pytest_asyncio
 import yaml
 from prisma import Json
 
-from litellm.proxy.utils import hash_token
+from token_iq.gateway.proxy.utils import hash_token
 
 MASTER_KEY = "sk-1234"
 SCRATCH_PREFIX = "scratch-"
@@ -33,8 +33,8 @@ def _write_minimal_proxy_config() -> str:
 
 @pytest_asyncio.fixture(scope="session")
 async def proxy_app():
-    from litellm.proxy import proxy_server
-    from litellm.proxy.proxy_server import (
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy.proxy_server import (
         app,
         cleanup_router_config_variables,
         initialize,
@@ -78,7 +78,7 @@ async def proxy_client(proxy_app) -> AsyncIterator[httpx.AsyncClient]:
 
 @pytest_asyncio.fixture(scope="session")
 async def prisma(proxy_app):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     assert proxy_server.prisma_client is not None
     return proxy_server.prisma_client

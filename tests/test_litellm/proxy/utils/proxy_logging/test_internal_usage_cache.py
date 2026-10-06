@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.proxy.utils import InternalUsageCache
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy.utils import InternalUsageCache
 
 
 def _kwargs_snapshot(call):

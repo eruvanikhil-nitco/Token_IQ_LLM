@@ -9,10 +9,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.proxy._types import LitellmTableNames, LitellmUserRoles
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
-from litellm.proxy.management_endpoints.cache_settings_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+from token_iq.gateway.proxy.management_endpoints.cache_settings_endpoints import (
     _CACHE_SENSITIVE_FIELDS,
     _REDACTED_VALUE,
     CacheSettingsManager,
@@ -27,7 +27,7 @@ from litellm.proxy.management_endpoints.cache_settings_endpoints import (
     test_cache_connection,
     update_cache_settings,
 )
-from litellm.types.management_endpoints.cache_settings_endpoints import (
+from token_iq.gateway.types.management_endpoints.cache_settings_endpoints import (
     CACHE_SETTINGS_FIELDS,
 )
 
@@ -60,7 +60,7 @@ async def test_test_cache_connection_calls_cache_test_connection_with_params():
     )
 
     # Patch Cache class at the import location (litellm module)
-    with patch("litellm.Cache") as mock_cache_class:
+    with patch("token_iq.gateway.Cache") as mock_cache_class:
         mock_cache_class.return_value = mock_cache_instance
 
         # Call the endpoint
@@ -175,7 +175,7 @@ async def test_test_cache_connection_url_takes_precedence_over_discrete_fields()
     mock_cache_instance.cache = MagicMock()
     mock_cache_instance.cache.test_connection = AsyncMock(return_value={"status": "success", "message": "ok"})
 
-    with patch("litellm.Cache") as mock_cache_class:
+    with patch("token_iq.gateway.Cache") as mock_cache_class:
         mock_cache_class.return_value = mock_cache_instance
 
         result = await test_cache_connection(request=request, user_api_key_dict=user_api_key_dict)
@@ -214,8 +214,8 @@ async def test_get_cache_settings_masks_password_bearing_url():
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
     ):
         response = await get_cache_settings(user_api_key_dict=_admin_auth())
 
@@ -638,8 +638,8 @@ async def test_get_cache_settings_falls_back_to_redis_env(monkeypatch):
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
     ):
         response = await get_cache_settings(user_api_key_dict=_admin_auth())
 
@@ -665,8 +665,8 @@ async def test_get_cache_settings_redacts_password_with_marker(monkeypatch):
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
     ):
         response = await get_cache_settings(user_api_key_dict=_admin_auth())
 
@@ -694,8 +694,8 @@ async def test_get_cache_settings_url_mode_hides_env_discrete_fields(monkeypatch
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
     ):
         response = await get_cache_settings(user_api_key_dict=_admin_auth())
 
@@ -744,9 +744,9 @@ async def test_test_cache_connection_survives_saved_lookup_failure(monkeypatch):
     cache_instance.cache.test_connection = AsyncMock(return_value={"status": "success", "message": "ok"})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", bad_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.Cache") as mock_cache_class,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", bad_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.Cache") as mock_cache_class,
     ):
         mock_cache_class.return_value = cache_instance
         result = await test_cache_connection(
@@ -777,8 +777,8 @@ async def test_get_cache_settings_does_not_surface_non_display_env_credentials(m
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
     ):
         response = await get_cache_settings(user_api_key_dict=_admin_auth())
 
@@ -810,9 +810,9 @@ async def test_test_cache_connection_does_not_log_plaintext_credentials(monkeypa
     cache_instance.cache.test_connection = AsyncMock(return_value={"status": "success", "message": "ok"})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.Cache") as mock_cache_class,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.Cache") as mock_cache_class,
         caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"),
     ):
         mock_cache_class.return_value = cache_instance
@@ -848,9 +848,9 @@ async def test_test_cache_connection_does_not_replay_saved_password_to_new_host(
     cache_instance.cache.test_connection = AsyncMock(return_value={"status": "success", "message": "ok"})
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.Cache") as mock_cache_class,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config),
+        patch("token_iq.gateway.Cache") as mock_cache_class,
     ):
         mock_cache_class.return_value = cache_instance
         await test_cache_connection(
@@ -874,7 +874,7 @@ async def test_update_cache_settings_is_refused_in_this_build():
     refusing them."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.cache_settings_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.cache_settings_endpoints import (
         update_cache_settings,
     )
 

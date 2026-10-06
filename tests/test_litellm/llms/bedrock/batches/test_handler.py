@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.llms.bedrock.batches.handler import (  # noqa: E402
+from token_iq.gateway.llms.bedrock.batches.handler import (  # noqa: E402
     BedrockBatchesHandler,
     _extract_job_id_from_arn,
     _extract_region_from_bedrock_arn,
@@ -52,7 +52,7 @@ def patched_boto3():
     with (
         patch("boto3.client", return_value=fake_client) as boto_client_factory,
         patch(
-            "litellm.llms.bedrock.batches.transformation.BedrockBatchesConfig.get_credentials",
+            "token_iq.gateway.llms.bedrock.batches.transformation.BedrockBatchesConfig.get_credentials",
             return_value=MagicMock(access_key="AKIA", secret_key="SECRET", token=None),
         ),
     ):
@@ -471,7 +471,7 @@ def test_cancel_batch_reraises_other_client_errors(patched_boto3):
 
 
 def test_litellm_cancel_batch_dispatches_to_bedrock(patched_boto3):
-    import litellm
+    from token_iq import gateway as litellm
 
     fake_client, _ = patched_boto3
     fake_client.get_model_invocation_job.return_value = _fake_boto3_response(status="Stopped")

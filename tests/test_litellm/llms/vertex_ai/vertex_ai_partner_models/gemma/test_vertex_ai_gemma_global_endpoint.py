@@ -18,10 +18,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
-from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
-from litellm.types.llms.vertex_ai import VertexPartnerProvider
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
+from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
+from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
 
 # ---------------------------------------------------------------------------
 # Model-cost entry used by all tests that need the model to be known
@@ -51,7 +51,7 @@ _GEMMA_MODEL_COST_ENTRY = {
 @pytest.fixture(autouse=True)
 def _reset_litellm_http_client_cache():
     """Ensure each test gets a fresh async HTTP client mock."""
-    from litellm import in_memory_llm_clients_cache
+    from token_iq.gateway import in_memory_llm_clients_cache
 
     in_memory_llm_clients_cache.flush_cache()
 
@@ -251,10 +251,10 @@ async def test_vertex_ai_gemma_global_endpoint_url():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "test-project"),
         ),
         patch.dict(
@@ -327,10 +327,10 @@ async def test_vertex_ai_gemma_function_calling_passthrough():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "test-project"),
         ),
         patch.dict(
@@ -400,10 +400,10 @@ async def test_vertex_ai_gemma_vision_passthrough():
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels._ensure_access_token",
             return_value=("fake-token", "test-project"),
         ),
         patch.dict(

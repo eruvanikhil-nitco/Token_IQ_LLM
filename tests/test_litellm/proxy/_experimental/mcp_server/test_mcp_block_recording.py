@@ -33,7 +33,7 @@ from unittest import mock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._experimental.mcp_server import server
+from token_iq.gateway.proxy._experimental.mcp_server import server
 
 
 class _RecordingLoggingObj:
@@ -65,10 +65,10 @@ async def _call_block(logging_obj, order: list, *, user_api_key_auth=mock.sentin
     proxy_logging_obj = mock.MagicMock()
     proxy_logging_obj.post_call_failure_hook.side_effect = _record_post_call_failure_hook
 
-    fake_proxy_server = types.ModuleType("litellm.proxy.proxy_server")
+    fake_proxy_server = types.ModuleType("token_iq.gateway.proxy.proxy_server")
     fake_proxy_server.proxy_logging_obj = proxy_logging_obj  # pyright: ignore[reportAttributeAccessIssue]
 
-    with mock.patch.dict(sys.modules, {"litellm.proxy.proxy_server": fake_proxy_server}):
+    with mock.patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": fake_proxy_server}):
         with contextlib.suppress(HTTPException):
             await server.call_mcp_tool.__wrapped__(
                 name="t",

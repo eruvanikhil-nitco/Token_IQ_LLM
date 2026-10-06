@@ -24,7 +24,7 @@ class TestPresetCacheKeyFix:
         TypeError: _set_preset_cache_key_in_kwargs() got multiple values
         for keyword argument 'preset_cache_key'
         """
-        from litellm.caching.caching import Cache
+        from token_iq.gateway.caching.caching import Cache
 
         cache = Cache()
 
@@ -49,7 +49,7 @@ class TestPresetCacheKeyFix:
 
     def test_get_cache_key_without_preset_cache_key(self):
         """Test normal case without preset_cache_key in kwargs still works."""
-        from litellm.caching.caching import Cache
+        from token_iq.gateway.caching.caching import Cache
 
         cache = Cache()
 
@@ -65,7 +65,7 @@ class TestPresetCacheKeyFix:
 
     def test_preset_cache_key_is_set_in_litellm_params(self):
         """Verify that preset_cache_key is correctly set in litellm_params."""
-        from litellm.caching.caching import Cache
+        from token_iq.gateway.caching.caching import Cache
 
         cache = Cache()
 

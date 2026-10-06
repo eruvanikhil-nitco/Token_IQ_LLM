@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 @pytest.mark.asyncio

@@ -14,21 +14,21 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
-from litellm.proxy.spend_tracking.spend_management_endpoints import view_spend_logs
-from litellm.proxy.utils import ProxyLogging, hash_token, update_spend
-from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
+from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import view_spend_logs
+from token_iq.gateway.proxy.utils import ProxyLogging, hash_token, update_spend
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
 
 @pytest.fixture
 def prisma_client():
-    from litellm.proxy import proxy_server
-    from litellm.proxy.proxy_cli import append_query_params
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     params = {"connection_limit": 100, "pool_timeout": 60}
     database_url = os.getenv("DATABASE_URL")
@@ -86,12 +86,12 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
     setattr(litellm.proxy.proxy_server, "llm_router", router)
 
     # Generate a test API key
-    from litellm.proxy.management_endpoints.key_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
     )
-    from litellm.proxy._types import GenerateKeyRequest
+    from token_iq.gateway.proxy._types import GenerateKeyRequest
 
-    from litellm.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import LitellmUserRoles
 
     user_api_key_dict = UserAPIKeyAuth(
         user_role=LitellmUserRoles.PROXY_ADMIN,
@@ -119,7 +119,7 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
     )
 
     # Mock the search function to return our mock response
-    with patch("litellm.search.main.asearch", new_callable=AsyncMock) as mock_asearch:
+    with patch("token_iq.gateway.search.main.asearch", new_callable=AsyncMock) as mock_asearch:
         mock_asearch.return_value = mock_search_response
 
         # Setup proxy logging

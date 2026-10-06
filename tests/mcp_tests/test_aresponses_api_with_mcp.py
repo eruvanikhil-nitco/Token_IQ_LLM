@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, patch
 
 
 # Import required modules
-import litellm
-from litellm.responses.mcp.litellm_proxy_mcp_handler import LiteLLM_Proxy_MCP_Handler
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import LiteLLM_Proxy_MCP_Handler
+from token_iq.gateway.types.llms.openai import (
     ResponsesAPIResponse,
     ResponsesAPIStreamingResponse,
     OpenAIMcpServerTool,
@@ -223,7 +223,7 @@ async def test_aresponses_api_with_mcp_mock_integration():
     ]
 
     # Test the helper methods that the integration relies on
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
 
@@ -279,7 +279,7 @@ async def test_aresponses_api_with_mcp_passes_mcp_server_auth_headers_to_process
     Test that MCP auth headers from secret_fields (e.g. x-mcp-linear_config-authorization)
     are passed to _process_mcp_tools_without_openai_transform when using the responses API.
     """
-    from litellm.responses.main import aresponses_api_with_mcp
+    from token_iq.gateway.responses.main import aresponses_api_with_mcp
 
     captured_process_kwargs = {}
 
@@ -335,7 +335,7 @@ async def test_aresponses_api_with_mcp_passes_mcp_server_auth_headers_to_process
             mock_process,
         ),
         patch(
-            "litellm.responses.main.aresponses",
+            "token_iq.gateway.responses.main.aresponses",
             new_callable=AsyncMock,
             return_value=mock_response,
         ),
@@ -364,7 +364,7 @@ async def test_mcp_allowed_tools_filtering():
     This test verifies that when allowed_tools is specified in MCP tool config,
     only the allowed tools are passed to the LLM.
     """
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
 
@@ -676,7 +676,7 @@ async def test_streaming_mcp_events_validation():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from litellm.types.llms.openai import ResponsesAPIStreamEvents
+    from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
 
     # Mock MCP tools that would be returned from the manager
     mock_mcp_tools = [
@@ -774,7 +774,7 @@ async def test_streaming_mcp_events_validation():
             new_callable=AsyncMock,
         ) as mock_execute_tools,
         patch(
-            "litellm.responses.main.aresponses",
+            "token_iq.gateway.responses.main.aresponses",
             new_callable=AsyncMock,
             return_value=fake_stream,
         ),
@@ -1050,7 +1050,7 @@ async def test_mcp_parameter_preparation_helpers():
     2. _prepare_follow_up_call_params - restores stream and removes tool_choice
     3. _build_request_params - clean parameter merging
     """
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
 
@@ -1171,7 +1171,7 @@ async def test_mcp_tool_execution_events_creation():
     """
     Test the _create_tool_execution_events helper method for generating streaming events.
     """
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
 
@@ -1255,7 +1255,7 @@ async def test_no_duplicate_mcp_tools_in_streaming_e2e():
     sent to the LLM to ensure no duplication occurs.
     """
     from unittest.mock import AsyncMock, patch, call
-    from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+    from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
         LiteLLM_Proxy_MCP_Handler,
     )
 
@@ -1319,7 +1319,7 @@ async def test_no_duplicate_mcp_tools_in_streaming_e2e():
             "_get_mcp_tools_from_manager",
             new_callable=AsyncMock,
         ) as mock_get_tools,
-        patch("litellm.aresponses", side_effect=capture_llm_tools) as mock_aresponses,
+        patch("token_iq.gateway.aresponses", side_effect=capture_llm_tools) as mock_aresponses,
     ):
 
         # Setup MCP mock to return our test tools

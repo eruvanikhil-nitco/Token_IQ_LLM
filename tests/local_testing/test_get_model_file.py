@@ -2,7 +2,7 @@ import os, sys, traceback
 import importlib.resources
 import json
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
 
@@ -15,7 +15,7 @@ def test_get_model_cost_map():
 
 def test_get_backup_model_cost_map():
     with importlib.resources.open_text(
-        "litellm", "model_prices_and_context_window_backup.json"
+        "token_iq.gateway", "model_prices_and_context_window_backup.json"
     ) as f:
         print("inside backup")
         content = json.load(f)

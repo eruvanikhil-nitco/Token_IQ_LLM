@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from starlette.routing import WebSocketRoute
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     openai_websocket_proxy_route,
     router,
 )
@@ -35,15 +35,15 @@ async def test_openai_websocket_forwards_query_and_keeps_provider_auth(prefix):
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
             return_value="sk-provider",
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints._join_url_paths",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._join_url_paths",
             return_value="https://api.openai.com/v1/realtime",
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
             new_callable=AsyncMock,
         ) as mock_ws,
     ):
@@ -75,11 +75,11 @@ async def test_openai_websocket_accepts_first_client_subprotocol():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
             return_value="sk-provider",
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
             new_callable=AsyncMock,
         ) as mock_ws,
     ):
@@ -100,11 +100,11 @@ async def test_openai_websocket_closes_cleanly_when_provider_credentials_missing
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
             return_value=None,
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
             new_callable=AsyncMock,
         ) as mock_ws,
     ):
@@ -133,7 +133,7 @@ async def test_openai_websocket_rejects_model_restricted_keys(user_api_key_dict)
     websocket = _mock_websocket("/openai/v1/realtime", "model=gpt-4o-realtime-preview")
 
     with patch(
-        "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
         new_callable=AsyncMock,
     ) as mock_ws:
         await openai_websocket_proxy_route(
@@ -163,11 +163,11 @@ async def test_openai_websocket_allows_unrestricted_keys(user_api_key_dict):
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.passthrough_endpoint_router.get_credentials",
             return_value="sk-provider",
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
+            "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.websocket_passthrough_request",
             new_callable=AsyncMock,
         ) as mock_ws,
     ):

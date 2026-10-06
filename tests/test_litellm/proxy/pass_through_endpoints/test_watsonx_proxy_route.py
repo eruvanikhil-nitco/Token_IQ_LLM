@@ -12,9 +12,9 @@ import pytest
 from fastapi import HTTPException, Request, Response
 
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     watsonx_proxy_route,
 )
 
@@ -51,11 +51,11 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -122,11 +122,11 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -170,11 +170,11 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -221,15 +221,15 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_form_data",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_form_data",
                 return_value=mock_form_data,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -260,7 +260,7 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=None,
             ),
         ):
@@ -302,11 +302,11 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -355,11 +355,11 @@ class TestWatsonxProxyRoute:
 
         with (
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                 return_value=mock_provider_config,
             ),
             patch(
-                "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                 return_value=mock_endpoint_func,
             ) as mock_create_route,
         ):
@@ -414,11 +414,11 @@ class TestWatsonxProxyRoute:
 
             with (
                 patch(
-                    "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
+                    "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_passthrough_config",
                     return_value=mock_provider_config,
                 ),
                 patch(
-                    "litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
+                    "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route",
                     return_value=mock_endpoint_func,
                 ) as mock_create_route,
             ):

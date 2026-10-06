@@ -2,11 +2,11 @@ import json
 from unittest.mock import MagicMock, patch
 
 
-from litellm.constants import (
+from token_iq.gateway.constants import (
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_LOW_THINKING_BUDGET,
 )
-from litellm.llms.hosted_vllm.chat.transformation import HostedVLLMChatConfig
+from token_iq.gateway.llms.hosted_vllm.chat.transformation import HostedVLLMChatConfig
 
 
 def test_hosted_vllm_chat_transformation_file_url():
@@ -42,7 +42,7 @@ def test_hosted_vllm_chat_transformation_file_url():
 
 
 def test_hosted_vllm_chat_transformation_with_audio_url():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     mock_client = MagicMock()
     mock_response = MagicMock()
@@ -66,7 +66,7 @@ def test_hosted_vllm_chat_transformation_with_audio_url():
     mock_client.post.return_value = mock_response
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler._get_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
         return_value=mock_client,
     ):
         try:

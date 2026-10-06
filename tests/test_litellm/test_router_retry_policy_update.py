@@ -28,11 +28,11 @@ import pytest
 from pydantic import ValidationError
 
 
-import litellm
-from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
-from litellm.router_utils.pre_call_checks.model_rate_limit_check import ModelRateLimitingCheck
-from litellm.router_utils.pre_call_checks.prompt_caching_deployment_check import PromptCachingDeploymentCheck
-from litellm.types.router import RetryPolicy, UpdateRouterConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
+from token_iq.gateway.router_utils.pre_call_checks.model_rate_limit_check import ModelRateLimitingCheck
+from token_iq.gateway.router_utils.pre_call_checks.prompt_caching_deployment_check import PromptCachingDeploymentCheck
+from token_iq.gateway.types.router import RetryPolicy, UpdateRouterConfig
 
 
 @pytest.fixture(autouse=True)
@@ -209,7 +209,7 @@ async def test_update_settings_preserves_router_budget_limiting_when_omitted(mon
         return None
 
     monkeypatch.setattr(
-        "litellm.router_strategy.budget_limiter.RouterBudgetLimiting.periodic_sync_in_memory_spend_with_redis",
+        "token_iq.gateway.router_strategy.budget_limiter.RouterBudgetLimiting.periodic_sync_in_memory_spend_with_redis",
         _disable_periodic_sync,
     )
     router = _build_router()
@@ -348,8 +348,8 @@ async def test_config_update_persists_and_reads_back_retry_policy(monkeypatch):
     """The exact global retry_policy save the UI performs must survive the
     real ``/config/update`` -> DB -> apply -> ``/get/config/callbacks`` path,
     not snap back to the ``num_retries`` fallback the ticket reported."""
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.proxy._types import ConfigYAML, LitellmUserRoles, UserAPIKeyAuth
+    import token_iq.gateway.proxy.proxy_server as proxy_server
+    from token_iq.gateway.proxy._types import ConfigYAML, LitellmUserRoles, UserAPIKeyAuth
 
     router = _build_router()
     assert router.retry_policy is None

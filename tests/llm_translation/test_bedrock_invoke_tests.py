@@ -2,8 +2,8 @@ from base_llm_unit_tests import BaseLLMChatTest
 import pytest
 import os
 
-import litellm
-from litellm.types.llms.bedrock import BedrockInvokeNovaRequest
+from token_iq import gateway as litellm
+from token_iq.gateway.types.llms.bedrock import BedrockInvokeNovaRequest
 
 
 @pytest.mark.flaky(retries=3, delay=5)
@@ -92,7 +92,7 @@ def test_nova_invoke_streaming_chunk_parsing():
     Test that the AWSEventStreamDecoder correctly handles Nova's /bedrock/invoke/ streaming format
     where content is nested under 'contentBlockDelta'.
     """
-    from litellm.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
+    from token_iq.gateway.llms.bedrock.chat.invoke_handler import AWSEventStreamDecoder
 
     # Initialize the decoder with a Nova model
     decoder = AWSEventStreamDecoder(model="bedrock/invoke/us.amazon.nova-micro-v1:0")

@@ -1,6 +1,6 @@
 from base_llm_unit_tests import BaseLLMChatTest
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 
 # Test implementations
@@ -21,8 +21,8 @@ def test_deepseek_mock_completion(stream):
     """
     Deepseek API is hanging. Mock the call, to a fake endpoint, so we can confirm our integration is working.
     """
-    import litellm
-    from litellm import completion
+    from token_iq import gateway as litellm
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
 
@@ -47,10 +47,10 @@ async def test_deepseek_provider_async_completion(stream):
     """
     Test that Deepseek provider requests are formatted correctly with the proper parameters
     """
-    import litellm
+    from token_iq import gateway as litellm
     import json
     from unittest.mock import patch, AsyncMock, MagicMock
-    from litellm import acompletion
+    from token_iq.gateway import acompletion
 
     litellm._turn_on_debug()
 
@@ -61,7 +61,7 @@ async def test_deepseek_provider_async_completion(stream):
 
     # Mock AsyncHTTPHandler.post method for async test
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_response_data = litellm.ModelResponse(
             choices=[
@@ -184,7 +184,7 @@ def test_deepseek_fill_reasoning_content_multiturn():
     Reproduces issue #28045: DeepSeek thinking mode fails in multi-turn conversations
     because reasoning_content is not passed back to the API.
     """
-    from litellm.llms.deepseek.chat.transformation import DeepSeekChatConfig
+    from token_iq.gateway.llms.deepseek.chat.transformation import DeepSeekChatConfig
 
     config = DeepSeekChatConfig()
 
@@ -241,7 +241,7 @@ def test_deepseek_fill_reasoning_content_guard_in_transform_request():
     thinking as opt-in but not always-on. Addresses oss-pr-review-agent feedback
     on PR #28057.
     """
-    from litellm.llms.deepseek.chat.transformation import DeepSeekChatConfig
+    from token_iq.gateway.llms.deepseek.chat.transformation import DeepSeekChatConfig
 
     config = DeepSeekChatConfig()
 

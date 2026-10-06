@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from litellm.llms.vertex_ai.vertex_ai_partner_models.llama3.transformation import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.llama3.transformation import (
     VertexAILlama3Config,
     VertexAILlama3StreamingHandler,
 )

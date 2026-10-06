@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, Mock
 import httpx
 import pytest
 
-from litellm.llms.predibase.chat.handler import PredibaseChatCompletion
-from litellm.llms.predibase.chat.transformation import PredibaseConfig
-from litellm.llms.predibase.common_utils import PredibaseError
-from litellm.utils import Choices, Message, ModelResponse
+from token_iq.gateway.llms.predibase.chat.handler import PredibaseChatCompletion
+from token_iq.gateway.llms.predibase.chat.transformation import PredibaseConfig
+from token_iq.gateway.llms.predibase.common_utils import PredibaseError
+from token_iq.gateway.utils import Choices, Message, ModelResponse
 
 
 def _build_model_response() -> ModelResponse:
@@ -41,7 +41,7 @@ def test_predibase_transform_request_custom_prompt(monkeypatch):
     config = PredibaseConfig()
 
     monkeypatch.setattr(
-        "litellm.llms.predibase.chat.transformation.custom_prompt",
+        "token_iq.gateway.llms.predibase.chat.transformation.custom_prompt",
         lambda **kwargs: "custom-prompt",
     )
 
@@ -120,7 +120,7 @@ def test_predibase_transform_response_success_best_of(monkeypatch):
     logging_obj = Mock()
     encoding = Mock()
     encoding.encode.return_value = [1, 2, 3]
-    monkeypatch.setattr("litellm.token_counter", lambda messages: 5)
+    monkeypatch.setattr("token_iq.gateway.token_counter", lambda messages: 5)
 
     raw_response = httpx.Response(
         status_code=200,
@@ -253,7 +253,7 @@ def test_predibase_transform_response_best_of_with_empty_generated_text(monkeypa
     logging_obj = Mock()
     encoding = Mock()
     encoding.encode.return_value = [1]
-    monkeypatch.setattr("litellm.token_counter", lambda messages: 1)
+    monkeypatch.setattr("token_iq.gateway.token_counter", lambda messages: 1)
 
     raw_response = httpx.Response(
         status_code=200,
@@ -295,7 +295,7 @@ def test_predibase_transform_response_best_of_from_request_data(monkeypatch):
     logging_obj = Mock()
     encoding = Mock()
     encoding.encode.return_value = [1]
-    monkeypatch.setattr("litellm.token_counter", lambda messages: 1)
+    monkeypatch.setattr("token_iq.gateway.token_counter", lambda messages: 1)
 
     raw_response = httpx.Response(
         status_code=200,
@@ -337,7 +337,7 @@ def test_predibase_transform_response_best_of_invalid_value_falls_back(monkeypat
     logging_obj = Mock()
     encoding = Mock()
     encoding.encode.return_value = [1]
-    monkeypatch.setattr("litellm.token_counter", lambda messages: 1)
+    monkeypatch.setattr("token_iq.gateway.token_counter", lambda messages: 1)
 
     raw_response = httpx.Response(
         status_code=200,
@@ -379,7 +379,7 @@ def test_predibase_transform_response_empty_output_sets_completion_tokens_zero(m
     config = PredibaseConfig()
     logging_obj = Mock()
     encoding = Mock()
-    monkeypatch.setattr("litellm.token_counter", lambda messages: 3)
+    monkeypatch.setattr("token_iq.gateway.token_counter", lambda messages: 3)
 
     raw_response = httpx.Response(
         status_code=200,
@@ -424,7 +424,7 @@ def test_predibase_transform_response_usage_fallbacks(monkeypatch):
     encoding = Mock()
     encoding.encode.side_effect = RuntimeError("encoding failure")
     monkeypatch.setattr(
-        "litellm.token_counter", lambda messages: (_ for _ in ()).throw(RuntimeError())
+        "token_iq.gateway.token_counter", lambda messages: (_ for _ in ()).throw(RuntimeError())
     )
 
     raw_response = httpx.Response(
@@ -457,13 +457,13 @@ async def test_predibase_async_completion_uses_default_config_when_none(monkeypa
     async_handler = Mock()
     async_handler.post = AsyncMock(return_value=mock_response)
     monkeypatch.setattr(
-        "litellm.llms.predibase.chat.handler.get_async_httpx_client",
+        "token_iq.gateway.llms.predibase.chat.handler.get_async_httpx_client",
         lambda **kwargs: async_handler,
     )
 
     default_config = Mock()
     default_config.transform_response.return_value = _build_model_response()
-    monkeypatch.setattr("litellm.PredibaseConfig", lambda: default_config)
+    monkeypatch.setattr("token_iq.gateway.PredibaseConfig", lambda: default_config)
 
     result = await handler.async_completion(
         model="predibase-model",
@@ -494,7 +494,7 @@ async def test_predibase_async_completion_uses_passed_config(monkeypatch):
     async_handler = Mock()
     async_handler.post = AsyncMock(return_value=mock_response)
     monkeypatch.setattr(
-        "litellm.llms.predibase.chat.handler.get_async_httpx_client",
+        "token_iq.gateway.llms.predibase.chat.handler.get_async_httpx_client",
         lambda **kwargs: async_handler,
     )
 
@@ -544,7 +544,7 @@ def test_predibase_completion_sync_returns_transform_response(monkeypatch):
     monkeypatch.setattr(PredibaseConfig, "transform_request", fake_transform_request)
     monkeypatch.setattr(PredibaseConfig, "transform_response", fake_transform_response)
     monkeypatch.setattr(
-        "litellm.module_level_client.post",
+        "token_iq.gateway.module_level_client.post",
         lambda *args, **kwargs: httpx.Response(status_code=200, json={"generated_text": "ok"}),
     )
 

@@ -6,7 +6,7 @@ never rewrite. It is consumed by compress() and by the Headroom guardrail, so
 the two agree on what "never compress this" means.
 """
 
-from litellm.compression.compress import get_protected_indices
+from token_iq.gateway.compression.compress import get_protected_indices
 
 
 def test_protects_system_last_user_and_last_assistant():

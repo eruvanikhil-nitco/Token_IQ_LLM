@@ -3,13 +3,13 @@ import pytest
 
 from unittest.mock import patch
 
-import litellm
-from litellm.llms.databricks.responses.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.databricks.responses.transformation import (
     DatabricksResponsesAPIConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class TestDatabricksResponsesAPIConfig:

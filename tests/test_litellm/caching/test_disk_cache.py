@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("diskcache")
 
-from litellm.caching.disk_cache import DiskCache
+from token_iq.gateway.caching.disk_cache import DiskCache
 
 
 class _SlowInt(int):

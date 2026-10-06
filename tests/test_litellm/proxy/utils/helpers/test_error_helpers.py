@@ -3,8 +3,8 @@ import json
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import ProxyErrorTypes, ProxyException
-from litellm.proxy.utils import get_error_message_str, handle_exception_on_proxy
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
+from token_iq.gateway.proxy.utils import get_error_message_str, handle_exception_on_proxy
 
 
 def normalize(value):

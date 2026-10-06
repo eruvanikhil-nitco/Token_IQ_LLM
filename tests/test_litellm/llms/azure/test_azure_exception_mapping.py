@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.exceptions import ContentPolicyViolationError
-from litellm.litellm_core_utils.exception_mapping_utils import exception_type
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import ContentPolicyViolationError
+from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
 
 
 class TestAzureExceptionMapping:
@@ -316,7 +316,7 @@ class TestAzureExceptionMapping:
     def test_azure_image_polling_error_preserves_body(self):
         """Verify that AzureOpenAIError raised from the DALL-E polling path
         carries the structured body so exception_type() can inspect it."""
-        from litellm.llms.azure.common_utils import AzureOpenAIError
+        from token_iq.gateway.llms.azure.common_utils import AzureOpenAIError
 
         error_payload = {
             "status": "failed",
@@ -373,7 +373,7 @@ class TestAzureExceptionMapping:
     def test_invalid_encrypted_content_error_with_helpful_message(self):
         """Test that invalid_encrypted_content errors include helpful guidance
         about enabling encrypted_content_affinity."""
-        from litellm.exceptions import BadRequestError
+        from token_iq.gateway.exceptions import BadRequestError
 
         mock_exception = Exception(
             "The encrypted content gAAAAABpnW_yEYmSNEyOG... could not be verified. "
@@ -405,7 +405,7 @@ class TestAzureExceptionMapping:
 
     def test_openai_invalid_encrypted_content_error(self):
         """Test that OpenAI invalid_encrypted_content errors also get helpful guidance."""
-        from litellm.exceptions import BadRequestError
+        from token_iq.gateway.exceptions import BadRequestError
 
         mock_exception = Exception("The encrypted content could not be verified.")
         mock_response = MagicMock()

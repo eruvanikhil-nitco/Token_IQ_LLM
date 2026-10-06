@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.proxy.guardrails.guardrail_registry import InMemoryGuardrailHandler
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.guardrails import SupportedGuardrailIntegrations
+from token_iq.gateway.proxy.guardrails.guardrail_registry import InMemoryGuardrailHandler
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
 
 def test_initialize_presidio_guardrail():
@@ -45,8 +45,8 @@ def test_initialize_bedrock_forwards_chunk_budget_chars():
     initialize_guardrail rather than the constructor is the point: constructing
     BedrockGuardrail directly bypasses the only path a user can actually reach.
     """
-    import litellm
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
 
     test_guardrail = {
         "guardrail_name": "test_bedrock_chunk_budget",
@@ -127,8 +127,8 @@ def test_initialize_presidio_forwards_analyze_chunk_size_bytes():
     PresidioConfigModel, so LitellmParams parses it, but initialize_presidio
     enumerates its constructor kwargs explicitly and would silently drop it.
     """
-    import litellm
-    from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
         _OPTIONAL_PresidioPIIMasking,
     )
 
@@ -196,7 +196,7 @@ def test_init_guardrails_v2_skips_invalid_guardrail_instead_of_crashing_boot():
     now accepted at construction time, since async_moderation_hook already degrades
     it gracefully at runtime instead of needing a config-time rejection.
     """
-    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
 
     IN_MEMORY_GUARDRAIL_HANDLER.IN_MEMORY_GUARDRAILS.clear()
     IN_MEMORY_GUARDRAIL_HANDLER.guardrail_id_to_custom_guardrail.clear()
@@ -240,7 +240,7 @@ def test_init_guardrails_v2_accepts_during_call_advisory_mode():
     advisory itself can't be delivered, so rejecting this combination at config time
     disabled a guardrail that runtime already handles safely.
     """
-    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
 
     IN_MEMORY_GUARDRAIL_HANDLER.IN_MEMORY_GUARDRAILS.clear()
     IN_MEMORY_GUARDRAIL_HANDLER.guardrail_id_to_custom_guardrail.clear()
@@ -272,7 +272,7 @@ def test_init_guardrails_v2_skips_guardrail_with_malformed_advisory_template():
     uncaught-ValueError-crashes-boot root cause as the during_call+inject_system_message
     case above. Both must be caught by init_guardrails_v2, not just one.
     """
-    from litellm.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
 
     IN_MEMORY_GUARDRAIL_HANDLER.IN_MEMORY_GUARDRAILS.clear()
     IN_MEMORY_GUARDRAIL_HANDLER.guardrail_id_to_custom_guardrail.clear()

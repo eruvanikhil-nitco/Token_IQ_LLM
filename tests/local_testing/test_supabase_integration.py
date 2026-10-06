@@ -4,8 +4,8 @@ import sys, os
 import traceback
 import pytest
 
-import litellm
-from litellm import embedding, completion
+from token_iq import gateway as litellm
+from token_iq.gateway import embedding, completion
 
 litellm.input_callback = ["supabase"]
 litellm.success_callback = ["supabase"]

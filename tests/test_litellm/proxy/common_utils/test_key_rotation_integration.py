@@ -14,17 +14,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     GenerateKeyResponse,
     LiteLLM_VerificationToken,
     RegenerateKeyRequest,
 )
-from litellm.proxy.common_utils.key_rotation_manager import KeyRotationManager
+from token_iq.gateway.proxy.common_utils.key_rotation_manager import KeyRotationManager
 
 
 @pytest.fixture
 def disable_audit_logging_for_mocked_key(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("litellm.store_audit_logs", False)
+    monkeypatch.setattr("token_iq.gateway.store_audit_logs", False)
 
 
 class TestKeyRotationManagerPassesKeyAlias:
@@ -77,11 +77,11 @@ class TestKeyRotationManagerPassesKeyAlias:
 
         # Patch regenerate_key_fn to capture the request
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             side_effect=capture_regenerate_key_fn,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
             ):
                 rotation_manager = KeyRotationManager(mock_prisma)
@@ -130,11 +130,11 @@ class TestKeyRotationManagerPassesKeyAlias:
             return mock_response
 
         with patch(
-            "litellm.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
+            "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
             side_effect=capture_regenerate_key_fn,
         ):
             with patch(
-                "litellm.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
+                "token_iq.gateway.proxy.common_utils.key_rotation_manager.KeyManagementEventHooks.async_key_rotated_hook",
                 new_callable=AsyncMock,
             ):
                 rotation_manager = KeyRotationManager(mock_prisma)
@@ -167,10 +167,10 @@ class TestKeyRotationSecretNamingStability:
         THEN: The hook MUST reuse the existing secret name, NOT generate a new one
               based on the new token ID.
         """
-        from litellm.proxy.hooks.key_management_event_hooks import (
+        from token_iq.gateway.proxy.hooks.key_management_event_hooks import (
             KeyManagementEventHooks,
         )
-        from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 
         # 1. Existing key without alias
         initial_token_hash = "hashed-initial-token"
@@ -189,7 +189,7 @@ class TestKeyRotationSecretNamingStability:
         request_data = RegenerateKeyRequest(key=initial_token_hash, key_alias=None)
 
         with patch(
-            "litellm.proxy.hooks.key_management_event_hooks.KeyManagementEventHooks._rotate_virtual_key_in_secret_manager",
+            "token_iq.gateway.proxy.hooks.key_management_event_hooks.KeyManagementEventHooks._rotate_virtual_key_in_secret_manager",
             new_callable=AsyncMock,
         ) as mock_rotate:
             await KeyManagementEventHooks.async_key_rotated_hook(
@@ -220,10 +220,10 @@ class TestKeyRotationSecretNamingStability:
         WHEN: The key is rotated
         THEN: The hook uses the alias for both current and new names.
         """
-        from litellm.proxy.hooks.key_management_event_hooks import (
+        from token_iq.gateway.proxy.hooks.key_management_event_hooks import (
             KeyManagementEventHooks,
         )
-        from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 
         test_alias = "tenant1/stable-key"
         existing_key = MagicMock(spec=LiteLLM_VerificationToken)
@@ -236,7 +236,7 @@ class TestKeyRotationSecretNamingStability:
         request_data = RegenerateKeyRequest(key="old-hash", key_alias=test_alias)
 
         with patch(
-            "litellm.proxy.hooks.key_management_event_hooks.KeyManagementEventHooks._rotate_virtual_key_in_secret_manager",
+            "token_iq.gateway.proxy.hooks.key_management_event_hooks.KeyManagementEventHooks._rotate_virtual_key_in_secret_manager",
             new_callable=AsyncMock,
         ) as mock_rotate:
             await KeyManagementEventHooks.async_key_rotated_hook(
@@ -257,18 +257,18 @@ class TestKeyRotationSecretNamingStability:
         Tests that _set_key_rotation_fields enforces key_alias requirement
         when secret storage is enabled.
         """
-        import litellm
-        from litellm.proxy.management_endpoints.key_management_endpoints import (
+        from token_iq import gateway as litellm
+        from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
             _set_key_rotation_fields,
         )
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         # Create a mock for settings
         mock_settings = MagicMock()
         mock_settings.store_virtual_keys = True
 
         # Mock settings: store_virtual_keys = True
-        with patch("litellm._key_management_settings", mock_settings):
+        with patch("token_iq.gateway._key_management_settings", mock_settings):
             data = {"auto_rotate": True}  # Missing key_alias
 
             # Should raise ProxyException 400
@@ -292,7 +292,7 @@ class TestKeyRotationSecretNamingStability:
         Tests that _set_key_rotation_fields allows enabling rotation
         if the key already has an alias in the database (even if not in current request).
         """
-        from litellm.proxy.management_endpoints.key_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
             _set_key_rotation_fields,
         )
         from unittest.mock import MagicMock, patch
@@ -300,7 +300,7 @@ class TestKeyRotationSecretNamingStability:
         mock_settings = MagicMock()
         mock_settings.store_virtual_keys = True
 
-        with patch("litellm._key_management_settings", mock_settings):
+        with patch("token_iq.gateway._key_management_settings", mock_settings):
             # 1. No alias in request, but HAS existing_key_alias
             data = {"auto_rotate": True}
             _set_key_rotation_fields(
@@ -314,7 +314,7 @@ class TestKeyRotationSecretNamingStability:
             assert "key_rotation_at" in data
 
             # 2. Verify it still fails if NO alias AND NO existing_key_alias
-            from litellm.proxy._types import ProxyException
+            from token_iq.gateway.proxy._types import ProxyException
 
             data_fail = {"auto_rotate": True}
             with pytest.raises(ProxyException) as exc:

@@ -1,4 +1,4 @@
-from litellm.llms.cerebras.chat import CerebrasConfig
+from token_iq.gateway.llms.cerebras.chat import CerebrasConfig
 
 
 def test_max_retries_in_supported_params() -> None:

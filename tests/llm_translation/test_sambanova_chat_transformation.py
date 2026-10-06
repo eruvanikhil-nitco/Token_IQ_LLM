@@ -3,7 +3,7 @@ Unit tests for SambaNova chat message transformation
 """
 
 import pytest
-from litellm.llms.sambanova.chat import SambanovaConfig
+from token_iq.gateway.llms.sambanova.chat import SambanovaConfig
 
 
 class TestSambanovaContentListHandling:

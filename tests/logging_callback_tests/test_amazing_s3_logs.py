@@ -4,15 +4,15 @@ from collections import defaultdict
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
-from litellm import completion
-import litellm
+from token_iq.gateway import completion
+from token_iq import gateway as litellm
 
 litellm.num_retries = 3
 
 import time, random
 import pytest
 import boto3
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 import logging
 
 
@@ -131,7 +131,7 @@ async def test_basic_s3_logging(sync_mode, streaming):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_basic_s3_v2_logging(streaming):
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.integrations.s3_v2 import S3Logger
+    from token_iq.gateway.integrations.s3_v2 import S3Logger
 
     litellm.s3_callback_params = {
         "s3_bucket_name": "load-testing-oct",
@@ -178,7 +178,7 @@ async def test_basic_s3_v2_logging(streaming):
 async def test_basic_s3_v2_logging_failure():
     """Test that S3 v2 logger makes httpx PUT request when logging failures"""
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.integrations.s3_v2 import S3Logger
+    from token_iq.gateway.integrations.s3_v2 import S3Logger
 
     # Create S3 logger with short flush interval
     s3_v2_logger = S3Logger(s3_flush_interval=1)
@@ -454,7 +454,7 @@ async def make_async_calls():
     return total_time
 
 
-from litellm.integrations.s3_v2 import S3Logger
+from token_iq.gateway.integrations.s3_v2 import S3Logger
 
 
 class TestS3Logger(S3Logger):

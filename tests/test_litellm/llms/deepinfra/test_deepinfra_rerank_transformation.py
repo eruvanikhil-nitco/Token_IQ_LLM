@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.deepinfra.rerank.transformation import DeepinfraRerankConfig
-from litellm.types.rerank import (
+from token_iq.gateway.llms.deepinfra.rerank.transformation import DeepinfraRerankConfig
+from token_iq.gateway.types.rerank import (
     OptionalRerankParams,
     RerankResponse,
 )

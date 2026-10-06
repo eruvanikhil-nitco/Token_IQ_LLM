@@ -7,30 +7,30 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm._logging import verbose_logger
-from litellm.integrations.code_interpreter_interception.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.code_interpreter_interception.handler import (
     CodeInterpreterInterceptionLogger,
     LITELLM_CODE_EXECUTION_TOOL_NAME,
 )
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     AudioTranscriptionRequestData,
     BaseAudioTranscriptionConfig,
 )
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.llms.custom_httpx.llm_http_handler import (
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import (
     BaseLLMHTTPHandler,
     _collect_ws_project_quota_callbacks,
     _google_genai_streaming_hidden_params,
     _has_pre_call_deployment_hook,
     _rust_responses_websocket_enabled,
 )
-from litellm.llms.azure.videos.transformation import AzureVideoConfig
-from litellm.llms.openai.videos.transformation import OpenAIVideoConfig
-from litellm.types.llms.openai import ResponsesAPIResponse
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.llms.azure.videos.transformation import AzureVideoConfig
+from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 _ACTIVE_KEY = "_code_interpreter_interception_active"
 _SANDBOX_KEY = "_code_interpreter_interception_sandbox_key"
@@ -373,7 +373,7 @@ def test_get_agentic_loop_settings_defaults_and_overrides():
 def test_has_agentic_completion_hook_detection(monkeypatch):
     """The streaming path skips the agentic wrapper only when no callback
     overrides async_should_run_agentic_loop. Verify both directions."""
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     handler = BaseLLMHTTPHandler()
     logging_obj = Mock()
@@ -423,7 +423,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     agentic_via_string = _AgenticLogger()
     monkeypatch.setattr(litellm, "callbacks", ["fake_string_callback"])
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.litellm_logging.get_custom_logger_compatible_class",
+        "token_iq.gateway.core_utils.litellm_logging.get_custom_logger_compatible_class",
         lambda name: agentic_via_string if name == "fake_string_callback" else None,
     )
     assert handler._has_agentic_completion_hook(logging_obj) is True
@@ -431,7 +431,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     # Unresolvable string (returns None) is skipped, no false positive.
     monkeypatch.setattr(litellm, "callbacks", ["unknown_callback"])
     monkeypatch.setattr(
-        "litellm.litellm_core_utils.litellm_logging.get_custom_logger_compatible_class",
+        "token_iq.gateway.core_utils.litellm_logging.get_custom_logger_compatible_class",
         lambda name: None,
     )
     assert handler._has_agentic_completion_hook(logging_obj) is False
@@ -491,7 +491,7 @@ async def test_async_anthropic_messages_handler_extra_headers():
     }
 
     with patch(
-        "litellm.litellm_core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
+        "token_iq.gateway.core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
     ) as mock_provider_headers:
         mock_provider_headers.return_value = None
 
@@ -538,7 +538,7 @@ async def test_async_anthropic_messages_handler_streaming_forwards_provider_resp
     """
     from collections.abc import AsyncIterator as ABCAsyncIterator
 
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 
@@ -599,11 +599,11 @@ async def test_async_anthropic_messages_handler_agentic_streaming_forwards_provi
     """
     from collections.abc import AsyncIterator as ABCAsyncIterator
 
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
         AgenticAnthropicStreamingIterator,
     )
-    from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
         AnthropicMessagesConfig,
     )
 
@@ -671,7 +671,7 @@ async def test_anthropic_messages_streaming_response_aclose_closes_upstream_stre
     the upstream stream so provider connections are released on client
     disconnect instead of lingering until garbage collection.
     """
-    from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
         AnthropicMessagesStreamingResponse,
     )
 
@@ -703,10 +703,10 @@ async def test_anthropic_messages_streaming_response_aclose_closes_upstream_stre
 
 @pytest.mark.asyncio
 async def test_anthropic_messages_streaming_response_aclose_closes_agentic_upstream_stream():
-    from litellm.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
         AgenticAnthropicStreamingIterator,
     )
-    from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+    from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
         AnthropicMessagesStreamingResponse,
     )
 
@@ -916,7 +916,7 @@ async def test_async_anthropic_messages_handler_header_priority():
     }
 
     with patch(
-        "litellm.litellm_core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
+        "token_iq.gateway.core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
     ) as mock_provider_headers:
         mock_provider_headers.return_value = {
             "X-Priority": "provider",
@@ -1006,7 +1006,7 @@ async def test_async_anthropic_messages_handler_drops_top_level_and_nested_param
     }
 
     with patch(
-        "litellm.litellm_core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
+        "token_iq.gateway.core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers"
     ) as mock_provider_headers:
         mock_provider_headers.return_value = None
         try:
@@ -1184,23 +1184,23 @@ def test_sync_delete_responses_sets_json_content_type():
 def test_resolve_anthropic_messages_timeout(
     monkeypatch, litellm_params_kwargs, stream, global_timeout, expected
 ):
-    from litellm.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
+    from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
     if global_timeout is None:
         monkeypatch.setattr(
-            "litellm.request_timeout",
+            "token_iq.gateway.request_timeout",
             float(DEFAULT_REQUEST_TIMEOUT_SECONDS),
             raising=False,
         )
         monkeypatch.setattr(
-            "litellm.request_timeout_explicitly_set",
+            "token_iq.gateway.request_timeout_explicitly_set",
             False,
             raising=False,
         )
     else:
-        monkeypatch.setattr("litellm.request_timeout", global_timeout, raising=False)
+        monkeypatch.setattr("token_iq.gateway.request_timeout", global_timeout, raising=False)
         monkeypatch.setattr(
-            "litellm.request_timeout_explicitly_set", True, raising=False
+            "token_iq.gateway.request_timeout_explicitly_set", True, raising=False
         )
 
     resolved = BaseLLMHTTPHandler._resolve_anthropic_messages_timeout(
@@ -1214,7 +1214,7 @@ def test_resolve_anthropic_messages_timeout(
 
 @pytest.mark.asyncio
 async def test_async_anthropic_messages_handler_forwards_request_timeout(monkeypatch):
-    from litellm.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
+    from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
     monkeypatch.setattr(litellm, "callbacks", [])
     monkeypatch.setattr(litellm, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
@@ -1262,7 +1262,7 @@ async def test_async_anthropic_messages_handler_forwards_request_timeout(monkeyp
 
 @pytest.mark.asyncio
 async def test_async_anthropic_messages_handler_forwards_stream_timeout(monkeypatch):
-    from litellm.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
+    from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
     monkeypatch.setattr(litellm, "callbacks", [])
     monkeypatch.setattr(litellm, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
@@ -1445,7 +1445,7 @@ def test_base_responses_config_sign_request_is_noop_by_default():
     Guards the 15 existing responses providers from accidental signing when the
     handler starts calling sign_request.
     """
-    from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+    from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 
     cfg = OpenAIResponsesAPIConfig()
     headers = {"Authorization": "Bearer sk-existing"}
@@ -1467,9 +1467,9 @@ def _make_responses_handler_call(signed_body):
     signing provider (e.g. Bedrock Mantle).
     """
     from unittest.mock import MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     provider_config = MagicMock()
     provider_config.validate_environment.return_value = {}
@@ -1522,10 +1522,10 @@ def test_responses_handler_signs_after_fake_stream_prep_strips_stream():
     We snapshot request_data at sign time and assert "stream" is already gone.
     """
     from unittest.mock import MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from litellm.types.llms.openai import ResponsesAPIResponse
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     provider_config = MagicMock()
     provider_config.validate_environment.return_value = {}
@@ -1585,9 +1585,9 @@ def _make_compact_handler_call(signed_body, is_async):
     signing provider (e.g. Bedrock Mantle SigV4 / bearer).
     """
     from unittest.mock import MagicMock
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     compact_url = "https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses/compact"
     provider_config = MagicMock()
@@ -1708,8 +1708,8 @@ async def test_async_anthropic_messages_handler_passes_api_key_to_agentic_hooks(
     with (
         patch.object(handler, "_async_post_anthropic_messages_with_http_error_retry", new=AsyncMock(return_value=mock_httpx_response)),
         patch.object(handler, "_call_agentic_completion_hooks", side_effect=fake_agentic_hooks),
-        patch("litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client"),
-        patch("litellm.litellm_core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers", return_value=None),
+        patch("token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client"),
+        patch("token_iq.gateway.core_utils.get_provider_specific_headers.ProviderSpecificHeaderUtils.get_provider_specific_headers", return_value=None),
     ):
         result = await handler.async_anthropic_messages_handler(
             model="claude-haiku",
@@ -2058,8 +2058,8 @@ async def test_async_retrieve_file_content_raises_on_http_error():
     as file content, which downstream batch cost tracking would parse as an
     empty results file and bill $0.
     """
-    from litellm.llms.anthropic.common_utils import AnthropicError
-    from litellm.llms.anthropic.files.transformation import AnthropicFilesConfig
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
+    from token_iq.gateway.llms.anthropic.files.transformation import AnthropicFilesConfig
 
     handler = BaseLLMHTTPHandler()
     client = Mock(spec=AsyncHTTPHandler)
@@ -2085,8 +2085,8 @@ async def test_async_retrieve_file_content_raises_on_http_error():
 
 
 def test_sync_retrieve_file_content_raises_on_http_error():
-    from litellm.llms.anthropic.common_utils import AnthropicError
-    from litellm.llms.anthropic.files.transformation import AnthropicFilesConfig
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
+    from token_iq.gateway.llms.anthropic.files.transformation import AnthropicFilesConfig
 
     handler = BaseLLMHTTPHandler()
     client = Mock(spec=HTTPHandler)
@@ -2207,7 +2207,7 @@ async def test_anthropic_invalid_thinking_signature_retry_resigns_bedrock_reques
     """Regression: after Bedrock rejects a replayed thinking block (400 invalid signature),
     the strip-and-retry re-sign must not inherit attempt 1's SigV4 Authorization/X-Amz-Date;
     reusing them over the new stripped body makes AWS return 403 SignatureDoesNotMatch."""
-    from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeMessagesConfig,
     )
 
@@ -2296,7 +2296,7 @@ async def test_anthropic_invalid_thinking_signature_retry_resigns_bedrock_reques
 
 
 def test_aws_signing_overrides_only_fills_missing_credentials():
-    from litellm.llms.custom_httpx.llm_http_handler import _aws_signing_overrides
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import _aws_signing_overrides
 
     overrides = _aws_signing_overrides(
         {"temperature": 0.2, "aws_region_name": "us-west-2"},
@@ -2325,7 +2325,7 @@ class TestServerFulfilledToolsInRequest:
         return logging_obj
 
     def test_should_hold_back_when_callback_owns_tool_in_request(self):
-        from litellm.integrations.custom_logger import CustomLogger
+        from token_iq.gateway.integrations.custom_logger import CustomLogger
 
         class RetrievalCallback(CustomLogger):
             server_fulfilled_tool_names = frozenset({"headroom_retrieve"})
@@ -2339,7 +2339,7 @@ class TestServerFulfilledToolsInRequest:
         ) == frozenset({"headroom_retrieve"})
 
     def test_should_stream_live_when_tool_absent_from_request(self):
-        from litellm.integrations.custom_logger import CustomLogger
+        from token_iq.gateway.integrations.custom_logger import CustomLogger
 
         class RetrievalCallback(CustomLogger):
             server_fulfilled_tool_names = frozenset({"headroom_retrieve"})
@@ -2353,7 +2353,7 @@ class TestServerFulfilledToolsInRequest:
         )
 
     def test_should_stream_live_when_no_callback_declares_tool_names(self):
-        from litellm.integrations.custom_logger import CustomLogger
+        from token_iq.gateway.integrations.custom_logger import CustomLogger
 
         tools = [{"name": "headroom_retrieve", "input_schema": {"type": "object"}}]
         assert (
@@ -2370,11 +2370,11 @@ class TestServerFulfilledToolsInRequest:
         )
 
     def test_interception_callbacks_declare_their_retrieval_tools(self):
-        from litellm.integrations.compression_interception.handler import (
+        from token_iq.gateway.integrations.compression_interception.handler import (
             LITELLM_CONTENT_RETRIEVE_TOOL_NAME,
             CompressionInterceptionLogger,
         )
-        from litellm.proxy.guardrails.guardrail_hooks.headroom.headroom import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.headroom.headroom import (
             HEADROOM_RETRIEVE_TOOL_NAME,
             HeadroomGuardrail,
         )
@@ -2386,7 +2386,7 @@ class TestServerFulfilledToolsInRequest:
 
 
 def _make_stub_direct_vector_store_config(response):
-    from litellm.llms.base_llm.vector_store.transformation import (
+    from token_iq.gateway.llms.base_llm.vector_store.transformation import (
         BaseDirectVectorStoreConfig,
     )
 
@@ -2413,7 +2413,7 @@ def test_vector_store_search_handler_direct_config_sync_skips_http():
     config = _make_stub_direct_vector_store_config(stub_response)
     logging_obj = Mock()
 
-    with patch("litellm.llms.custom_httpx.llm_http_handler._get_httpx_client") as mock_get_client:
+    with patch("token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client") as mock_get_client:
         result = handler.vector_store_search_handler(
             vector_store_id="vs_direct",
             query="q",
@@ -2448,7 +2448,7 @@ async def test_vector_store_search_handler_direct_config_async_skips_http():
     config = _make_stub_direct_vector_store_config(stub_response)
     logging_obj = Mock()
 
-    with patch("litellm.llms.custom_httpx.llm_http_handler.get_async_httpx_client") as mock_get_client:
+    with patch("token_iq.gateway.llms.custom_httpx.llm_http_handler.get_async_httpx_client") as mock_get_client:
         result = await handler.vector_store_search_handler(
             vector_store_id="vs_direct",
             query=["q1", "q2"],
@@ -2473,7 +2473,7 @@ async def test_vector_store_search_handler_direct_config_async_skips_http():
 
 
 def _direct_vector_store_debug_logging_obj():
-    from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
 
     logging_obj = LitellmLogging(
         model="valkey",
@@ -2548,7 +2548,7 @@ async def test_async_anthropic_messages_handler_carries_deployment_vertex_locati
     import contextlib
     from datetime import datetime
 
-    from litellm.litellm_core_utils.litellm_logging import (
+    from token_iq.gateway.core_utils.litellm_logging import (
         Logging,
         _resolve_vertex_location_for_cost,
     )
@@ -2706,7 +2706,7 @@ def test_the_rust_responses_websocket_needs_both_openai_and_the_rust_flag(
 
 
 def test_a_plain_callback_does_not_advertise_a_pre_call_deployment_hook(monkeypatch):
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class _PlainLogger(CustomLogger):
         pass
@@ -2722,7 +2722,7 @@ def test_a_plain_callback_does_not_advertise_a_pre_call_deployment_hook(monkeypa
 
 
 def test_a_callback_that_overrides_the_deployment_hook_is_detected(monkeypatch):
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class _DeploymentHookLogger(CustomLogger):
         async def async_pre_call_deployment_hook(self, kwargs, call_type):
@@ -2746,7 +2746,7 @@ def test_a_callback_that_overrides_the_deployment_hook_is_detected(monkeypatch):
 
 
 def test_only_callbacks_that_can_charge_a_frame_are_collected_for_ws_quota(monkeypatch):
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class _PlainLogger(CustomLogger):
         pass

@@ -5,12 +5,12 @@ import httpx
 import pytest
 from botocore.credentials import Credentials
 
-from litellm.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
-from litellm.llms.bedrock_mantle.passthrough.transformation import BedrockMantlePassthroughConfig
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.passthrough.main import llm_passthrough_route
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
+from token_iq.gateway.llms.bedrock_mantle.passthrough.transformation import BedrockMantlePassthroughConfig
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.passthrough.main import llm_passthrough_route
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 MANTLE_API_BASE = "https://bedrock-mantle.us-east-2.api.aws"
 INVOKE_ENDPOINT = "model/us.openai.gpt-5.6-sol/invoke"

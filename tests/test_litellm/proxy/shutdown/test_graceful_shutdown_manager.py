@@ -10,7 +10,7 @@ import time
 
 import pytest
 
-from litellm.proxy.shutdown.graceful_shutdown_manager import (
+from token_iq.gateway.proxy.shutdown.graceful_shutdown_manager import (
     DEFAULT_GRACEFUL_SHUTDOWN_TIMEOUT,
     GracefulShutdownManager,
 )
@@ -145,7 +145,7 @@ async def test_without_exclude_self_one_inflight_blocks_until_timeout():
 async def test_defaults_to_get_timeout_and_live_counter(monkeypatch):
     """With no timeout/count_fn passed, it falls back to get_timeout() and the
     live InFlightRequestsMiddleware counter."""
-    from litellm.proxy.middleware.in_flight_requests_middleware import (
+    from token_iq.gateway.proxy.middleware.in_flight_requests_middleware import (
         InFlightRequestsMiddleware,
     )
 

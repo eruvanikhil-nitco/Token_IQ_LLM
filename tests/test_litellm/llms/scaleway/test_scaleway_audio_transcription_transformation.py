@@ -4,11 +4,11 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from litellm.llms.scaleway.audio_transcription.transformation import (
+from token_iq.gateway.llms.scaleway.audio_transcription.transformation import (
     ScalewayAudioTranscriptionConfig,
     ScalewayAudioTranscriptionException,
 )
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 # ---------------------------------------------------------------------------

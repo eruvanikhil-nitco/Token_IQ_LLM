@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from litellm.integrations.cloudzero.database import LiteLLMDatabase
+from token_iq.gateway.integrations.cloudzero.database import LiteLLMDatabase
 
 
 def _setup_db(monkeypatch: pytest.MonkeyPatch, query_return):

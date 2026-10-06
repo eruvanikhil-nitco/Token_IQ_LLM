@@ -2,7 +2,7 @@
 Unit tests for OpenRouter embedding transformation logic.
 """
 
-from litellm.llms.openrouter.embedding.transformation import (
+from token_iq.gateway.llms.openrouter.embedding.transformation import (
     OpenrouterEmbeddingConfig,
 )
 

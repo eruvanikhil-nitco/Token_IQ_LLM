@@ -2,7 +2,7 @@ from typing import FrozenSet
 
 import pytest
 
-from litellm.proxy.utils import hash_token
+from token_iq.gateway.proxy.utils import hash_token
 
 from .actors import TEAM_ALPHA, Actor
 from .conftest import create_scratch_key

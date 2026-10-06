@@ -17,12 +17,12 @@ import pytest
 import soundfile as sf
 
 
-from litellm.llms.nvidia_riva.audio_transcription import handler as handler_mod
-from litellm.llms.nvidia_riva.audio_transcription.handler import (
+from token_iq.gateway.llms.nvidia_riva.audio_transcription import handler as handler_mod
+from token_iq.gateway.llms.nvidia_riva.audio_transcription.handler import (
     NvidiaRivaAudioTranscription,
 )
-from litellm.llms.nvidia_riva.common_utils import NvidiaRivaException
-from litellm.types.utils import TranscriptionResponse
+from token_iq.gateway.llms.nvidia_riva.common_utils import NvidiaRivaException
+from token_iq.gateway.types.utils import TranscriptionResponse
 
 
 def _make_wav_bytes(seconds: float = 1.0, sample_rate: int = 16000) -> bytes:

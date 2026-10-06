@@ -17,10 +17,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from mcp.types import Tool
 
-import litellm
-from litellm.models.object_permission import LiteLLM_ObjectPermissionTable
-from litellm.proxy._experimental.mcp_server.faults.list_outcomes import AggregateToolListing
-from litellm.proxy._experimental.mcp_server.tool_search import (
+from token_iq import gateway as litellm
+from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
+from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import AggregateToolListing
+from token_iq.gateway.proxy._experimental.mcp_server.tool_search import (
     AGENT_SEARCH_TOOL_NAME,
     MCP_TOOL_CALL_TOOL_NAME,
     MCP_TOOL_SEARCH_TOOL_NAME,
@@ -31,9 +31,9 @@ from litellm.proxy._experimental.mcp_server.tool_search import (
     search_mcp_tools,
     search_tools,
 )
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.common_utils.semantic_text_index import EmbeddingFailed, SemanticTextIndex, Vector
-from litellm.types.mcp import MCPToolSearchSettings
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.common_utils.semantic_text_index import EmbeddingFailed, SemanticTextIndex, Vector
+from token_iq.gateway.types.mcp import MCPToolSearchSettings
 
 
 def _make_tools(specs: list[tuple[str, str]]) -> tuple[Tool, ...]:
@@ -336,7 +336,7 @@ class TestGetVirtualToolDefinitions:
 class TestListToolRestApiWithToolSearch:
     @pytest.mark.asyncio
     async def test_returns_only_virtual_tools_when_flag_enabled(self) -> None:
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import router
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import router
 
         user_api_key_dict = UserAPIKeyAuth(
             api_key="test_key",
@@ -368,7 +368,7 @@ class TestListToolRestApiWithToolSearch:
 
     @pytest.mark.asyncio
     async def test_returns_full_catalog_when_flag_disabled(self) -> None:
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import router
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import router
 
         user_api_key_dict = UserAPIKeyAuth(
             api_key="test_key",
@@ -397,32 +397,32 @@ class TestListToolRestApiWithToolSearch:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.build_effective_auth_contexts",
                 new_callable=AsyncMock,
                 return_value=[user_api_key_dict],
             ),
-            patch("litellm.proxy._experimental.mcp_server.rest_endpoints.global_mcp_server_manager") as mock_manager,
+            patch("token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.global_mcp_server_manager") as mock_manager,
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_tools_for_single_server",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_tools_for_single_server",
                 new_callable=AsyncMock,
                 return_value=fake_tools,
             ),
-            patch("litellm.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils"),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils"),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._prefetch_user_oauth_creds",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._prefetch_user_oauth_creds",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._v1_resolved_oauth2_server_ids",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._v1_resolved_oauth2_server_ids",
                 return_value=[],
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_server_auth_header",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_server_auth_header",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_user_oauth_extra_headers",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_user_oauth_extra_headers",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
@@ -446,7 +446,7 @@ class TestListToolRestApiWithToolSearch:
         """Regression: an admin listing with include_disabled_tools must see the
         real catalog (to configure allowlists) even when mcp_tool_search_enabled is
         set, instead of the two virtual tools."""
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import router
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import router
 
         user_api_key_dict = UserAPIKeyAuth(
             api_key="admin_key",
@@ -476,32 +476,32 @@ class TestListToolRestApiWithToolSearch:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.build_effective_auth_contexts",
                 new_callable=AsyncMock,
                 return_value=[user_api_key_dict],
             ),
-            patch("litellm.proxy._experimental.mcp_server.rest_endpoints.global_mcp_server_manager") as mock_manager,
+            patch("token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.global_mcp_server_manager") as mock_manager,
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_tools_for_single_server",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_tools_for_single_server",
                 new_callable=AsyncMock,
                 return_value=fake_tools,
             ),
-            patch("litellm.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils"),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils"),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._prefetch_user_oauth_creds",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._prefetch_user_oauth_creds",
                 new_callable=AsyncMock,
                 return_value={},
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._v1_resolved_oauth2_server_ids",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._v1_resolved_oauth2_server_ids",
                 return_value=[],
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_server_auth_header",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_server_auth_header",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._get_user_oauth_extra_headers",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._get_user_oauth_extra_headers",
                 new_callable=AsyncMock,
                 return_value=None,
             ),
@@ -531,7 +531,7 @@ class TestCallToolRestApiVirtualTools:
         return mock_request
 
     def _get_call_fn(self) -> Any:
-        from litellm.proxy._experimental.mcp_server.rest_endpoints import router
+        from token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints import router
 
         return next(
             r.endpoint
@@ -557,7 +557,7 @@ class TestCallToolRestApiVirtualTools:
         mock_tool.inputSchema = {"type": "object", "properties": {}}
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.server._list_mcp_tools",
+            "token_iq.gateway.proxy._experimental.mcp_server.server._list_mcp_tools",
             new_callable=AsyncMock,
             return_value=AggregateToolListing(tools=[mock_tool], outcomes={}),
         ):
@@ -601,17 +601,17 @@ class TestCallToolRestApiVirtualTools:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 return_value=[MagicMock()],
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.execute_mcp_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.execute_mcp_tool",
                 new_callable=AsyncMock,
                 return_value=fake_result,
             ) as mock_execute,
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints._fire_mcp_tool_call_logging",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints._fire_mcp_tool_call_logging",
                 new_callable=AsyncMock,
                 side_effect=RuntimeError("logging failed"),
             ) as mock_fire_logging,
@@ -650,16 +650,16 @@ class TestCallToolRestApiVirtualTools:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils.get_mcp_client_ip",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils.get_mcp_client_ip",
                 return_value="203.0.113.7",
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 return_value=[MagicMock()],
             ) as mock_allowed,
             patch(
-                "litellm.proxy._experimental.mcp_server.server.execute_mcp_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.execute_mcp_tool",
                 new_callable=AsyncMock,
                 return_value=fake_result,
             ),
@@ -680,11 +680,11 @@ class TestCallToolRestApiVirtualTools:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils.get_mcp_client_ip",
+                "token_iq.gateway.proxy._experimental.mcp_server.rest_endpoints.IPAddressUtils.get_mcp_client_ip",
                 return_value="203.0.113.7",
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._list_mcp_tools",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._list_mcp_tools",
                 new_callable=AsyncMock,
                 return_value=AggregateToolListing(tools=[], outcomes={}),
             ) as mock_list,
@@ -696,8 +696,8 @@ class TestCallToolRestApiVirtualTools:
 
     @pytest.mark.asyncio
     async def test_agent_search_call_ranks_accessible_agents(self) -> None:
-        from litellm.proxy.agent_endpoints.agent_search import AgentSearchHit, AgentSearchHits
-        from litellm.types.agents import AgentResponse
+        from token_iq.gateway.proxy.agent_endpoints.agent_search import AgentSearchHit, AgentSearchHits
+        from token_iq.gateway.types.agents import AgentResponse
 
         user_api_key_dict = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         request = self._make_request(
@@ -710,12 +710,12 @@ class TestCallToolRestApiVirtualTools:
         )
         with (
             patch(  # test-quality-ok: the tool resolves agent access through proxy_server globals, no injection seam
-                "litellm.proxy.agent_endpoints.auth.agent_permission_handler.accessible_agents",
+                "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.accessible_agents",
                 new_callable=AsyncMock,
                 return_value=(translator,),
             ),
             patch(  # test-quality-ok: the embedding router only resolves via proxy_server globals, no injection seam
-                "litellm.proxy.agent_endpoints.agent_search.search_agents",
+                "token_iq.gateway.proxy.agent_endpoints.agent_search.search_agents",
                 new_callable=AsyncMock,
                 return_value=AgentSearchHits(hits=(AgentSearchHit(agent=translator, score=0.91),)),
             ) as mock_search,
@@ -739,18 +739,18 @@ class TestCallToolRestApiVirtualTools:
 
     @pytest.mark.asyncio
     async def test_agent_search_call_reports_missing_embedding_model_as_tool_error(self) -> None:
-        from litellm.proxy.agent_endpoints.agent_search import AgentSearchNotConfigured
+        from token_iq.gateway.proxy.agent_endpoints.agent_search import AgentSearchNotConfigured
 
         user_api_key_dict = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         request = self._make_request({"name": AGENT_SEARCH_TOOL_NAME, "arguments": {"query": "anything"}})
         with (
             patch(  # test-quality-ok: the tool resolves agent access through proxy_server globals, no injection seam
-                "litellm.proxy.agent_endpoints.auth.agent_permission_handler.accessible_agents",
+                "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.accessible_agents",
                 new_callable=AsyncMock,
                 return_value=(),
             ),
             patch(  # test-quality-ok: the embedding router only resolves via proxy_server globals, no injection seam
-                "litellm.proxy.agent_endpoints.agent_search.search_agents",
+                "token_iq.gateway.proxy.agent_endpoints.agent_search.search_agents",
                 new_callable=AsyncMock,
                 return_value=AgentSearchNotConfigured(reason="set agent_search_embedding_model"),
             ),
@@ -784,10 +784,10 @@ class TestCallToolRestApiVirtualTools:
         router.aembedding = AsyncMock(side_effect=fake_aembedding)
         with (
             patch(  # test-quality-ok: the proxy's router is a module global; the handler reaches it the way production does
-                "litellm.proxy.proxy_server.llm_router", router
+                "token_iq.gateway.proxy.proxy_server.llm_router", router
             ),
             patch(  # test-quality-ok: the authorized catalog is the seam every virtual tool shares; the ranking under test stays real
-                "litellm.proxy._experimental.mcp_server.server._list_mcp_tools",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._list_mcp_tools",
                 new_callable=AsyncMock,
                 return_value=AggregateToolListing(tools=list(CATALOG), outcomes={}),
             ) as mock_list,
@@ -803,7 +803,7 @@ class TestCallToolRestApiVirtualTools:
         monkeypatch.setattr(litellm, "mcp_tool_search", {"embedding_model": "emb"})
         user_api_key_dict = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(  # test-quality-ok: the proxy's router is a module global; the handler reaches it the way production does
-            "litellm.proxy.proxy_server.llm_router", None
+            "token_iq.gateway.proxy.proxy_server.llm_router", None
         ):
             result = await self._get_call_fn()(request=self._semantic_request(), user_api_key_dict=user_api_key_dict)
         assert result.isError is True
@@ -852,7 +852,7 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_returns_none_for_non_virtual_tool(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _dispatch_virtual_mcp_tool,
         )
 
@@ -866,7 +866,7 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_rejects_when_flag_disabled(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _dispatch_virtual_mcp_tool,
         )
 
@@ -882,11 +882,11 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_routes_search_with_client_ip(self) -> None:
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(
-            "litellm.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_search",
+            "token_iq.gateway.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_search",
             new_callable=AsyncMock,
             return_value="SEARCH_RESULT",
         ) as mock_search:
@@ -904,11 +904,11 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_routes_agent_search_to_its_handler(self) -> None:
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(  # test-quality-ok: dispatch routing is the subject; the handler is faked like its siblings here
-            "litellm.proxy._experimental.mcp_server.tool_search.handle_agent_search",
+            "token_iq.gateway.proxy._experimental.mcp_server.tool_search.handle_agent_search",
             new_callable=AsyncMock,
             return_value="AGENT_RESULT",
         ) as mock_agent_search:
@@ -928,7 +928,7 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_agent_search_rejected_when_flag_disabled(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import _dispatch_virtual_mcp_tool
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _dispatch_virtual_mcp_tool
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=False))
         result = await _dispatch_virtual_mcp_tool(
@@ -939,11 +939,11 @@ class TestDispatchVirtualMcpTool:
 
     @pytest.mark.asyncio
     async def test_routes_call_with_client_ip(self) -> None:
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(
-            "litellm.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_call",
+            "token_iq.gateway.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_call",
             new_callable=AsyncMock,
             return_value="CALL_RESULT",
         ) as mock_call:
@@ -972,7 +972,7 @@ class TestDispatchVirtualMcpTool:
         """Regression: the SSE dispatch must run the pre-call pipeline and forward
         the resulting logging object to handle_mcp_tool_call, otherwise mcp_tool_call
         over /mcp/ skips spend logging and guardrails (unlike the REST path)."""
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         sentinel_logging_obj = object()
@@ -984,7 +984,7 @@ class TestDispatchVirtualMcpTool:
                 return_value=sentinel_logging_obj,
             ) as mock_build,
             patch(
-                "litellm.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_call",
+                "token_iq.gateway.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_call",
                 new_callable=AsyncMock,
                 return_value="CALL_RESULT",
             ) as mock_call,
@@ -1003,11 +1003,11 @@ class TestDispatchVirtualMcpTool:
     async def test_search_coerces_non_int_top_k(self) -> None:
         """Regression: a non-integer top_k from an MCP client must not raise; it
         falls back to the default instead of ValueError propagating out."""
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(
-            "litellm.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_search",
+            "token_iq.gateway.proxy._experimental.mcp_server.tool_search.handle_mcp_tool_search",
             new_callable=AsyncMock,
             return_value="SEARCH_RESULT",
         ) as mock_search:
@@ -1026,7 +1026,7 @@ class TestDispatchVirtualMcpTool:
         upstream MCP servers needing pass-through auth can be called."""
         from mcp.types import CallToolResult, TextContent
 
-        from litellm.proxy._experimental.mcp_server.tool_search import (
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_search import (
             handle_mcp_tool_call,
         )
 
@@ -1034,12 +1034,12 @@ class TestDispatchVirtualMcpTool:
         fake = CallToolResult(content=[TextContent(type="text", text="ok")], isError=False)
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 return_value=[MagicMock()],
             ) as mock_allowed,
             patch(
-                "litellm.proxy._experimental.mcp_server.server.execute_mcp_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.execute_mcp_tool",
                 new_callable=AsyncMock,
                 return_value=fake,
             ) as mock_exec,
@@ -1074,19 +1074,19 @@ class TestDispatchVirtualMcpTool:
         run via the local registry without a server permission check."""
         from fastapi import HTTPException
 
-        from litellm.proxy._experimental.mcp_server.tool_search import (
+        from token_iq.gateway.proxy._experimental.mcp_server.tool_search import (
             handle_mcp_tool_call,
         )
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._get_allowed_mcp_servers",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.execute_mcp_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.execute_mcp_tool",
                 new_callable=AsyncMock,
             ) as mock_exec,
         ):
@@ -1105,7 +1105,7 @@ class TestCaptureHostProgressCallback:
     """Covers the host progress-forwarding helper extracted from the tool call path."""
 
     def test_returns_none_when_request_context_unavailable(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1117,7 +1117,7 @@ class TestCaptureHostProgressCallback:
         assert _capture_host_progress_callback(_NoCtx()) is None
 
     def test_returns_none_when_no_progress_token(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1126,7 +1126,7 @@ class TestCaptureHostProgressCallback:
         assert _capture_host_progress_callback(host) is None
 
     def test_returns_callable_when_token_present(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1136,7 +1136,7 @@ class TestCaptureHostProgressCallback:
         assert callable(_capture_host_progress_callback(host))
 
     def test_returns_callable_when_token_is_integer(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1146,7 +1146,7 @@ class TestCaptureHostProgressCallback:
         assert callable(_capture_host_progress_callback(host))
 
     def test_returns_callable_when_token_is_zero(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1157,7 +1157,7 @@ class TestCaptureHostProgressCallback:
 
     @pytest.mark.asyncio
     async def test_forwarded_progress_token_preserves_integer_value(self) -> None:
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             _capture_host_progress_callback,
         )
 
@@ -1182,11 +1182,11 @@ class TestHandleListToolsVirtual:
 
     @pytest.mark.asyncio
     async def test_returns_virtual_tools_when_flag_enabled(self) -> None:
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(
-            "litellm.proxy._experimental.mcp_server.server.get_or_extract_auth_context",
+            "token_iq.gateway.proxy._experimental.mcp_server.server.get_or_extract_auth_context",
             new_callable=AsyncMock,
             return_value=(uak, None, None, None, None, None, None),
         ):
@@ -1207,17 +1207,17 @@ class TestMcpServerToolCallErrorHandling:
     async def test_virtual_tool_error_returns_iserror_not_raised(self) -> None:
         from fastapi import HTTPException
 
-        from litellm.proxy._experimental.mcp_server import server as srv
+        from token_iq.gateway.proxy._experimental.mcp_server import server as srv
 
         uak = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server.get_or_extract_auth_context",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.get_or_extract_auth_context",
                 new_callable=AsyncMock,
                 return_value=(uak, None, None, None, None, None, None),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._dispatch_virtual_mcp_tool",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._dispatch_virtual_mcp_tool",
                 new_callable=AsyncMock,
                 side_effect=HTTPException(status_code=403, detail="User not allowed to call this tool"),
             ),

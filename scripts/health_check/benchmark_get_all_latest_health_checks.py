@@ -145,9 +145,9 @@ async def _amain() -> int:
     if repo_root not in sys.path:
         sys.path.insert(0, repo_root)
 
-    from litellm.caching.caching import DualCache
-    from litellm.proxy.proxy_cli import append_query_params
-    from litellm.proxy.utils import PrismaClient, ProxyLogging
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
     db_url = append_query_params(
         database_url, {"connection_limit": 100, "pool_timeout": 60}

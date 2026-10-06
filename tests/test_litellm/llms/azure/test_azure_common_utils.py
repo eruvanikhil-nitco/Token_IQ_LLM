@@ -6,21 +6,21 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.azure.common_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.common_utils import (
     BaseAzureLLM,
     _cached_entra_id_token_provider,
     get_azure_ad_token,
     get_azure_ad_token_from_entra_id,
 )
-from litellm.secret_managers.get_azure_ad_token_provider import (
+from token_iq.gateway.secret_managers.get_azure_ad_token_provider import (
     get_azure_ad_token_provider,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.secret_managers.get_azure_ad_token_provider import (
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.secret_managers.get_azure_ad_token_provider import (
     AzureCredentialType,
 )
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 # Mock the necessary dependencies
@@ -37,21 +37,21 @@ def setup_mocks(monkeypatch):
 
     with (
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token_from_entra_id"
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_from_entra_id"
         ) as mock_entra_token,
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token_from_username_password"
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_from_username_password"
         ) as mock_username_password_token,
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token_from_oidc"
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_from_oidc"
         ) as mock_oidc_token,
         patch(
-            "litellm.llms.azure.common_utils.get_azure_ad_token_provider"
+            "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_provider"
         ) as mock_token_provider,
-        patch("litellm.llms.azure.common_utils.litellm") as mock_litellm,
-        patch("litellm.llms.azure.common_utils.verbose_logger") as mock_logger,
+        patch("token_iq.gateway.llms.azure.common_utils.litellm") as mock_litellm,
+        patch("token_iq.gateway.llms.azure.common_utils.verbose_logger") as mock_logger,
         patch(
-            "litellm.llms.azure.common_utils.select_azure_base_url_or_endpoint"
+            "token_iq.gateway.llms.azure.common_utils.select_azure_base_url_or_endpoint"
         ) as mock_select_url,
     ):
         # Configure mocks
@@ -424,7 +424,7 @@ def test_select_azure_base_url_called(setup_mocks):
 )
 @pytest.mark.asyncio
 async def test_ensure_initialize_azure_sdk_client_always_used(call_type):
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     # Create a router with an Azure model
     azure_model_name = "azure/chatgpt-v-2"
@@ -634,7 +634,7 @@ async def test_ensure_initialize_azure_sdk_client_always_used(call_type):
 )
 @pytest.mark.asyncio
 async def test_ensure_initialize_azure_sdk_client_always_used_azure_text(call_type):
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     # Create a router with an Azure model
     azure_model_name = "azure_text/chatgpt-v-2"
@@ -817,9 +817,9 @@ async def test_azure_client_reuse(function_name, is_async, args):
 
     # Determine which client class to mock based on whether the test is async
     client_path = (
-        "litellm.llms.azure.common_utils.AsyncAzureOpenAI"
+        "token_iq.gateway.llms.azure.common_utils.AsyncAzureOpenAI"
         if is_async
-        else "litellm.llms.azure.common_utils.AzureOpenAI"
+        else "token_iq.gateway.llms.azure.common_utils.AzureOpenAI"
     )
 
     # Create a proper mock class that can pass isinstance checks
@@ -888,7 +888,7 @@ async def test_azure_client_cache_separates_sync_and_async():
     This directly tests the fix for issues #9801 and #10318 where sync and async
     clients were being mixed up in the cache.
     """
-    from litellm.llms.azure.common_utils import BaseAzureLLM
+    from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 
     # Clear the in-memory cache before test
     litellm.in_memory_llm_clients_cache._cache = {}
@@ -899,9 +899,9 @@ async def test_azure_client_cache_separates_sync_and_async():
 
     # Patch the Azure client classes
     with (
-        patch("litellm.llms.azure.common_utils.AzureOpenAI") as mock_sync_client_class,
+        patch("token_iq.gateway.llms.azure.common_utils.AzureOpenAI") as mock_sync_client_class,
         patch(
-            "litellm.llms.azure.common_utils.AsyncAzureOpenAI"
+            "token_iq.gateway.llms.azure.common_utils.AsyncAzureOpenAI"
         ) as mock_async_client_class,
         patch.object(BaseAzureLLM, "initialize_azure_sdk_client") as mock_init_azure,
     ):
@@ -1077,7 +1077,7 @@ def test_with_existing_azure_ad_token_from_env(setup_mocks):
     """Test get_azure_ad_token with an existing AZURE_AD_TOKEN from env."""
 
     # mock get_secret_str("AZURE_AD_TOKEN") to "test-token"
-    with patch("litellm.llms.azure.common_utils.get_secret_str") as mock_get_secret_str:
+    with patch("token_iq.gateway.llms.azure.common_utils.get_secret_str") as mock_get_secret_str:
         # Configure the mock to return "test-token" when called with "AZURE_AD_TOKEN"
         mock_get_secret_str.side_effect = lambda key: (
             "test-token" if key == "AZURE_AD_TOKEN" else None
@@ -2072,8 +2072,8 @@ def test_evicting_an_azure_client_built_on_the_callers_session_leaves_it_open(mo
     """
     import httpx
 
-    from litellm.caching.evicted_client_closer import EvictedClientCloser
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     shared_session = httpx.AsyncClient()
     closer = EvictedClientCloser(grace_seconds=0.0)
@@ -2104,8 +2104,8 @@ def test_evicting_an_azure_client_built_on_the_callers_session_leaves_it_open(mo
 
 def test_an_azure_client_litellm_built_its_own_http_client_for_is_still_closed(monkeypatch):
     """The ownership check must not turn the reclaim off for the ordinary case."""
-    from litellm.caching.evicted_client_closer import EvictedClientCloser
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     closer = EvictedClientCloser(grace_seconds=0.0)
     monkeypatch.setattr(litellm, "aclient_session", None)

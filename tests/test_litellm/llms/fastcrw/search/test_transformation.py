@@ -3,8 +3,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.fastcrw.search.transformation import FastCRWSearchConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.fastcrw.search.transformation import FastCRWSearchConfig
 
 
 def _config() -> FastCRWSearchConfig:
@@ -29,7 +29,7 @@ def test_fastcrw_search_request_body():
     with (
         patch.dict(os.environ, {"CRW_API_KEY": "test-api-key"}),
         patch(
-            "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post,
     ):

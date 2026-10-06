@@ -3,8 +3,8 @@
 import logging
 
 
-import litellm
-from litellm import completion_cost
+from token_iq import gateway as litellm
+from token_iq.gateway import completion_cost
 
 
 def test_cost_calculation_uses_debug_level():
@@ -16,7 +16,7 @@ def test_cost_calculation_uses_debug_level():
     Note: This test uses a custom log handler instead of caplog because
     caplog doesn't work reliably with pytest-xdist parallel execution.
     """
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     # Create a custom handler to capture log records
     class LogRecordHandler(logging.Handler):
@@ -86,9 +86,9 @@ def test_batch_cost_calculation_uses_debug_level():
     Note: This test uses a custom log handler instead of caplog because
     caplog doesn't work reliably with pytest-xdist parallel execution.
     """
-    from litellm.cost_calculator import batch_cost_calculator
-    from litellm.types.utils import Usage
-    from litellm._logging import verbose_logger
+    from token_iq.gateway.cost_calculator import batch_cost_calculator
+    from token_iq.gateway.types.utils import Usage
+    from token_iq.gateway._logging import verbose_logger
 
     # Create a custom handler to capture log records
     class LogRecordHandler(logging.Handler):

@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 def _expected_dir() -> Path:
@@ -95,7 +95,7 @@ async def test_aresponses_context_management_and_shell_request_body_matches_expe
     expected_body = _load_expected_body("context_management_and_shell.json")
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_ctx_shell_test", "gpt-4o"), 200)
@@ -122,7 +122,7 @@ async def test_aresponses_azure_shell_tool_request_body_matches_expected():
     expected_body = _load_expected_body("azure_shell_tool.json")
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(
@@ -174,7 +174,7 @@ async def test_aresponses_azure_shell_tool_400_maps_to_bad_request_error():
         response.raise_for_status()
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.side_effect = _raise_azure_400
@@ -200,7 +200,7 @@ async def test_aresponses_azure_shell_tool_400_maps_to_bad_request_error():
 async def test_aresponses_drops_stream_options():
     """The Responses API rejects include_usage, so include_usage-only stream_options must never reach the wire."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(
@@ -224,7 +224,7 @@ async def test_aresponses_drops_stream_options():
 async def test_aresponses_keeps_include_obfuscation_in_stream_options():
     """include_obfuscation is a valid Responses API stream option and must survive the include_usage strip."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(
@@ -256,7 +256,7 @@ async def test_aresponses_request_level_drop_params_drops_bedrock_mantle_service
     monkeypatch.setattr(litellm, "drop_params", False)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(
@@ -290,7 +290,7 @@ async def test_aresponses_bedrock_mantle_service_tier_raises_without_drop_params
     monkeypatch.setattr(litellm, "drop_params", False)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         with pytest.raises(litellm.BadRequestError) as excinfo:
@@ -309,7 +309,7 @@ async def test_aresponses_bedrock_mantle_service_tier_raises_without_drop_params
 
 async def _aresponses_and_get_request_headers(**request_kwargs) -> dict:
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_headers_test", "gpt-4o"), 200)
@@ -403,10 +403,10 @@ async def test_aresponses_strips_responses_routing_prefix_from_openai_model(mode
 async def test_aresponses_websocket_strips_responses_routing_prefix_from_openai_model():
     from unittest.mock import MagicMock
 
-    from litellm.responses.main import _aresponses_websocket
+    from token_iq.gateway.responses.main import _aresponses_websocket
 
     with patch(
-        "litellm.responses.main.base_llm_http_handler.async_responses_websocket",
+        "token_iq.gateway.responses.main.base_llm_http_handler.async_responses_websocket",
         new_callable=AsyncMock,
     ) as mock_ws:
         await _aresponses_websocket(
@@ -444,7 +444,7 @@ def _sent_body(mock_post) -> dict:
 @pytest.mark.asyncio
 async def test_aresponses_injection_point_marks_input_text_on_gpt_5_6():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_async", "gpt-5.6"), 200)
@@ -467,7 +467,7 @@ async def test_aresponses_injection_point_marks_input_text_on_gpt_5_6():
 
 
 def test_responses_injection_point_marks_input_text_on_gpt_5_6():
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_sync", "gpt-5.6"), 200)
 
         litellm.responses(
@@ -490,7 +490,7 @@ def test_responses_injection_point_marks_input_text_on_gpt_5_6():
 @pytest.mark.asyncio
 async def test_aresponses_injection_point_sends_nothing_extra_below_gpt_5_6():
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_old", "gpt-4.1"), 200)
@@ -520,7 +520,7 @@ _CUSTOM_API_BASE = "http://127.0.0.1:9/v1"
 
 async def _aresponses_body_with_system_point(**request_kwargs) -> dict:
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate", "gpt-5.6"), 200)
@@ -573,7 +573,7 @@ async def test_aresponses_regional_openai_api_base_marks_input_text():
 
 @pytest.mark.usefixtures("_no_openai_api_base_override")
 def test_responses_custom_base_url_sends_no_openai_markers():
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate_base_url", "gpt-5.6"), 200)
 
         litellm.responses(
@@ -591,7 +591,7 @@ def test_responses_custom_base_url_sends_no_openai_markers():
 
 @pytest.mark.usefixtures("_no_openai_api_base_override")
 def test_responses_custom_api_base_sends_no_openai_markers():
-    with patch("litellm.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
+    with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate_sync", "gpt-5.6"), 200)
 
         litellm.responses(

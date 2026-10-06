@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
     LitellmUserRoles,
@@ -15,11 +15,11 @@ from litellm.proxy._types import (
 )
 
 # Import proxy_server module first to ensure it's initialized
-import litellm.proxy.proxy_server as ps
+import token_iq.gateway.proxy.proxy_server as ps
 
 # Now we can safely import app
-from litellm.proxy.proxy_server import app
-from litellm.types.search import SearchToolInfoResponse
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.types.search import SearchToolInfoResponse
 
 client = TestClient(app)
 
@@ -43,19 +43,19 @@ async def test_list_search_tools_db_only(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(return_value={})
             mock_proxy_config.parse_search_tools = MagicMock(return_value=None)
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -106,21 +106,21 @@ async def test_list_search_tools_config_only(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(
                 return_value={"search_tools": config_tools}
             )
             mock_proxy_config.parse_search_tools = MagicMock(return_value=config_tools)
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -182,21 +182,21 @@ async def test_list_search_tools_filters_duplicate_config_tools(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(
                 return_value={"search_tools": config_tools}
             )
             mock_proxy_config.parse_search_tools = MagicMock(return_value=config_tools)
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -293,19 +293,19 @@ async def test_list_search_tools_datetime_conversion(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(return_value={})
             mock_proxy_config.parse_search_tools = MagicMock(return_value=None)
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -391,20 +391,20 @@ async def test_list_search_tools_config_error_handling(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config to raise an error
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(
                 side_effect=Exception("Config error")
             )
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -434,8 +434,8 @@ async def test_list_search_tools_config_error_handling(monkeypatch):
 @pytest.mark.asyncio
 async def test_list_search_tools_no_prisma_client(monkeypatch):
     """Test error handling when prisma_client is None"""
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -513,19 +513,19 @@ async def test_list_search_tools_db_masking_sensitive_values(monkeypatch):
     mock_registry = MagicMock()
     mock_registry.get_all_search_tools_from_db = AsyncMock(return_value=db_tools)
     with patch(
-        "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
         mock_registry,
     ):
         # Mock prisma_client
         mock_prisma = MagicMock()
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
             # Mock proxy_config
             mock_proxy_config = MagicMock()
             mock_proxy_config.get_config = AsyncMock(return_value={})
             mock_proxy_config.parse_search_tools = MagicMock(return_value=None)
-            with patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config):
+            with patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config):
                 # Mock auth
-                from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+                from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
                     user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
@@ -613,7 +613,7 @@ async def test_get_all_search_tools_from_db_retries_on_transport_error():
     """`SearchToolRegistry.get_all_search_tools_from_db` self-heals across one
     ClientNotConnectedError via call_with_db_reconnect_retry."""
     import prisma
-    from litellm.proxy.search_endpoints.search_tool_registry import (
+    from token_iq.gateway.proxy.search_endpoints.search_tool_registry import (
         SearchToolRegistry,
     )
 
@@ -658,11 +658,11 @@ def _mock_search_tool_backend(db_tools):
     mock_proxy_config.parse_search_tools = MagicMock(return_value=None)
     with (
         patch(
-            "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+            "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
             mock_registry,
         ),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_config", mock_proxy_config),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config),
     ):
         yield
 
@@ -706,7 +706,7 @@ def _scoping_db_tools():
 
 @contextlib.contextmanager
 def _override_auth(user):
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
     app.dependency_overrides[user_api_key_auth] = lambda: user
     try:
@@ -781,7 +781,7 @@ async def test_list_search_tools_scoped_to_team_object_permission():
     with (
         _mock_search_tool_backend(_scoping_db_tools()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             AsyncMock(return_value=team_object),
         ),
         _override_auth(team_member),
@@ -841,7 +841,7 @@ async def test_list_search_tools_dashboard_session_key_does_not_look_up_the_ui_t
     raised 404, which the endpoint reported as a 500, so the Search Tools page was broken for
     every non-admin browsing the dashboard.
     """
-    from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
+    from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
     dashboard_session_user = UserAPIKeyAuth(
         user_role=LitellmUserRoles.INTERNAL_USER,
@@ -858,7 +858,7 @@ async def test_list_search_tools_dashboard_session_key_does_not_look_up_the_ui_t
     with (
         _mock_search_tool_backend(_scoping_db_tools()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             ui_team_is_not_a_real_team,
         ),
         _override_auth(dashboard_session_user),
@@ -877,8 +877,8 @@ async def test_filter_visible_search_tools_dashboard_session_still_honors_key_al
     Skipping the synthetic team must not widen visibility: a dashboard session whose key
     carries a search_tools allowlist stays scoped to it.
     """
-    from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
-    from litellm.proxy.search_endpoints.search_tool_management import (
+    from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
+    from token_iq.gateway.proxy.search_endpoints.search_tool_management import (
         _filter_visible_search_tools,
     )
 
@@ -906,7 +906,7 @@ async def test_filter_visible_search_tools_dashboard_session_still_honors_key_al
 @pytest.mark.asyncio
 async def test_filter_visible_search_tools_still_applies_a_real_team_allowlist():
     """A caller with a real team is still resolved and scoped by that team's allowlist."""
-    from litellm.proxy.search_endpoints.search_tool_management import (
+    from token_iq.gateway.proxy.search_endpoints.search_tool_management import (
         _filter_visible_search_tools,
     )
 
@@ -941,7 +941,7 @@ async def test_filter_visible_search_tools_propagates_a_real_team_lookup_failure
     A caller whose real team cannot be resolved must not fall through to "no team", which
     would drop that team's allowlist and show tools the caller may not call.
     """
-    from litellm.proxy.search_endpoints.search_tool_management import (
+    from token_iq.gateway.proxy.search_endpoints.search_tool_management import (
         _filter_visible_search_tools,
     )
 
@@ -978,7 +978,7 @@ async def test_list_search_tools_reports_a_missing_real_team_as_404():
     with (
         _mock_search_tool_backend(_scoping_db_tools()),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             AsyncMock(
                 side_effect=HTTPException(
                     status_code=404,
@@ -1050,8 +1050,8 @@ def _fake_registry(db_rows: list) -> MagicMock:
 @contextlib.contextmanager
 def _live_router_and_db(db_rows: list):
     """Drive the endpoints against a real ProxyConfig so the router refresh actually runs."""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     proxy_config = ProxyConfig()
     proxy_config.update_config_state({})
@@ -1059,18 +1059,18 @@ def _live_router_and_db(db_rows: list):
     fake_router.search_tools = list(db_rows)
 
     with contextlib.ExitStack() as stack:
-        stack.enter_context(patch("litellm.proxy.proxy_server.prisma_client", MagicMock()))  # test-quality-ok: proxy globals are the only seam; see the module note above
-        stack.enter_context(patch("litellm.proxy.proxy_server.proxy_config", proxy_config))  # test-quality-ok: proxy globals are the only seam; see the module note above
-        stack.enter_context(patch("litellm.proxy.proxy_server.llm_router", fake_router))  # test-quality-ok: proxy globals are the only seam; see the module note above
+        stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()))  # test-quality-ok: proxy globals are the only seam; see the module note above
+        stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.proxy_config", proxy_config))  # test-quality-ok: proxy globals are the only seam; see the module note above
+        stack.enter_context(patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router))  # test-quality-ok: proxy globals are the only seam; see the module note above
         stack.enter_context(
             patch(  # test-quality-ok: proxy globals are the only seam; see the module note above
-                "litellm.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
+                "token_iq.gateway.proxy.search_endpoints.search_tool_management.SEARCH_TOOL_REGISTRY",
                 _fake_registry(db_rows),
             )
         )
         stack.enter_context(
             patch(  # test-quality-ok: proxy globals are the only seam; see the module note above
-                "litellm.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
+                "token_iq.gateway.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
                 AsyncMock(side_effect=lambda **_: list(db_rows)),
             )
         )
@@ -1133,7 +1133,7 @@ async def test_create_search_tool_survives_a_failing_router_refresh():
     """The row is already committed, so a refresh failure must not turn into a 500."""
     with _live_router_and_db([]):
         with patch(  # test-quality-ok: forcing the refresh to fail needs the refresh itself replaced
-            "litellm.proxy.proxy_server.ProxyConfig.reload_search_tools_from_db",
+            "token_iq.gateway.proxy.proxy_server.ProxyConfig.reload_search_tools_from_db",
             AsyncMock(side_effect=RuntimeError("registry boom")),
         ):
             response = TestClient(app).post(

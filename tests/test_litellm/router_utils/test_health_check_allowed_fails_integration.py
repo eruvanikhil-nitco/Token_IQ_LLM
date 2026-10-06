@@ -10,10 +10,10 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.proxy.health_check import run_with_timeout
-from litellm.router import Router
-from litellm.types.router import AllowedFailsPolicy
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.health_check import run_with_timeout
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.router import AllowedFailsPolicy
 
 
 def _make_model(model_id: str, model_name: str = "gpt-4") -> dict:
@@ -52,7 +52,7 @@ class TestHealthCheckEndpointExceptionPropagation:
         """
         from unittest.mock import AsyncMock, patch
 
-        from litellm.proxy.health_check import _perform_health_check
+        from token_iq.gateway.proxy.health_check import _perform_health_check
 
         auth_error = litellm.AuthenticationError(
             message="Invalid key", llm_provider="openai", model="gpt-4"
@@ -66,7 +66,7 @@ class TestHealthCheckEndpointExceptionPropagation:
         ]
 
         with patch(
-            "litellm.proxy.health_check.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_check.litellm.ahealth_check",
             new=AsyncMock(
                 return_value={"error": "auth failed", "exception": auth_error}
             ),
@@ -83,7 +83,7 @@ class TestHealthCheckEndpointExceptionPropagation:
         exceptions_by_model_id — not in the endpoint dict."""
         from unittest.mock import patch
 
-        from litellm.proxy.health_check import _perform_health_check
+        from token_iq.gateway.proxy.health_check import _perform_health_check
 
         raw_exc = litellm.RateLimitError(
             message="Rate limited", llm_provider="openai", model="gpt-4"
@@ -98,7 +98,7 @@ class TestHealthCheckEndpointExceptionPropagation:
 
         # Simulate asyncio.gather returning a raw exception for this task
         with patch(
-            "litellm.proxy.health_check._run_model_health_check",
+            "token_iq.gateway.proxy.health_check._run_model_health_check",
             side_effect=raw_exc,
         ):
             healthy, unhealthy, exc_map = await _perform_health_check(model_list)
@@ -141,8 +141,8 @@ class TestHealthCheckFilterBypassWithPolicy:
         """Binary health check filter still works when no allowed_fails_policy is configured."""
         import time
 
-        from litellm.caching.caching import DualCache
-        from litellm.router_utils.health_state_cache import DeploymentHealthCache
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.router_utils.health_state_cache import DeploymentHealthCache
 
         router = Router(
             model_list=[_make_model("deploy-1"), _make_model("deploy-2", "gpt-5")],
@@ -172,8 +172,8 @@ class TestHealthCheckFilterBypassWithPolicy:
     def _make_scoped_router_with_unhealthy(self, policy) -> Router:
         import time
 
-        from litellm.caching.caching import DualCache
-        from litellm.router_utils.health_state_cache import DeploymentHealthCache
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.router_utils.health_state_cache import DeploymentHealthCache
 
         router = Router(
             model_list=[
@@ -238,8 +238,8 @@ class TestHealthCheckIgnoreTransientErrors:
     def test_429_not_written_to_health_state_cache_when_flag_enabled(self):
         """429 endpoint is excluded from health state cache when flag is set,
         so the binary health check filter does not mark it as unhealthy."""
-        import litellm.proxy.proxy_server as proxy_module
-        from litellm.proxy.proxy_server import _write_health_state_to_router_cache
+        import token_iq.gateway.proxy.proxy_server as proxy_module
+        from token_iq.gateway.proxy.proxy_server import _write_health_state_to_router_cache
 
         router = Router(
             model_list=[_make_model("deploy-1")],
@@ -278,8 +278,8 @@ class TestSharedCacheTransientErrorFilter:
 
     def test_cached_429_excluded_via_exception_status_field(self):
         """Cache-hit path: endpoint with exception_status=429 is excluded from health state."""
-        import litellm.proxy.proxy_server as proxy_module
-        from litellm.proxy.proxy_server import _write_health_state_to_router_cache
+        import token_iq.gateway.proxy.proxy_server as proxy_module
+        from token_iq.gateway.proxy.proxy_server import _write_health_state_to_router_cache
 
         router = Router(
             model_list=[_make_model("deploy-1"), _make_model("deploy-2", "gpt-5")],
@@ -305,8 +305,8 @@ class TestSharedCacheTransientErrorFilter:
 
     def test_cached_401_still_marked_unhealthy(self):
         """Cache-hit path: endpoint with exception_status=401 is still written as unhealthy."""
-        import litellm.proxy.proxy_server as proxy_module
-        from litellm.proxy.proxy_server import _write_health_state_to_router_cache
+        import token_iq.gateway.proxy.proxy_server as proxy_module
+        from token_iq.gateway.proxy.proxy_server import _write_health_state_to_router_cache
 
         router = Router(
             model_list=[_make_model("deploy-1"), _make_model("deploy-2", "gpt-5")],

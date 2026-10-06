@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
+from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 
 
-from litellm.llms.vertex_ai.common_utils import (
+from token_iq.gateway.llms.vertex_ai.common_utils import (
     _get_vertex_url,
     convert_anyof_null_to_nullable,
     get_vertex_location_from_url,
@@ -146,7 +146,7 @@ def test_anyof_with_excessive_nesting():
 @pytest.mark.asyncio
 async def test_get_supports_system_message():
     """Test get_supports_system_message with different models"""
-    from litellm.llms.vertex_ai.common_utils import get_supports_system_message
+    from token_iq.gateway.llms.vertex_ai.common_utils import get_supports_system_message
 
     # fine-tuned vertex gemini models will specifiy they are in the /gemini spec format
     result = get_supports_system_message(
@@ -213,7 +213,7 @@ def test_set_schema_property_ordering_skips_non_dict_property_values():
 
 def test_build_vertex_schema():
     """Test build_vertex_schema with a sample schema"""
-    from litellm.llms.vertex_ai.common_utils import _build_vertex_schema
+    from token_iq.gateway.llms.vertex_ai.common_utils import _build_vertex_schema
 
     parameters = {
         "properties": {
@@ -301,7 +301,7 @@ def test_build_vertex_schema():
 def test_process_items_with_excessive_nesting():
     """Test process_items with excessive nesting > max levels +1 deep."""
     # generate a schema with excessive nesting
-    from litellm.llms.vertex_ai.common_utils import process_items
+    from token_iq.gateway.llms.vertex_ai.common_utils import process_items
 
     schema = {"type": "object", "properties": {}}
     current = schema
@@ -318,7 +318,7 @@ def test_process_items_with_excessive_nesting():
 
 def test_process_items_basic():
     """Test basic functionality of process_items."""
-    from litellm.llms.vertex_ai.common_utils import process_items
+    from token_iq.gateway.llms.vertex_ai.common_utils import process_items
 
     # Test empty items
     schema = {"type": "array", "items": {}}
@@ -363,7 +363,7 @@ def test_build_vertex_schema_array_branch_missing_items_in_anyof():
     end up with synthesized `items: {"type": "object"}` after the schema
     transform — Vertex returns INVALID_ARGUMENT otherwise.
     """
-    from litellm.llms.vertex_ai.common_utils import _build_vertex_schema
+    from token_iq.gateway.llms.vertex_ai.common_utils import _build_vertex_schema
 
     parameters = {
         "properties": {
@@ -392,7 +392,7 @@ def test_vertex_ai_complex_response_schema():
     import json
     from copy import deepcopy
 
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -634,7 +634,7 @@ def test_get_vertex_url_global_region(stream, expected_endpoint_suffix):
     # Mock litellm.VertexGeminiConfig.get_model_for_vertex_ai_url to return model as is
     # as we are not testing that part here, just the URL construction
     with patch(
-        "litellm.VertexGeminiConfig.get_model_for_vertex_ai_url",
+        "token_iq.gateway.VertexGeminiConfig.get_model_for_vertex_ai_url",
         side_effect=lambda model: model,
     ):
         url, endpoint = _get_vertex_url(
@@ -694,8 +694,8 @@ def test_get_vertex_region_global_only_model(
     model_cost_entry, vertex_region, expected_region
 ):
     """Test get_vertex_region resolves region from model_cost supported_regions"""
-    import litellm
-    from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     vertex_base = VertexBase()
 
@@ -714,7 +714,7 @@ def test_get_vertex_region_global_only_model(
 def test_vertex_filter_format_uri():
     import json
 
-    from litellm.llms.vertex_ai.common_utils import filter_schema_fields
+    from token_iq.gateway.llms.vertex_ai.common_utils import filter_schema_fields
 
     parameters = {
         "type": "object",
@@ -774,7 +774,7 @@ def test_convert_schema_types_type_array_conversion():
 
     Relevant issue: https://github.com/BerriAI/litellm/issues/14091
     """
-    from litellm.llms.vertex_ai.common_utils import _convert_schema_types
+    from token_iq.gateway.llms.vertex_ai.common_utils import _convert_schema_types
 
     # Input: OpenAI-style schema with type array (the problematic case)
     input_schema = {
@@ -839,7 +839,7 @@ def test_fix_enum_empty_strings():
 
     Relevant issue: Gemini does not accept empty strings in enum values
     """
-    from litellm.llms.vertex_ai.common_utils import _fix_enum_empty_strings
+    from token_iq.gateway.llms.vertex_ai.common_utils import _fix_enum_empty_strings
 
     # Input: Schema with empty string in enum (the problematic case)
     input_schema = {
@@ -887,7 +887,7 @@ def test_fix_enum_empty_strings():
 
 def test_get_vertex_model_id_from_url():
     """Test get_vertex_model_id_from_url with various URLs"""
-    from litellm.llms.vertex_ai.common_utils import get_vertex_model_id_from_url
+    from token_iq.gateway.llms.vertex_ai.common_utils import get_vertex_model_id_from_url
 
     # Test with valid URL
     url = "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/google/models/gemini-pro:streamGenerateContent"
@@ -907,7 +907,7 @@ def test_get_vertex_model_id_from_url_with_slashes():
     were being truncated (e.g., 'gcp/google/gemini-2.5-flash' -> 'gcp'), causing access_groups
     checks to fail.
     """
-    from litellm.llms.vertex_ai.common_utils import get_vertex_model_id_from_url
+    from token_iq.gateway.llms.vertex_ai.common_utils import get_vertex_model_id_from_url
 
     # Test with model name containing slashes: gcp/google/gemini-2.5-flash
     url = "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/publishers/google/models/gcp/google/gemini-2.5-flash:generateContent"
@@ -932,7 +932,7 @@ def test_get_vertex_model_id_from_url_with_slashes():
 
 def test_construct_target_url_with_version_prefix():
     """Test construct_target_url with version prefixes"""
-    from litellm.llms.vertex_ai.common_utils import construct_target_url
+    from token_iq.gateway.llms.vertex_ai.common_utils import construct_target_url
 
     # Test with /v1/ prefix
     url = "/v1/publishers/google/models/gemini-pro:streamGenerateContent"
@@ -973,7 +973,7 @@ def test_fix_enum_types():
 
     Relevant issue: Gemini only allows enums for string-typed fields
     """
-    from litellm.llms.vertex_ai.common_utils import _fix_enum_types
+    from token_iq.gateway.llms.vertex_ai.common_utils import _fix_enum_types
 
     # Input: Schema with enum on non-string type (the problematic case)
     input_schema = {
@@ -1099,7 +1099,7 @@ def test_fix_enum_types():
 
 
 def test_get_token_url():
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexLLM,
     )
 
@@ -1160,14 +1160,14 @@ async def test_vertex_ai_token_counter_routes_partner_models():
     """
     from unittest.mock import AsyncMock, patch
 
-    from litellm.llms.vertex_ai.common_utils import VertexAITokenCounter
-    from litellm.types.utils import TokenCountResponse
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAITokenCounter
+    from token_iq.gateway.types.utils import TokenCountResponse
 
     token_counter = VertexAITokenCounter()
 
     # Mock the partner models handler
     with patch(
-        "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels.count_tokens"
+        "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels.count_tokens"
     ) as mock_partner_count_tokens:
         mock_partner_count_tokens.return_value = {
             "input_tokens": 42,
@@ -1207,14 +1207,14 @@ async def test_vertex_ai_token_counter_uses_count_tokens_location():
     """
     from unittest.mock import patch
 
-    from litellm.llms.vertex_ai.common_utils import VertexAITokenCounter
-    from litellm.types.utils import TokenCountResponse
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAITokenCounter
+    from token_iq.gateway.types.utils import TokenCountResponse
 
     token_counter = VertexAITokenCounter()
 
     # Mock the partner models handler
     with patch(
-        "litellm.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels.count_tokens"
+        "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main.VertexAIPartnerModels.count_tokens"
     ) as mock_partner_count_tokens:
         mock_partner_count_tokens.return_value = {
             "input_tokens": 42,
@@ -1251,14 +1251,14 @@ async def test_vertex_ai_token_counter_routes_gemini_models():
     """
     from unittest.mock import AsyncMock, patch
 
-    from litellm.llms.vertex_ai.common_utils import VertexAITokenCounter
-    from litellm.types.utils import TokenCountResponse
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAITokenCounter
+    from token_iq.gateway.types.utils import TokenCountResponse
 
     token_counter = VertexAITokenCounter()
 
     # Mock the Gemini handler (different import path)
     with patch(
-        "litellm.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
+        "token_iq.gateway.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
     ) as mock_gemini_count_tokens:
         mock_gemini_count_tokens.return_value = {
             "totalTokens": 50,
@@ -1296,12 +1296,12 @@ async def test_vertex_ai_token_counter_converts_messages_to_contents_for_gemini(
     """
     from unittest.mock import patch
 
-    from litellm.llms.vertex_ai.common_utils import VertexAITokenCounter
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAITokenCounter
 
     token_counter = VertexAITokenCounter()
 
     with patch(
-        "litellm.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
+        "token_iq.gateway.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
     ) as mock_acount_tokens:
         mock_acount_tokens.return_value = {
             "totalTokens": 42,
@@ -1340,12 +1340,12 @@ async def test_vertex_ai_token_counter_returns_none_when_api_omits_total_tokens(
     """
     from unittest.mock import patch
 
-    from litellm.llms.vertex_ai.common_utils import VertexAITokenCounter
+    from token_iq.gateway.llms.vertex_ai.common_utils import VertexAITokenCounter
 
     token_counter = VertexAITokenCounter()
 
     with patch(
-        "litellm.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
+        "token_iq.gateway.llms.vertex_ai.count_tokens.handler.VertexAITokenCounter.acount_tokens"
     ) as mock_acount_tokens:
         mock_acount_tokens.return_value = {"tokenizer_used": "gemini"}
 
@@ -1371,7 +1371,7 @@ async def test_vertex_ai_partner_model_detection():
     Test that VertexAIPartnerModels.is_vertex_partner_model correctly identifies
     partner models (Claude, Mistral, Llama, etc.).
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1407,7 +1407,7 @@ def test_vertex_ai_minimax_uses_openai_handler():
     """
     Ensure Minimax partner models re-use the OpenAI-format handler.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1418,7 +1418,7 @@ def test_vertex_ai_moonshot_uses_openai_handler():
     """
     Ensure Moonshot partner models re-use the OpenAI-format handler.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1431,7 +1431,7 @@ def test_vertex_ai_zai_uses_openai_handler():
     """
     Ensure ZAI partner models re-use the OpenAI-format handler.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1442,7 +1442,7 @@ def test_vertex_ai_zai_is_partner_model():
     """
     Ensure ZAI models are detected as Vertex AI partner models.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1455,7 +1455,7 @@ def test_vertex_ai_gemma_maas_is_partner_model():
     route through the OpenAI-compatible /endpoints/openapi path (not the
     legacy non-gemini path or the vertex_ai/gemma/ predict-endpoint handler).
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1468,7 +1468,7 @@ def test_vertex_ai_gemma_maas_uses_openai_handler():
     """
     Ensure Gemma MaaS partner models re-use the OpenAI-format handler.
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1483,7 +1483,7 @@ def test_vertex_ai_gemma_maas_routes_to_partner_models():
     a gemma model. get_vertex_ai_model_route must return PARTNER_MODELS, never
     GEMMA, MODEL_GARDEN, or NON_GEMINI.
     """
-    from litellm.llms.vertex_ai.common_utils import (
+    from token_iq.gateway.llms.vertex_ai.common_utils import (
         VertexAIModelRoute,
         get_vertex_ai_model_route,
     )
@@ -1498,7 +1498,7 @@ def test_vertex_ai_google_gemini_not_detected_as_gemma_maas():
     other google/* models like google/gemini-* (which should keep flowing
     through the gemini route, not partner_models).
     """
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.main import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import (
         VertexAIPartnerModels,
     )
 
@@ -1519,7 +1519,7 @@ def test_build_vertex_schema_empty_properties():
 
     The fix removes empty properties objects and their associated type/required fields.
     """
-    from litellm.llms.vertex_ai.common_utils import _build_vertex_schema
+    from token_iq.gateway.llms.vertex_ai.common_utils import _build_vertex_schema
 
     # Input: Schema with empty properties (the problematic case from real request)
     input_schema = {
@@ -1593,7 +1593,7 @@ def test_add_object_type_schema_with_no_properties_and_no_type():
     Test that add_object_type adds type: object when schema has no properties and no type.
     Fixes issue where tools with no arguments (e.g. EnterPlanMode) fail on Gemini.
     """
-    from litellm.llms.vertex_ai.common_utils import add_object_type
+    from token_iq.gateway.llms.vertex_ai.common_utils import add_object_type
 
     # Input: Schema with no properties and no type (the problematic case)
     input_schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
@@ -1612,7 +1612,7 @@ def test_add_object_type_does_not_override_existing_type():
     """
     Test add_object_type does not override existing type field.
     """
-    from litellm.llms.vertex_ai.common_utils import add_object_type
+    from token_iq.gateway.llms.vertex_ai.common_utils import add_object_type
 
     # Input: Schema with existing type
     input_schema = {"type": "string", "description": "A string field"}
@@ -1628,7 +1628,7 @@ def test_add_object_type_does_not_add_type_when_anyof_present():
     """
     Test add_object_type does not add type: object when anyOf is present.
     """
-    from litellm.llms.vertex_ai.common_utils import add_object_type
+    from token_iq.gateway.llms.vertex_ai.common_utils import add_object_type
 
     # Input: Schema with anyOf but no type
     input_schema = {"anyOf": [{"type": "string"}, {"type": "null"}]}
@@ -1685,7 +1685,7 @@ def test_pop_vertex_request_labels_uses_litellm_metadata_when_metadata_absent():
 
 
 def test_vertex_text_embedding_request_includes_labels_from_metadata():
-    import litellm
+    from token_iq import gateway as litellm
 
     req = litellm.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
         input="hi",

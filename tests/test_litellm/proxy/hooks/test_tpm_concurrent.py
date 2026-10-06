@@ -20,28 +20,28 @@ from typing import Any, Dict
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     PROJECT_ITPM_DESCRIPTOR_KEY,
     PROJECT_OTPM_DESCRIPTOR_KEY,
     _AUDIO_BYTES_PER_TOKEN,
     _PROXY_MaxParallelRequestsHandler_v3 as RateLimitHandler,
 )
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     _call_id_from_callback_kwargs,
     _request_stash,
     get_or_create_request_stash,
     get_request_stash,
 )
-from litellm.proxy.utils import InternalUsageCache, hash_token
-from litellm.types.llms.openai import (
+from token_iq.gateway.proxy.utils import InternalUsageCache, hash_token
+from token_iq.gateway.types.llms.openai import (
     InputTokensDetails,
     ResponseAPIUsage,
     ResponsesAPIResponse,
 )
-from litellm.types.rerank import RerankResponse
-from litellm.types.utils import ModelResponse, PromptTokensDetailsWrapper, Usage
+from token_iq.gateway.types.rerank import RerankResponse
+from token_iq.gateway.types.utils import ModelResponse, PromptTokensDetailsWrapper, Usage
 
 
 @pytest.fixture
@@ -3289,7 +3289,7 @@ async def test_rerank_query_and_documents_enforce_project_itpm(
         captured.update(kwargs)
         return 101
 
-    monkeypatch.setattr("litellm.token_counter", token_counter)
+    monkeypatch.setattr("token_iq.gateway.token_counter", token_counter)
     user_api_key_dict = UserAPIKeyAuth(
         api_key=hash_token(f"sk-{call_type}-itpm"),
         project_id=f"project-{call_type}-itpm",
@@ -3329,7 +3329,7 @@ def test_rerank_input_estimate_falls_back_to_character_count(
     def token_counter(**_kwargs):
         raise ValueError("tokenizer unavailable")
 
-    monkeypatch.setattr("litellm.token_counter", token_counter)
+    monkeypatch.setattr("token_iq.gateway.token_counter", token_counter)
     rerank_text = handler._rerank_input_to_text(data)
 
     assert handler._estimate_precise_input_tokens(
@@ -3536,7 +3536,7 @@ def test_precise_input_estimate_selects_endpoint_text(
         captured.update(kwargs)
         return 7
 
-    monkeypatch.setattr("litellm.token_counter", token_counter)
+    monkeypatch.setattr("token_iq.gateway.token_counter", token_counter)
 
     assert (
         handler._estimate_precise_input_tokens(data, model="test", call_type=call_type)

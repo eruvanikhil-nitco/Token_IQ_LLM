@@ -20,18 +20,18 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-import litellm
-from litellm.exceptions import MidStreamFallbackError
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-from litellm.responses.streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import MidStreamFallbackError
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+from token_iq.gateway.responses.streaming_iterator import (
     _ERROR_CODE_HTTP_STATUS,
     BaseResponsesAPIStreamingIterator,
     ResponsesAPIStreamingIterator,
     SyncResponsesAPIStreamingIterator,
     _status_code_for_error_fields,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     ErrorEvent,
     ErrorEventError,
     ResponseAPIUsage,
@@ -259,8 +259,8 @@ def test_handle_logging_failed_response_maps_rate_limit_to_429():
         {"type": "tokens", "code": "rate_limit_exceeded", "message": "throttled"}
     )
     with (
-        patch("litellm.responses.streaming_iterator.run_async_function") as mock_run_async,
-        patch("litellm.responses.streaming_iterator.executor"),
+        patch("token_iq.gateway.responses.streaming_iterator.run_async_function") as mock_run_async,
+        patch("token_iq.gateway.responses.streaming_iterator.executor"),
     ):
         iterator._handle_logging_failed_response()
     logged_exception = mock_run_async.call_args.kwargs["exception"]
@@ -276,8 +276,8 @@ def test_handle_logging_failed_response_maps_type_field_to_400():
         {"type": "invalid_request_error", "code": "invalid_prompt", "message": "bad prompt"}
     )
     with (
-        patch("litellm.responses.streaming_iterator.run_async_function") as mock_run_async,
-        patch("litellm.responses.streaming_iterator.executor"),
+        patch("token_iq.gateway.responses.streaming_iterator.run_async_function") as mock_run_async,
+        patch("token_iq.gateway.responses.streaming_iterator.executor"),
     ):
         iterator._handle_logging_failed_response()
     logged_exception = mock_run_async.call_args.kwargs["exception"]
@@ -296,8 +296,8 @@ def test_handle_logging_failed_response_records_usage_and_cost():
     iterator.completed_response = chunk
     iterator.logging_obj._response_cost_calculator.return_value = 0.0042
     with (
-        patch("litellm.responses.streaming_iterator.run_async_function"),
-        patch("litellm.responses.streaming_iterator.executor"),
+        patch("token_iq.gateway.responses.streaming_iterator.run_async_function"),
+        patch("token_iq.gateway.responses.streaming_iterator.executor"),
     ):
         iterator._handle_logging_failed_response()
     combined_usage = iterator.logging_obj.model_call_details["combined_usage_object"]
@@ -315,8 +315,8 @@ def test_handle_logging_failed_response_without_usage_skips_recording():
         {"type": "server_error", "code": "server_error", "message": "boom"}
     )
     with (
-        patch("litellm.responses.streaming_iterator.run_async_function"),
-        patch("litellm.responses.streaming_iterator.executor"),
+        patch("token_iq.gateway.responses.streaming_iterator.run_async_function"),
+        patch("token_iq.gateway.responses.streaming_iterator.executor"),
     ):
         iterator._handle_logging_failed_response()
     assert "combined_usage_object" not in iterator.logging_obj.model_call_details

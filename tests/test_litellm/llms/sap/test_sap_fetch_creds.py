@@ -1,6 +1,6 @@
 import json
 import pytest
-import litellm.llms.sap.credentials as sap_credentials
+import token_iq.gateway.llms.sap.credentials as sap_credentials
 
 mock_sap_service_key_dict = {
     "serviceurls": {"AI_API_URL": "https://testurl.hana.ondemand.com/"},
@@ -56,7 +56,7 @@ def _prep_env(monkeypatch):
     ):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("AICORE_HOME", "notexist")
-    monkeypatch.setattr("litellm.sap_service_key", None)
+    monkeypatch.setattr("token_iq.gateway.sap_service_key", None)
 
 
 def test_sap_fetch_creds_from_env_service_key(monkeypatch):

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from litellm.llms.openrouter.passthrough.transformation import OpenRouterPassthroughConfig
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.llms.openrouter.passthrough.transformation import OpenRouterPassthroughConfig
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_openrouter_resolves_to_its_passthrough_config():
@@ -37,7 +37,7 @@ def test_the_factory_registry_resolves_openrouter():
 
 
 def test_the_courier_route_is_mounted():
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     paths = {route.path for route in app.routes if hasattr(route, "path")}
     assert "/openrouter/{endpoint:path}" in paths
@@ -48,7 +48,7 @@ def test_openrouter_is_recognised_as_openai_compatible_for_cost_extraction():
     hostname. OpenRouter serves the OpenAI wire format, but was not in the allow-list,
     so its replies fell through to the untyped default and recorded zero tokens and
     zero cost while OpenRouter itself reported a real charge."""
-    from litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
         _is_openai_compatible_url,
     )
 
@@ -56,7 +56,7 @@ def test_openrouter_is_recognised_as_openai_compatible_for_cost_extraction():
 
 
 def test_the_openai_allow_list_still_rejects_unrelated_hosts():
-    from litellm.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
+    from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
         _is_openai_compatible_url,
     )
 

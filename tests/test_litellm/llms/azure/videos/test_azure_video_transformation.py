@@ -11,14 +11,14 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../.."))
 )
 
-import litellm
-from litellm.llms.azure.videos.transformation import AzureVideoConfig
-from litellm.types.videos.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.videos.transformation import AzureVideoConfig
+from token_iq.gateway.types.videos.main import (
     VideoObject,
     VideoResponse,
     VideoCreateOptionalRequestParams,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 from pydantic import ValidationError
 
 
@@ -70,7 +70,7 @@ class TestAzureVideoConfig:
         assert result["size"] == "1280x720"
         assert result["user"] == "test_user"
 
-    @patch("litellm.llms.azure.common_utils.litellm")
+    @patch("token_iq.gateway.llms.azure.common_utils.litellm")
     def test_validate_environment_with_api_key(self, mock_litellm):
         """Test environment validation with provided API key - should use api-key header for Azure."""
         # Since validate_environment passes litellm_params=None, it relies on litellm.api_key or litellm.azure_key
@@ -88,8 +88,8 @@ class TestAzureVideoConfig:
         assert result_headers["api-key"] == self.api_key
         assert result_headers["Content-Type"] == "application/json"
 
-    @patch("litellm.llms.azure.common_utils.get_secret_str")
-    @patch("litellm.llms.azure.common_utils.litellm")
+    @patch("token_iq.gateway.llms.azure.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.azure.common_utils.litellm")
     def test_validate_environment_without_api_key(self, mock_litellm, mock_get_secret):
         """Test environment validation without provided API key - should fallback to secret manager."""
         mock_litellm.api_key = None
@@ -305,7 +305,7 @@ class TestAzureVideoConfig:
                 model=self.model, raw_response=mock_response, logging_obj=logging_obj
             )
 
-    @patch("litellm.llms.azure.common_utils.litellm")
+    @patch("token_iq.gateway.llms.azure.common_utils.litellm")
     def test_azure_specific_environment_validation(self, mock_litellm):
         """Test Azure-specific environment validation with different key sources."""
         # Test with azure_key

@@ -15,7 +15,7 @@ class TestPromptTestEndpoint:
         """
         Test that dotprompt content is parsed and variables are rendered correctly
         """
-        from litellm.integrations.dotprompt.prompt_manager import PromptManager
+        from token_iq.gateway.integrations.dotprompt.prompt_manager import PromptManager
 
         dotprompt_content = """---
 model: gpt-4o
@@ -117,7 +117,7 @@ User: Hello World, how are you?"""
         """
         Test that missing model in frontmatter raises an error
         """
-        from litellm.integrations.dotprompt.prompt_manager import PromptManager
+        from token_iq.gateway.integrations.dotprompt.prompt_manager import PromptManager
 
         dotprompt_content = """---
 temperature: 0.7
@@ -147,11 +147,11 @@ User: Hello"""
         2. is_request_body_safe raises ValueError when api_base is present
            without admin opt-in (it does, from _BANNED_REQUEST_BODY_PARAMS).
         """
-        from litellm.integrations.dotprompt.prompt_manager import (
+        from token_iq.gateway.integrations.dotprompt.prompt_manager import (
             PromptManager,
             PromptTemplate,
         )
-        from litellm.proxy.auth.auth_utils import is_request_body_safe
+        from token_iq.gateway.proxy.auth.auth_utils import is_request_body_safe
 
         malicious_frontmatter = {
             "model": "gpt-4o",

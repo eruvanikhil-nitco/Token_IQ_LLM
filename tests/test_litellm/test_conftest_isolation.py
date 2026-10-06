@@ -1,7 +1,7 @@
-import litellm
-from litellm import Router
-from litellm import router as litellm_router_module
-from litellm import utils as litellm_utils_module
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway import router as litellm_router_module
+from token_iq.gateway import utils as litellm_utils_module
 
 CANARY_MODEL = "conftest-isolation-canary-model"
 

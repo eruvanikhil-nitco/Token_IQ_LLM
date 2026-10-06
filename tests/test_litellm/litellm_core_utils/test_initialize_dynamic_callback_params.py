@@ -2,7 +2,7 @@
 import pytest
 
 
-from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
     initialize_standard_callback_dynamic_params,
     iter_client_callback_metadata_dicts,
 )
@@ -203,7 +203,7 @@ def test_newrelic_callback_params_are_not_extracted_from_request_kwargs():
 
 
 def test_newrelic_trusted_vars_overlay_reaches_standard_params():
-    from litellm.types.utils import TRUSTED_CALLBACK_VARS_FIELD
+    from token_iq.gateway.types.utils import TRUSTED_CALLBACK_VARS_FIELD
 
     kwargs = {
         # A caller-supplied copy must lose to the proxy-stamped trusted value.
@@ -226,7 +226,7 @@ def test_newrelic_trusted_vars_overlay_reaches_standard_params():
 def test_trusted_vars_overlay_uses_shared_parser_semantics():
     # The overlay rides get_trusted_callback_params, the same parser the
     # datadog handler consumes, so values are str()-coerced identically.
-    from litellm.types.utils import TRUSTED_CALLBACK_VARS_FIELD
+    from token_iq.gateway.types.utils import TRUSTED_CALLBACK_VARS_FIELD
 
     params = initialize_standard_callback_dynamic_params(
         {TRUSTED_CALLBACK_VARS_FIELD: {"newrelic_api_key": 12345}}
@@ -238,7 +238,7 @@ def test_trusted_vars_overlay_uses_shared_parser_semantics():
 def test_validate_langfuse_environment_value():
     import pytest
 
-    from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+    from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
         validate_langfuse_environment_value,
     )
 

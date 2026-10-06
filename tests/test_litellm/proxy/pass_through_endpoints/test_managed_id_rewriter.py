@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-from litellm.proxy.pass_through_endpoints.managed_id_codec import decode, new_managed_id
-from litellm.proxy.pass_through_endpoints.managed_id_rewriter import (
+from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.pass_through_endpoints.managed_id_codec import decode, new_managed_id
+from token_iq.gateway.proxy.pass_through_endpoints.managed_id_rewriter import (
     list_passthrough_ids_from_db,
     rewrite_streamed_response_ids,
 )

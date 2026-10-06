@@ -1,5 +1,5 @@
 import pytest
-from litellm.llms.vertex_ai.context_caching.transformation import (
+from token_iq.gateway.llms.vertex_ai.context_caching.transformation import (
     extract_ttl_from_cached_messages,
     _is_valid_ttl_format,
     transform_openai_messages_to_gemini_context_caching,

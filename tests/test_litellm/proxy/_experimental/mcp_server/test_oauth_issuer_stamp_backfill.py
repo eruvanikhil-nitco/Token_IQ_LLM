@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy._experimental.mcp_server.oauth_issuer_stamp_backfill import (
+from token_iq.gateway.proxy._experimental.mcp_server.oauth_issuer_stamp_backfill import (
     backfill_discovery_stamped_issuers,
 )
 

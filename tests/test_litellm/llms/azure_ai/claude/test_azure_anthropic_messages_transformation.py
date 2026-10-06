@@ -11,10 +11,10 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.llms.azure_ai.anthropic.messages_transformation import (
+from token_iq.gateway.llms.azure_ai.anthropic.messages_transformation import (
     AzureAnthropicMessagesConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class TestAzureAnthropicMessagesConfig:
@@ -40,7 +40,7 @@ class TestAzureAnthropicMessagesConfig:
         api_key = "test-api-key"
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             result, api_base = config.validate_anthropic_messages_environment(
@@ -73,7 +73,7 @@ class TestAzureAnthropicMessagesConfig:
         litellm_params = {"api_key": "test-api-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             result, api_base = config.validate_anthropic_messages_environment(
@@ -99,7 +99,7 @@ class TestAzureAnthropicMessagesConfig:
         litellm_params = {"api_key": "test-api-key"}
 
         with patch(
-            "litellm.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
+            "token_iq.gateway.llms.azure.common_utils.BaseAzureLLM._base_validate_azure_environment"
         ) as mock_validate:
             mock_validate.return_value = {"api-key": "test-api-key"}
             result, api_base = config.validate_anthropic_messages_environment(
@@ -202,7 +202,7 @@ class TestAzureAnthropicMessagesConfig:
         optional_params = {}
         litellm_params = {}
 
-        with patch("litellm.secret_managers.main.get_secret_str", return_value=None):
+        with patch("token_iq.gateway.secret_managers.main.get_secret_str", return_value=None):
             with pytest.raises(ValueError, match="Missing Azure API Base"):
                 config.get_complete_url(
                     api_base=api_base,
@@ -277,8 +277,8 @@ class TestProviderConfigManagerAzureAnthropicMessages:
 
     def test_get_provider_anthropic_messages_config_returns_azure_config(self):
         """Test that ProviderConfigManager returns AzureAnthropicMessagesConfig for azure_ai provider with claude model"""
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="claude-sonnet-4-5_gb_20250929",
@@ -290,8 +290,8 @@ class TestProviderConfigManagerAzureAnthropicMessages:
 
     def test_get_provider_anthropic_messages_config_case_insensitive_model_name(self):
         """Test that model name check is case insensitive"""
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         # Test with uppercase CLAUDE
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
@@ -306,8 +306,8 @@ class TestProviderConfigManagerAzureAnthropicMessages:
         self,
     ):
         """Test that ProviderConfigManager returns None for non-claude model on azure_ai"""
-        import litellm
-        from litellm.utils import ProviderConfigManager
+        from token_iq import gateway as litellm
+        from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="gpt-4o",
@@ -324,7 +324,7 @@ def test_messages_thinking_shape_follows_exact_azure_entry_flag(local_model_cost
     ``azure_ai/claude-opus-4-8`` entry beats the unmodified ``anthropic`` entry.
     With the inherited ``"anthropic"`` provider default the flip was ignored and
     the transform kept emitting ``thinking.type='adaptive'``."""
-    import litellm
+    from token_iq import gateway as litellm
 
     config = AzureAnthropicMessagesConfig()
 
@@ -448,7 +448,7 @@ def test_azure_claude_4_8_plus_cost_map_entries_carry_mid_conversation_system_fl
     cache. Every mapped azure_ai entry the rule matches must carry the flag."""
     import re
 
-    import litellm
+    from token_iq import gateway as litellm
 
     cost_map_path = os.path.join(
         os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json"

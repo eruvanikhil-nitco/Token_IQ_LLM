@@ -7,12 +7,12 @@ import httpx
 import pytest
 
 from starlette.exceptions import HTTPException
-from litellm.types.utils import GenericGuardrailAPIInputs
-from litellm.proxy.guardrails.guardrail_registry import (
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.proxy.guardrails.guardrail_registry import (
     guardrail_initializer_registry,
     guardrail_class_registry,
 )
-from litellm.proxy.guardrails.guardrail_hooks.akto.akto import AktoGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.akto.akto import AktoGuardrail
 
 
 # ---------------------------------------------------------------------------

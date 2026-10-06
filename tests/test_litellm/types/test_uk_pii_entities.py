@@ -2,7 +2,7 @@
 Test UK PII entity types in guardrails module
 """
 
-from litellm.types.guardrails import PiiEntityType, PiiEntityCategory, PII_ENTITY_CATEGORIES_MAP
+from token_iq.gateway.types.guardrails import PiiEntityType, PiiEntityCategory, PII_ENTITY_CATEGORIES_MAP
 
 
 class TestUKPiiEntities:

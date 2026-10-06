@@ -2,7 +2,7 @@
 
 import pytest
 
-from litellm.litellm_core_utils.core_helpers import (
+from token_iq.gateway.core_utils.core_helpers import (
     _FINISH_REASON_MAP,
     get_or_create_metadata_bucket,
     map_finish_reason,
@@ -199,7 +199,7 @@ class TestMapFinishReasonGenericError:
 
     def test_lowercase_error_does_not_warn(self, mocker):
         warn = mocker.patch(
-            "litellm.litellm_core_utils.core_helpers.verbose_logger.warning"
+            "token_iq.gateway.core_utils.core_helpers.verbose_logger.warning"
         )
         assert map_finish_reason("error") == "stop"
         warn.assert_not_called()
@@ -259,7 +259,7 @@ class TestRedactNestedMatchAndRegexKeys:
 
 class TestIsExpectedClientError:
     def test_status_ranges(self):
-        from litellm.litellm_core_utils.core_helpers import is_expected_client_error
+        from token_iq.gateway.core_utils.core_helpers import is_expected_client_error
 
         class WithStatusCode(Exception):
             def __init__(self, status_code):
@@ -283,10 +283,10 @@ class TestIsExpectedClientError:
         """Regression for LIT-6163: a 4xx the provider returned is an upstream or
         deployment problem, so it keeps its traceback; only the proxy's own
         pre-call rejections (no llm_provider) are expected client errors."""
-        from litellm.exceptions import AuthenticationError, RateLimitError
-        from litellm.litellm_core_utils.core_helpers import is_expected_client_error
-        from litellm.llms.anthropic.common_utils import AnthropicError
-        from litellm.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
+        from token_iq.gateway.exceptions import AuthenticationError, RateLimitError
+        from token_iq.gateway.core_utils.core_helpers import is_expected_client_error
+        from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
+        from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
 
         provider_auth_failure = AuthenticationError(
             message="AnthropicException - API key is invalid.", llm_provider="anthropic", model="claude-haiku-4-5"
@@ -316,8 +316,8 @@ class TestIsExpectedClientError:
         """The auth handler stamps the requested model's provider onto the proxy's
         own BudgetExceededError before logging it, which must not turn a key-over-budget
         429 into a provider error that keeps its traceback."""
-        from litellm.exceptions import BudgetExceededError, RateLimitError, RateLimitErrorCategory
-        from litellm.litellm_core_utils.core_helpers import is_expected_client_error
+        from token_iq.gateway.exceptions import BudgetExceededError, RateLimitError, RateLimitErrorCategory
+        from token_iq.gateway.core_utils.core_helpers import is_expected_client_error
 
         over_budget = BudgetExceededError(current_cost=0.01, max_budget=0.0, llm_provider="anthropic")
         assert over_budget.llm_provider == "anthropic"

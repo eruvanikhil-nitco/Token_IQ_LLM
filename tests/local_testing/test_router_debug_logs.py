@@ -8,12 +8,12 @@ import pytest
 
 import logging
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 # this tests debug logs from litellm router and litellm proxy server
-from litellm._logging import verbose_logger, verbose_proxy_logger, verbose_router_logger
-from litellm.llms.custom_httpx.async_client_cleanup import close_litellm_async_clients
+from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger, verbose_router_logger
+from token_iq.gateway.llms.custom_httpx.async_client_cleanup import close_litellm_async_clients
 
 
 # this tests debug logs from litellm router and litellm proxy server

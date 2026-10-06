@@ -8,7 +8,7 @@ Ensures shared_session is in all_litellm_params to prevent
 import inspect
 
 
-from litellm.types.utils import all_litellm_params
+from token_iq.gateway.types.utils import all_litellm_params
 
 
 def test_shared_session_in_all_litellm_params():
@@ -28,9 +28,9 @@ def test_openai_embedding_passes_shared_session():
     Full chain: litellm.embedding() -> OpenAI.embedding() -> _get_openai_client()
                 -> AsyncHTTPHandler -> _create_async_transport() -> _create_aiohttp_transport()
     """
-    import litellm
-    from litellm.llms.openai.openai import OpenAIChatCompletion
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Step 1: litellm.embedding() extracts and passes shared_session
     main_source = inspect.getsource(litellm.embedding)

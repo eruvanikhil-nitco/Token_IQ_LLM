@@ -16,16 +16,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.exceptions import SensitiveDataRouteException
-from litellm.integrations.custom_guardrail import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import SensitiveDataRouteException
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     ModifyResponseException,
 )
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.proxy.policy_engine.pipeline_types import (
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.proxy.policy_engine.pipeline_types import (
     GuardrailPipeline,
     PipelineStep,
 )
@@ -47,15 +47,15 @@ def test_should_use_guardrail_load_balancing_truth_table(proxy_logging):
     snapshot = {}
     router = MagicMock()
     router.guardrail_list = [{"guardrail_name": "g1"}, {"guardrail_name": "g1"}]
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         snapshot["multiple_deployments"] = proxy_logging._should_use_guardrail_load_balancing("g1")
     router.guardrail_list = [{"guardrail_name": "g1"}]
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         snapshot["single_deployment"] = proxy_logging._should_use_guardrail_load_balancing("g1")
-    with patch("litellm.proxy.proxy_server.llm_router", None):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
         snapshot["no_router"] = proxy_logging._should_use_guardrail_load_balancing("g1")
     router.guardrail_list = [{"guardrail_name": "other"}, {"guardrail_name": "other"}]
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         snapshot["unmatched_name"] = proxy_logging._should_use_guardrail_load_balancing("g1")
     assert snapshot == {
         "multiple_deployments": True,
@@ -68,7 +68,7 @@ def test_should_use_guardrail_load_balancing_truth_table(proxy_logging):
 def test_should_use_guardrail_load_balancing_error_on_bad_guardrail_list(proxy_logging):
     router = MagicMock()
     router.guardrail_list = "not a list"
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         with pytest.raises((TypeError, AttributeError)):
             proxy_logging._should_use_guardrail_load_balancing("g1")
 
@@ -155,7 +155,7 @@ async def test_execute_guardrail_with_load_balancing_routes_through_router(
     cb = _make_guardrail()
     router = MagicMock()
     router.get_available_guardrail = MagicMock(return_value={"callback": cb})
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         out = await proxy_logging._execute_guardrail_with_load_balancing(
             guardrail_name="g",
             hook_type="pre_call",
@@ -170,7 +170,7 @@ async def test_execute_guardrail_with_load_balancing_routes_through_router(
 async def test_execute_guardrail_with_load_balancing_router_none_raises(
     proxy_logging, make_user_api_key_auth
 ):
-    with patch("litellm.proxy.proxy_server.llm_router", None):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
         with pytest.raises(ValueError, match="Router not initialized"):
             await proxy_logging._execute_guardrail_with_load_balancing(
                 guardrail_name="g",
@@ -187,7 +187,7 @@ async def test_execute_guardrail_with_load_balancing_no_callback_raises(
 ):
     router = MagicMock()
     router.get_available_guardrail = MagicMock(return_value={"callback": None})
-    with patch("litellm.proxy.proxy_server.llm_router", router):
+    with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
         with pytest.raises(ValueError, match="No callback found"):
             await proxy_logging._execute_guardrail_with_load_balancing(
                 guardrail_name="g",
@@ -269,7 +269,7 @@ def test_process_guardrail_metadata_calls_header_helper(proxy_logging, monkeypat
     def fake_add(request_data, guardrail_name):
         calls.append({"data": request_data, "name": guardrail_name})
 
-    from litellm.proxy.common_utils import callback_utils
+    from token_iq.gateway.proxy.common_utils import callback_utils
 
     monkeypatch.setattr(callback_utils, "add_guardrail_to_applied_guardrails_header", fake_add)
     data = {"metadata": {"guardrails": ["g1", "g2"]}}
@@ -294,7 +294,7 @@ def test_process_guardrail_metadata_skips_already_applied(proxy_logging, monkeyp
     def fake_add(request_data, guardrail_name):
         calls.append(guardrail_name)
 
-    from litellm.proxy.common_utils import callback_utils
+    from token_iq.gateway.proxy.common_utils import callback_utils
 
     monkeypatch.setattr(callback_utils, "add_guardrail_to_applied_guardrails_header", fake_add)
     data = {"metadata": {"guardrails": ["g1", "g2"], "applied_guardrails": ["g1"]}}
@@ -303,7 +303,7 @@ def test_process_guardrail_metadata_skips_already_applied(proxy_logging, monkeyp
 
 
 def test_process_guardrail_metadata_no_metadata_is_noop(proxy_logging, monkeypatch):
-    from litellm.proxy.common_utils import callback_utils
+    from token_iq.gateway.proxy.common_utils import callback_utils
 
     monkeypatch.setattr(
         callback_utils,
@@ -342,7 +342,7 @@ async def test_maybe_execute_pipelines_skips_pipelines_with_other_mode(proxy_log
     data = {"metadata": {"_guardrail_pipelines": [("p1", pipeline)]}, "model": "m", "messages": []}
     executed = MagicMock()
     monkeypatch.setattr(
-        "litellm.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps", executed
+        "token_iq.gateway.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps", executed
     )
     out = await proxy_logging._maybe_execute_pipelines(
         data=data,
@@ -410,7 +410,7 @@ async def test_maybe_execute_pipelines_blocks_on_block_terminal_action_raises(
         return fake_result
 
     monkeypatch.setattr(
-        "litellm.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps",
+        "token_iq.gateway.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps",
         fake_execute_steps,
     )
     with pytest.raises(HTTPException):
@@ -445,7 +445,7 @@ async def test_maybe_execute_pipelines_reraises_original_guardrail_exception(
         return fake_result
 
     monkeypatch.setattr(
-        "litellm.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps",
+        "token_iq.gateway.proxy.policy_engine.pipeline_executor.PipelineExecutor.execute_steps",
         fake_execute_steps,
     )
     with pytest.raises(HTTPException) as info:
@@ -701,7 +701,7 @@ async def test_post_call_success_hook_records_latency_metric(
     cb = _moderation_guardrail()
     prom = _prometheus_callback()
     monkeypatch.setattr(litellm, "callbacks", [prom, cb])
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None, raising=False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None, raising=False)
 
     await proxy_logging.post_call_success_hook(
         data={"model": "m"},
@@ -723,7 +723,7 @@ async def test_post_call_success_hook_records_latency_metric(
 
 @pytest.mark.asyncio
 async def test_process_prompt_template_no_op_when_no_prompt_spec(proxy_logging, monkeypatch):
-    from litellm.proxy.prompts import prompt_registry
+    from token_iq.gateway.proxy.prompts import prompt_registry
 
     monkeypatch.setattr(
         prompt_registry.IN_MEMORY_PROMPT_REGISTRY, "get_prompt_callback_by_id", lambda *a, **kw: None
@@ -744,7 +744,7 @@ async def test_process_prompt_template_no_op_when_no_prompt_spec(proxy_logging, 
 
 @pytest.mark.asyncio
 async def test_process_prompt_template_applies_when_spec_resolves(proxy_logging, monkeypatch):
-    from litellm.proxy.prompts import prompt_registry
+    from token_iq.gateway.proxy.prompts import prompt_registry
 
     custom_logger = MagicMock()
     prompt_spec = MagicMock()
@@ -795,7 +795,7 @@ async def test_process_prompt_template_applies_when_spec_resolves(proxy_logging,
 
 @pytest.mark.asyncio
 async def test_process_prompt_template_async_get_prompt_error_raises(proxy_logging, monkeypatch):
-    from litellm.proxy.prompts import prompt_registry
+    from token_iq.gateway.proxy.prompts import prompt_registry
 
     custom_logger = MagicMock()
     prompt_spec = MagicMock()
@@ -822,7 +822,7 @@ async def test_process_prompt_template_async_get_prompt_error_raises(proxy_loggi
 
 @pytest.mark.asyncio
 async def test_process_prompt_template_aresponses_swaps_model_and_merges_input(proxy_logging, monkeypatch):
-    from litellm.proxy.prompts import prompt_registry
+    from token_iq.gateway.proxy.prompts import prompt_registry
 
     custom_logger = MagicMock()
     prompt_spec = MagicMock()

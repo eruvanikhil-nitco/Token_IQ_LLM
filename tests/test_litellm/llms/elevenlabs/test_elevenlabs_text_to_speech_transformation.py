@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.llms.elevenlabs.text_to_speech.transformation import (
+from token_iq.gateway.llms.elevenlabs.text_to_speech.transformation import (
     ElevenLabsTextToSpeechConfig,
 )
 

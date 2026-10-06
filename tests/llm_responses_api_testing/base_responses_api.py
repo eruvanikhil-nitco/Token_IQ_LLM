@@ -3,16 +3,16 @@ import json
 import pytest
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import time
 import base64
 
-import litellm
+from token_iq import gateway as litellm
 from abc import ABC, abstractmethod
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
-from litellm.types.llms.openai import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponseAPIUsage,
@@ -21,7 +21,7 @@ from litellm.types.llms.openai import (
 from openai.types.responses.response_create_params import (
     ResponseInputParam,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 import openai
 
 
@@ -575,7 +575,7 @@ class BaseResponsesAPITest(ABC):
         Test that regular dict inputs with status fields are properly filtered
         to replicate exclude_unset=True behavior for non-Pydantic objects.
         """
-        from litellm.llms.openai.responses.transformation import (
+        from token_iq.gateway.llms.openai.responses.transformation import (
             OpenAIResponsesAPIConfig,
         )
 

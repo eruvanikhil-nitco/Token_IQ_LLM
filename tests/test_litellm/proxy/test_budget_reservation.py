@@ -8,16 +8,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.caching.dual_cache import DualCache
-from litellm.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
-from litellm.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
     AgenticAnthropicStreamingIterator,
 )
-from litellm.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     AnthropicMessagesStreamingResponse,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     Litellm_EntityType,
@@ -28,14 +28,14 @@ from litellm.proxy._types import (
     LiteLLM_UserTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
-from litellm.proxy.common_utils.reset_budget_job import _model_access_group_counter_key
-from litellm.proxy.common_utils.user_api_key_cache import (
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq.gateway.proxy.common_utils.reset_budget_job import _model_access_group_counter_key
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import (
     UserApiKeyCache,
     model_access_group_cache_key,
     model_access_group_spend_counter_key,
 )
-from litellm.proxy.spend_tracking.budget_reservation import (
+from token_iq.gateway.proxy.spend_tracking.budget_reservation import (
     TOKENIZE_OFF_EVENT_LOOP_MIN_CHARS,
     _approximate_input_size,
     _get_model_access_group_budget_counters,
@@ -46,14 +46,14 @@ from litellm.proxy.spend_tracking.budget_reservation import (
     release_budget_reservation_on_cancel,
     reserve_budget_for_request,
 )
-from litellm.proxy.utils import ProxyLogging
-from litellm.router import Router
-from litellm.types.proxy.model_access_group_budget import ModelAccessGroupBudget
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.router import Router
+from token_iq.gateway.types.proxy.model_access_group_budget import ModelAccessGroupBudget
 
 
 @pytest.fixture()
 def spend_counter_state():
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     original_counter_cache = ps.spend_counter_cache
     original_key_cache = ps.user_api_key_cache
@@ -83,7 +83,7 @@ def _request_body() -> dict:
 
 async def _reserve(valid_token, cost, key_cache, proxy_logging_obj):
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=cost,
     ):
         return await reserve_budget_for_request(
@@ -180,7 +180,7 @@ async def test_reservation_blocks_over_budget_non_throttled_key(
 
 @pytest.mark.asyncio
 async def test_over_budget_window_counter_tags_clean_entity_id():
-    from litellm.proxy.spend_tracking.budget_reservation import (
+    from token_iq.gateway.proxy.spend_tracking.budget_reservation import (
         _apply_over_budget_reservation_policy,
         _BudgetCounter,
     )
@@ -236,7 +236,7 @@ async def test_should_shrink_second_key_reservation_to_remaining_budget(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         reservation = await reserve_budget_for_request(
@@ -315,7 +315,7 @@ async def test_should_shrink_second_end_user_reservation_to_remaining_budget(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         reservation = await reserve_budget_for_request(
@@ -376,7 +376,7 @@ async def test_should_shrink_second_end_user_reservation_to_remaining_budget(
         key="spend:end_user:end-user-budget-race"
     ) == pytest.approx(0.6)
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -423,7 +423,7 @@ async def test_should_shrink_second_tag_reservation_to_remaining_budget(
     prisma_client.db.litellm_tagtable.find_many = AsyncMock(return_value=[])
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         reservation = await reserve_budget_for_request(
@@ -494,7 +494,7 @@ async def test_should_shrink_second_tag_reservation_to_remaining_budget(
         key="spend:tag:tag-budget-race"
     ) == pytest.approx(0.6)
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -539,7 +539,7 @@ async def test_should_seed_and_update_end_user_and_tag_counters_without_reservat
         ).model_dump(),
     )
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -606,7 +606,7 @@ async def test_should_reserve_team_member_and_org_budget_counters(spend_counter_
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.3,
     ):
         reservation = await reserve_budget_for_request(
@@ -651,7 +651,7 @@ async def test_should_not_reserve_user_budget_counter_for_team_key(spend_counter
     user_object = LiteLLM_UserTable(user_id="user-on-team", spend=0.0, max_budget=5.0)
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.3,
     ):
         reservation = await reserve_budget_for_request(
@@ -691,7 +691,7 @@ async def test_should_reserve_user_budget_counter_for_team_key_when_flag_enabled
     user_object = LiteLLM_UserTable(user_id="user-on-team-flagged", spend=0.0, max_budget=5.0)
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.3,
     ):
         reservation = await reserve_budget_for_request(
@@ -729,7 +729,7 @@ async def test_should_seed_org_counter_from_with_budget_cache(spend_counter_stat
         ).model_dump(),
     )
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -760,7 +760,7 @@ async def test_should_seed_org_counter_from_plain_org_cache(spend_counter_state)
         ).model_dump(),
     )
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -792,7 +792,7 @@ async def test_should_cap_known_estimate_to_remaining_budget(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         reservation = await reserve_budget_for_request(
@@ -840,7 +840,7 @@ async def test_fail_closed_rejects_known_estimate_exceeding_remaining_budget(
     )
 
     with patch(  # test-quality-ok: reserve_budget_for_request takes no estimator, so pinning the estimate needs this attribute
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
@@ -884,7 +884,7 @@ async def test_fail_closed_tolerates_float_noise_when_estimate_exactly_fits(
     )
 
     with patch(  # test-quality-ok: reserve_budget_for_request takes no estimator, so pinning the estimate needs this attribute
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.2,
     ):
         reservation = await reserve_budget_for_request(
@@ -916,7 +916,7 @@ async def test_should_clamp_reservation_to_default_when_output_cap_missing(
     max_output_tokens. Reservation must be a bounded per-request amount
     (mirroring parallel_request_limiter_v3's DEFAULT_MAX_TOKENS_ESTIMATE),
     not the entire remaining headroom."""
-    from litellm.proxy.spend_tracking.budget_reservation import (
+    from token_iq.gateway.proxy.spend_tracking.budget_reservation import (
         DEFAULT_MAX_OUTPUT_TOKENS_FALLBACK,
     )
 
@@ -938,7 +938,7 @@ async def test_should_clamp_reservation_to_default_when_output_cap_missing(
     expected_cost = DEFAULT_MAX_OUTPUT_TOKENS_FALLBACK * output_cost_per_token
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "input_cost_per_token": 0.0,
             "output_cost_per_token": output_cost_per_token,
@@ -1065,15 +1065,15 @@ def test_tiered_reservation_is_all_or_nothing_with_output_tier_from_input_length
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
             return_value={"tiered_pricing": tiered_pricing, "max_output_tokens": 200000},
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
             return_value=input_tokens,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
             return_value=output_tokens,
         ),
     ):
@@ -1110,15 +1110,15 @@ def test_tiered_reservation_uses_higher_reasoning_output_rate():
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
             return_value={"tiered_pricing": tiered_pricing, "max_output_tokens": 200000},
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
             return_value=input_tokens,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
             return_value=output_tokens,
         ),
     ):
@@ -1144,7 +1144,7 @@ def test_flat_reservation_uses_higher_reasoning_output_rate():
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
             return_value={
                 "input_cost_per_token": 1e-06,
                 "output_cost_per_token": 1.2e-06,
@@ -1153,11 +1153,11 @@ def test_flat_reservation_uses_higher_reasoning_output_rate():
             },
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
             return_value=input_tokens,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
             return_value=output_tokens,
         ),
     ):
@@ -1185,19 +1185,19 @@ def test_reservation_uses_most_expensive_deployment_in_group():
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
             return_value={"max_output_tokens": 200000},
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._get_deployment_tiered_pricing_tables",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_deployment_tiered_pricing_tables",
             return_value=[cheap, expensive],
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_input_tokens",
             return_value=input_tokens,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation._estimate_output_tokens",
             return_value=output_tokens,
         ),
     ):
@@ -1242,7 +1242,7 @@ async def test_should_clamp_reservation_to_model_ceiling_when_caller_overrequest
     expected_cost = model_ceiling * output_cost_per_token
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "input_cost_per_token": 0.0,
             "output_cost_per_token": output_cost_per_token,
@@ -1287,7 +1287,7 @@ async def test_should_reserve_image_generation_cost_per_image(
     request_body = {"model": "dall-e-3", "prompt": "a cat", "n": 3}
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "mode": "image_generation",
             "input_cost_per_image": 0.04,
@@ -1338,7 +1338,7 @@ async def test_should_reject_concurrent_image_request_against_depleted_budget(
     request_body = {"model": "dall-e-3", "prompt": "a cat"}
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "mode": "image_generation",
             "input_cost_per_image": 0.04,
@@ -1392,7 +1392,7 @@ async def test_should_skip_reservation_for_per_pixel_image_model(
     request_body = {"model": "dall-e-2", "prompt": "a cat", "size": "256x256"}
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "mode": "image_generation",
             "input_cost_per_pixel": 2.4414e-07,
@@ -1445,7 +1445,7 @@ async def test_should_use_token_pricing_for_chat_model_with_image_cost_field(
     expected_cost = 1000 * output_cost_per_token  # token-priced path, not 1 × $0.00012
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "mode": "chat",
             "input_cost_per_token": 2e-6,
@@ -1495,7 +1495,7 @@ async def test_should_reserve_image_edit_cost_per_image(
     request_body = {"model": "stability/inpaint", "prompt": "a cat", "n": 2}
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "mode": "image_edit",
             "output_cost_per_image": 0.05,
@@ -1551,7 +1551,7 @@ async def test_should_skip_budget_window_with_unparseable_duration(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.2,
     ):
         reservation = await reserve_budget_for_request(
@@ -1603,7 +1603,7 @@ async def test_should_skip_window_reservation_when_db_baseline_unavailable(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.5,
     ):
         reservation = await reserve_budget_for_request(
@@ -1647,11 +1647,11 @@ async def test_should_skip_reservation_when_counter_increment_fails(
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=0.5,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.warning"
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.warning"
         ) as mock_warning,
     ):
         reservation = await reserve_budget_for_request(
@@ -1697,7 +1697,7 @@ async def test_should_raise_503_when_counter_increment_fails_and_fail_closed(
     monkeypatch.setattr(counter_cache, "async_increment_cache", fail_increment_cache)
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.5,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -1744,7 +1744,7 @@ async def test_fail_closed_releases_earlier_counters_before_503(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.5,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -1784,15 +1784,15 @@ async def test_should_skip_reservation_when_counter_initialization_fails(
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=0.5,
         ),
         patch(
-            "litellm.proxy.proxy_server._ensure_spend_counter_initialized",
+            "token_iq.gateway.proxy.proxy_server._ensure_spend_counter_initialized",
             side_effect=RuntimeError("redis unavailable"),
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.warning"
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.warning"
         ) as mock_warning,
     ):
         reservation = await reserve_budget_for_request(
@@ -1829,7 +1829,7 @@ async def test_should_release_tracked_entry_when_reservation_fails_after_increme
         max_budget=1.0,
     )
 
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     original_increment_counter = ps._increment_spend_counter_cache
     first_increment = True
@@ -1847,15 +1847,15 @@ async def test_should_release_tracked_entry_when_reservation_fails_after_increme
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=0.5,
         ),
         patch(
-            "litellm.proxy.proxy_server._increment_spend_counter_cache",
+            "token_iq.gateway.proxy.proxy_server._increment_spend_counter_cache",
             side_effect=fail_after_increment,
         ),
         patch(
-            "litellm.proxy.proxy_server._invalidate_spend_counter",
+            "token_iq.gateway.proxy.proxy_server._invalidate_spend_counter",
             side_effect=RuntimeError("invalidate unavailable"),
         ),
     ):
@@ -1890,7 +1890,7 @@ async def test_should_reconcile_reserved_counter_to_actual_spend(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
         reservation = await reserve_budget_for_request(
@@ -1905,7 +1905,7 @@ async def test_should_reconcile_reserved_counter_to_actual_spend(
             proxy_logging_obj=proxy_logging_obj,
         )
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token="key-budget-reconcile",
@@ -1934,7 +1934,7 @@ async def test_should_release_reservation_on_failure(spend_counter_state):
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.4,
     ):
         reservation = await reserve_budget_for_request(
@@ -1977,7 +1977,7 @@ async def test_should_retry_partial_release_without_double_decrement(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.4,
     ):
         reservation = await reserve_budget_for_request(
@@ -2066,11 +2066,11 @@ async def test_should_preserve_budget_error_and_continue_partial_cleanup(
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=0.4,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.exception"
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.exception"
         ) as mock_log_exception,
     ):
         with pytest.raises(litellm.BudgetExceededError):
@@ -2137,7 +2137,7 @@ async def test_release_underflow_counter_reseeds_from_db(spend_counter_state):
     """When the release delta would drive the counter negative (counter was
     reset/reseeded mid-flight), reseed from the authoritative DB rather than
     deleting and failing open."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     counter_cache, _ = spend_counter_state
     await counter_cache.async_increment_cache(
@@ -2170,7 +2170,7 @@ async def test_release_underflow_counter_reseeds_from_db(spend_counter_state):
 async def test_release_non_numeric_counter_reseeds_from_db(spend_counter_state):
     """A non-numeric counter value (corrupt/stale) during release is recovered by
     reseeding from the DB, not by deleting the counter and raising."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     counter_cache, _ = spend_counter_state
     counter_cache.in_memory_cache.set_cache(
@@ -2249,7 +2249,7 @@ async def test_should_reserve_all_budgeted_counters(spend_counter_state):
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.3,
     ):
         reservation = await reserve_budget_for_request(
@@ -2311,7 +2311,7 @@ async def test_should_not_block_concurrent_team_request_when_first_request_lacks
     # reservation per request, leaving ~5000 admittable concurrent requests
     # against a $2000 team budget.
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation._get_model_cost_info",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation._get_model_cost_info",
         return_value={
             "input_cost_per_token": 5e-6,
             "output_cost_per_token": 2.5e-5,
@@ -2376,11 +2376,11 @@ async def test_release_budget_reservation_on_cancel_gives_back_counter(
 
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=3.0,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_input_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_input_cost",
             return_value=0.5,
         ),
     ):
@@ -2428,7 +2428,7 @@ async def test_release_budget_reservation_on_cancel_noop_when_finalized(
     )
 
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=3.0,
     ):
         reservation = await reserve_budget_for_request(
@@ -2457,11 +2457,11 @@ async def _reserve_for_stream(counter_cache, key_cache, proxy_logging_obj, token
     valid_token = UserAPIKeyAuth(token=token, spend=0.0, max_budget=10.0)
     with (
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
             return_value=2.0,
         ),
         patch(
-            "litellm.proxy.spend_tracking.budget_reservation.estimate_request_input_cost",
+            "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_input_cost",
             return_value=0.5,
         ),
     ):
@@ -2687,7 +2687,7 @@ async def test_release_budget_reservation_on_cancel_swallows_release_errors():
         "input_cost": 0.5,
     }
     with patch(
-        "litellm.proxy.spend_tracking.budget_reservation.reconcile_budget_reservation",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.reconcile_budget_reservation",
         new=AsyncMock(side_effect=RuntimeError("redis down")),
     ):
         # must return without raising
@@ -3139,7 +3139,7 @@ async def test_model_access_group_counter_blocks_a_request_over_the_group_budget
     valid_token = UserAPIKeyAuth(api_key="hashed", token="tok", matched_model_access_groups=["premium"])
 
     with patch(  # test-quality-ok: reserve_budget_for_request takes no estimator, so pinning the estimate needs this attribute
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.5,
     ):
         with pytest.raises(litellm.BudgetExceededError) as exc_info:
@@ -3170,7 +3170,7 @@ async def _cache_model_access_group_budget(key_cache, group, spend, max_budget=N
 async def _reserve_for_model_access_groups(key_cache, groups, estimate):
     """Reserve against the given groups, whose rows are already cached, so nothing hits the DB."""
     with patch(  # test-quality-ok: reserve_budget_for_request takes no estimator, so pinning the estimate needs this attribute
-        "litellm.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
+        "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=estimate,
     ):
         return await reserve_budget_for_request(
@@ -3198,7 +3198,7 @@ async def test_model_access_group_counter_accumulates_across_calls_without_a_res
     counter_cache, key_cache = spend_counter_state
     await _cache_model_access_group_budget(key_cache, "premium", spend=1.0, max_budget=25.0)
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     counter_key = model_access_group_spend_counter_key("premium")
 
@@ -3224,7 +3224,7 @@ async def test_reserved_model_access_group_is_not_charged_twice(spend_counter_st
     counter_key = model_access_group_spend_counter_key("premium")
     assert counter_cache.in_memory_cache.get_cache(key=counter_key) == pytest.approx(1.6)
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,
@@ -3254,7 +3254,7 @@ async def test_unreserved_model_access_group_is_charged_alongside_a_reserved_one
     reservation = await _reserve_for_model_access_groups(key_cache, ["premium", "starter"], estimate=0.6)
     assert [entry["entity_id"] for entry in reservation["entries"]] == ["premium"]
 
-    from litellm.proxy.proxy_server import increment_spend_counters
+    from token_iq.gateway.proxy.proxy_server import increment_spend_counters
 
     await increment_spend_counters(
         token=None,

@@ -28,9 +28,9 @@ These tests exercise the real public entry points (not the private
 
 
 
-import litellm
-from litellm import stream_chunk_builder
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+from token_iq import gateway as litellm
+from token_iq.gateway import stream_chunk_builder
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
 ANTHROPIC_MODEL = "anthropic/claude-sonnet-4-5-20250929"
 

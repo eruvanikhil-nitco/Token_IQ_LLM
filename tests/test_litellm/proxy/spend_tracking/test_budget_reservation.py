@@ -2,11 +2,11 @@ from typing import Final
 
 import pytest
 
-from litellm.caching import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-from litellm.proxy.spend_tracking.budget_reservation import reserve_budget_for_request
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.caching import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from token_iq.gateway.proxy.spend_tracking.budget_reservation import reserve_budget_for_request
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 TOKEN_COUNTING_ROUTES: Final = (
     "/responses/input_tokens",

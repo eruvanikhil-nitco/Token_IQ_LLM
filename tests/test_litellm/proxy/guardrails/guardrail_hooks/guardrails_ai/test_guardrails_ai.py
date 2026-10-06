@@ -4,18 +4,18 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.guardrails_ai.guardrails_ai import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.guardrails_ai.guardrails_ai import (
     GuardrailsAI,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 
 @pytest.mark.asyncio
 async def test_guardrails_ai_process_input():
     """Test the process_input method of GuardrailsAI with various scenarios"""
-    from litellm.proxy.guardrails.guardrail_hooks.guardrails_ai.guardrails_ai import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.guardrails_ai.guardrails_ai import (
         GuardrailsAIResponse,
     )
 
@@ -83,7 +83,7 @@ async def test_guardrails_ai_process_input():
 
     # Test case 4: Messages with no user text (get_last_user_message returns None)
     with patch(
-        "litellm.litellm_core_utils.prompt_templates.common_utils.get_last_user_message",
+        "token_iq.gateway.core_utils.prompt_templates.common_utils.get_last_user_message",
         return_value=None,
     ):
         data = {

@@ -15,8 +15,8 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 MODEL = "bedrock/mantle/anthropic.claude-mythos-preview"
 REGION = "us-east-1"

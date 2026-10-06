@@ -5,7 +5,7 @@ Regression test for https://github.com/BerriAI/litellm/issues/30424
 """
 from unittest.mock import MagicMock
 
-from litellm.caching.redis_cache import RedisCache
+from token_iq.gateway.caching.redis_cache import RedisCache
 
 
 def test_check_and_fix_namespace_with_none_key():

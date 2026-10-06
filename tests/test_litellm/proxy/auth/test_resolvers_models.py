@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from litellm.proxy.auth.auth_method import AuthMethod
-from litellm.proxy.auth.resolvers.models import (
+from token_iq.gateway.proxy.auth.auth_method import AuthMethod
+from token_iq.gateway.proxy.auth.resolvers.models import (
     EndUserIdentity,
     Principal,
     PrincipalType,
@@ -12,7 +12,7 @@ from litellm.proxy.auth.resolvers.models import (
     TeamIdentity,
     UserIdentity,
 )
-from litellm.proxy.auth.roles import Role, TeamRole
+from token_iq.gateway.proxy.auth.roles import Role, TeamRole
 
 
 def _principal() -> Principal:

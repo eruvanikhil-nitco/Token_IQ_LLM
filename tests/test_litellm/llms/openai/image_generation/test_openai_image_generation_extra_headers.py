@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 import pytest
 
 
-from litellm.llms.openai.openai import OpenAIChatCompletion
+from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 
 
 @pytest.fixture
@@ -233,7 +233,7 @@ class TestImageGenerationEntryPointHeaders:
     @pytest.mark.asyncio
     async def test_extra_headers_reach_openai_provider(self):
         """End-to-end: extra_headers from litellm.aimage_generation() reach OpenAI images.generate()."""
-        import litellm
+        from token_iq import gateway as litellm
 
         mock_image_data = MagicMock()
         mock_image_data.model_dump.return_value = {

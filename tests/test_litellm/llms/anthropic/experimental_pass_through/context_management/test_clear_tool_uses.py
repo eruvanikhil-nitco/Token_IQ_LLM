@@ -4,10 +4,10 @@ Unit tests for the in-gateway `clear_tool_uses_20250919` polyfill editor.
 
 from copy import deepcopy
 
-from litellm.llms.anthropic.experimental_pass_through.context_management.constants import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
     CLEARED_TOOL_RESULT_PLACEHOLDER,
 )
-from litellm.llms.anthropic.experimental_pass_through.context_management.editors.clear_tool_uses import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.clear_tool_uses import (
     apply_clear_tool_uses_20250919,
 )
 

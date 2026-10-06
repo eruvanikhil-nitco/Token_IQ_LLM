@@ -1,7 +1,7 @@
 """
 Mocked tests for Vertex AI Gemma Models
 
-Maps to: litellm/llms/vertex_ai/vertex_gemma_models/transformation.py
+Maps to: token_iq/gateway/llms/vertex_ai/vertex_gemma_models/transformation.py
 """
 
 import json
@@ -9,13 +9,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.fixture(autouse=True)
 def _reset_litellm_http_client_cache():
     """Ensure each test gets a fresh async HTTP client mock."""
-    from litellm import in_memory_llm_clients_cache
+    from token_iq.gateway import in_memory_llm_clients_cache
 
     in_memory_llm_clients_cache.flush_cache()
 
@@ -162,9 +162,9 @@ class TestVertexGemmaCompletion:
 
         # Mock the async HTTP handler and Vertex authentication
         with (
-            patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "PROJECT_ID"),
             ),
         ):
@@ -238,7 +238,7 @@ class TestVertexGemmaCompletion:
 
         Expected: Proper error handling when 'predictions' field is missing
         """
-        from litellm.exceptions import BadRequestError
+        from token_iq.gateway.exceptions import BadRequestError
 
         # Invalid response without predictions field
         invalid_response = {
@@ -247,9 +247,9 @@ class TestVertexGemmaCompletion:
         }
 
         with (
-            patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "test-project"),
             ),
         ):
@@ -282,7 +282,7 @@ class TestVertexGemmaCompletion:
         1. Request body does NOT include 'stream' parameter (model doesn't support it)
         2. Response returns a MockResponseIterator that yields chunks
         """
-        from litellm.llms.base_llm.base_model_iterator import MockResponseIterator
+        from token_iq.gateway.llms.base_llm.base_model_iterator import MockResponseIterator
 
         # Mock Vertex response
         mock_vertex_response = {
@@ -320,9 +320,9 @@ class TestVertexGemmaCompletion:
         }
 
         with (
-            patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "PROJECT_ID"),
             ),
         ):
@@ -414,9 +414,9 @@ class TestVertexGemmaCompletion:
         }
 
         with (
-            patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "PROJECT_ID"),
             ),
         ):
@@ -497,9 +497,9 @@ class TestVertexGemmaCompletion:
         }
 
         with (
-            patch("litellm.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "PROJECT_ID"),
             ),
         ):
@@ -541,7 +541,7 @@ class TestVertexGemmaCompletion:
         `context_management` is stripped from `optional_params` regardless of
         how it was supplied to the transformation layer.
         """
-        from litellm.llms.vertex_ai.vertex_gemma_models.transformation import (
+        from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation import (
             VertexGemmaConfig,
         )
 
@@ -580,9 +580,9 @@ class TestVertexGemmaCompletion:
         )
 
         with (
-            patch("litellm.llms.vertex_ai.vertex_gemma_models.transformation._get_httpx_client") as mock_get_client,
+            patch("token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation._get_httpx_client") as mock_get_client,
             patch(
-                "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
                 return_value=("fake-access-token", "PROJECT_ID"),
             ),
         ):
@@ -618,7 +618,7 @@ class TestVertexGemmaCompletion:
 
     def test_sync_completion_uses_provided_client(self):
         """A caller-supplied sync HTTPHandler must be routed through, not replaced."""
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         vertex_response = _make_gemma_vertex_response(content="hi from sync client")
 
@@ -629,7 +629,7 @@ class TestVertexGemmaCompletion:
         custom_client.post = Mock(return_value=mock_response)
 
         with patch(
-            "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
             return_value=("fake-access-token", "PROJECT_ID"),
         ):
             response = litellm.completion(
@@ -651,7 +651,7 @@ class TestVertexGemmaCompletion:
         be used. This also guards the entry-point `client` type accepting async
         clients, not just sync ones.
         """
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
         vertex_response = _make_gemma_vertex_response(content="hi from async client")
 
@@ -662,7 +662,7 @@ class TestVertexGemmaCompletion:
         custom_client.post = AsyncMock(return_value=mock_response)
 
         with patch(
-            "litellm.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
             return_value=("fake-access-token", "PROJECT_ID"),
         ):
             response = await litellm.acompletion(
@@ -688,11 +688,11 @@ class TestVertexGemmaCompletion:
         """
         import httpx
 
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
-        from litellm.llms.vertex_ai.vertex_gemma_models.transformation import (
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation import (
             VertexGemmaConfig,
         )
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         captured = {}
 
@@ -759,11 +759,11 @@ class TestVertexGemmaCompletion:
         import asyncio
         import httpx
 
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-        from litellm.llms.vertex_ai.vertex_gemma_models.transformation import (
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation import (
             VertexGemmaConfig,
         )
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         mock_response = Mock()
         mock_response.status_code = 200
@@ -829,11 +829,11 @@ class TestVertexGemmaCompletion:
         """Async counterpart: a raw httpx.AsyncClient transport must be honored."""
         import httpx
 
-        from litellm.llms.vertex_ai.vertex_gemma_models.transformation import (
+        from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation import (
             VertexGemmaConfig,
         )
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.types.utils import ModelResponse
 
         captured = {}
 
@@ -890,11 +890,11 @@ class TestVertexGemmaCompletion:
     async def test_async_completion_ignores_sync_client_for_backwards_compatibility(self):
         import httpx
 
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
-        from litellm.llms.vertex_ai.vertex_gemma_models.transformation import (
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.vertex_ai.vertex_gemma_models.transformation import (
             VertexGemmaConfig,
         )
-        from litellm.types.utils import ModelResponse
+        from token_iq.gateway.types.utils import ModelResponse
 
         mock_response = Mock()
         mock_response.status_code = 200

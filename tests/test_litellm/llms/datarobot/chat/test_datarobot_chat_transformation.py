@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.llms.datarobot.chat.transformation import DataRobotConfig
+from token_iq.gateway.llms.datarobot.chat.transformation import DataRobotConfig
 
 
 @patch.dict(os.environ, {}, clear=True)

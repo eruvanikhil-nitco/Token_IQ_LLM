@@ -8,7 +8,7 @@ and file proxy endpoints.
 
 from types import MappingProxyType
 
-from litellm.proxy.openai_files_endpoints.common_utils import (
+from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     decode_model_from_file_id,
     encode_file_id_with_model,
     get_original_file_id,

@@ -10,7 +10,7 @@ import json
 from types import SimpleNamespace
 from typing import Any, Dict
 
-from litellm.proxy._experimental.mcp_server.sampling_handler import (
+from token_iq.gateway.proxy._experimental.mcp_server.sampling_handler import (
     _convert_mcp_messages_to_openai,
     _convert_single_content,
 )

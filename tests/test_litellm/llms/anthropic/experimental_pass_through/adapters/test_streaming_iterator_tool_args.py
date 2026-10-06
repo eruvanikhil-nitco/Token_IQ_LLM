@@ -14,10 +14,10 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from litellm.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.streaming_iterator import (
     AnthropicStreamWrapper,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionDeltaToolCall,
     Delta,
     Function,

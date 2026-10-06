@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app
 
 client = TestClient(app)
 
@@ -45,7 +45,7 @@ def internal_user_auth():
 @pytest.fixture
 def mock_audit_log(monkeypatch):
     audit_mock = AsyncMock(return_value=None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.create_config_audit_log", audit_mock)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.create_config_audit_log", audit_mock)
     return audit_mock
 
 
@@ -53,14 +53,14 @@ def _mock_prisma(monkeypatch, record=None):
     mock_prisma = MagicMock()
     mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=record)
     mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     return mock_prisma
 
 
 class TestGetUserBanner:
     def test_requires_auth(self, monkeypatch):
         _mock_prisma(monkeypatch)
-        monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-1234")
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-1234")
         response = client.get("/get/user_banner")
         assert response.status_code in (401, 403)
 
@@ -93,7 +93,7 @@ class TestGetUserBanner:
         assert response.json() == DISABLED_BANNER
 
     def test_no_database_returns_disabled_banner(self, admin_auth, monkeypatch):
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
         response = client.get("/get/user_banner")
         assert response.status_code == 200
         assert response.json() == DISABLED_BANNER

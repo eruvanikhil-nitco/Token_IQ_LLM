@@ -11,23 +11,23 @@ import pytest
 from fastapi import HTTPException
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.exceptions import ModifyResponseException
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.constants import BEDROCK_APPLY_GUARDRAIL_CHUNK_BUDGET_CHARS
-from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.exceptions import ModifyResponseException
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.constants import BEDROCK_APPLY_GUARDRAIL_CHUNK_BUDGET_CHARS
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     BedrockContentChunkResult,
     BedrockGuardrail,
     _redact_pii_matches,
 )
-from litellm.proxy.utils import ProxyLogging
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     BedrockContentItem,
     BedrockTextContent,
 )
-from litellm.types.utils import CallTypes, ModelResponse
+from token_iq.gateway.types.utils import CallTypes, ModelResponse
 
 
 @pytest.mark.asyncio
@@ -238,7 +238,7 @@ async def test_bedrock_guardrail_logging_uses_redacted_response():
     # Mock AWS-related methods to ensure test runs without external dependencies
     with (
         patch.object(guardrail.async_handler, "post", new_callable=AsyncMock) as mock_post,
-        patch("litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.debug") as mock_debug,
+        patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.debug") as mock_debug,
         patch.object(guardrail, "_load_credentials", return_value=(mock_credentials, "us-east-1")) as mock_load_creds,
         patch.object(guardrail, "_prepare_request", return_value=MagicMock()) as mock_prepare_request,
     ):
@@ -2386,7 +2386,7 @@ def _grounding_messages() -> list:
 
 
 def _model_response(content: str) -> ModelResponse:
-    from litellm.types.utils import Choices, Message, ModelResponse
+    from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
     return ModelResponse(
         choices=[
@@ -2619,7 +2619,7 @@ def _blocked_bedrock_httpx_response() -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_make_bedrock_api_request_block_raises_modify_response_when_flag_set():
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -2691,7 +2691,7 @@ async def test_async_pre_call_hook_propagates_modify_response_on_block():
     message. Before LIT-4186 the exception was swallowed and only data
     ["mock_response"] was mutated, which the unified pre_call path never read
     (surfaced as HTTP 500)."""
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -2737,7 +2737,7 @@ async def test_async_moderation_hook_propagates_modify_response_on_block():
     task so the surrounding asyncio.gather cancels the LLM call, instead of
     the old behavior of swallowing the block and letting the model call proceed
     (LIT-4186 symptom 2: silent bypass, model billed)."""
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -2777,7 +2777,7 @@ async def test_async_post_call_success_hook_attaches_original_response_on_block(
     """post_call: block must raise ModifyResponseException and attach the LLM
     response to `original_response` so the synthetic block reply reports the
     upstream call's real token usage instead of zero."""
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -2818,7 +2818,7 @@ async def test_apply_guardrail_propagates_modify_response_on_block():
     """apply_guardrail (unified path used by pre_call / /apply_guardrail
     endpoint) must let ModifyResponseException propagate as-is so the endpoint
     handler catches it and returns a 200."""
-    from litellm.exceptions import ModifyResponseException
+    from token_iq.gateway.exceptions import ModifyResponseException
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -3140,7 +3140,7 @@ async def test_streaming_post_call_block_yields_synthetic_stream_not_raise():
     it into an SSE 500 by letting ModifyResponseException escape the streaming
     generator. This test locks in the correct streaming contract.
     """
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -3201,7 +3201,7 @@ async def test_streaming_post_call_block_preserves_upstream_usage():
     onto the synthetic ModelResponse directly since the exception can't escape
     the SSE generator. Without this, clients see accurate billing on
     non-streaming blocks and zero on streaming blocks -- silent revenue leak."""
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
 
     guardrail = BedrockGuardrail(
         guardrail_name="test-bedrock-guard",
@@ -3281,10 +3281,10 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
     mocked to raise ModifyResponseException, so a revert of the fix in
     proxy_server.py causes this test to fail.
     """
-    import litellm
-    from litellm.exceptions import ModifyResponseException
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.proxy_server import chat_completion
+    from token_iq import gateway as litellm
+    from token_iq.gateway.exceptions import ModifyResponseException
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.proxy_server import chat_completion
 
     fake_logging_obj = MagicMock()
     fake_logging_obj.model_call_details = {"litellm_params": {}}
@@ -3310,7 +3310,7 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
 
     async def _fake_post_call_failure_hook(**_kwargs):
         # Match production: pop the logging obj from request_data before
-        # callbacks iterate (litellm/proxy/utils.py: "Remove before callbacks
+        # callbacks iterate (token_iq/gateway/proxy/utils.py: "Remove before callbacks
         # iterate — not serialisable").
         _kwargs["request_data"].pop("litellm_logging_obj", None)
 
@@ -3328,10 +3328,10 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
         raise exc
 
     with (
-        patch("litellm.proxy.proxy_server._read_request_body", AsyncMock(return_value=request_data)),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server._read_request_body", AsyncMock(return_value=request_data)),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
         patch(
-            "litellm.proxy.proxy_server.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+            "token_iq.gateway.proxy.proxy_server.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             _raise_modify_response,
         ),
         patch.object(litellm.CustomStreamWrapper, "__init__", _patched_init),
@@ -3935,7 +3935,7 @@ async def test_apply_guardrail_chunk_retries_after_throttling_then_succeeds():
         patch.object(guardrail, "_load_credentials", return_value=(mock_credentials, "us-east-1")),
         patch.object(guardrail, "_prepare_request", return_value=MagicMock()),
         patch(
-            "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.asyncio.sleep",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.asyncio.sleep",
             new_callable=AsyncMock,
         ) as mock_sleep,
     ):
@@ -4374,7 +4374,7 @@ async def test_apply_guardrail_too_large_reported_as_429_bisects_without_burning
         patch.object(guardrail, "_load_credentials", return_value=(mock_credentials, "us-east-1")),
         patch.object(guardrail, "_prepare_request", return_value=MagicMock()),
         patch(
-            "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.asyncio.sleep",
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.asyncio.sleep",
             new_callable=AsyncMock,
         ) as mock_sleep,
     ):
@@ -4694,21 +4694,21 @@ class TestBedrockOnlyScanNewMessages:
         proxy_logging = MagicMock()
         proxy_logging.internal_usage_cache.dual_cache = shared
 
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj", proxy_logging):
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", proxy_logging):
             assert guardrail._incremental_scan_cache() is shared
 
     def test_incremental_scan_cache_falls_back_when_proxy_logging_missing(self):
-        from litellm.integrations.custom_guardrail import dc as fallback_cache
+        from token_iq.gateway.integrations.custom_guardrail import dc as fallback_cache
 
         guardrail = self._guardrail()
-        with patch("litellm.proxy.proxy_server.proxy_logging_obj", None):
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", None):
             assert guardrail._incremental_scan_cache() is fallback_cache
 
     def test_incremental_scan_cache_falls_back_when_proxy_not_importable(self):
-        from litellm.integrations.custom_guardrail import dc as fallback_cache
+        from token_iq.gateway.integrations.custom_guardrail import dc as fallback_cache
 
         guardrail = self._guardrail()
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": None}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": None}):
             assert guardrail._incremental_scan_cache() is fallback_cache
 
     @pytest.mark.asyncio
@@ -4919,7 +4919,7 @@ class TestScanOnlyToolResultsWithLatestRoleFilter:
         with (
             patch.object(guardrail, "make_bedrock_api_request", new_callable=AsyncMock) as mock_api,
             patch(
-                "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.warning"
+                "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.verbose_proxy_logger.warning"
             ) as mock_warning,
         ):
             result = await guardrail.apply_guardrail(
@@ -5327,8 +5327,8 @@ def test_load_credentials_assumes_role_with_external_id():
 
 def test_initialize_bedrock_forwards_aws_external_id():
     """aws_external_id configured on the guardrail must survive LitellmParams and the initializer."""
-    from litellm.proxy.guardrails.guardrail_initializers import initialize_bedrock
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.proxy.guardrails.guardrail_initializers import initialize_bedrock
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     litellm_params = LitellmParams(
         guardrail="bedrock",
@@ -5364,7 +5364,7 @@ def _chat_chunk(content: str, finish_reason: str | None) -> litellm.ModelRespons
 
 
 def _streaming_litellm_params(**extras):
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     return LitellmParams(
         guardrail="bedrock",
@@ -5376,7 +5376,7 @@ def _streaming_litellm_params(**extras):
 
 
 def test_initialize_bedrock_wires_streaming_flags():
-    from litellm.proxy.guardrails.guardrail_initializers import initialize_bedrock
+    from token_iq.gateway.proxy.guardrails.guardrail_initializers import initialize_bedrock
 
     configured = initialize_bedrock(
         _streaming_litellm_params(
@@ -5404,7 +5404,7 @@ def test_initialize_bedrock_wires_streaming_flags():
 def test_initialize_bedrock_rejects_non_positive_sampling_rate():
     from pydantic import ValidationError
 
-    from litellm.proxy.guardrails.guardrail_initializers import initialize_bedrock
+    from token_iq.gateway.proxy.guardrails.guardrail_initializers import initialize_bedrock
 
     with pytest.raises(ValidationError):
         initialize_bedrock(
@@ -5527,14 +5527,14 @@ async def test_streaming_end_of_stream_block_emits_error_frame_instead_of_trunca
     error frame instead. The finish chunk is withheld while the end-of-stream
     scan runs, so on a block it is dropped rather than relayed before the
     frame."""
-    from litellm.llms import load_guardrail_translation_mappings
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail import (
+    from token_iq.gateway.llms import load_guardrail_translation_mappings
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail import (
         unified_guardrail as unified_module,
     )
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
         UnifiedLLMGuardrails,
     )
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
     guardrail = BedrockGuardrail(
         guardrailIdentifier="test-guardrail",
@@ -5596,7 +5596,7 @@ async def test_streaming_end_of_stream_block_emits_error_frame_instead_of_trunca
 
 
 def _responses_stream_events() -> list:
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseCompletedEvent,
         ResponsesAPIResponse,
@@ -5673,7 +5673,7 @@ async def test_responses_api_stream_scans_output_and_replays_buffered_events():
 
 
 def _responses_failed_stream_events() -> list:
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         OutputTextDeltaEvent,
         ResponseFailedEvent,
         ResponsesAPIResponse,
@@ -5749,7 +5749,7 @@ async def test_responses_api_failed_stream_scans_delta_text_before_replay():
 async def test_apply_guardrail_debug_log_masks_signed_request_headers():
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     session_token = "FakeSessionTokenValueThatMustNeverAppearInLogs1234567890"
     guardrail = BedrockGuardrail(

@@ -124,7 +124,7 @@ if __name__ == "__main__":
         print("🚨 USE safe_deep_copy() INSTEAD OF copy.deepcopy() FOR KWARGS!")
         print("🚨 Available imports:")
         print("   - from litellm.proxy.utils import safe_deep_copy")
-        print("   - from litellm.litellm_core_utils.core_helpers import safe_deep_copy")
+        print("   - from litellm.core_utils.core_helpers import safe_deep_copy")
         print("=" * 80)
 
         # Get first violation for the exception message

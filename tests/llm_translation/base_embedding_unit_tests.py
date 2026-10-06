@@ -6,11 +6,11 @@ from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
 
-import litellm
-from litellm import embedding
-from litellm.exceptions import BadRequestError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway import embedding
+from token_iq.gateway.exceptions import BadRequestError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.utils import (
     CustomStreamWrapper,
     get_supported_openai_params,
     get_optional_params,
@@ -78,7 +78,7 @@ class BaseLLMEmbeddingTest(ABC):
 
     def test_image_embedding(self):
         litellm.set_verbose = True
-        from litellm.utils import supports_embedding_image_input
+        from token_iq.gateway.utils import supports_embedding_image_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()

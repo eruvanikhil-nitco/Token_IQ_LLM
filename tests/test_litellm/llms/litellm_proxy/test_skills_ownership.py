@@ -2,19 +2,19 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from litellm.llms.litellm_proxy.skills import handler as skills_handler
-from litellm.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
-from litellm.llms.litellm_proxy.skills.transformation import (
+from token_iq.gateway.llms.litellm_proxy.skills import handler as skills_handler
+from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+from token_iq.gateway.llms.litellm_proxy.skills.transformation import (
     LiteLLMSkillsTransformationHandler,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_SkillsTable,
     LitellmUserRoles,
     NewSkillRequest,
     UserAPIKeyAuth,
 )
-from litellm.proxy.common_utils import resource_ownership
-from litellm.skills import main as skills_main
+from token_iq.gateway.proxy.common_utils import resource_ownership
+from token_iq.gateway.skills import main as skills_main
 
 
 @pytest.fixture(autouse=True)
@@ -383,7 +383,7 @@ async def test_list_skills_excludes_unowned_for_non_admin(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_should_scope_skill_injection_fetch_to_authenticated_user(monkeypatch):
-    from litellm.proxy.hooks.litellm_skills.main import SkillsInjectionHook
+    from token_iq.gateway.proxy.hooks.litellm_skills.main import SkillsInjectionHook
 
     fetch = AsyncMock(return_value=None)
     monkeypatch.setattr(LiteLLMSkillsHandler, "fetch_skill_from_db", fetch)

@@ -12,7 +12,7 @@ import httpx
 import pytest
 
 
-from litellm.llms.custom_httpx.aiohttp_transport import (
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import (
     AiohttpResponseStream,
     AiohttpTransport,
     LiteLLMAiohttpTransport,
@@ -909,7 +909,7 @@ async def test_fallback_recreate_closes_previous_session():
     transport.client = old_session
 
     with patch(
-        "litellm.llms.custom_httpx.aiohttp_transport.asyncio.get_running_loop",
+        "token_iq.gateway.llms.custom_httpx.aiohttp_transport.asyncio.get_running_loop",
         side_effect=_flaky_get_running_loop_factory(),
     ):
         new_session = transport._get_valid_client_session()
@@ -941,7 +941,7 @@ async def test_replaced_session_emits_no_unclosed_warnings():
     transport.client = old_session
 
     with patch(
-        "litellm.llms.custom_httpx.aiohttp_transport.asyncio.get_running_loop",
+        "token_iq.gateway.llms.custom_httpx.aiohttp_transport.asyncio.get_running_loop",
         side_effect=_flaky_get_running_loop_factory(),
     ):
         new_session = transport._get_valid_client_session()

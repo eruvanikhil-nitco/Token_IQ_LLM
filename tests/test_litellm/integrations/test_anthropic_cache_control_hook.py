@@ -12,14 +12,14 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.integrations.anthropic_cache_control_hook import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.anthropic_cache_control_hook import (
     AnthropicCacheControlHook,
     supports_openai_prompt_cache_breakpoint,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.types.llms.openai import AllMessageValues
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 @pytest.fixture(autouse=True)
@@ -338,7 +338,7 @@ async def test_anthropic_cache_control_hook_out_of_bounds_logging(monkeypatch: p
         client = AsyncHTTPHandler()
 
         # Mock the verbose_logger to capture warning calls
-        with patch("litellm.integrations.anthropic_cache_control_hook.verbose_logger") as mock_logger:
+        with patch("token_iq.gateway.integrations.anthropic_cache_control_hook.verbose_logger") as mock_logger:
             with patch.object(client, "post", return_value=mock_response) as mock_post:
                 messages = [
                     {"role": "user", "content": "Message 1"},
@@ -400,7 +400,7 @@ async def test_anthropic_cache_control_hook_negative_out_of_bounds_logging(monke
         client = AsyncHTTPHandler()
 
         # Mock the verbose_logger to capture warning calls
-        with patch("litellm.integrations.anthropic_cache_control_hook.verbose_logger") as mock_logger:
+        with patch("token_iq.gateway.integrations.anthropic_cache_control_hook.verbose_logger") as mock_logger:
             with patch.object(client, "post", return_value=mock_response) as mock_post:
                 messages = [
                     {"role": "user", "content": "Single message"},
@@ -878,10 +878,10 @@ def test_gemini_cache_control_injection_points_detected():
 
     Fixes GitHub issue #18519.
     """
-    from litellm.llms.vertex_ai.context_caching.transformation import (
+    from token_iq.gateway.llms.vertex_ai.context_caching.transformation import (
         separate_cached_messages,
     )
-    from litellm.utils import is_cached_message
+    from token_iq.gateway.utils import is_cached_message
 
     hook = AnthropicCacheControlHook()
 
@@ -927,10 +927,10 @@ def test_gemini_cache_control_injection_list_content_detected():
     Test that cache_control_injection_points work for Gemini models
     when the message content is a list (not string).
     """
-    from litellm.llms.vertex_ai.context_caching.transformation import (
+    from token_iq.gateway.llms.vertex_ai.context_caching.transformation import (
         separate_cached_messages,
     )
-    from litellm.utils import is_cached_message
+    from token_iq.gateway.utils import is_cached_message
 
     hook = AnthropicCacheControlHook()
 
@@ -1593,14 +1593,14 @@ class TestEnableAnthropicPromptCaching:
     @pytest.mark.parametrize("model, provider", [("gpt-4o", "openai"), ("gemini-2.0-flash", "gemini")])
     def test_non_anthropic_providers_never_injected(self, monkeypatch, model, provider):
         """These report supports_prompt_caching=True but never consume cache_control markers."""
-        from litellm.utils import supports_prompt_caching
+        from token_iq.gateway.utils import supports_prompt_caching
 
         monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
         assert supports_prompt_caching(model=model, custom_llm_provider=provider) is True
         assert self._points(model=model, provider=provider) == []
 
     def test_databricks_claude_not_injected_despite_caching_support(self, monkeypatch, local_model_cost_map):
-        from litellm.utils import supports_prompt_caching
+        from token_iq.gateway.utils import supports_prompt_caching
 
         monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
         model = "databricks/databricks-claude-sonnet-4-5"
@@ -1617,7 +1617,7 @@ class TestEnableAnthropicPromptCaching:
         breakpoints make it reject the whole request ("You invoked an unsupported model
         or your request did not allow prompt caching"), so supports_prompt_caching stays
         false, while implicit cache hits still bill at the cache-read rate."""
-        from litellm.utils import supports_prompt_caching
+        from token_iq.gateway.utils import supports_prompt_caching
 
         monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
         assert supports_prompt_caching(model=model, custom_llm_provider="bedrock") is False
@@ -2748,7 +2748,7 @@ class TestPromptCacheBreakpointCapability:
         litellm.utils._cached_get_model_info_helper.cache_clear()
 
     def test_public_helper_reads_the_model_map(self):
-        from litellm.utils import supports_prompt_cache_breakpoint
+        from token_iq.gateway.utils import supports_prompt_cache_breakpoint
 
         assert supports_prompt_cache_breakpoint("gpt-5.6") is True
         assert supports_prompt_cache_breakpoint("openai/gpt-5.6-sol") is True

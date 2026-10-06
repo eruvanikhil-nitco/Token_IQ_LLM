@@ -15,7 +15,7 @@ See: https://github.com/BerriAI/litellm/issues/16353
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestOpenRouterNativeModelRouting:

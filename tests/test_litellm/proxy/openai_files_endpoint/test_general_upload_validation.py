@@ -2,8 +2,8 @@ import io
 
 import pytest
 
-from litellm.proxy._types import ProxyException
-from litellm.proxy.openai_files_endpoints.general_upload_validation import (
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.openai_files_endpoints.general_upload_validation import (
     MB,
     UploadedFileBlockedExtension,
     UploadedFileTooLarge,

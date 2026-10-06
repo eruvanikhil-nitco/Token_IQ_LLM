@@ -2,10 +2,10 @@ import asyncio
 from unittest.mock import Mock, patch, AsyncMock
 import pytest
 from fastapi import Request
-from litellm.proxy.utils import _get_redoc_url, _get_docs_url
+from token_iq.gateway.proxy.utils import _get_redoc_url, _get_docs_url
 from datetime import datetime
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -21,10 +21,10 @@ async def test_disable_spend_logs():
     mock_prisma_client._spend_log_transactions_lock = asyncio.Lock()
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
     ):
-        from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+        from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 
         db_spend_update_writer = DBSpendUpdateWriter()
 

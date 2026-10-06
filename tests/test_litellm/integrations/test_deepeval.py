@@ -1,19 +1,19 @@
 import os
 import unittest
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from litellm.integrations.deepeval.api import Endpoints, HttpMethods
-from litellm.integrations.deepeval.deepeval import DeepEvalLogger
-from litellm.integrations.deepeval.types import SpanApiType, TraceSpanApiStatus
+from token_iq.gateway.integrations.deepeval.api import Endpoints, HttpMethods
+from token_iq.gateway.integrations.deepeval.deepeval import DeepEvalLogger
+from token_iq.gateway.integrations.deepeval.types import SpanApiType, TraceSpanApiStatus
 
 
 class TestDeepEvalLogger(unittest.TestCase):
     @patch.dict(os.environ, {"CONFIDENT_API_KEY": "test-api-key"})
     def setUp(self):
         # Mock the Api class before initializing DeepEvalLogger
-        self.api_patcher = patch("litellm.integrations.deepeval.deepeval.Api")
+        self.api_patcher = patch("token_iq.gateway.integrations.deepeval.deepeval.Api")
         self.mock_api_class = self.api_patcher.start()
         self.mock_api_instance = MagicMock()
         self.mock_api_class.return_value = self.mock_api_instance

@@ -10,13 +10,13 @@ import os
 import pytest
 
 
-from litellm.litellm_core_utils.fallback_generalizations import (
+from token_iq.gateway.core_utils.fallback_generalizations import (
     get_fallback_generalization_rules,
     match_capability_generalizations,
     match_routing_generalization,
     set_fallback_generalizations,
 )
-from litellm.litellm_core_utils.get_model_cost_map import (
+from token_iq.gateway.core_utils.get_model_cost_map import (
     FALLBACK_GENERALIZATIONS_KEY,
     GetModelCostMap,
     _count_model_entries,
@@ -250,7 +250,7 @@ def test_get_model_cost_map_stamps_loaded_at(monkeypatch):
     would make manual reload requests race the proxy's startup"""
     from datetime import datetime, timezone
 
-    from litellm.litellm_core_utils import get_model_cost_map as module
+    from token_iq.gateway.core_utils import get_model_cost_map as module
 
     monkeypatch.setattr(module._cost_map_source_info, "loaded_at", None)
 
@@ -270,7 +270,7 @@ import random
 
 import httpx
 
-from litellm.litellm_core_utils.get_model_cost_map import (
+from token_iq.gateway.core_utils.get_model_cost_map import (
     ModelCostMapReloaded,
     ModelCostMapReloadUnavailable,
     refetch_model_cost_map,
@@ -346,7 +346,7 @@ class TestPricesAreLocalOnly:
         monkeypatch.setattr(socket.socket, "connect_ex", refuse)
         monkeypatch.setattr(socket, "create_connection", refuse)
 
-        from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+        from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
         loaded = get_model_cost_map()
         assert len(loaded) > 1000, "the bundled file should hold the full price list"
@@ -368,7 +368,7 @@ class TestPricesAreLocalOnly:
     def test_a_model_with_no_price_is_absent_rather_than_free(self):
         """A missing model must not read as zero. Zero turns real spend into free usage and
         nothing downstream can tell the difference."""
-        from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+        from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
         loaded = get_model_cost_map()
         assert "a-model-that-does-not-exist-anywhere" not in loaded
@@ -379,7 +379,7 @@ class TestPricesAreLocalOnly:
         import pathlib
 
         source = pathlib.Path(
-            "litellm/litellm_core_utils/get_model_cost_map.py"
+            "token_iq/gateway/core_utils/get_model_cost_map.py"
         ).read_text(encoding="utf-8")
         assert "LITELLM_LOCAL_MODEL_COST_MAP" not in source
 
@@ -387,7 +387,7 @@ class TestPricesAreLocalOnly:
         import pathlib
 
         source = pathlib.Path(
-            "litellm/litellm_core_utils/get_model_cost_map.py"
+            "token_iq/gateway/core_utils/get_model_cost_map.py"
         ).read_text(encoding="utf-8")
         for forbidden in ("raw.githubusercontent.com", "BerriAI"):
             assert forbidden not in source, f"{forbidden} still referenced by the price loader"

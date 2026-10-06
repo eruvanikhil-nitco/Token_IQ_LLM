@@ -13,14 +13,14 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.gigachat.chat.transformation import (
+from token_iq.gateway.llms.gigachat.chat.transformation import (
     GigaChatConfig,
     GigaChatError,
     is_valid_json,
 )
-from litellm.types.utils import ModelResponse, Usage
+from token_iq.gateway.types.utils import ModelResponse, Usage
 
-TRANSFORM_MODULE = "litellm.llms.gigachat.chat.transformation"
+TRANSFORM_MODULE = "token_iq.gateway.llms.gigachat.chat.transformation"
 
 
 def _make_httpx_response(
@@ -833,7 +833,7 @@ class TestGetModelResponseIterator:
         self.config = GigaChatConfig()
 
     def test_returns_gigachat_iterator_sync(self):
-        from litellm.llms.gigachat.chat.streaming import (
+        from token_iq.gateway.llms.gigachat.chat.streaming import (
             GigaChatModelResponseIterator,
         )
 

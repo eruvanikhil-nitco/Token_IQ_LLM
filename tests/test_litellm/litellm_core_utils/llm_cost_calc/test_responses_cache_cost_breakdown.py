@@ -17,10 +17,10 @@ from datetime import datetime
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging
-from litellm.responses.utils import ResponseAPILoggingUtils
-from litellm.types.utils import Choices, Message, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging
+from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 MODEL = "gpt-5.6"
 

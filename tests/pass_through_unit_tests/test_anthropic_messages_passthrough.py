@@ -6,20 +6,20 @@ import asyncio
 import unittest.mock
 from unittest.mock import AsyncMock, MagicMock
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from dotenv import load_dotenv
-from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
     anthropic_messages,
 )
 
 from typing import Optional
-from litellm.types.utils import StandardLoggingPayload
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.router import Router
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.router import Router
 import importlib
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from base_anthropic_unified_messages_test import BaseAnthropicMessagesTest
 
 # Load environment variables
@@ -38,8 +38,8 @@ def event_loop():
 def setup_and_teardown(event_loop):  # Add event_loop as a dependency
     curr_dir = os.getcwd()
 
-    import litellm
-    from litellm import Router
+    from token_iq import gateway as litellm
+    from token_iq.gateway import Router
 
     importlib.reload(litellm)
 
@@ -327,7 +327,7 @@ async def test_anthropic_messages_litellm_router_latency_metadata_tracking():
     Test the anthropic_messages with routing strategy and verify that _latency_per_deployment
     field is passed in litellm_metadata when calling litellm.anthropic_messages
     """
-    with unittest.mock.patch("litellm.anthropic_messages") as mock_anthropic_messages:
+    with unittest.mock.patch("token_iq.gateway.anthropic_messages") as mock_anthropic_messages:
         # Mock the return value
         mock_response = {
             "id": "msg_123456",
@@ -588,7 +588,7 @@ async def test_anthropic_messages_with_extra_headers():
 #     they worked correctly for Chat Completions API with Bedrock's Converse API.
 #     """
 #     from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-#     from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+#     from litellm.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 #     from litellm.types.router import GenericLiteLLMParams
 
 #     handler = BaseLLMHTTPHandler()
@@ -741,7 +741,7 @@ async def test_anthropic_messages_bedrock_credentials_passthrough():
         with unittest.mock.patch("botocore.auth.SigV4Auth.add_auth"):
             # Set up mock for AsyncHTTPHandler.post to avoid actual API calls
             with unittest.mock.patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
             ) as mock_post:
                 # Configure mock response
                 mock_response = unittest.mock.MagicMock()

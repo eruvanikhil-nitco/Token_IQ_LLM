@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import polars as pl
 
-from litellm.integrations.focus.transformer import FocusTransformer
+from token_iq.gateway.integrations.focus.transformer import FocusTransformer
 
 
 def _base_row(**overrides) -> dict:

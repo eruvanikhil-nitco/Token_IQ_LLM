@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from litellm.llms.bedrock.image_generation.image_handler import BedrockImageGeneration
+from token_iq.gateway.llms.bedrock.image_generation.image_handler import BedrockImageGeneration
 
 
 def test_bedrock_image_prepare_request_with_arn() -> None:
@@ -11,10 +11,10 @@ def test_bedrock_image_prepare_request_with_arn() -> None:
 
     with (
         patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration._get_boto_credentials_from_optional_params"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration._get_boto_credentials_from_optional_params"
         ),
         patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.get_request_headers"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.get_request_headers"
         ),
     ):
         request = image_generation._prepare_request(
@@ -41,10 +41,10 @@ def test_bedrock_image_prepare_request_without_arn() -> None:
 
     with (
         patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration._get_boto_credentials_from_optional_params"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration._get_boto_credentials_from_optional_params"
         ),
         patch(
-            "litellm.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.get_request_headers"
+            "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.get_request_headers"
         ),
     ):
         request = image_generation._prepare_request(

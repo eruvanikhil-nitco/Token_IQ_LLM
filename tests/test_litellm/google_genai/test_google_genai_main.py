@@ -10,7 +10,7 @@ import pytest
 
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_agenerate_content_stream():
     """
     from unittest.mock import AsyncMock, patch
 
-    from litellm.google_genai.main import (
+    from token_iq.gateway.google_genai.main import (
         agenerate_content_stream,
         base_llm_http_handler,
     )
@@ -78,8 +78,8 @@ def test_native_top_level_field_forwarded_to_request_body(field_name, field_valu
     """
     from unittest.mock import patch
 
-    from litellm.google_genai.main import generate_content
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.google_genai.main import generate_content
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     with patch.object(
         HTTPHandler, "post", return_value=_mock_gemini_post_response()
@@ -109,8 +109,8 @@ async def test_native_safety_settings_forwarded_async():
     native top-level fields."""
     from unittest.mock import AsyncMock, patch
 
-    from litellm.google_genai.main import agenerate_content
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.google_genai.main import agenerate_content
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     safety_settings = [
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}
@@ -141,8 +141,8 @@ def test_native_fields_coexist_with_generation_config():
     generationConfig path; both must land in their correct positions."""
     from unittest.mock import patch
 
-    from litellm.google_genai.main import generate_content
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.google_genai.main import generate_content
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     safety_settings = [
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}
@@ -171,8 +171,8 @@ def test_explicit_extra_body_overrides_native_top_level_field():
     """An explicit extra_body value takes precedence over the same top-level field."""
     from unittest.mock import patch
 
-    from litellm.google_genai.main import generate_content
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.google_genai.main import generate_content
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     native = [{"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}]
     override = [
@@ -201,8 +201,8 @@ def test_native_fields_and_system_instruction_forwarded_on_sync_stream():
     systemInstruction kwarg; without coverage a regression on either ships green."""
     from unittest.mock import patch
 
-    from litellm.google_genai.main import generate_content_stream
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.google_genai.main import generate_content_stream
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     safety_settings = [
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}
@@ -234,8 +234,8 @@ async def test_native_fields_forwarded_on_async_stream():
     :streamGenerateContent route and must forward native top-level fields too."""
     from unittest.mock import AsyncMock, patch
 
-    from litellm.google_genai.main import agenerate_content_stream
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.google_genai.main import agenerate_content_stream
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     safety_settings = [
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"}

@@ -7,15 +7,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_UserTable,
     LiteLLMRoutes,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks_organization import _user_is_org_admin
-from litellm.proxy.auth.route_checks import RouteChecks
+from token_iq.gateway.proxy.auth.auth_checks_organization import _user_is_org_admin
+from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
 
 def test_non_admin_config_update_route_rejected():
@@ -932,11 +932,11 @@ def test_virtual_key_llm_api_routes_allows_registered_pass_through_endpoints():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -998,11 +998,11 @@ def test_virtual_key_llm_api_routes_allows_non_auth_enforced_pass_through_endpoi
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -1048,11 +1048,11 @@ def test_virtual_key_llm_api_routes_denies_auth_pass_through_without_allowlist()
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -1092,11 +1092,11 @@ def test_virtual_key_llm_api_routes_uses_method_specific_auth_setting():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -1147,11 +1147,11 @@ def test_non_proxy_admin_denies_auth_pass_through_without_allowlist():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -1186,11 +1186,11 @@ def test_non_proxy_admin_allows_auth_pass_through_with_team_allowlist():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -1220,11 +1220,11 @@ def test_virtual_key_without_llm_api_routes_cannot_access_pass_through():
 
     with (
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -2319,13 +2319,13 @@ def test_route_in_additional_public_routes_wildcard_match():
     """
     Test that route_in_additonal_public_routes supports wildcard patterns.
     """
-    from litellm.proxy.auth.auth_utils import route_in_additonal_public_routes
+    from token_iq.gateway.proxy.auth.auth_utils import route_in_additonal_public_routes
 
     with (
         patch(
-            "litellm.proxy.proxy_server.general_settings", {"public_routes": ["/api/*"]}
+            "token_iq.gateway.proxy.proxy_server.general_settings", {"public_routes": ["/api/*"]}
         ),
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
     ):
         # Wildcard should match subpaths
         assert route_in_additonal_public_routes("/api/users") is True
@@ -2338,14 +2338,14 @@ def test_route_in_additional_public_routes_exact_match():
     """
     Test that route_in_additonal_public_routes supports exact matches.
     """
-    from litellm.proxy.auth.auth_utils import route_in_additonal_public_routes
+    from token_iq.gateway.proxy.auth.auth_utils import route_in_additonal_public_routes
 
     with (
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"public_routes": ["/health", "/status"]},
         ),
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
     ):
         # Exact matches should work
         assert route_in_additonal_public_routes("/health") is True
@@ -2595,7 +2595,7 @@ def test_org_admin_of_multiple_orgs_can_operate_on_both():
 
 
 # ── LIT-4221: /team/update org-context resolution from team_id ────────────────
-from litellm.proxy.auth.auth_checks_organization import (
+from token_iq.gateway.proxy.auth.auth_checks_organization import (
     add_team_org_context_to_request_body,
 )
 
@@ -2787,7 +2787,7 @@ def test_patch_team_route_has_same_reach_as_team_update():
     """/team/{team_id} is reachable by org admins (in org_admin_allowed_routes) but
     NOT by regular internal users or the role-agnostic self_managed_routes — the
     latter would open /team/new (the collision footgun) to any authenticated user."""
-    from litellm.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import LiteLLMRoutes
 
     assert RouteChecks.check_route_access(
         route="/team/abc-123", allowed_routes=LiteLLMRoutes.org_admin_allowed_routes.value
@@ -2892,8 +2892,8 @@ async def test_initialize_pass_through_registers_wildcard_for_auth_subpath():
     - Dedup: calling init twice does not duplicate entries
     - Cleanup: removing the endpoint cleans up openai_routes
     """
-    from litellm.proxy._types import LiteLLMRoutes
-    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
         InitPassThroughEndpointHelpers,
         initialize_pass_through_endpoints,
     )
@@ -2913,15 +2913,15 @@ async def test_initialize_pass_through_registers_wildcard_for_auth_subpath():
     try:
         with (
             patch(
-                "litellm.proxy.proxy_server.app",
+                "token_iq.gateway.proxy.proxy_server.app",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.proxy_server.premium_user",
+                "token_iq.gateway.proxy.proxy_server.premium_user",
                 True,
             ),
             patch(
-                "litellm.proxy.proxy_server.config_passthrough_endpoints",
+                "token_iq.gateway.proxy.proxy_server.config_passthrough_endpoints",
                 None,
             ),
         ):
@@ -2985,7 +2985,7 @@ def test_provider_name_substring_not_classified_as_llm_route(route):
     The fix uses an exact/prefix match so only routes that actually *start*
     with a passthrough prefix are allowed through.
     """
-    from litellm.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
     assert RouteChecks.is_llm_api_route(route=route) is False, (
         f"{route!r} should NOT be classified as an LLM API route — "
@@ -3009,7 +3009,7 @@ def test_provider_name_substring_not_classified_as_llm_route(route):
 )
 def test_legitimate_passthrough_routes_still_classified_as_llm_route(route):
     """Legitimate passthrough routes must still pass is_llm_api_route."""
-    from litellm.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
     assert (
         RouteChecks.is_llm_api_route(route=route) is True

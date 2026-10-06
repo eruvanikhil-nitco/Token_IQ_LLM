@@ -8,13 +8,13 @@ import pytest
 from fastapi import HTTPException
 import importlib
 
-from litellm.proxy._experimental.mcp_server.faults.list_outcomes import AggregateToolListing
-from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import AggregateToolListing
+from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
     LiteLLM_Proxy_MCP_Handler,
 )
 from typing import Any, cast
-from litellm.types.utils import ModelResponse
-from litellm.types.responses.main import OutputFunctionToolCall
+from token_iq.gateway.types.utils import ModelResponse
+from token_iq.gateway.types.responses.main import OutputFunctionToolCall
 
 
 class _DummyMCPResult:
@@ -25,7 +25,7 @@ class _DummyMCPResult:
 def _setup_mcp_call_environment(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     """Patch MCP globals so _execute_tool_calls can run in tests."""
     proxy_module = types.SimpleNamespace(proxy_logging_obj=object())
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_module)
 
     fake_manager = types.SimpleNamespace(
         get_registry=MagicMock(return_value={}),
@@ -35,7 +35,7 @@ def _setup_mcp_call_environment(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
         get_mcp_server_by_name=MagicMock(return_value=None),
     )
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
         fake_manager,
     )
     return fake_manager.call_tool
@@ -46,7 +46,7 @@ def _setup_proxy_logging(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     proxy_logging_obj = MagicMock()
     proxy_logging_obj.post_call_failure_hook = AsyncMock()
     proxy_module = types.SimpleNamespace(proxy_logging_obj=proxy_logging_obj)
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_module)
     return proxy_logging_obj.post_call_failure_hook
 
 
@@ -169,11 +169,11 @@ def test_transform_mcp_tools_to_openai_uses_chat_format(monkeypatch):
         return {"responses": True}
 
     monkeypatch.setattr(
-        "litellm.experimental_mcp_client.tools.transform_mcp_tool_to_openai_tool",
+        "token_iq.gateway.experimental_mcp_client.tools.transform_mcp_tool_to_openai_tool",
         fake_transform_chat,
     )
     monkeypatch.setattr(
-        "litellm.experimental_mcp_client.tools.transform_mcp_tool_to_openai_responses_api_tool",
+        "token_iq.gateway.experimental_mcp_client.tools.transform_mcp_tool_to_openai_responses_api_tool",
         fake_transform_responses,
     )
 
@@ -297,7 +297,7 @@ async def test_execute_tool_calls_strips_prefix_when_alias_differs_from_server_n
         mcp_info=None,
         tool_name_to_display_name=None,
     )
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager as _msm
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as _msm
 
     _msm.global_mcp_server_manager._get_mcp_server_from_tool_name = MagicMock(
         return_value=fake_server
@@ -341,7 +341,7 @@ async def test_execute_tool_calls_reverse_maps_display_name(monkeypatch):
         mcp_info=None,
         tool_name_to_display_name={"read_wiki_structure": "browse_repo_docs"},
     )
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager as _msm
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as _msm
 
     _msm.global_mcp_server_manager._get_mcp_server_from_tool_name = MagicMock(return_value=colliding_server)
     _msm.global_mcp_server_manager.get_mcp_server_by_name = MagicMock(return_value=fake_server)
@@ -378,7 +378,7 @@ async def test_execute_tool_calls_logs_failure_via_post_call_failure_hook(monkey
         call_tool=AsyncMock(side_effect=HTTPException(status_code=500, detail="boom"))
     )
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
         fake_manager,
     )
 
@@ -430,7 +430,7 @@ async def test_execute_tool_calls_passes_litellm_call_id_and_trace_id_to_functio
     # is a function attribute on the `litellm` package (shadowing the submodule),
     # which breaks monkeypatch's importpath resolution.
     handler_module = importlib.import_module(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler"
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler"
     )
     monkeypatch.setattr(handler_module, "function_setup", fake_function_setup)
 
@@ -467,7 +467,7 @@ async def test_execute_tool_calls_threads_logging_obj_into_call_tool(monkeypatch
     sentinel_logging_obj.async_post_mcp_tool_call_hook = AsyncMock()
     sentinel_logging_obj.async_success_handler = AsyncMock()
 
-    handler_module = importlib.import_module("litellm.responses.mcp.litellm_proxy_mcp_handler")
+    handler_module = importlib.import_module("token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler")
     monkeypatch.setattr(
         handler_module,
         "function_setup",
@@ -496,7 +496,7 @@ async def test_get_mcp_tools_from_manager_enables_list_tools_logging(monkeypatch
     """
     mock_get_tools = AsyncMock(return_value=AggregateToolListing(tools=[], outcomes={}))
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.server._get_tools_from_mcp_servers",
+        "token_iq.gateway.proxy._experimental.mcp_server.server._get_tools_from_mcp_servers",
         mock_get_tools,
     )
 
@@ -508,7 +508,7 @@ async def test_get_mcp_tools_from_manager_enables_list_tools_logging(monkeypatch
         get_mcp_server_by_name=MagicMock(return_value=None),
     )
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
         fake_manager,
     )
 
@@ -551,7 +551,7 @@ def test_get_parent_request_tags_from_nested_litellm_params():
 async def test_get_mcp_tools_from_manager_forwards_request_tags(monkeypatch):
     mock_get_tools = AsyncMock(return_value=AggregateToolListing(tools=[], outcomes={}))
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.server._get_tools_from_mcp_servers",
+        "token_iq.gateway.proxy._experimental.mcp_server.server._get_tools_from_mcp_servers",
         mock_get_tools,
     )
     fake_manager = types.SimpleNamespace(
@@ -561,7 +561,7 @@ async def test_get_mcp_tools_from_manager_forwards_request_tags(monkeypatch):
         get_mcp_server_by_name=MagicMock(return_value=None),
     )
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
         fake_manager,
     )
 
@@ -590,7 +590,7 @@ async def test_execute_tool_calls_exposes_sanitized_client_headers_to_logging(mo
         return None, None
 
     handler_module = importlib.import_module(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler"
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler"
     )
     monkeypatch.setattr(handler_module, "function_setup", fake_function_setup)
 
@@ -618,7 +618,7 @@ async def test_execute_tool_calls_propagates_request_tags_to_function_setup(monk
         return None, None
 
     handler_module = importlib.import_module(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler"
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler"
     )
     monkeypatch.setattr(handler_module, "function_setup", fake_function_setup)
 
@@ -646,7 +646,7 @@ def test_completion_with_function_tools_works_without_fastapi_installed():
 
         sys.meta_path.insert(0, _FastapiBlocker())
 
-        import litellm
+        from token_iq import gateway as litellm
 
         response = litellm.completion(
             model="openai/gpt-5.5",

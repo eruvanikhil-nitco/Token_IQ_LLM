@@ -1,5 +1,5 @@
 
-from litellm.llms.anthropic.count_tokens.transformation import (
+from token_iq.gateway.llms.anthropic.count_tokens.transformation import (
     AnthropicCountTokensConfig,
 )
 

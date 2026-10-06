@@ -41,8 +41,8 @@ from prisma import Prisma as GeneratedPrisma
 from prisma.engine.errors import EngineConnectionError
 
 
-from litellm.proxy.db.prisma_client import PrismaWrapper
-from litellm.proxy.utils import PrismaClient
+from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper
+from token_iq.gateway.proxy.utils import PrismaClient
 
 
 @pytest.fixture(autouse=True)
@@ -627,7 +627,7 @@ async def test_safe_refresh_token_refreshes_when_token_unparseable(
 async def test_routing_recreate_skips_reader_when_writer_generation_stale(
     mock_prisma_binary, monkeypatch
 ):
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     monkeypatch.setenv("DATABASE_URL_READ_REPLICA", "postgresql://reader")
     writer = _make_wrapper(engine_pid=111)
@@ -656,7 +656,7 @@ async def test_routing_recreate_skips_reader_when_writer_generation_stale(
 async def test_routing_recreate_recreates_both_when_generation_matches(
     mock_prisma_binary, monkeypatch
 ):
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     monkeypatch.setenv("DATABASE_URL_READ_REPLICA", "postgresql://reader")
     writer = _make_wrapper(engine_pid=111)
@@ -959,7 +959,7 @@ async def test_health_probe_stays_on_its_target_when_reader_availability_flips(
     recovers mid-call would otherwise send the probe to a different engine than
     the one whose generation is being checked, and blame the wrong replacement.
     The probe follows the wrapper it was handed."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     monkeypatch.setenv("DATABASE_URL_READ_REPLICA", "postgresql://reader")
     writer = _make_wrapper(engine_pid=111)
@@ -993,7 +993,7 @@ async def test_health_check_consults_the_reader_wrapper_under_read_replica_routi
 ):
     """``query_raw`` is routed to the reader, so a reader-side planned
     replacement is the one that explains a probe failure."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     monkeypatch.setenv("DATABASE_URL_READ_REPLICA", "postgresql://reader")
     writer = _make_wrapper(engine_pid=111)

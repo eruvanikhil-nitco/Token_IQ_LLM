@@ -317,7 +317,7 @@ async def test_user_model_access():
 
 
 import json
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 import pytest
 from typing import Dict, Tuple
 

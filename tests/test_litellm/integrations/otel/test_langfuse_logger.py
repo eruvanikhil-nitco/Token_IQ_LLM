@@ -12,23 +12,23 @@ pytest.importorskip("opentelemetry")
 
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter  # noqa: E402
 
-import litellm  # noqa: E402
-from litellm.caching.dual_cache import DualCache  # noqa: E402
-from litellm.integrations.otel.logger import build_otel_v2_logger  # noqa: E402
-from litellm.integrations.otel.model.config import OpenTelemetryV2Config, is_otel_v2_enabled  # noqa: E402
-from litellm.integrations.otel.model.spans import LITELLM_PROXY_REQUEST_SPAN_NAME, SpanRole  # noqa: E402
-from litellm.integrations.otel.plumbing import context as otel_context  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.plumbing.context import set_request_root_span  # noqa: E402
-from litellm.litellm_core_utils.litellm_logging import _maybe_construct_otel_v2  # noqa: E402
-from litellm.proxy._types import UserAPIKeyAuth  # noqa: E402
-from litellm.proxy.utils import ProxyLogging  # noqa: E402
-from litellm.types.llms.openai import (  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
+from token_iq.gateway.caching.dual_cache import DualCache  # noqa: E402
+from token_iq.gateway.integrations.otel.logger import build_otel_v2_logger  # noqa: E402
+from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config, is_otel_v2_enabled  # noqa: E402
+from token_iq.gateway.integrations.otel.model.spans import LITELLM_PROXY_REQUEST_SPAN_NAME, SpanRole  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import context as otel_context  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing.context import set_request_root_span  # noqa: E402
+from token_iq.gateway.core_utils.litellm_logging import _maybe_construct_otel_v2  # noqa: E402
+from token_iq.gateway.proxy._types import UserAPIKeyAuth  # noqa: E402
+from token_iq.gateway.proxy.utils import ProxyLogging  # noqa: E402
+from token_iq.gateway.types.llms.openai import (  # noqa: E402
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from litellm.types.utils import (  # noqa: E402
+from token_iq.gateway.types.utils import (  # noqa: E402
     Choices,
     Delta,
     Embedding,

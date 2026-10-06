@@ -1,6 +1,6 @@
 import os
 from unittest.mock import patch
-from litellm.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
+from token_iq.gateway.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
 
 
 def test_datadog_llm_obs_agent_configuration():

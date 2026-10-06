@@ -8,11 +8,11 @@ See https://github.com/BerriAI/litellm/issues/26153.
 
 import pytest
 
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.litellm_core_utils.llm_cost_calc.utils import get_web_search_requests
-from litellm.types.utils import ModelResponse, ServerToolUse, Usage
+from token_iq.gateway.core_utils.llm_cost_calc.utils import get_web_search_requests
+from token_iq.gateway.types.utils import ModelResponse, ServerToolUse, Usage
 
 
 class _UsageWithDictServerToolUse:

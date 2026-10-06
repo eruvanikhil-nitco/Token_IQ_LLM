@@ -2,26 +2,26 @@ import pytest
 import asyncio
 from typing import Optional
 from unittest.mock import patch, AsyncMock, MagicMock
-from litellm.responses.litellm_completion_transformation.handler import (
+from token_iq.gateway.responses.litellm_completion_transformation.handler import (
     LiteLLMCompletionTransformationHandler,
 )
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 import json
-from litellm.types.utils import StandardLoggingPayload
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponseAPIUsage,
     IncompleteDetails,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from base_responses_api import BaseResponsesAPITest
 from openai.types.responses.function_tool import FunctionTool
 
@@ -130,7 +130,7 @@ def test_response_api_handler_merges_metadata_and_service_tier_without_error():
     """Sync path must merge kwargs like async; double-splat raises TypeError."""
     handler = LiteLLMCompletionTransformationHandler()
 
-    with patch("litellm.completion", new_callable=MagicMock) as mock_completion:
+    with patch("token_iq.gateway.completion", new_callable=MagicMock) as mock_completion:
         mock_completion.return_value = ModelResponse(
             id="id", created=0, model="test", object="chat.completion", choices=[]
         )
@@ -159,7 +159,7 @@ async def test_async_response_api_handler_merges_trace_id_without_error():
         "async_responses_api_session_handler",
         side_effect=fake_session_handler,
     ):
-        with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
             mock_acompletion.return_value = ModelResponse(
                 id="id", created=0, model="test", object="chat.completion", choices=[]
             )
@@ -187,7 +187,7 @@ async def test_aresponses_forwards_timeout_to_acompletion():
     and similar providers, with calls falling back to the provider SDK default
     (~600s for Anthropic).
     """
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = ModelResponse(
             id="id",
             created=0,

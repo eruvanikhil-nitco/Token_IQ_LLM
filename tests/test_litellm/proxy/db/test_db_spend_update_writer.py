@@ -12,10 +12,10 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 from redis.exceptions import DataError
 
-import litellm
-from litellm.proxy._types import Litellm_EntityType
-from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
-from litellm.proxy.db.db_transaction_queue.window_spend_update_queue import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
     build_window_spend_transaction,
 )
 
@@ -35,10 +35,10 @@ async def test_daily_spend_tracking_with_disabled_spend_logs():
 
     # Mock the imported modules/variables
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
     ):
         # Test data
         test_data = {
@@ -109,11 +109,11 @@ async def test_update_database_enqueues_tool_usage_for_invoked_tools():
     prisma = _tool_usage_prisma()
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", False),
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
         ),
     ):
@@ -148,11 +148,11 @@ async def test_update_database_enqueues_realtime_tool_usage():
     prisma = _tool_usage_prisma()
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", False),
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
         ),
     ):
@@ -205,11 +205,11 @@ async def test_update_database_skips_tool_usage_when_spend_logs_disabled():
     prisma = _tool_usage_prisma()
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
         ),
     ):
@@ -381,7 +381,7 @@ async def test_update_daily_spend_retries_connect_errors(monkeypatch):
     async def fake_sleep(seconds: float) -> None:
         return None
 
-    monkeypatch.setattr("litellm.proxy.db.db_spend_update_writer.asyncio.sleep", fake_sleep)
+    monkeypatch.setattr("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep", fake_sleep)
     await DBSpendUpdateWriter._update_daily_spend(
         n_retry_times=3,
         prisma_client=prisma_client,
@@ -627,7 +627,7 @@ async def test_update_tag_db_with_valid_tags():
     """
     Test that _update_tag_db correctly processes valid tags and adds them to the spend update queue.
     """
-    from litellm.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
+    from token_iq.gateway.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
 
     writer = DBSpendUpdateWriter()
     mock_prisma = MagicMock()
@@ -748,7 +748,7 @@ async def test_update_agent_db_enqueues_agent_spend():
     """
     Test that _update_agent_db enqueues a SpendUpdateQueueItem with entity_type=AGENT.
     """
-    from litellm.proxy._types import Litellm_EntityType
+    from token_iq.gateway.proxy._types import Litellm_EntityType
 
     writer = DBSpendUpdateWriter()
     mock_prisma = MagicMock()
@@ -855,7 +855,7 @@ async def test_commit_spend_updates_to_db_increments_agent_spend():
         "agent_list_transactions": {agent_id: response_cost},
     }
 
-    with patch("litellm.proxy.utils._raise_failed_update_spend_exception"):
+    with patch("token_iq.gateway.proxy.utils._raise_failed_update_spend_exception"):
         await db_writer._commit_spend_updates_to_db(
             prisma_client=mock_prisma_client,
             n_retry_times=0,
@@ -928,7 +928,7 @@ async def test_commit_spend_updates_to_db_increments_team_member_spend_and_total
         "agent_list_transactions": {},
     }
 
-    with patch("litellm.proxy.utils._raise_failed_update_spend_exception"):
+    with patch("token_iq.gateway.proxy.utils._raise_failed_update_spend_exception"):
         await db_writer._commit_spend_updates_to_db(
             prisma_client=mock_prisma_client,
             n_retry_times=0,
@@ -1318,7 +1318,7 @@ async def test_update_daily_spend_logs_detailed_error_on_batch_upsert_failure():
     Test that when batch upsert fails, detailed error information is logged.
     This ensures proper debugging information is available for issues like unique constraint violations.
     """
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     def raise_constraint_violation():
         raise Exception("Unique constraint violation")
@@ -1517,7 +1517,7 @@ async def test_commit_key_spend_updates_includes_last_active():
 
     before_call = datetime.now(timezone.utc)
 
-    with patch("litellm.proxy.utils._raise_failed_update_spend_exception"):
+    with patch("token_iq.gateway.proxy.utils._raise_failed_update_spend_exception"):
         await db_writer._commit_spend_updates_to_db(
             prisma_client=mock_prisma_client,
             n_retry_times=0,
@@ -1557,11 +1557,11 @@ async def test_update_database_creates_single_task():
     db_writer._batch_database_updates = AsyncMock()
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", False),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
-        patch("litellm.proxy.db.db_spend_update_writer.asyncio.create_task") as mock_create_task,
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.create_task") as mock_create_task,
     ):
         await db_writer.update_database(
             token="test-token",
@@ -1681,12 +1681,12 @@ async def test_daily_agent_receives_deepcopied_payload():
     original_payload_ref["obj"] = fake_payload  # store reference to the original
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=fake_payload,
         ),
     ):
@@ -2194,16 +2194,16 @@ async def test_update_database_does_not_deepcopy_on_request_path():
         return real_deepcopy(obj, *args, **kwargs)
 
     with (
-        patch("litellm.proxy.proxy_server.disable_spend_logs", False),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=fake_payload,
         ),
         patch(
-            "litellm.proxy.db.db_spend_update_writer.copy.deepcopy",
+            "token_iq.gateway.proxy.db.db_spend_update_writer.copy.deepcopy",
             counting_deepcopy,
         ),
     ):
@@ -2265,12 +2265,12 @@ async def test_spend_update_path_never_queries_user_cache_with_none_user_id():
 
     with (
         patch.object(litellm, "max_budget", 0),
-        patch("litellm.proxy.proxy_server.disable_spend_logs", True),
-        patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", strict_redis_backed_cache),
-        patch("litellm.proxy.proxy_server.litellm_proxy_budget_name", "litellm-proxy-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", strict_redis_backed_cache),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "litellm-proxy-budget"),
         patch(
-            "litellm.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
+            "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value={
                 "startTime": "2024-01-01T00:00:00",
                 "endTime": "2024-01-01T00:01:00",
@@ -2707,7 +2707,7 @@ async def test_commit_spend_updates_to_db_does_not_stamp_key_settings_updated_at
         "agent_list_transactions": {},
     }
 
-    with patch("litellm.proxy.utils._raise_failed_update_spend_exception"):
+    with patch("token_iq.gateway.proxy.utils._raise_failed_update_spend_exception"):
         await db_writer._commit_spend_updates_to_db(
             prisma_client=mock_prisma_client,
             n_retry_times=0,
@@ -2817,7 +2817,7 @@ async def test_commit_spend_updates_retries_deadlock_then_commits(monkeypatch):
     """Regression: a deadlock on the key-spend UPDATE is retried and commits the increment exactly once."""
     slept = []
     monkeypatch.setattr(
-        "litellm.proxy.db.db_spend_update_writer.asyncio.sleep",
+        "token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep",
         AsyncMock(side_effect=lambda s: slept.append(s)),
     )
 
@@ -2847,7 +2847,7 @@ async def test_commit_spend_updates_retries_deadlock_then_commits(monkeypatch):
 @pytest.mark.asyncio
 async def test_commit_spend_updates_raises_after_exhausting_deadlock_retries(monkeypatch):
     """A deadlock that never clears must surface after the retry budget is spent, not loop or swallow."""
-    monkeypatch.setattr("litellm.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
+    monkeypatch.setattr("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
 
     mock_prisma_client = MagicMock()
     mock_prisma_client.db.tx = MagicMock(side_effect=lambda *a, **k: _failing_tx(_deadlock_error()))
@@ -2871,7 +2871,7 @@ async def test_commit_spend_updates_raises_after_exhausting_deadlock_retries(mon
 @pytest.mark.asyncio
 async def test_commit_spend_updates_does_not_retry_non_deadlock_data_error(monkeypatch):
     """A non-retryable data-layer error raises on the first attempt, never retried against the increment."""
-    monkeypatch.setattr("litellm.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
+    monkeypatch.setattr("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
 
     from prisma.errors import UniqueViolationError
 
@@ -2903,7 +2903,7 @@ async def test_update_daily_spend_retries_deadlock(monkeypatch):
     proxy_logging = MagicMock()
     proxy_logging.failure_handler = AsyncMock()
 
-    monkeypatch.setattr("litellm.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
+    monkeypatch.setattr("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
     daily_spend_transactions = {"k1": _daily_txn()}
     await DBSpendUpdateWriter._update_daily_spend(
         n_retry_times=3,
@@ -2934,7 +2934,7 @@ async def test_update_daily_spend_retries_deadlock(monkeypatch):
 @pytest.mark.asyncio
 async def test_commit_spend_updates_retries_deadlock_on_every_entity_path(monkeypatch, transactions_key, sample_key):
     """Every per-entity spend path, not just keys, retries a deadlock instead of dropping the increment."""
-    monkeypatch.setattr("litellm.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
+    monkeypatch.setattr("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.sleep", AsyncMock(return_value=None))
 
     mock_batcher = MagicMock()
     mock_prisma_client = MagicMock()
@@ -2965,7 +2965,7 @@ async def test_insert_spend_log_asks_for_an_immediate_flush_on_responses_calls(c
     A `previous_response_id` chained straight off the previous turn reads the DB, so a
     Responses row cannot sit in this worker's queue until the monitor's next poll.
     """
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     db_writer = DBSpendUpdateWriter()
     prisma = _tool_usage_prisma()

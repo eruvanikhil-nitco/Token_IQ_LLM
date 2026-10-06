@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.proxy.proxy_server import _filter_models_by_team_id
+from token_iq.gateway.proxy.proxy_server import _filter_models_by_team_id
 
 
 def _make_model(model_name: str, model_id: str, access_groups: list[str] = None):

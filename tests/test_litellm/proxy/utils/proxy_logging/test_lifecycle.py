@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-from litellm.proxy.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from token_iq.gateway.proxy.utils import (
     ProxyLogging,
 )
 
@@ -223,7 +223,7 @@ def test_add_proxy_hooks_registers_callbacks(proxy_logging, monkeypatch):
     hook_keys = ["cache_control_check", "max_budget_limiter"]
     registered: List[Any] = []
 
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     def fake_get_proxy_hook(hook_name):
         class _Stub:
@@ -242,7 +242,7 @@ def test_add_proxy_hooks_registers_callbacks(proxy_logging, monkeypatch):
         lambda cb: registered.append(cb),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         proxy_logging._add_proxy_hooks(llm_router=None)
 
     keys = list(proxy_logging.proxy_hook_mapping.keys())
@@ -283,7 +283,7 @@ def test_add_proxy_hooks_skips_prisma_requiring_hook_when_no_db(proxy_logging, m
     hook_classes = _stub_hook_classes()
     registered: List[Any] = []
 
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", list(hook_classes.keys()))
     monkeypatch.setattr(utils_mod, "get_proxy_hook", hook_classes.__getitem__)
@@ -293,7 +293,7 @@ def test_add_proxy_hooks_skips_prisma_requiring_hook_when_no_db(proxy_logging, m
         lambda cb: registered.append(cb),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", None):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
         proxy_logging._add_proxy_hooks(llm_router=None)
 
     snapshot = {
@@ -315,7 +315,7 @@ def test_add_proxy_hooks_registers_prisma_requiring_hook_with_db(proxy_logging, 
     registered: List[Any] = []
     fake_prisma = MagicMock()
 
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", list(hook_classes.keys()))
     monkeypatch.setattr(utils_mod, "get_proxy_hook", hook_classes.__getitem__)
@@ -325,7 +325,7 @@ def test_add_proxy_hooks_registers_prisma_requiring_hook_with_db(proxy_logging, 
         lambda cb: registered.append(cb),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", fake_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma):
         proxy_logging._add_proxy_hooks(llm_router=None)
 
     snapshot = {
@@ -343,7 +343,7 @@ def test_add_proxy_hooks_registers_prisma_requiring_hook_with_db(proxy_logging, 
 
 
 def test_add_proxy_hooks_unknown_hook_raises(proxy_logging, monkeypatch):
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", ["bogus_hook"])
 
@@ -402,14 +402,14 @@ def test_get_proxy_hook_non_string_key_raises(proxy_logging):
 
 
 def test_init_litellm_callbacks_replaces_string_with_instance(proxy_logging, monkeypatch):
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     sentinel_instance = MagicMock(spec=litellm.integrations.custom_logger.CustomLogger)
     sentinel_instance.__class__ = litellm.integrations.custom_logger.CustomLogger
 
     monkeypatch.setattr(litellm, "callbacks", ["some-string-logger"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         lambda *a, **kw: sentinel_instance,
     )
@@ -429,11 +429,11 @@ def test_init_litellm_callbacks_replaces_string_with_instance(proxy_logging, mon
 
 
 def test_init_litellm_callbacks_string_resolution_failure_keeps_string(proxy_logging, monkeypatch):
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     monkeypatch.setattr(litellm, "callbacks", ["unknown-logger"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         lambda *a, **kw: None,
     )
@@ -444,11 +444,11 @@ def test_init_litellm_callbacks_string_resolution_failure_keeps_string(proxy_log
 
 
 def test_init_litellm_callbacks_propagates_resolver_error_raises(proxy_logging, monkeypatch):
-    from litellm.proxy import utils as utils_mod
+    from token_iq.gateway.proxy import utils as utils_mod
 
     monkeypatch.setattr(litellm, "callbacks", ["raises-on-init"])
     monkeypatch.setattr(
-        litellm.litellm_core_utils.litellm_logging,
+        litellm.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         MagicMock(side_effect=RuntimeError("bad init")),
     )

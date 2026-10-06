@@ -5,7 +5,7 @@ Tests SIN, OHIP, Ontario driver's licence, immigration documents,
 bank account, and postal code detection patterns.
 """
 
-from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.patterns import (
     get_compiled_pattern,
 )
 

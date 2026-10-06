@@ -11,16 +11,16 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.integrations.newrelic.newrelic_metrics import NewRelicMetricsLogger
-from litellm.integrations.newrelic.newrelic_team_handler import NewRelicHandler
-from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+from token_iq.gateway.integrations.newrelic.newrelic_metrics import NewRelicMetricsLogger
+from token_iq.gateway.integrations.newrelic.newrelic_team_handler import NewRelicHandler
+from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
     TRUSTED_CALLBACK_VARS_FIELD,
 )
-from litellm.litellm_core_utils.specialty_caches.dynamic_logging_cache import (
+from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
     DynamicLoggingCache,
 )
-from litellm.types.integrations.newrelic import NEWRELIC_METRIC_ENDPOINT_BY_REGION
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.types.integrations.newrelic import NEWRELIC_METRIC_ENDPOINT_BY_REGION
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 US_ENDPOINT = NEWRELIC_METRIC_ENDPOINT_BY_REGION["us"]
 EU_ENDPOINT = NEWRELIC_METRIC_ENDPOINT_BY_REGION["eu"]
@@ -140,7 +140,7 @@ class TestNewRelicHandler:
         assert result_eu.metric_api_url == EU_ENDPOINT
 
     def test_request_blocked_callback_params_includes_newrelic(self):
-        from litellm.litellm_core_utils.initialize_dynamic_callback_params import (
+        from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
             _request_blocked_callback_params,
         )
 
@@ -170,7 +170,7 @@ class TestStandardCallbackDynamicParamsIncludesNewRelic:
 
 
 def _build_logging_obj(kwargs: dict, *, with_newrelic_callback: bool = True):
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     with patch("asyncio.create_task"):
         return Logging(

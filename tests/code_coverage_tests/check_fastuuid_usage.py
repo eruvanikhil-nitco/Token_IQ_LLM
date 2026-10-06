@@ -3,7 +3,7 @@ import os
 from typing import List, Dict, Any
 
 
-ALLOWED_FILE = os.path.normpath("litellm/_uuid.py")
+ALLOWED_FILE = os.path.normpath("token_iq/gateway/_uuid.py")
 
 
 def _to_module_path(relative_path: str) -> str:
@@ -71,13 +71,13 @@ def main() -> None:
     violations = scan_directory_for_fastuuid(base_dir)
     if violations:
         print(
-            "\n🚨 fastuuid must only be imported inside litellm/_uuid.py. Found violations:"
+            "\n🚨 fastuuid must only be imported inside token_iq/gateway/_uuid.py. Found violations:"
         )
         for v in violations:
             print(f"* {v['module']} ({v['file']}:{v['line']}) -> {v['import']}")
         print("\n")
         raise Exception(
-            "Found fastuuid imports outside litellm/_uuid.py. Use litellm._uuid.uuid or litellm._uuid.uuid4 instead."
+            "Found fastuuid imports outside token_iq/gateway/_uuid.py. Use litellm._uuid.uuid or litellm._uuid.uuid4 instead."
         )
     else:
         print("✅ No invalid fastuuid imports found.")

@@ -9,8 +9,8 @@ import io
 from unittest.mock import patch
 
 import pytest
-import litellm
-from litellm.types.router import LiteLLM_Params
+from token_iq import gateway as litellm
+from token_iq.gateway.types.router import LiteLLM_Params
 
 
 def test_get_llm_provider():
@@ -124,10 +124,10 @@ def test_get_llm_provider_azure_o1():
 
 
 def test_default_api_base():
-    from litellm.litellm_core_utils.get_llm_provider_logic import (
+    from token_iq.gateway.core_utils.get_llm_provider_logic import (
         _get_openai_compatible_provider_info,
     )
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     # Patch environment variable to remove API base if it's set
     with patch.dict(os.environ, {}, clear=True):
@@ -164,7 +164,7 @@ def test_default_api_base():
 
 
 def test_hosted_vllm_default_api_key():
-    from litellm.litellm_core_utils.get_llm_provider_logic import (
+    from token_iq.gateway.core_utils.get_llm_provider_logic import (
         _get_openai_compatible_provider_info,
     )
 
@@ -492,11 +492,11 @@ def shipped_generalizations():
     added on this branch, so these tests install the rule the branch actually
     ships rather than depending on whatever the live URL returns.
     """
-    from litellm.litellm_core_utils.fallback_generalizations import (
+    from token_iq.gateway.core_utils.fallback_generalizations import (
         get_fallback_generalization_rules,
         set_fallback_generalizations,
     )
-    from litellm.litellm_core_utils.get_model_cost_map import GetModelCostMap
+    from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
     previous = list(get_fallback_generalization_rules())
     backup = GetModelCostMap.load_local_model_cost_map()
@@ -556,7 +556,7 @@ class TestClaudeModelPatternMatching:
     def test_non_matching_models_do_not_match_rule(
         self, model, shipped_generalizations
     ):
-        from litellm.litellm_core_utils.fallback_generalizations import (
+        from token_iq.gateway.core_utils.fallback_generalizations import (
             match_routing_generalization,
         )
 
@@ -565,7 +565,7 @@ class TestClaudeModelPatternMatching:
     def test_routing_comes_from_the_rule_not_python(self, shipped_generalizations):
         """With the rule cleared, an unknown claude must no longer route to
         anthropic; this guards against re-introducing a hard-coded Python regex."""
-        from litellm.litellm_core_utils.fallback_generalizations import (
+        from token_iq.gateway.core_utils.fallback_generalizations import (
             set_fallback_generalizations,
         )
 

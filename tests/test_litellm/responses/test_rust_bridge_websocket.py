@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.llms.custom_httpx.llm_http_handler import _rust_responses_websocket_enabled
-from litellm.rust_bridge import configuration, responses_websocket
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import _rust_responses_websocket_enabled
+from token_iq.gateway.rust_bridge import configuration, responses_websocket
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class _FakeNativeConnection:

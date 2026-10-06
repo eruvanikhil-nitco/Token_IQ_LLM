@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 
 import pytest
-import litellm
-from litellm.main import responses_api_bridge_check
+from token_iq import gateway as litellm
+from token_iq.gateway.main import responses_api_bridge_check
 
 
 class TestXAIResponsesAutoRouting:
@@ -204,7 +204,7 @@ class TestXAIResponsesAutoRouting:
         assert model_info.get("mode") == "responses"
         assert updated_model == model
 
-    @patch("litellm.completion_extras.responses_api_bridge.completion")
+    @patch("token_iq.gateway.completion_extras.responses_api_bridge.completion")
     def test_completion_with_tools_routes_to_responses_api(
         self, mock_responses_completion
     ):

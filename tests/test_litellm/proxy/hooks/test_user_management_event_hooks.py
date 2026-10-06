@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm.proxy._types import NewUserRequest, NewUserResponse, UserAPIKeyAuth
-from litellm.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import NewUserRequest, NewUserResponse, UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
 
 
 class FakeUserTable:
@@ -34,10 +34,10 @@ async def _run_created_hook(prisma_client: FakePrismaClient, audit_log: AsyncMoc
         litellm_proxy_admin_name="admin-user",
     )
     with (
-        patch.dict(sys.modules, {"litellm.proxy.proxy_server": proxy_server}),
+        patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": proxy_server}),
         patch.object(litellm, "store_audit_logs", True),
         patch(
-            "litellm.proxy.hooks.user_management_event_hooks.create_audit_log_for_update",
+            "token_iq.gateway.proxy.hooks.user_management_event_hooks.create_audit_log_for_update",
             audit_log,
         ),
         patch.object(

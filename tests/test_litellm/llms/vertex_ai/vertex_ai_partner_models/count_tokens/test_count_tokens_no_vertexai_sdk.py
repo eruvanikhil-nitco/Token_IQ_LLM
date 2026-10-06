@@ -22,10 +22,10 @@ import sys
 
 import pytest
 
-from litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler import (
     VertexAIPartnerModelsTokenCounter,
 )
-from litellm.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
 
 
 @pytest.mark.asyncio
@@ -74,7 +74,7 @@ async def test_count_tokens_does_not_require_vertexai_sdk(monkeypatch):
             captured["json"] = json
             return FakeResponse()
 
-    import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+    import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
     monkeypatch.setattr(
         handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
@@ -113,7 +113,7 @@ def test_handler_module_does_not_import_vertexai_sdk():
     # Re-import the handler module to verify it stays SDK-free.
     import importlib
 
-    import litellm.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
+    import token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.count_tokens.handler as handler_mod
 
     importlib.reload(handler_mod)
 

@@ -4,21 +4,21 @@ import pytest
 
 from openai import APITimeoutError as Timeout
 
-import litellm
+from token_iq import gateway as litellm
 
 litellm.num_retries = 0
 import asyncio
 from typing import Optional
 from test_openai_batches_and_files import load_vertex_ai_credentials
 
-from litellm import create_fine_tuning_job
-from litellm.llms.vertex_ai.fine_tuning.handler import (
+from token_iq.gateway import create_fine_tuning_job
+from token_iq.gateway.llms.vertex_ai.fine_tuning.handler import (
     FineTuningJobCreate,
     VertexFineTuningAPI,
 )
-from litellm.types.llms.openai import Hyperparameters
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.llms.openai import Hyperparameters
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 from unittest.mock import patch, MagicMock, AsyncMock
 
 vertex_finetune_api = VertexFineTuningAPI()
@@ -78,11 +78,11 @@ async def test_create_vertex_fine_tune_jobs_mocked():
     try:
         with (
             patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 return_value=mock_response,
             ) as mock_post,
             patch(
-                "litellm.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
                 return_value=("fake-token", project_id),
             ),
         ):
@@ -176,11 +176,11 @@ async def test_create_vertex_fine_tune_jobs_mocked_with_hyperparameters():
     try:
         with (
             patch(
-                "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+                "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
                 return_value=mock_response,
             ) as mock_post,
             patch(
-                "litellm.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
+                "token_iq.gateway.llms.vertex_ai.vertex_llm_base.VertexBase._ensure_access_token",
                 return_value=("fake-token", project_id),
             ),
         ):
@@ -468,7 +468,7 @@ async def test_mock_azure_create_fine_tune_job_with_azure_specific_params():
     from openai.types.fine_tuning.fine_tuning_job import (
         Hyperparameters as OAIHyperparameters,
     )
-    from litellm.types.utils import LiteLLMFineTuningJob
+    from token_iq.gateway.types.utils import LiteLLMFineTuningJob
 
     mock_response = LiteLLMFineTuningJob(
         id="ft-azure-123",
@@ -488,7 +488,7 @@ async def test_mock_azure_create_fine_tune_job_with_azure_specific_params():
         return mock_response
 
     with patch(
-        "litellm.llms.azure.fine_tuning.handler.AzureOpenAIFineTuningAPI.create_fine_tuning_job"
+        "token_iq.gateway.llms.azure.fine_tuning.handler.AzureOpenAIFineTuningAPI.create_fine_tuning_job"
     ) as mock_create:
         mock_create.return_value = mock_async_create()
 

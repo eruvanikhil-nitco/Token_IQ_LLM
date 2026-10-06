@@ -5,7 +5,7 @@ from typing import Final
 import pytest
 from pydantic import TypeAdapter
 
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 REPO_ROOT: Final = Path(__file__).parents[2]
 

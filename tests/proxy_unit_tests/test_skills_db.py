@@ -18,12 +18,12 @@ from pathlib import Path
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.proxy import proxy_server
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import PrismaClient, ProxyLogging
-from litellm.types.utils import LlmProviders
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.types.utils import LlmProviders
 import openai
 
 proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
@@ -65,7 +65,7 @@ def create_skill_zip(skill_name: str):
 @pytest.fixture
 def prisma_client():
     """Set up prisma client for tests."""
-    from litellm.proxy.proxy_cli import append_query_params
+    from token_iq.gateway.proxy.proxy_cli import append_query_params
 
     params = {"connection_limit": 100, "pool_timeout": 60}
     database_url = os.getenv("DATABASE_URL")
@@ -93,7 +93,7 @@ async def test_create_skill_sdk(prisma_client):
     setattr(proxy_server, "prisma_client", prisma_client)
     await proxy_server.prisma_client.connect()
 
-    from litellm.skills.main import acreate_skill, adelete_skill
+    from token_iq.gateway.skills.main import acreate_skill, adelete_skill
 
     # Create a skill using SDK
     skill = await acreate_skill(
@@ -133,7 +133,7 @@ async def test_list_skills_sdk(prisma_client):
     setattr(proxy_server, "prisma_client", prisma_client)
     await proxy_server.prisma_client.connect()
 
-    from litellm.skills.main import acreate_skill, adelete_skill, alist_skills
+    from token_iq.gateway.skills.main import acreate_skill, adelete_skill, alist_skills
 
     # Create multiple skills
     created_skill_ids = []
@@ -184,7 +184,7 @@ async def test_get_skill_sdk(prisma_client):
     setattr(proxy_server, "prisma_client", prisma_client)
     await proxy_server.prisma_client.connect()
 
-    from litellm.skills.main import acreate_skill, adelete_skill, aget_skill
+    from token_iq.gateway.skills.main import acreate_skill, adelete_skill, aget_skill
 
     # Create a skill
     created_skill = await acreate_skill(
@@ -226,7 +226,7 @@ async def test_delete_skill_sdk(prisma_client):
     setattr(proxy_server, "prisma_client", prisma_client)
     await proxy_server.prisma_client.connect()
 
-    from litellm.skills.main import acreate_skill, adelete_skill, aget_skill
+    from token_iq.gateway.skills.main import acreate_skill, adelete_skill, aget_skill
 
     # Create a skill
     created_skill = await acreate_skill(

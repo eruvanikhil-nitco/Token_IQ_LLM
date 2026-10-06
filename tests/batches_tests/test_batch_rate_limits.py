@@ -10,17 +10,17 @@ import pytest
 from fastapi import HTTPException
 
 
-import litellm
-from litellm import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.hooks.batch_rate_limiter import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
     BatchFileUsage,
     _PROXY_BatchRateLimiter,
 )
-from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
     _PROXY_MaxParallelRequestsHandler_v3,
 )
-from litellm.proxy.utils import InternalUsageCache
+from token_iq.gateway.proxy.utils import InternalUsageCache
 
 
 def _build_batch_limiter() -> _PROXY_BatchRateLimiter:
@@ -511,7 +511,7 @@ async def test_batch_rate_limiter_with_managed_files(tmp_path):
             return await original_afile_content(*args, **kwargs)
 
         # Patch afile_content to track the call
-        with patch("litellm.afile_content", side_effect=mock_afile_content):
+        with patch("token_iq.gateway.afile_content", side_effect=mock_afile_content):
             data = {
                 "model": "gpt-3.5-turbo",
                 "input_file_id": file_obj.id,
@@ -653,8 +653,8 @@ async def test_batch_rate_limiter_managed_files_regression():
     This is a unit test that doesn't require external API calls.
     """
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.llms.base_llm.files.transformation import BaseFileEndpoints
-    from litellm.types.llms.openai import HttpxBinaryResponseContent
+    from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
+    from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
     import httpx
 
     print("\n=== Regression Test: GEN-2166 Batch Rate Limiter Managed Files ===")
@@ -684,7 +684,7 @@ async def test_batch_rate_limiter_managed_files_regression():
 
     # Test 1: Verify managed file detection
     print("\n1. Verifying managed file detection...")
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         _is_base64_encoded_unified_file_id,
     )
 
@@ -733,7 +733,7 @@ async def test_batch_rate_limiter_managed_files_regression():
     with patch.dict(
         "sys.modules",
         {
-            "litellm.proxy.proxy_server": MagicMock(
+            "token_iq.gateway.proxy.proxy_server": MagicMock(
                 llm_router=mock_llm_router,
                 proxy_logging_obj=mock_proxy_logging_obj,
             )
@@ -812,7 +812,7 @@ async def test_batch_rate_limiter_managed_files_regression():
 
     non_managed_file_id = "file-abc123"  # Standard OpenAI file ID
 
-    with patch("litellm.afile_content") as mock_afile_content:
+    with patch("token_iq.gateway.afile_content") as mock_afile_content:
         mock_response = httpx.Response(
             status_code=200,
             content=batch_content,
@@ -847,7 +847,7 @@ async def test_batch_rate_limiter_managed_files_regression():
 
         # This should call _fetch_managed_file_content
         try:
-            with patch("litellm.afile_content") as mock_afile_content:
+            with patch("token_iq.gateway.afile_content") as mock_afile_content:
                 # If litellm.afile_content is called for managed files, bug exists
                 mock_afile_content.side_effect = Exception(
                     "Error code: 403 - User does not have access to the file"
@@ -911,12 +911,12 @@ async def test_batch_logging_azure_credentials_regression():
     through to the file content retrieval functions.
     """
     from unittest.mock import AsyncMock, MagicMock, patch
-    from litellm.batches.batch_utils import (
+    from token_iq.gateway.batches.batch_utils import (
         _extract_file_access_credentials,
         _fetch_batch_output_file_content,
         _handle_completed_batch,
     )
-    from litellm.types.llms.openai import Batch, HttpxBinaryResponseContent
+    from token_iq.gateway.types.llms.openai import Batch, HttpxBinaryResponseContent
     import httpx
 
     print("\n=== Regression Test: Azure Batch Logging Credentials ===")
@@ -994,7 +994,7 @@ async def test_batch_logging_azure_credentials_regression():
         return HttpxBinaryResponseContent(response=mock_response)
 
     with patch(
-        "litellm.files.main.afile_content", side_effect=mock_afile_content_tracker
+        "token_iq.gateway.files.main.afile_content", side_effect=mock_afile_content_tracker
     ):
         result = await _fetch_batch_output_file_content(
             batch=mock_batch,
@@ -1025,7 +1025,7 @@ async def test_batch_logging_azure_credentials_regression():
     credentials_received["params"] = None
 
     with patch(
-        "litellm.files.main.afile_content", side_effect=mock_afile_content_tracker
+        "token_iq.gateway.files.main.afile_content", side_effect=mock_afile_content_tracker
     ):
         result = await _handle_completed_batch(
             batch=mock_batch,
@@ -1051,7 +1051,7 @@ async def test_batch_logging_azure_credentials_regression():
     print("\n4. Testing 'Missing credentials' error prevention...")
 
     # Simulate the bug: if credentials are NOT passed, Azure would fail
-    with patch("litellm.files.main.afile_content") as mock_afile_content_fail:
+    with patch("token_iq.gateway.files.main.afile_content") as mock_afile_content_fail:
         # This is what would happen without the fix
         mock_afile_content_fail.side_effect = Exception(
             "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, "
@@ -1061,7 +1061,7 @@ async def test_batch_logging_azure_credentials_regression():
 
         # Now test with the fix - should NOT raise the error
         with patch(
-            "litellm.files.main.afile_content", side_effect=mock_afile_content_tracker
+            "token_iq.gateway.files.main.afile_content", side_effect=mock_afile_content_tracker
         ):
             try:
                 result = await _handle_completed_batch(
@@ -1081,7 +1081,7 @@ async def test_batch_logging_azure_credentials_regression():
     # Test 5: Verify backwards compatibility (works without credentials for OpenAI)
     print("\n5. Testing backwards compatibility...")
 
-    with patch("litellm.files.main.afile_content") as mock_afile_content:
+    with patch("token_iq.gateway.files.main.afile_content") as mock_afile_content:
         mock_response = httpx.Response(
             status_code=200,
             content=batch_output,

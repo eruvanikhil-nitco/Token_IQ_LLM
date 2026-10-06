@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.ocr.main import _PreparedOCRRequest, _rust_ocr_supported
+from token_iq import gateway as litellm
+from token_iq.gateway.ocr.main import _PreparedOCRRequest, _rust_ocr_supported
 
 DOCUMENT = {"type": "document_url", "document_url": "https://example.com/doc.pdf"}
 

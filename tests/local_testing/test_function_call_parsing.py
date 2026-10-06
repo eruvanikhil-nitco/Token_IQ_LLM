@@ -13,8 +13,8 @@ from typing import List
 
 import pytest
 
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 
 
 # Just a stub to keep the sample code simple

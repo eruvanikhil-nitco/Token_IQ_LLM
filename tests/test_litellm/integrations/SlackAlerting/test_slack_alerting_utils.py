@@ -6,12 +6,12 @@ import pytest
 
 # Adds the grandparent directory to sys.path to allow importing project modules
 
-import litellm
-from litellm.integrations.langfuse.langfuse_prompt_management import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
 )
-from litellm.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
-from litellm.litellm_core_utils.logging_callback_manager import LoggingCallbackManager
+from token_iq.gateway.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
+from token_iq.gateway.core_utils.logging_callback_manager import LoggingCallbackManager
 
 
 @pytest.mark.asyncio

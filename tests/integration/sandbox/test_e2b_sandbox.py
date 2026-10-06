@@ -13,7 +13,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.skipif("E2B_API_KEY" not in os.environ, reason="needs a real E2B_API_KEY")

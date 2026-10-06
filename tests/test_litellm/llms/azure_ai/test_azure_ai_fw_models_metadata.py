@@ -124,12 +124,12 @@ def use_local_model_cost_map():
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
-    import litellm
-    from litellm.utils import _invalidate_model_cost_lowercase_map
+    from token_iq import gateway as litellm
+    from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
     original_model_cost = litellm.model_cost
     litellm.model_cost = json.loads(
-        files("litellm")
+        files("token_iq.gateway")
         .joinpath("model_prices_and_context_window_backup.json")
         .read_text(encoding="utf-8")
     )
@@ -181,8 +181,8 @@ def test_azure_ai_fw_model_info(use_local_model_cost_map, model_key, expected):
 def test_azure_ai_fw_cost_per_token(
     use_local_model_cost_map, model_name, expected_prompt, expected_completion
 ):
-    from litellm.llms.azure_ai.cost_calculator import cost_per_token
-    from litellm.types.utils import Usage
+    from token_iq.gateway.llms.azure_ai.cost_calculator import cost_per_token
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(
         prompt_tokens=1_000_000,

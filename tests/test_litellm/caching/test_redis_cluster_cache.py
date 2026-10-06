@@ -5,11 +5,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.caching.redis_cache import RedisCache
-from litellm.caching.redis_cluster_cache import RedisClusterCache
+from token_iq.gateway.caching.redis_cache import RedisCache
+from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
 
 
-@patch("litellm._redis.init_redis_cluster")
+@patch("token_iq.gateway._redis.init_redis_cluster")
 def test_redis_cluster_batch_get(mock_init_redis_cluster):
     """
     Test that RedisClusterCache uses mget_nonatomic instead of mget for batch operations
@@ -35,7 +35,7 @@ def test_redis_cluster_batch_get(mock_init_redis_cluster):
 
 
 @pytest.mark.asyncio
-@patch("litellm._redis.init_redis_cluster")
+@patch("token_iq.gateway._redis.init_redis_cluster")
 async def test_redis_cluster_async_batch_get(mock_init_redis_cluster):
     """
     Test that RedisClusterCache uses mget_nonatomic instead of mget for async batch operations
@@ -62,9 +62,9 @@ async def test_redis_cluster_async_batch_get(mock_init_redis_cluster):
     assert not mock_redis.mget.called
 
 
-@patch("litellm._redis.get_redis_connection_pool")
-@patch("litellm._redis.get_redis_client")
-@patch("litellm.caching.redis_cache.RedisCache._setup_health_pings")
+@patch("token_iq.gateway._redis.get_redis_connection_pool")
+@patch("token_iq.gateway._redis.get_redis_client")
+@patch("token_iq.gateway.caching.redis_cache.RedisCache._setup_health_pings")
 def test_cache_init_creates_cluster_cache_from_env_var(
     mock_health, mock_get_client, mock_get_pool, monkeypatch
 ):
@@ -73,7 +73,7 @@ def test_cache_init_creates_cluster_cache_from_env_var(
 
     Regression test for https://github.com/BerriAI/litellm/issues/22748
     """
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     startup_nodes = [{"host": "127.0.0.1", "port": "7001"}]
     monkeypatch.setenv("REDIS_CLUSTER_NODES", json.dumps(startup_nodes))
@@ -89,9 +89,9 @@ def test_cache_init_creates_cluster_cache_from_env_var(
     assert isinstance(cache.cache, RedisClusterCache)
 
 
-@patch("litellm._redis.get_redis_connection_pool")
-@patch("litellm._redis.get_redis_client")
-@patch("litellm.caching.redis_cache.RedisCache._setup_health_pings")
+@patch("token_iq.gateway._redis.get_redis_connection_pool")
+@patch("token_iq.gateway._redis.get_redis_client")
+@patch("token_iq.gateway.caching.redis_cache.RedisCache._setup_health_pings")
 def test_cache_init_creates_redis_cache_without_cluster_config(
     mock_health, mock_get_client, mock_get_pool, monkeypatch
 ):
@@ -101,7 +101,7 @@ def test_cache_init_creates_redis_cache_without_cluster_config(
     Ensures backward compatibility: without REDIS_CLUSTER_NODES or
     redis_startup_nodes, the standard RedisCache is still used.
     """
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     monkeypatch.delenv("REDIS_CLUSTER_NODES", raising=False)
     monkeypatch.setenv("REDIS_HOST", "localhost")
@@ -155,7 +155,7 @@ def test_router_create_redis_cache_cluster_detection(
 
     Regression test for https://github.com/BerriAI/litellm/issues/22748
     """
-    from litellm import Router
+    from token_iq.gateway import Router
 
     cache_config = dict(
         host="mockhost",

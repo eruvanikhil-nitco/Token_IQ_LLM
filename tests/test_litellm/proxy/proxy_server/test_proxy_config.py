@@ -17,9 +17,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm.proxy._types import CommonProxyErrors
-from litellm.proxy.proxy_server import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import CommonProxyErrors
+from token_iq.gateway.proxy.proxy_server import (
     ProxyConfig,
     _is_remote_module_url,
     _scrub_db_overlay_remote_module_loads,
@@ -560,10 +560,10 @@ def test_ProxyConfig__process_includes_missing_file_raises(tmp_path):
 @pytest.mark.asyncio
 async def test_ProxyConfig_save_config_writes_yaml_when_no_db(tmp_path, monkeypatch):
     target = tmp_path / "out.yaml"
-    monkeypatch.setattr("litellm.proxy.proxy_server.user_config_file_path", str(target))
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_config_file_path", str(target))
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     pc = ProxyConfig()
     cfg = {"model_list": [], "general_settings": {"a": 1}, "litellm_settings": {}}
     await pc.save_config(cfg)
@@ -576,12 +576,12 @@ async def test_ProxyConfig_save_config_writes_yaml_when_no_db(tmp_path, monkeypa
 @pytest.mark.asyncio
 async def test_ProxyConfig_save_config_invalid_path_raises(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.user_config_file_path",
+        "token_iq.gateway.proxy.proxy_server.user_config_file_path",
         "/no/such/dir/out.yaml",
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     pc = ProxyConfig()
     with pytest.raises(FileNotFoundError):
         await pc.save_config({"x": 1})
@@ -595,13 +595,13 @@ async def test_ProxyConfig_save_config_db_omits_environment_variables_by_default
     row shadow YAML/container env on every subsequent restart."""
     mock_prisma = MagicMock()
     mock_prisma.insert_data = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     # a valid salt so the env-var encryption path (reached only if the pop
     # regresses) runs cleanly, making this fail on the assertion below rather
     # than on an incidental encryption crash
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-test-salt-key")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-test-salt-key")
 
     pc = ProxyConfig()
     cfg = {
@@ -627,10 +627,10 @@ async def test_ProxyConfig_save_config_db_persists_environment_variables_when_op
     encrypted, so the dedicated config-update flow can write them."""
     mock_prisma = MagicMock()
     mock_prisma.insert_data = AsyncMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-test-salt-key")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-test-salt-key")
 
     pc = ProxyConfig()
     cfg = {"litellm_settings": {}, "environment_variables": {"OPENAI_API_KEY": "sk-explicit"}}
@@ -659,8 +659,8 @@ def _install_fake_config_repo(monkeypatch, existing_row):
         def __init__(self, client):
             self.table = _FakeTable()
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.ConfigRepository", _FakeRepo)
-    monkeypatch.setattr("litellm.proxy.proxy_server.invalidate_config_param", AsyncMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.ConfigRepository", _FakeRepo)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.invalidate_config_param", AsyncMock())
     return captured
 
 
@@ -673,10 +673,10 @@ async def test_ProxyConfig_save_environment_variables_merges_sets_and_deletes(mo
         monkeypatch,
         existing_row={"EXISTING_KEY": "ciphertext-existing", "UI_LOGO_PATH": "old-logo", "LITELLM_FAVICON_URL": "old"},
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", MagicMock())
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-test-salt-key")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-test-salt-key")
 
     pc = ProxyConfig()
     await pc.save_environment_variables({"UI_LOGO_PATH": "new-logo", "LITELLM_FAVICON_URL": None})
@@ -695,9 +695,9 @@ async def test_ProxyConfig_save_environment_variables_noop_without_db(monkeypatc
     """With no DB configured the per-key write must do nothing (never touch the
     config repository)."""
     captured = _install_fake_config_repo(monkeypatch, existing_row={})
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
 
     pc = ProxyConfig()
     await pc.save_environment_variables({"UI_LOGO_PATH": "x"})
@@ -819,7 +819,7 @@ def test_ProxyConfig_switch_on_llm_response_caching_sets_flag(monkeypatch):
     fake_router = MagicMock()
     fake_router.cache_responses = False
     fake_cache = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     monkeypatch.setattr(litellm, "cache", fake_cache, raising=False)
     pc.switch_on_llm_response_caching()
     snapshot = {
@@ -836,7 +836,7 @@ def test_ProxyConfig_switch_on_llm_response_caching_sets_flag(monkeypatch):
 
 def test_ProxyConfig_switch_on_llm_response_caching_missing_router_noop(monkeypatch):
     pc = ProxyConfig()
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
     monkeypatch.setattr(litellm, "cache", None, raising=False)
     # No router and no cache — should silently no-op (no raise).
     pc.switch_on_llm_response_caching()
@@ -854,8 +854,8 @@ def test_ProxyConfig_switch_on_llm_response_caching_missing_router_noop(monkeypa
 async def test_ProxyConfig_get_config_loads_from_file(tmp_path, monkeypatch):
     f = tmp_path / "c.yaml"
     f.write_text("model_list: []\ngeneral_settings: {}\nlitellm_settings: {}\n")
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     pc = ProxyConfig()
     cfg = await pc.get_config(config_file_path=str(f))
@@ -868,8 +868,8 @@ async def test_ProxyConfig_get_config_loads_from_file(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_get_config_missing_file_raises(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     pc = ProxyConfig()
     with pytest.raises(Exception, match="Config file not found"):
@@ -883,7 +883,7 @@ async def test_ProxyConfig_get_config_missing_file_raises(monkeypatch):
 VAULT_SECRET_MANAGER_MODULE = '''
 import os
 
-from litellm.integrations.custom_secret_manager import CustomSecretManager
+from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
 
 VAULT = {"LITELLM_MASTER_KEY": "master-from-vault", "MY_PROVIDER_KEY": "provider-from-vault"}
 
@@ -926,8 +926,8 @@ def _write_vault_backed_config(tmp_path, monkeypatch, config_yaml: str) -> str:
     (tmp_path / "vault_secret_manager.py").write_text(VAULT_SECRET_MANAGER_MODULE)
     config_file = tmp_path / "c.yaml"
     config_file.write_text(config_yaml)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     monkeypatch.delenv("LITELLM_MASTER_KEY", raising=False)
     monkeypatch.delenv("MY_PROVIDER_KEY", raising=False)
@@ -1010,7 +1010,7 @@ async def test_ProxyConfig_get_config_without_key_management_system_leaves_secre
     config_yaml = VAULT_BACKED_CONFIG.replace("  key_management_system: custom\n", "")
     config_file_path = _write_vault_backed_config(tmp_path, monkeypatch, config_yaml)
     warn = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.verbose_proxy_logger.warning", warn)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger.warning", warn)
 
     cfg = await ProxyConfig().get_config(config_file_path=config_file_path)
 
@@ -1030,7 +1030,7 @@ async def test_ProxyConfig_get_config_warns_when_a_reference_is_missing_from_the
     config_yaml = VAULT_BACKED_CONFIG.replace("MY_PROVIDER_KEY", "NOT_IN_VAULT")
     config_file_path = _write_vault_backed_config(tmp_path, monkeypatch, config_yaml)
     warn = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.verbose_proxy_logger.warning", warn)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger.warning", warn)
 
     cfg = await ProxyConfig().get_config(config_file_path=config_file_path)
 
@@ -1050,7 +1050,7 @@ async def test_ProxyConfig_get_config_does_not_warn_for_a_name_outside_hosted_ke
     config_yaml = VAULT_BACKED_CONFIG.replace("api_key: os.environ/MY_PROVIDER_KEY", "api_key: os.environ/ENV_ONLY")
     config_file_path = _write_vault_backed_config(tmp_path, monkeypatch, config_yaml)
     warn = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.verbose_proxy_logger.warning", warn)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger.warning", warn)
 
     cfg = await ProxyConfig().get_config(config_file_path=config_file_path)
 
@@ -1073,7 +1073,7 @@ async def test_ProxyConfig_get_config_does_not_warn_under_write_only_access_mode
     )
     config_file_path = _write_vault_backed_config(tmp_path, monkeypatch, config_yaml)
     warn = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.verbose_proxy_logger.warning", warn)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.verbose_proxy_logger.warning", warn)
 
     cfg = await ProxyConfig().get_config(config_file_path=config_file_path)
 
@@ -1240,8 +1240,8 @@ def test_ProxyConfig_merge_config_and_db_search_tools_prefers_db_duplicate():
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_search_tools_in_db_loads_merged_tools(monkeypatch):
-    from litellm.proxy import proxy_server
-    from litellm.router_utils.search_api_router import SearchAPIRouter
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.router_utils.search_api_router import SearchAPIRouter
 
     pc = ProxyConfig()
     pc.update_config_state(
@@ -1273,7 +1273,7 @@ async def test_ProxyConfig__init_search_tools_in_db_loads_merged_tools(monkeypat
 
     monkeypatch.setattr(proxy_server, "llm_router", fake_router)
     monkeypatch.setattr(
-        "litellm.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
         mock_get_db_tools,
     )
     monkeypatch.setattr(SearchAPIRouter, "update_router_search_tools", mock_update_router)
@@ -1294,7 +1294,7 @@ async def test_ProxyConfig__init_search_tools_in_db_loads_merged_tools(monkeypat
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_search_tools_in_db_clears_router_when_last_tool_is_deleted(monkeypatch):
     """Deleting the last search tool must clear the router, not leave the tool live in memory."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     pc.update_config_state({})
@@ -1304,7 +1304,7 @@ async def test_ProxyConfig__init_search_tools_in_db_clears_router_when_last_tool
 
     monkeypatch.setattr(proxy_server, "llm_router", fake_router)
     monkeypatch.setattr(
-        "litellm.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
         mock_get_db_tools,
     )
 
@@ -1316,7 +1316,7 @@ async def test_ProxyConfig__init_search_tools_in_db_clears_router_when_last_tool
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_reload_search_tools_from_db_refreshes_router(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     mock_init = AsyncMock()
@@ -1330,7 +1330,7 @@ async def test_ProxyConfig_reload_search_tools_from_db_refreshes_router(monkeypa
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_reload_search_tools_from_db_honors_supported_db_objects(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     mock_init = AsyncMock()
@@ -1348,7 +1348,7 @@ async def test_ProxyConfig_reload_search_tools_from_db_serializes_overlapping_re
     """An older snapshot must not land last and restore a tool a newer refresh deleted."""
     import asyncio
 
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     pc.update_config_state({})
@@ -1374,7 +1374,7 @@ async def test_ProxyConfig_reload_search_tools_from_db_serializes_overlapping_re
     monkeypatch.setattr(proxy_server, "llm_router", fake_router)
     monkeypatch.setattr(proxy_server, "prisma_client", MagicMock())
     monkeypatch.setattr(
-        "litellm.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
+        "token_iq.gateway.proxy.search_endpoints.search_tool_registry.SearchToolRegistry.get_all_search_tools_from_db",
         _read_db,
     )
 
@@ -1390,7 +1390,7 @@ async def test_ProxyConfig_reload_search_tools_from_db_serializes_overlapping_re
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_reload_search_tools_from_db_noops_without_prisma(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     mock_init = AsyncMock()
@@ -1436,8 +1436,8 @@ def test_ProxyConfig__load_environment_variables_blocks_dangerous_keys(monkeypat
 async def test_ProxyConfig_load_config_minimal_yaml(tmp_path, monkeypatch):
     f = tmp_path / "c.yaml"
     f.write_text("model_list: []\ngeneral_settings: {}\nlitellm_settings: {}\n")
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     pc = ProxyConfig()
     try:
@@ -1480,8 +1480,8 @@ async def test_ProxyConfig_load_config_resolves_router_settings_plugins(tmp_path
         "  plugins:\n"
         "    - rs_plugin.rs_plugin_instance\n"
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     router, _model_list, _general_settings = await ProxyConfig().load_config(
@@ -1505,8 +1505,8 @@ async def test_ProxyConfig_load_config_rejects_bad_router_settings_plugin(tmp_pa
         "  plugins:\n"
         "    - bad_rs_plugin.not_a_plugin\n"
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     with pytest.raises(ValueError, match="does not implement the RoutingPlugin interface"):
@@ -1526,8 +1526,8 @@ async def test_ProxyConfig_load_config_wires_general_settings_url_validation(tmp
         "  provider_url_destination_allowed_hosts:\n"
         "    - api.example.com\n"
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     original_validation = litellm.user_url_validation
@@ -1549,7 +1549,7 @@ async def test_ProxyConfig_load_config_wires_config_reload_interval(tmp_path, mo
     """general_settings.proxy_config_reload_interval_seconds must reach the proxy_server
     module global that schedules the DB config-reload jobs, so operators can tune multi-pod
     convergence from config.yaml."""
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     f = tmp_path / "c.yaml"
     f.write_text(
@@ -1558,8 +1558,8 @@ async def test_ProxyConfig_load_config_wires_config_reload_interval(tmp_path, mo
         "  proxy_config_reload_interval_seconds: 47\n"
         "litellm_settings: {}\n"
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     original = proxy_server.proxy_config_reload_interval_seconds
@@ -1572,8 +1572,8 @@ async def test_ProxyConfig_load_config_wires_config_reload_interval(tmp_path, mo
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_load_config_missing_file_raises(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     pc = ProxyConfig()
     with pytest.raises(Exception, match="Config file not found"):
@@ -1603,8 +1603,8 @@ async def test_ProxyConfig_load_config_forwards_callback_specific_params(tmp_pat
         "litellm_settings:\n"
         '  callbacks: ["datadog_cost_management"]\n'
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     captured = {}
@@ -1613,7 +1613,7 @@ async def test_ProxyConfig_load_config_forwards_callback_specific_params(tmp_pat
         captured.update(kwargs)
 
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.initialize_callbacks_on_proxy",
+        "token_iq.gateway.proxy.proxy_server.initialize_callbacks_on_proxy",
         _fake_initialize_callbacks_on_proxy,
     )
 
@@ -1643,11 +1643,11 @@ async def test_ProxyConfig_load_config_blank_callback_settings_does_not_crash(tm
         "litellm_settings:\n"
         '  callbacks: ["compression_interception"]\n'
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
-    from litellm.integrations.compression_interception.handler import (
+    from token_iq.gateway.integrations.compression_interception.handler import (
         CompressionInterceptionLogger,
     )
 
@@ -1685,7 +1685,7 @@ async def test_ProxyConfig__init_non_llm_configs_empty_config():
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_non_llm_configs_premium_invalid_worker_registry_raises(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     pc = ProxyConfig()
     with pytest.raises(ValidationError):
         await pc._init_non_llm_configs(
@@ -1696,7 +1696,7 @@ async def test_ProxyConfig__init_non_llm_configs_premium_invalid_worker_registry
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_non_llm_configs_worker_registry_requires_premium(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", False)
     pc = ProxyConfig()
     with pytest.raises(ValueError, match='Trying to use `worker_registry`You must be a LiteLLM') as exc_info:
         await pc._init_non_llm_configs(
@@ -1715,7 +1715,7 @@ async def test_ProxyConfig__init_non_llm_configs_worker_registry_requires_premiu
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_non_llm_configs_worker_registry_loads_for_premium(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     pc = ProxyConfig()
     await pc._init_non_llm_configs(
         config={
@@ -1735,7 +1735,7 @@ async def test_ProxyConfig__init_non_llm_configs_worker_registry_loads_for_premi
 @pytest.mark.parametrize("premium", [True, False])
 @pytest.mark.asyncio
 async def test_ProxyConfig__init_non_llm_configs_no_worker_registry_is_never_gated(monkeypatch, premium):
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", premium)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", premium)
     pc = ProxyConfig()
     await pc._init_non_llm_configs(config={}, config_file_path=None)
     assert pc.worker_registry == []
@@ -1820,8 +1820,8 @@ def test_ProxyConfig__load_alerting_settings_does_not_log_general_settings_dict(
     """
     import logging
 
-    import litellm._logging as _logging_module
-    from litellm._logging import verbose_proxy_logger
+    import token_iq.gateway._logging as _logging_module
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     monkeypatch.setattr(_logging_module, "_ENABLE_SECRET_REDACTION", False)
 
@@ -1878,7 +1878,7 @@ def _capture_proxy_warnings(config: dict) -> tuple[tuple[str, ...], list[str]]:
     """
     import logging
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     class LogRecordHandler(logging.Handler):
         def __init__(self) -> None:
@@ -1990,7 +1990,7 @@ def test_ProxyConfig_get_model_info_with_id_returns_router_model_info():
 
 
 def test_ProxyConfig_get_model_info_with_id_missing_model_id_raises(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", False)
     pc = ProxyConfig()
     # model with no model_id, no model_info — accessing .model_id will fail.
     bad = SimpleNamespace(model_info=None)
@@ -2005,7 +2005,7 @@ def test_ProxyConfig_get_model_info_with_id_missing_model_id_raises(monkeypatch)
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__delete_deployment_no_router_returns_none(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
     pc = ProxyConfig()
     result = await pc._delete_deployment(db_models=[])
     snapshot = {"still_desired": result, "router_was": "none", "empty_db_models": True}
@@ -2016,7 +2016,7 @@ async def test_ProxyConfig__delete_deployment_no_router_returns_none(monkeypatch
 async def test_ProxyConfig__delete_deployment_invalid_models_raises(monkeypatch):
     fake_router = MagicMock()
     fake_router.get_model_ids = MagicMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     with pytest.raises(AttributeError):
         # Non-model objects without expected attrs trigger an error.
@@ -2029,7 +2029,7 @@ async def test_ProxyConfig__delete_deployment_invalid_models_raises(monkeypatch)
 
 
 def test_ProxyConfig__add_deployment_no_router_returns_zero(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
     pc = ProxyConfig()
     result = pc._add_deployment(db_models=[MagicMock()])
     snapshot = {"added": result, "router_was": "none", "called": True}
@@ -2039,7 +2039,7 @@ def test_ProxyConfig__add_deployment_no_router_returns_zero(monkeypatch):
 def test_ProxyConfig__add_deployment_invalid_litellm_params_skips(monkeypatch):
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     bad = SimpleNamespace(litellm_params="not-a-dict", model_name="x", model_id="x")
     # invalid params logs and continues — assert zero added (error-style branch).
@@ -2055,12 +2055,12 @@ def test_ProxyConfig__add_deployment_resolves_env_refs_after_db_decrypt(monkeypa
     monkeypatch.setenv("LITELLM_DB_MODEL_API_KEY", "resolved-secret")
     monkeypatch.setenv("LITELLM_MASTER_KEY", "master-secret")
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     db_model = SimpleNamespace(
         model_id="model-1",
@@ -2091,12 +2091,12 @@ def test_ProxyConfig__add_deployment_resolves_team_env_refs(monkeypatch):
     value still passes through unchanged."""
     monkeypatch.setenv("LITELLM_MASTER_KEY", "master-secret")
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     db_model = SimpleNamespace(
         model_id="model-1",
@@ -2123,7 +2123,7 @@ def test_ProxyConfig__resolve_db_litellm_param_skips_non_string_values(monkeypat
         raise AssertionError("decrypt_value_helper should only receive strings")
 
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         fail_on_call,
     )
     pc = ProxyConfig()
@@ -2168,12 +2168,12 @@ def test_ProxyConfig__add_deployment_resolves_env_refs_for_aws_bedrock_auth_para
     for _, (env_name, env_value) in aws_env.items():
         monkeypatch.setenv(env_name, env_value)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     litellm_params: Dict[str, Any] = {"model": "bedrock/anthropic.claude-v2"}
     for key, (env_name, _) in aws_env.items():
@@ -2200,12 +2200,12 @@ def test_ProxyConfig__add_deployment_resolves_env_refs_on_arbitrary_field(monkey
     the resolver applies to every string field, not a curated list."""
     monkeypatch.setenv("SOME_CUSTOM_ENV", "resolved-custom-value")
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=True)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
     pc = ProxyConfig()
     db_model = SimpleNamespace(
         model_id="model-1",
@@ -2232,7 +2232,7 @@ def test_ProxyConfig__add_deployment_resolves_env_refs_on_arbitrary_field(monkey
 
 def test_ProxyConfig_decrypt_model_list_from_db_returns_decrypted(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     pc = ProxyConfig()
@@ -2266,7 +2266,7 @@ def test_ProxyConfig_decrypt_model_list_from_db_resolves_env_refs_after_db_decry
     monkeypatch.setenv("LITELLM_DB_MODEL_API_KEY", "resolved-secret")
     monkeypatch.setenv("LITELLM_MASTER_KEY", "master-secret")
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: (
             "os.environ/LITELLM_DB_MODEL_API_KEY"
             if key == "api_key"
@@ -2303,7 +2303,7 @@ def test_ProxyConfig_decrypt_model_list_from_db_resolves_team_env_refs_after_db_
     A — both paths now agree on the trust model."""
     monkeypatch.setenv("LITELLM_MASTER_KEY", "master-secret")
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: "os.environ/LITELLM_MASTER_KEY" if key == "api_key" else value,
     )
     pc = ProxyConfig()
@@ -2340,10 +2340,10 @@ def test_ProxyConfig_decrypt_model_list_from_db_invalid_params_skips():
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_llm_router_no_models_smoke(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-master")
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-master")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     pc = ProxyConfig()
 
     async def fake_get_config(*args, **kwargs):
@@ -2351,7 +2351,7 @@ async def test_ProxyConfig__update_llm_router_no_models_smoke(monkeypatch):
 
     monkeypatch.setattr(pc, "get_config", fake_get_config)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.proxy_config",
+        "token_iq.gateway.proxy.proxy_server.proxy_config",
         pc,
     )
     try:
@@ -2374,11 +2374,11 @@ async def test_ProxyConfig__update_llm_router_bad_proxy_logging_raises(monkeypat
     fake_router = MagicMock()
     fake_router.update_settings = MagicMock()
     monkeypatch.setattr(pc, "get_config", fake_get_config)
-    monkeypatch.setattr("litellm.proxy.proxy_server.llm_router", fake_router)
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-x")
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {"alerting": ["email"]})
-    monkeypatch.setattr("litellm.proxy.proxy_server.proxy_config", pc)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-x")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {"alerting": ["email"]})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", pc)
     # Passing None for proxy_logging_obj triggers AttributeError in _add_general_settings_from_db_config
     # when it calls proxy_logging_obj.update_values.
     with pytest.raises(AttributeError):
@@ -2466,7 +2466,7 @@ def test_ProxyConfig__add_callbacks_from_db_config_bad_config_raises():
 
 def test_ProxyConfig__encrypt_env_variables_returns_dict(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.encrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.encrypt_value_helper",
         lambda value, new_encryption_key=None: f"ENC[{value}]",
     )
     pc = ProxyConfig()
@@ -2488,7 +2488,7 @@ def test_ProxyConfig__encrypt_env_variables_invalid_raises():
 
 def test_ProxyConfig__decrypt_and_set_db_env_variables_sets_env(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value=False: value + "-dec",
     )
     monkeypatch.delenv("KEY_X", raising=False)
@@ -2520,7 +2520,7 @@ def test_ProxyConfig__decrypt_and_set_db_env_variables_invalid_dict_raises():
 
 def test_ProxyConfig__decrypt_db_variables_returns_decrypted(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: f"D({value})",
     )
     pc = ProxyConfig()
@@ -2541,11 +2541,11 @@ def test_ProxyConfig__decrypt_db_variables_invalid_raises():
 
 def test_ProxyConfig__encrypt_env_variables_for_db_idempotent(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.decrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.decrypt_value_helper",
         lambda value, key, return_original_value: value,
     )
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.encrypt_value_helper",
+        "token_iq.gateway.proxy.proxy_server.encrypt_value_helper",
         lambda value, new_encryption_key=None: f"ENC[{value}]",
     )
     pc = ProxyConfig()
@@ -2624,7 +2624,7 @@ async def test_ProxyConfig__get_hierarchical_router_settings_falls_back_to_team(
     fake_key = SimpleNamespace(router_settings=None, team_id="team-1")
     team_settings = {"model_group_alias": {"group-a": "group-b"}}
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.get_team_object",
+        "token_iq.gateway.proxy.proxy_server.get_team_object",
         AsyncMock(return_value=SimpleNamespace(router_settings=team_settings)),
     )
 
@@ -2645,7 +2645,7 @@ async def test_ProxyConfig__get_hierarchical_router_settings_key_shadows_team_en
     pc = ProxyConfig()
     fake_key = SimpleNamespace(router_settings={"num_retries": 3}, team_id="team-1")
     team_lookup = AsyncMock(return_value=SimpleNamespace(router_settings={"model_group_alias": {"group-a": "group-b"}}))
-    monkeypatch.setattr("litellm.proxy.proxy_server.get_team_object", team_lookup)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.get_team_object", team_lookup)
 
     out = await pc._get_hierarchical_router_settings(
         user_api_key_dict=fake_key,
@@ -2707,7 +2707,7 @@ async def test_ProxyConfig__add_router_settings_from_db_config_none_router_noop(
 
 @pytest.mark.asyncio
 async def test_ProxyConfig_add_deployment_applies_db_router_settings(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     pc = ProxyConfig()
     fake_router = MagicMock()
@@ -2780,7 +2780,7 @@ def test_ProxyConfig__add_general_settings_from_db_config_bad_config_raises():
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__reschedule_spend_log_cleanup_job_no_scheduler(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.scheduler", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.scheduler", None)
     pc = ProxyConfig()
     try:
         await pc._reschedule_spend_log_cleanup_job()
@@ -2796,15 +2796,15 @@ async def test_ProxyConfig__reschedule_spend_log_cleanup_job_invalid_cron(monkey
     fake_scheduler = MagicMock()
     fake_scheduler.remove_job = MagicMock()
     fake_scheduler.add_job = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.scheduler", fake_scheduler)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.scheduler", fake_scheduler)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {
             "maximum_spend_logs_retention_period": "1d",
             "maximum_spend_logs_cleanup_cron": "INVALID CRON STRING",
         },
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     pc = ProxyConfig()
     # Invalid cron is caught and logged — does not raise outward.
     await pc._reschedule_spend_log_cleanup_job()
@@ -2815,12 +2815,12 @@ async def test_ProxyConfig__reschedule_spend_log_cleanup_job_invalid_cron(monkey
 @pytest.mark.asyncio
 async def test_ProxyConfig__reschedule_spend_log_cleanup_job_health_check_retention(monkeypatch):
     fake_scheduler = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.scheduler", fake_scheduler)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.scheduler", fake_scheduler)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"maximum_health_check_retention_period": "30d"},
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     pc = ProxyConfig()
     await pc._reschedule_spend_log_cleanup_job()
     assert fake_scheduler.add_job.call_count == 1
@@ -2830,7 +2830,7 @@ async def test_ProxyConfig__reschedule_spend_log_cleanup_job_health_check_retent
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_general_settings_updates_health_check_retention(monkeypatch):
     settings = {}
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", settings)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", settings)
     pc = ProxyConfig()
     reschedule = AsyncMock()
     monkeypatch.setattr(pc, "_reschedule_spend_log_cleanup_job", reschedule)
@@ -2847,7 +2847,7 @@ async def test_ProxyConfig__update_general_settings_updates_health_check_retenti
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_general_settings_updates_max_parallel(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {},
     )
     pc = ProxyConfig()
@@ -2858,7 +2858,7 @@ async def test_ProxyConfig__update_general_settings_updates_max_parallel(monkeyp
             "ui_access_mode": "admin_only",
         }
     )
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     snapshot = {
         "max_parallel_requests": ps.general_settings.get("max_parallel_requests"),
@@ -2874,10 +2874,10 @@ async def test_ProxyConfig__update_general_settings_updates_max_parallel(monkeyp
 
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_general_settings_applies_db_max_batch_file_size_mb(monkeypatch):
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     pc = ProxyConfig()
     await pc._update_general_settings({"max_batch_file_size_mb": 5})
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     assert ps.general_settings.get("max_batch_file_size_mb") == 5
 
@@ -2885,13 +2885,13 @@ async def test_ProxyConfig__update_general_settings_applies_db_max_batch_file_si
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_general_settings_yaml_max_batch_file_size_mb_wins_over_db(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"max_batch_file_size_mb": 3},
     )
     pc = ProxyConfig()
     pc._yaml_general_settings_keys = {"max_batch_file_size_mb"}
     await pc._update_general_settings({"max_batch_file_size_mb": 5})
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     assert ps.general_settings.get("max_batch_file_size_mb") == 3
 
@@ -2899,12 +2899,12 @@ async def test_ProxyConfig__update_general_settings_yaml_max_batch_file_size_mb_
 @pytest.mark.asyncio
 async def test_ProxyConfig__update_general_settings_cleared_db_max_batch_file_size_mb_lifts_cap(monkeypatch):
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"max_batch_file_size_mb": 8},
     )
     pc = ProxyConfig()
     await pc._update_general_settings({"max_parallel_requests": 1})
-    from litellm.proxy import proxy_server as ps
+    from token_iq.gateway.proxy import proxy_server as ps
 
     assert ps.general_settings.get("max_batch_file_size_mb") is None
 
@@ -2964,8 +2964,8 @@ async def test_ProxyConfig__update_config_from_db_does_not_log_general_settings_
     """
     import logging
 
-    import litellm._logging as _logging_module
-    from litellm._logging import verbose_proxy_logger
+    import token_iq.gateway._logging as _logging_module
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     monkeypatch.setattr(_logging_module, "_ENABLE_SECRET_REDACTION", False)
     monkeypatch.delenv("DATABASE_URL", raising=False)
@@ -2973,7 +2973,7 @@ async def test_ProxyConfig__update_config_from_db_does_not_log_general_settings_
     def _fake_decrypt_value_helper(value, key, **_kwargs):
         return value
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.decrypt_value_helper", _fake_decrypt_value_helper)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.decrypt_value_helper", _fake_decrypt_value_helper)
 
     master_key_secret = "sk-lit4152-db-path-master-key-abcdef1234567890"
     db_url_secret = "postgresql://leak_user:leak_password_9090@leak-host.internal:5432/leak_db"
@@ -3000,7 +3000,7 @@ async def test_ProxyConfig__update_config_from_db_does_not_log_general_settings_
     async def _fake_get_config_param(prisma_client, key):
         return responses[key]
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.get_config_param", _fake_get_config_param)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.get_config_param", _fake_get_config_param)
 
     class LogRecordHandler(logging.Handler):
         def __init__(self) -> None:
@@ -3054,8 +3054,8 @@ async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plai
     """
     import logging
 
-    import litellm._logging as _logging_module
-    from litellm._logging import verbose_proxy_logger
+    import token_iq.gateway._logging as _logging_module
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     monkeypatch.setattr(_logging_module, "_ENABLE_SECRET_REDACTION", False)
 
@@ -3064,8 +3064,8 @@ async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plai
     f.write_text(
         f"model_list: []\ngeneral_settings: {{}}\nlitellm_settings:\n  api_key: {api_key_secret}\n  num_retries: 7\n"
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
     class LogRecordHandler(logging.Handler):
@@ -3105,7 +3105,7 @@ async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plai
 
 @pytest.fixture
 def clean_agent_registry():
-    from litellm.proxy.agent_endpoints.agent_registry import global_agent_registry
+    from token_iq.gateway.proxy.agent_endpoints.agent_registry import global_agent_registry
 
     original_agents = list(global_agent_registry.agent_list)
     original_config_agents = getattr(global_agent_registry, "config_agents", ())
@@ -3252,9 +3252,9 @@ async def test_ProxyConfig__init_guardrails_in_db_skips_only_the_unloadable_row(
     The failing row's id must still reach reconcile_db_guardrails so that eviction
     pass cannot treat a row that is alive in the DB as one that was deleted.
     """
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy.guardrails import guardrail_registry as registry_module
-    from litellm.types.guardrails import Guardrail, GuardrailEventHooks, LitellmParams
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy.guardrails import guardrail_registry as registry_module
+    from token_iq.gateway.types.guardrails import Guardrail, GuardrailEventHooks, LitellmParams
 
     class _RecordingHandler(registry_module.InMemoryGuardrailHandler):
         def __init__(self) -> None:

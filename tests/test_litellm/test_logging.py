@@ -11,8 +11,8 @@ from typing import List
 
 import pytest
 
-import litellm
-from litellm._logging import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import (
     _COLOR_LOG_FORMAT,
     _MAX_SCRUBBED_ACCESS_ARG,
     _PLAIN_LOG_FORMAT,
@@ -38,9 +38,9 @@ from litellm._logging import (
     verbose_proxy_logger,
     verbose_router_logger,
 )
-from litellm.constants import LITELLM_TRUNCATED_PAYLOAD_FIELD
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.constants import LITELLM_TRUNCATED_PAYLOAD_FIELD
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 class CacheHitCustomLogger(CustomLogger):

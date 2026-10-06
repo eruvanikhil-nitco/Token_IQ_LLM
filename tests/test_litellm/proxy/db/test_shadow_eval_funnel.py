@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.db import shadow_eval_funnel
-from litellm.proxy.db.shadow_eval_funnel import (
+from token_iq.gateway.proxy.db import shadow_eval_funnel
+from token_iq.gateway.proxy.db.shadow_eval_funnel import (
     flush_shadow_eval_funnel,
     record_shadow_eval_funnel_event,
 )
@@ -86,7 +86,7 @@ async def test_events_recorded_during_a_flush_survive_into_the_next_batch():
 
 
 def test_pending_count_feeds_the_drain_census():
-    from litellm.proxy.db.shadow_eval_funnel import pending_shadow_eval_funnel_events
+    from token_iq.gateway.proxy.db.shadow_eval_funnel import pending_shadow_eval_funnel_events
 
     assert pending_shadow_eval_funnel_events() == 0
     record_shadow_eval_funnel_event("leg-1", "not_sampled")

@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from prometheus_client import REGISTRY
 
-from litellm.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
 
 @pytest.fixture(autouse=True)
@@ -217,7 +217,7 @@ class TestPrometheusUserTeamCountMetrics:
         mock_proxy_server = MagicMock()
         mock_proxy_server.prisma_client = mock_prisma
 
-        with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+        with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
             await prometheus_logger._initialize_user_and_team_count_metrics()
 
         prometheus_logger.litellm_total_users_metric.set.assert_called_once_with(10)
@@ -317,7 +317,7 @@ async def test_assemble_team_object_uses_db_max_budget_when_metadata_is_none(
     db_team.max_budget = 3000.0
     db_team.budget_reset_at = datetime(2026, 3, 1, tzinfo=timezone.utc)
 
-    with patch("litellm.proxy.auth.auth_checks.get_team_object") as mock_get_team:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_team_object") as mock_get_team:
         mock_get_team.return_value = db_team
         team_object = await prometheus_logger._assemble_team_object(
             team_id="c5c33858-4379-4c90-8733-d9c58c312c10",
@@ -344,7 +344,7 @@ async def test_assemble_team_object_does_not_override_metadata_max_budget(
     db_team.max_budget = 9999.0
     db_team.budget_reset_at = None
 
-    with patch("litellm.proxy.auth.auth_checks.get_team_object") as mock_get_team:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_team_object") as mock_get_team:
         mock_get_team.return_value = db_team
         team_object = await prometheus_logger._assemble_team_object(
             team_id="team-1",
@@ -374,7 +374,7 @@ async def test_set_team_budget_metrics_after_api_request_no_inf_when_metadata_bu
     db_team.max_budget = 3000.0
     db_team.budget_reset_at = datetime(2026, 3, 1, tzinfo=timezone.utc)
 
-    with patch("litellm.proxy.auth.auth_checks.get_team_object") as mock_get_team:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_team_object") as mock_get_team:
         mock_get_team.return_value = db_team
         await prometheus_logger._set_team_budget_metrics_after_api_request(
             user_api_team="c5c33858-4379-4c90-8733-d9c58c312c10",
@@ -415,7 +415,7 @@ async def test_set_team_budget_metrics_after_api_request_inf_when_genuinely_no_b
     db_team.max_budget = None
     db_team.budget_reset_at = None
 
-    with patch("litellm.proxy.auth.auth_checks.get_team_object") as mock_get_team:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_team_object") as mock_get_team:
         mock_get_team.return_value = db_team
         await prometheus_logger._set_team_budget_metrics_after_api_request(
             user_api_team="team-no-budget",
@@ -453,7 +453,7 @@ async def test_assemble_user_object_uses_db_max_budget_when_metadata_is_none(
     db_user.max_budget = 500.0
     db_user.budget_reset_at = datetime(2026, 3, 1, tzinfo=timezone.utc)
 
-    with patch("litellm.proxy.auth.auth_checks.get_user_object") as mock_get_user:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object") as mock_get_user:
         mock_get_user.return_value = db_user
         user_object = await prometheus_logger._assemble_user_object(
             user_id="user-abc-123",
@@ -479,7 +479,7 @@ async def test_assemble_user_object_does_not_override_metadata_max_budget(
     db_user.max_budget = 9999.0
     db_user.budget_reset_at = None
 
-    with patch("litellm.proxy.auth.auth_checks.get_user_object") as mock_get_user:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object") as mock_get_user:
         mock_get_user.return_value = db_user
         user_object = await prometheus_logger._assemble_user_object(
             user_id="user-abc-123",
@@ -502,7 +502,7 @@ async def test_assemble_user_object_populates_user_email_and_alias_from_db(
     db_user.user_email = "alice@example.com"
     db_user.user_alias = "Alice"
 
-    with patch("litellm.proxy.auth.auth_checks.get_user_object") as mock_get_user:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object") as mock_get_user:
         mock_get_user.return_value = db_user
         user_object = await prometheus_logger._assemble_user_object(
             user_id="user-abc-123",
@@ -519,8 +519,8 @@ def test_set_user_budget_metrics_default_no_email_alias_labels(
     prometheus_logger,
 ):
     """By default (flag off), only user label is emitted."""
-    import litellm
-    from litellm.proxy._types import LiteLLM_UserTable
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable
 
     litellm.prometheus_user_budget_label_include_email_alias = False
 
@@ -551,8 +551,8 @@ def test_set_user_budget_metrics_includes_user_email_and_alias_labels_when_opted
     so it must be enabled before the PrometheusLogger is built (mirroring how the
     proxy applies config at startup before instantiating callbacks).
     """
-    import litellm
-    from litellm.proxy._types import LiteLLM_UserTable
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable
 
     litellm.prometheus_user_budget_label_include_email_alias = True
 
@@ -611,7 +611,7 @@ async def test_set_user_budget_metrics_after_api_request_no_inf_when_metadata_bu
     db_user.max_budget = 500.0
     db_user.budget_reset_at = datetime(2026, 3, 1, tzinfo=timezone.utc)
 
-    with patch("litellm.proxy.auth.auth_checks.get_user_object") as mock_get_user:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object") as mock_get_user:
         mock_get_user.return_value = db_user
         await prometheus_logger._set_user_budget_metrics_after_api_request(
             user_id="user-abc-123",
@@ -651,7 +651,7 @@ async def test_set_user_budget_metrics_after_api_request_inf_when_genuinely_no_b
     db_user.max_budget = None
     db_user.budget_reset_at = None
 
-    with patch("litellm.proxy.auth.auth_checks.get_user_object") as mock_get_user:
+    with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object") as mock_get_user:
         mock_get_user.return_value = db_user
         await prometheus_logger._set_user_budget_metrics_after_api_request(
             user_id="user-no-budget",
@@ -672,8 +672,8 @@ async def test_set_user_budget_metrics_after_api_request_inf_when_genuinely_no_b
 
 def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
     """Verify org labels appear when flag is on and are absent when flag is off."""
-    import litellm
-    from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
     prometheus_logger.litellm_requests_metric = MagicMock()
     prometheus_logger.litellm_spend_metric = MagicMock()
@@ -713,7 +713,7 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
         assert label_kwargs["user"] == "user-1"
 
         # Metrics not in the org-emission list must NOT get org labels
-        from litellm.types.integrations.prometheus import PrometheusMetricLabels
+        from token_iq.gateway.types.integrations.prometheus import PrometheusMetricLabels
 
         for metric in (
             "litellm_remaining_api_key_budget_metric",
@@ -845,9 +845,9 @@ async def test_set_org_budget_metrics_after_api_request(prometheus_logger):
     mock_proxy_server.user_api_key_cache = MagicMock()
 
     with (
-        patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}),
+        patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}),
         patch(
-            "litellm.proxy.auth.auth_checks.get_org_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_org_object",
             AsyncMock(return_value=org_mock),
         ),
     ):
@@ -914,7 +914,7 @@ async def test_initialize_org_budget_metrics(prometheus_logger):
     mock_proxy_server = MagicMock()
     mock_proxy_server.prisma_client = mock_prisma
 
-    with patch.dict(sys.modules, {"litellm.proxy.proxy_server": mock_proxy_server}):
+    with patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": mock_proxy_server}):
         await prometheus_logger._initialize_org_budget_metrics()
 
     prometheus_logger.litellm_remaining_org_budget_metric.labels().set.assert_called_once()
@@ -925,7 +925,7 @@ async def test_initialize_org_budget_metrics(prometheus_logger):
 
 def test_default_latency_buckets(prometheus_logger):
     """PrometheusLogger uses the new reduced default latency buckets."""
-    from litellm.types.integrations.prometheus import LATENCY_BUCKETS
+    from token_iq.gateway.types.integrations.prometheus import LATENCY_BUCKETS
 
     assert prometheus_logger.latency_buckets == LATENCY_BUCKETS
     # 420 and 600 should be present
@@ -938,7 +938,7 @@ def test_default_latency_buckets(prometheus_logger):
 
 def test_custom_latency_buckets():
     """prometheus_latency_buckets in litellm settings overrides the defaults."""
-    import litellm
+    from token_iq import gateway as litellm
     from prometheus_client import REGISTRY
 
     custom_buckets = [0.1, 0.5, 1.0, 5.0, 10.0]
@@ -977,7 +977,7 @@ class TestSetTeamMembersMetric:
 
     @pytest.mark.parametrize("count", [0, 1, 3, 7])
     def test_sets_gauge_to_member_count(self, prometheus_logger, count):
-        from litellm.proxy._types import LiteLLM_TeamTable, Member
+        from token_iq.gateway.proxy._types import LiteLLM_TeamTable, Member
 
         team = LiteLLM_TeamTable(
             team_id="team-a",
@@ -991,7 +991,7 @@ class TestSetTeamMembersMetric:
 
     def test_gauge_reflects_latest_count_not_delta(self, prometheus_logger):
         """Re-emitting overwrites with the authoritative count (set, not inc/dec)."""
-        from litellm.proxy._types import LiteLLM_TeamTable, Member
+        from token_iq.gateway.proxy._types import LiteLLM_TeamTable, Member
 
         members = [Member(user_id=f"u{i}", role="user") for i in range(4)]
         team = LiteLLM_TeamTable(
@@ -1006,7 +1006,7 @@ class TestSetTeamMembersMetric:
         assert self._gauge_value("team-b", "Beta") == 2.0
 
     def test_none_alias_falls_back_to_empty_string(self, prometheus_logger):
-        from litellm.proxy._types import LiteLLM_TeamTable, Member
+        from token_iq.gateway.proxy._types import LiteLLM_TeamTable, Member
 
         team = LiteLLM_TeamTable(
             team_id="team-c",
@@ -1017,7 +1017,7 @@ class TestSetTeamMembersMetric:
         assert self._gauge_value("team-c", "") == 1.0
 
     def test_teams_isolated_by_label(self, prometheus_logger):
-        from litellm.proxy._types import LiteLLM_TeamTable, Member
+        from token_iq.gateway.proxy._types import LiteLLM_TeamTable, Member
 
         team_one = LiteLLM_TeamTable(
             team_id="team-1",

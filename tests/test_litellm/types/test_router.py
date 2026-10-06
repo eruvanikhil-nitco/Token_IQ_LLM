@@ -1,12 +1,12 @@
 import pytest
 
-from litellm.types.router import (
+from token_iq.gateway.types.router import (
     SPECIAL_MODEL_INFO_PARAMS,
     Deployment,
     LiteLLM_Params,
     ModelInfo,
 )
-from litellm.types.utils import CustomPricingLiteLLMParams, MirroredPricingParams
+from token_iq.gateway.types.utils import CustomPricingLiteLLMParams, MirroredPricingParams
 
 
 def test_model_info_declares_mirrored_pricing_fields():

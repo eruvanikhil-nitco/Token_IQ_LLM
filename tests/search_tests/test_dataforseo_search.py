@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-import litellm
-from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
 
 @pytest.mark.asyncio
@@ -38,7 +38,7 @@ async def test_dataforseo_search_basic():
     )
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.BaseLLMHTTPHandler.async_search",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.BaseLLMHTTPHandler.async_search",
         new_callable=AsyncMock,
     ) as mock_search:
         mock_search.return_value = mock_response

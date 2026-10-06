@@ -17,9 +17,9 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
-from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 
 TOOL_DEFINITION: dict[str, Any] = {
     "type": "function",

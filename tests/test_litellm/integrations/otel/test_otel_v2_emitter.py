@@ -8,25 +8,25 @@ pytest.importorskip("opentelemetry")
 from opentelemetry.trace import SpanKind  # noqa: E402
 from opentelemetry.trace.status import StatusCode  # noqa: E402
 
-from litellm.integrations.otel import (  # noqa: E402
+from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
     LiteLLM,
     OpenTelemetryV2Config,
 )
-from litellm.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.emitter import SpanEmitter  # noqa: E402
-from litellm.integrations.otel.emitter import stamp_error  # noqa: E402
-from litellm.integrations.otel.mappers.utils import (  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.emitter import SpanEmitter  # noqa: E402
+from token_iq.gateway.integrations.otel.emitter import stamp_error  # noqa: E402
+from token_iq.gateway.integrations.otel.mappers.utils import (  # noqa: E402
     MAX_TOOL_DEFINITION_ATTRS_PER_SPAN,
 )
-from litellm.integrations.otel.model.payloads import (  # noqa: E402
+from token_iq.gateway.integrations.otel.model.payloads import (  # noqa: E402
     GuardrailSpanData,
     LLMCallSpanData,
     ServiceSpanData,
     SpanError,
 )
-from litellm.integrations.otel.model.spans import SPAN_REGISTRY, SpanRole  # noqa: E402
+from token_iq.gateway.integrations.otel.model.spans import SPAN_REGISTRY, SpanRole  # noqa: E402
 
 
 def _payload(**overrides):
@@ -88,7 +88,7 @@ def test_llm_call_span_cost_breakdown():
 
 
 def test_tracer_scope_carries_litellm_version():
-    from litellm._version import version as litellm_version
+    from token_iq.gateway._version import version as litellm_version
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     provider, exporter = providers.in_memory_provider(cfg)
@@ -245,7 +245,7 @@ def test_dedup_cache_is_bounded(monkeypatch):
     """The dedup cache only needs to coalesce one request's sync+async fire, so
     it is a bounded LRU — every unique call_id must not accumulate forever on a
     long-running proxy."""
-    from litellm.integrations.otel import emitter as emitter_mod
+    from token_iq.gateway.integrations.otel import emitter as emitter_mod
 
     monkeypatch.setattr(emitter_mod, "_DEDUP_CACHE_MAX", 3)
     engine, _ = _engine()
@@ -260,7 +260,7 @@ def test_dedup_cache_is_bounded(monkeypatch):
 
 
 def test_service_error_span():
-    from litellm.integrations.otel.model.payloads import SpanError
+    from token_iq.gateway.integrations.otel.model.payloads import SpanError
 
     engine, exporter = _engine()
     engine.emit(

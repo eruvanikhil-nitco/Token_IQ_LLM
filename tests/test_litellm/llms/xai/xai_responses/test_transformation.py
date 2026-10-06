@@ -4,16 +4,16 @@ Tests for XAI Responses API transformation
 Tests the XAIResponsesAPIConfig class that handles XAI-specific
 transformations for the Responses API.
 
-Source: litellm/llms/xai/responses/transformation.py
+Source: token_iq/gateway/llms/xai/responses/transformation.py
 """
 
 
 
 import pytest
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
 
 class TestXAIResponsesAPITransformation:

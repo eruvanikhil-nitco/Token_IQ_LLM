@@ -1,15 +1,15 @@
 """
-Tests for OpenAI GPT transformation (litellm/llms/openai/chat/gpt_transformation.py)
+Tests for OpenAI GPT transformation (token_iq/gateway/llms/openai/chat/gpt_transformation.py)
 """
 
 
 import pytest
 
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
-from litellm.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
-from litellm.llms.openai.chat.gpt_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
+from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
+from token_iq.gateway.llms.openai.chat.gpt_transformation import (
     OpenAIChatCompletionStreamingHandler,
     OpenAIGPTConfig,
 )
@@ -104,7 +104,7 @@ class TestGetOptionalParamsIntegration:
         Regression test for: https://github.com/BerriAI/litellm/issues/17633
         This verifies the full flow through get_optional_params().
         """
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         # Test with responses model
         optional_params = get_optional_params(
@@ -116,7 +116,7 @@ class TestGetOptionalParamsIntegration:
 
     def test_user_in_optional_params_for_regular_model(self):
         """Test that 'user' ends up in optional_params for regular OpenAI models."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         optional_params = get_optional_params(
             model="gpt-4o",
@@ -127,7 +127,7 @@ class TestGetOptionalParamsIntegration:
 
     def test_user_param_consistency_between_regular_and_responses(self):
         """Test that 'user' param behavior is consistent between regular and responses models."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         regular_params = get_optional_params(
             model="gpt-4.1-mini",
@@ -148,7 +148,7 @@ class TestGetOptionalParamsIntegration:
     def test_reasoning_effort_supported_for_unknown_model_alias(self):
         """An openai/-routed model litellm doesn't recognize is likely a proxy alias:
         reasoning_effort must be forwarded so the server decides support."""
-        from litellm.llms.openai.openai import OpenAIConfig
+        from token_iq.gateway.llms.openai.openai import OpenAIConfig
 
         supported_params = OpenAIConfig().get_supported_openai_params(
             "my-claude-alias"
@@ -157,7 +157,7 @@ class TestGetOptionalParamsIntegration:
 
     def test_reasoning_effort_not_supported_for_known_non_reasoning_models(self):
         """Known OpenAI models keep failing closed client-side."""
-        from litellm.llms.openai.openai import OpenAIConfig
+        from token_iq.gateway.llms.openai.openai import OpenAIConfig
 
         config = OpenAIConfig()
         assert "reasoning_effort" not in config.get_supported_openai_params("gpt-4o")
@@ -168,7 +168,7 @@ class TestGetOptionalParamsIntegration:
     def test_reasoning_effort_not_inherited_by_openai_compatible_subclasses(self):
         """Providers subclassing either openai config keep their own reasoning_effort gating
         for their models, which are all unknown to the openai catalog."""
-        from litellm.llms.openai.openai import OpenAIConfig
+        from token_iq.gateway.llms.openai.openai import OpenAIConfig
 
         class InheritingDispatcherConfig(OpenAIConfig):
             pass
@@ -188,7 +188,7 @@ class TestGetOptionalParamsIntegration:
     ):
         """Regression test for reasoning_effort raising UnsupportedParamsError
         client-side for openai/-prefixed proxy aliases before any HTTP request."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         optional_params = get_optional_params(
             model="my-claude-alias",
@@ -199,7 +199,7 @@ class TestGetOptionalParamsIntegration:
 
     def test_reasoning_effort_still_rejected_for_known_non_reasoning_model(self):
         """A real OpenAI model that doesn't reason still rejects the param client-side."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         with pytest.raises(litellm.utils.UnsupportedParamsError):
             get_optional_params(
@@ -252,7 +252,7 @@ class TestOpenAIChatCompletionStreamingHandler:
         e.g. data: {"error": {..., "code": 400}}. chunk_parser must surface it
         as a provider error instead of parsing an empty chunk that silently
         ends the stream (https://github.com/BerriAI/litellm/issues/25492)."""
-        from litellm.llms.openai.common_utils import OpenAIError
+        from token_iq.gateway.llms.openai.common_utils import OpenAIError
 
         handler = OpenAIChatCompletionStreamingHandler(
             streaming_response=None, sync_stream=True
@@ -277,7 +277,7 @@ class TestOpenAIChatCompletionStreamingHandler:
     def test_chunk_parser_error_payload_without_usable_code_maps_to_500(self):
         """OpenAI-style error payloads may carry a string code (e.g.
         "invalid_api_key") or none at all; those must map to 500, not crash."""
-        from litellm.llms.openai.common_utils import OpenAIError
+        from token_iq.gateway.llms.openai.common_utils import OpenAIError
 
         handler = OpenAIChatCompletionStreamingHandler(
             streaming_response=None, sync_stream=True
@@ -473,7 +473,7 @@ class TestPromptCacheKeyIntegration:
 
     def test_prompt_cache_key_in_optional_params(self):
         """Test that 'prompt_cache_key' flows through get_optional_params for OpenAI models."""
-        from litellm.utils import get_optional_params
+        from token_iq.gateway.utils import get_optional_params
 
         optional_params = get_optional_params(
             model="gpt-4.1-nano",
@@ -615,7 +615,7 @@ class TestGPT5ReasoningEffortPreservation:
         When reasoning_effort={"effort": "xhigh", "summary": "detailed"} is passed to a model
         that doesn't support xhigh (e.g. gpt-5.1), the xhigh guard must fire.
         """
-        import litellm
+        from token_iq import gateway as litellm
 
         non_default_params = {
             "reasoning_effort": {"effort": "xhigh", "summary": "detailed"}

@@ -2,24 +2,24 @@ import sys, os, time
 import traceback, asyncio
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from dotenv import load_dotenv
 from unittest.mock import AsyncMock, MagicMock, patch
-from litellm.router_utils.cooldown_callbacks import router_cooldown_event_callback
-from litellm.router_utils.cooldown_handlers import (
+from token_iq.gateway.router_utils.cooldown_callbacks import router_cooldown_event_callback
+from token_iq.gateway.router_utils.cooldown_handlers import (
     _should_run_cooldown_logic,
     _should_cooldown_deployment,
     cast_exception_status_to_int,
     _is_cooldown_required,
     _has_explicit_allowed_fails_policy_for_exception,
 )
-from litellm.types.router import AllowedFailsPolicy
-from litellm.router_utils.router_callbacks.track_deployment_metrics import (
+from token_iq.gateway.types.router import AllowedFailsPolicy
+from token_iq.gateway.router_utils.router_callbacks.track_deployment_metrics import (
     increment_deployment_failures_for_current_minute,
     increment_deployment_successes_for_current_minute,
 )
@@ -270,7 +270,7 @@ async def test_should_cooldown_deployment(testing_litellm_router):
     """
     Cooldown a deployment if it fails 60% of requests in 1 minute - DEFAULT threshold is 50%
     """
-    from litellm._logging import verbose_router_logger
+    from token_iq.gateway._logging import verbose_router_logger
     import logging
 
     verbose_router_logger.setLevel(logging.DEBUG)
@@ -370,10 +370,10 @@ def test_increment_deployment_successes_for_current_minute_does_not_write_to_red
 
     Important - If it writes to redis on every request it will seriously impact performance / latency
     """
-    from litellm.caching.dual_cache import DualCache
-    from litellm.caching.redis_cache import RedisCache
-    from litellm.caching.in_memory_cache import InMemoryCache
-    from litellm.router_utils.router_callbacks.track_deployment_metrics import (
+    from token_iq.gateway.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+    from token_iq.gateway.router_utils.router_callbacks.track_deployment_metrics import (
         increment_deployment_successes_for_current_minute,
     )
 
@@ -432,14 +432,14 @@ def router():
 
 
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
 )
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
 )
 def test_should_cooldown_high_traffic_all_fails(mock_failures, mock_successes, router):
     # Simulate 10 failures, 0 successes
-    from litellm.constants import SINGLE_DEPLOYMENT_TRAFFIC_FAILURE_THRESHOLD
+    from token_iq.gateway.constants import SINGLE_DEPLOYMENT_TRAFFIC_FAILURE_THRESHOLD
 
     mock_failures.return_value = SINGLE_DEPLOYMENT_TRAFFIC_FAILURE_THRESHOLD + 1
     mock_successes.return_value = 0
@@ -457,10 +457,10 @@ def test_should_cooldown_high_traffic_all_fails(mock_failures, mock_successes, r
 
 
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
 )
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
 )
 def test_no_cooldown_low_traffic(mock_failures, mock_successes, router):
     # Simulate 3 failures (below MIN_TRAFFIC_THRESHOLD)
@@ -480,10 +480,10 @@ def test_no_cooldown_low_traffic(mock_failures, mock_successes, router):
 
 
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
 )
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
 )
 def test_cooldown_rate_limit(mock_failures, mock_successes, router):
     """
@@ -505,10 +505,10 @@ def test_cooldown_rate_limit(mock_failures, mock_successes, router):
 
 
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_successes_for_current_minute"
 )
 @patch(
-    "litellm.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
+    "token_iq.gateway.router_utils.cooldown_handlers.get_deployment_failures_for_current_minute"
 )
 def test_mixed_success_failure(mock_failures, mock_successes, router):
     # Simulate 3 failures, 7 successes
@@ -554,7 +554,7 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
     The fix: Add a minimum request threshold (DEFAULT_FAILURE_THRESHOLD_MINIMUM_REQUESTS)
     before applying error rate cooldown.
     """
-    from litellm.constants import DEFAULT_FAILURE_THRESHOLD_MINIMUM_REQUESTS
+    from token_iq.gateway.constants import DEFAULT_FAILURE_THRESHOLD_MINIMUM_REQUESTS
 
     # Get a deployment that's not a single-deployment model group
     # (test_deployment_2 and test_deployment_3 are both for "test_deployment" model)

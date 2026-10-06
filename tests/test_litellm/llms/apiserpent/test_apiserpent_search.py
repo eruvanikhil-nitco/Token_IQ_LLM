@@ -8,10 +8,10 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-import litellm
-from litellm.llms.apiserpent.search.defaults import APISerpentSearchParams
-from litellm.llms.apiserpent.search.transformation import APISerpentSearchConfig
-from litellm.llms.base_llm.search.transformation import SearchResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.apiserpent.search.defaults import APISerpentSearchParams
+from token_iq.gateway.llms.apiserpent.search.transformation import APISerpentSearchConfig
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse
 
 
 def _params(config, query, optional_params):
@@ -57,7 +57,7 @@ class TestAPISerpentConfig:
     def test_get_http_method(self):
         assert APISerpentSearchConfig().get_http_method() == "GET"
 
-    @patch("litellm.llms.apiserpent.search.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.apiserpent.search.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         mock_get_secret.return_value = None
         headers = APISerpentSearchConfig().validate_environment(
@@ -242,7 +242,7 @@ class TestAPISerpentSearchIntegration:
     async def test_asearch_quick_default(self, monkeypatch):
         monkeypatch.setenv("APISERPENT_API_KEY", "test-api-key")
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = self._mock_response()
@@ -272,7 +272,7 @@ class TestAPISerpentSearchIntegration:
     async def test_asearch_deep(self, monkeypatch):
         monkeypatch.setenv("APISERPENT_API_KEY", "test-api-key")
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = self._mock_response()

@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy.discovery_endpoints.ui_discovery_endpoints import router
-from litellm.types.proxy.control_plane_endpoints import WorkerRegistryEntry
+from token_iq.gateway.proxy.discovery_endpoints.ui_discovery_endpoints import router
+from token_iq.gateway.types.proxy.control_plane_endpoints import WorkerRegistryEntry
 
 
 def test_ui_discovery_endpoints_with_defaults():
@@ -16,9 +16,9 @@ def test_ui_discovery_endpoints_with_defaults():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
 
@@ -39,9 +39,9 @@ def test_ui_discovery_endpoints_with_custom_server_root_path():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
 
@@ -61,12 +61,12 @@ def test_ui_discovery_endpoints_with_proxy_base_url_when_set():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
         patch(
-            "litellm.proxy.utils.get_proxy_base_url",
+            "token_iq.gateway.proxy.utils.get_proxy_base_url",
             return_value="https://proxy.example.com",
         ),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
 
@@ -86,12 +86,12 @@ def test_ui_discovery_endpoints_with_sso_configured_and_auto_redirect_enabled():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"),
         patch(
-            "litellm.proxy.utils.get_proxy_base_url",
+            "token_iq.gateway.proxy.utils.get_proxy_base_url",
             return_value="https://proxy.example.com",
         ),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch.dict(
             os.environ,
             {"AUTO_REDIRECT_UI_LOGIN_TO_SSO": "true", "DISABLE_ADMIN_UI": "false"},
@@ -116,12 +116,12 @@ def test_ui_discovery_endpoints_with_sso_configured_and_auto_redirect_not_set_de
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"),
         patch(
-            "litellm.proxy.utils.get_proxy_base_url",
+            "token_iq.gateway.proxy.utils.get_proxy_base_url",
             return_value="https://proxy.example.com",
         ),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
         # Ensure AUTO_REDIRECT_UI_LOGIN_TO_SSO is not set (simulate default)
@@ -143,12 +143,12 @@ def test_ui_discovery_endpoints_with_sso_configured_but_auto_redirect_disabled()
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"),
         patch(
-            "litellm.proxy.utils.get_proxy_base_url",
+            "token_iq.gateway.proxy.utils.get_proxy_base_url",
             return_value="https://proxy.example.com",
         ),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch.dict(
             os.environ,
             {"AUTO_REDIRECT_UI_LOGIN_TO_SSO": "false", "DISABLE_ADMIN_UI": "false"},
@@ -172,9 +172,9 @@ def test_ui_discovery_endpoints_with_sso_not_configured_but_auto_redirect_enable
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(
             os.environ,
             {"AUTO_REDIRECT_UI_LOGIN_TO_SSO": "true", "DISABLE_ADMIN_UI": "false"},
@@ -198,12 +198,12 @@ def test_ui_discovery_endpoints_both_routes_return_same_data():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/litellm"),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/litellm"),
         patch(
-            "litellm.proxy.utils.get_proxy_base_url",
+            "token_iq.gateway.proxy.utils.get_proxy_base_url",
             return_value="https://proxy.example.com",
         ),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch.dict(
             os.environ,
             {"AUTO_REDIRECT_UI_LOGIN_TO_SSO": "true", "DISABLE_ADMIN_UI": "false"},
@@ -226,11 +226,11 @@ def test_ui_discovery_endpoints_with_auto_redirect_via_general_settings():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"auto_redirect_ui_login_to_sso": True},
         ),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
@@ -252,11 +252,11 @@ def test_ui_discovery_endpoints_with_auto_redirect_env_var_overrides_general_set
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=True),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"auto_redirect_ui_login_to_sso": False},
         ),
         patch.dict(
@@ -279,9 +279,9 @@ def test_ui_discovery_endpoints_with_admin_ui_disabled():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "true"}, clear=False),
     ):
 
@@ -309,10 +309,10 @@ def test_ui_discovery_endpoints_is_control_plane_true_when_workers_configured():
     ]
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
-        patch("litellm.proxy.proxy_server.proxy_config", mock_config),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
 
@@ -334,9 +334,9 @@ def test_ui_discovery_endpoints_hide_default_credentials_hint_default_false():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
         os.environ.pop("LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT", None)
@@ -355,9 +355,9 @@ def test_ui_discovery_endpoints_hide_default_credentials_hint_via_env_var():
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch.dict(
             os.environ,
             {
@@ -382,11 +382,11 @@ def test_ui_discovery_endpoints_hide_default_credentials_hint_via_general_settin
     client = TestClient(app)
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"hide_default_credentials_hint": True},
         ),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
@@ -409,10 +409,10 @@ def test_ui_discovery_endpoints_is_control_plane_false_when_no_workers():
     mock_config.worker_registry = []
 
     with (
-        patch("litellm.proxy.utils.get_server_root_path", return_value="/"),
-        patch("litellm.proxy.utils.get_proxy_base_url", return_value=None),
-        patch("litellm.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
-        patch("litellm.proxy.proxy_server.proxy_config", mock_config),
+        patch("token_iq.gateway.proxy.utils.get_server_root_path", return_value="/"),
+        patch("token_iq.gateway.proxy.utils.get_proxy_base_url", return_value=None),
+        patch("token_iq.gateway.proxy.auth.auth_utils.has_user_setup_sso", return_value=False),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_config),
         patch.dict(os.environ, {"DISABLE_ADMIN_UI": "false"}, clear=False),
     ):
 

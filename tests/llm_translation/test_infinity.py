@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 
 
-import litellm
+from token_iq import gateway as litellm
 
 from unittest.mock import patch, MagicMock
 
@@ -13,8 +13,8 @@ import pytest
 from test_rerank import assert_response_shape
 
 from base_embedding_unit_tests import BaseLLMEmbeddingTest
-from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
-from litellm.types.utils import EmbeddingResponse, Usage
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
 
 @pytest.mark.asyncio()
@@ -40,7 +40,7 @@ async def test_infinity_rerank():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.arerank(
@@ -96,7 +96,7 @@ async def test_infinity_rerank_with_return_documents():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.arerank(
@@ -138,7 +138,7 @@ async def test_infinity_rerank_with_env(monkeypatch):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.arerank(
@@ -200,7 +200,7 @@ async def test_infinity_embedding():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.aembedding(
@@ -255,7 +255,7 @@ async def test_infinity_embedding_with_env(monkeypatch):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.aembedding(
@@ -302,7 +302,7 @@ async def test_infinity_embedding_extra_params():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.aembedding(
@@ -342,7 +342,7 @@ async def test_infinity_embedding_prompt_token_mapping():
     mock_response.status_code = 200
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         response = await litellm.aembedding(

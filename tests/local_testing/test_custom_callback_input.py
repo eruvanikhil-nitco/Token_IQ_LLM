@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import os
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 import pytest
@@ -13,10 +13,10 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Cache, completion, embedding
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import LiteLLMCommonStrings
+from token_iq import gateway as litellm
+from token_iq.gateway import Cache, completion, embedding
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import LiteLLMCommonStrings
 from tests._wait_helpers import await_until, wait_until
 
 # Test Scenarios (test across completion, streaming, embedding)
@@ -1041,7 +1041,7 @@ def test_standard_logging_payload(model, turn_off_message_logging):
 
     Motivation: provide a standard set of things that are logged to s3/gcs/future integrations across all llm calls
     """
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     # sync completion
     customHandler = CompletionCustomHandler()
@@ -1137,7 +1137,7 @@ def test_standard_logging_payload_audio(turn_off_message_logging, stream):
 
     Motivation: provide a standard set of things that are logged to s3/gcs/future integrations across all llm calls
     """
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     # sync completion
     customHandler = CompletionCustomHandler()
@@ -1248,7 +1248,7 @@ def test_standard_logging_payload_audio(turn_off_message_logging, stream):
 
 @pytest.mark.skip(reason="Works locally. Flaky on ci/cd")
 def test_aaastandard_logging_payload_cache_hit():
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     # sync completion
 
@@ -1296,7 +1296,7 @@ def test_aaastandard_logging_payload_cache_hit():
     [False, True],
 )  # False
 def test_logging_async_cache_hit_sync_call(turn_off_message_logging):
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     litellm.turn_off_message_logging = turn_off_message_logging
 
@@ -1366,7 +1366,7 @@ def test_logging_async_cache_hit_sync_call(turn_off_message_logging):
 
 
 def test_logging_standard_payload_failure_call():
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     customHandler = CompletionCustomHandler()
     litellm.callbacks = [customHandler]
@@ -1399,7 +1399,7 @@ def test_logging_standard_payload_failure_call():
 
 @pytest.mark.parametrize("stream", [False, True])
 def test_logging_standard_payload_llm_headers(stream):
-    from litellm.types.utils import StandardLoggingPayload
+    from token_iq.gateway.types.utils import StandardLoggingPayload
 
     # sync completion
     customHandler = CompletionCustomHandler()
@@ -1463,8 +1463,8 @@ async def test_standard_logging_payload_stream_usage(sync_mode):
     """
     Even if stream_options is not provided, correct usage should be logged
     """
-    from litellm.types.utils import StandardLoggingPayload
-    from litellm.main import stream_chunk_builder
+    from token_iq.gateway.types.utils import StandardLoggingPayload
+    from token_iq.gateway.main import stream_chunk_builder
 
     stream = True
     try:
@@ -1526,8 +1526,8 @@ def test_standard_logging_retries():
     """
     know if a request was retried.
     """
-    from litellm.types.utils import StandardLoggingPayload
-    from litellm.router import Router
+    from token_iq.gateway.types.utils import StandardLoggingPayload
+    from token_iq.gateway.router import Router
 
     customHandler = CompletionCustomHandler()
     litellm.callbacks = [customHandler]
@@ -1577,7 +1577,7 @@ def test_standard_logging_retries():
 @pytest.mark.parametrize("disable_no_log_param", [True, False])
 def test_litellm_logging_no_log_param(monkeypatch, disable_no_log_param):
     monkeypatch.setattr(litellm, "global_disable_no_log_param", disable_no_log_param)
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     litellm.success_callback = ["langfuse"]
     litellm_call_id = "my-unique-call-id"

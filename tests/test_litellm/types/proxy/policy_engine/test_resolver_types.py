@@ -4,7 +4,7 @@ Tests for pipeline field on policy CRUD types (resolver_types.py).
 
 import pytest
 
-from litellm.types.proxy.policy_engine.resolver_types import (
+from token_iq.gateway.types.proxy.policy_engine.resolver_types import (
     PolicyCreateRequest,
     PolicyDBResponse,
     PolicyUpdateRequest,

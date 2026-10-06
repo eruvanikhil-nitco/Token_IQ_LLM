@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
 
 
 def test_litellm_proxy_chat_transformation():
@@ -33,7 +33,7 @@ def test_litellm_proxy_chat_transformation():
 
 
 def test_litellm_gateway_from_sdk_with_user_param():
-    from litellm.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
+    from token_iq.gateway.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
 
     supported_params = LiteLLMProxyChatConfig().get_supported_openai_params(
         "openai/gpt-4o"

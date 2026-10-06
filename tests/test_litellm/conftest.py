@@ -14,11 +14,11 @@ import pytest
 
 import asyncio
 
-import litellm
-from litellm import router as litellm_router_module
-from litellm import utils as litellm_utils_module
-from litellm._logging import ALL_LOGGERS
-from litellm.litellm_core_utils.cli_keyring import (
+from token_iq import gateway as litellm
+from token_iq.gateway import router as litellm_router_module
+from token_iq.gateway import utils as litellm_utils_module
+from token_iq.gateway._logging import ALL_LOGGERS
+from token_iq.gateway.core_utils.cli_keyring import (
     KeyringDiscardsWrites,
     KeyringUnreachable,
     KeyringUnusable,
@@ -31,13 +31,13 @@ from litellm.litellm_core_utils.cli_keyring import (
     SecretStranded,
     SecretWrite,
 )
-from litellm.litellm_core_utils.prompt_templates import (
+from token_iq.gateway.core_utils.prompt_templates import (
     image_handling as image_handling_module,
 )
-from litellm.llms.custom_httpx.async_client_cleanup import (
+from token_iq.gateway.llms.custom_httpx.async_client_cleanup import (
     close_litellm_async_clients,
 )
-from litellm.proxy.db import tool_registry_writer as tool_registry_writer_module
+from token_iq.gateway.proxy.db import tool_registry_writer as tool_registry_writer_module
 
 
 def _reset_module_level_aws_auth_caches():
@@ -50,10 +50,10 @@ def _reset_module_level_aws_auth_caches():
     bypass their local monkeypatched env setup.
     """
     for module_name in (
-        "litellm.main",
-        "litellm.files.main",
-        "litellm.rerank_api.main",
-        "litellm.realtime_api.main",
+        "token_iq.gateway.main",
+        "token_iq.gateway.files.main",
+        "token_iq.gateway.rerank_api.main",
+        "token_iq.gateway.realtime_api.main",
     ):
         try:
             module = importlib.import_module(module_name)
@@ -463,7 +463,7 @@ def setup_and_teardown():
     Only reload modules here if absolutely necessary.
     """
 
-    import litellm
+    from token_iq import gateway as litellm
 
     # Only reload if NOT running in parallel (module reload + parallel = bad)
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
@@ -473,7 +473,8 @@ def setup_and_teardown():
 
         try:
             if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-                import litellm.proxy.proxy_server
+                import token_iq.gateway.proxy.proxy_server
+                from token_iq import gateway as litellm
 
                 importlib.reload(litellm.proxy.proxy_server)
         except Exception as e:

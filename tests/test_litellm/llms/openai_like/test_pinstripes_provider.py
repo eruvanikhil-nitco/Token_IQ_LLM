@@ -2,7 +2,7 @@
 Tests for Pinstripes provider configuration and integration.
 """
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestPinstripeProviderConfig:
@@ -10,7 +10,7 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_in_provider_list(self):
         """Test that pinstripes is in the provider list"""
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         assert hasattr(LlmProviders, "PINSTRIPES")
         assert LlmProviders.PINSTRIPES.value == "pinstripes"
@@ -18,7 +18,7 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_json_config_exists(self):
         """Test that pinstripes is configured in providers.json"""
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.exists("pinstripes")
 
@@ -30,13 +30,13 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_in_openai_compatible_providers(self):
         """Test that pinstripes is in the openai_compatible_providers list"""
-        from litellm.constants import openai_compatible_providers
+        from token_iq.gateway.constants import openai_compatible_providers
 
         assert "pinstripes" in openai_compatible_providers
 
     def test_pinstripes_provider_resolution(self):
         """Test that provider resolution finds pinstripes and returns the default base URL"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="pinstripes/ps/glm-4.5-air",
@@ -51,7 +51,7 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_api_base_override(self):
         """Test that an explicit api_base / api_key overrides the default"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="pinstripes/ps/glm-4.5-air",
@@ -66,7 +66,7 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_url_autodetection(self):
         """Test that api_base=pinstripes.io/v1 auto-sets custom_llm_provider=pinstripes"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="ps/glm-4.5-air",
@@ -79,7 +79,7 @@ class TestPinstripeProviderConfig:
 
     def test_pinstripes_router_config(self):
         """Test that pinstripes can be used in Router configuration"""
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[

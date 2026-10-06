@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
-from litellm.integrations.opentelemetry import OpenTelemetryConfig
-from litellm.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 
 class TestLangfuseOtelIntegration:
@@ -96,7 +96,7 @@ class TestLangfuseOtelIntegration:
 
     def test_set_langfuse_otel_attributes(self):
         """Test that set_langfuse_otel_attributes calls the Arize utils function."""
-        from litellm.integrations.langfuse.langfuse_otel_attributes import (
+        from token_iq.gateway.integrations.langfuse.langfuse_otel_attributes import (
             LangfuseLLMObsOTELAttributes,
         )
 
@@ -105,7 +105,7 @@ class TestLangfuseOtelIntegration:
         mock_response = {"test": "response"}
 
         with patch(
-            "litellm.integrations.arize._utils.set_attributes"
+            "token_iq.gateway.integrations.arize._utils.set_attributes"
         ) as mock_set_attributes:
             LangfuseOtelLogger.set_langfuse_otel_attributes(
                 mock_span, mock_kwargs, mock_response
@@ -126,7 +126,7 @@ class TestLangfuseOtelIntegration:
 
         with patch.dict(os.environ, {"LANGFUSE_TRACING_ENVIRONMENT": test_env}):
             with patch(
-                "litellm.integrations.arize._utils.safe_set_attribute"
+                "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
             ) as mock_safe_set_attribute:
                 LangfuseOtelLogger._set_langfuse_specific_attributes(
                     mock_span, mock_kwargs, {}
@@ -176,7 +176,7 @@ class TestLangfuseOtelIntegration:
         import types
 
         # Build a stub module + class on-the-fly
-        stub_module = types.ModuleType("litellm.integrations.langfuse.langfuse")
+        stub_module = types.ModuleType("token_iq.gateway.integrations.langfuse.langfuse")
 
         class StubLFLogger:
             @staticmethod
@@ -191,7 +191,7 @@ class TestLangfuseOtelIntegration:
         # preventing sys.modules corruption that would break patch() targets in
         # later tests (the patch would hit the stub while the real module's
         # globals remain unpatched).
-        monkeypatch.setitem(sys.modules, "litellm.integrations.langfuse.langfuse", stub_module)  # type: ignore
+        monkeypatch.setitem(sys.modules, "token_iq.gateway.integrations.langfuse.langfuse", stub_module)  # type: ignore
 
         kwargs = {"litellm_params": {"metadata": {"foo": "bar"}}}
         extracted = LangfuseOtelLogger._extract_langfuse_metadata(kwargs)
@@ -224,14 +224,14 @@ class TestLangfuseOtelIntegration:
 
         # Capture calls to safe_set_attribute
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 MagicMock(), kwargs, None
             )
 
             # Build expected calls manually for clarity
-            from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
+            from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
 
             expected = {
                 LangfuseSpanAttributes.GENERATION_NAME.value: "gen-name",
@@ -289,7 +289,7 @@ class TestLangfuseOtelIntegration:
         kwargs = {"litellm_params": {"metadata": {"trace_release": "rel-9", **metadata}}}
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 MagicMock(), kwargs, None
@@ -313,8 +313,8 @@ class TestLangfuseOtelIntegration:
 
     def test_set_langfuse_specific_attributes_with_content(self):
         """Test that _set_langfuse_specific_attributes correctly sets observation.output with regular content response."""
-        from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
-        from litellm.types.utils import Choices, ModelResponse
+        from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
+        from token_iq.gateway.types.utils import Choices, ModelResponse
 
         # Create response with content
         response_obj = ModelResponse(
@@ -336,7 +336,7 @@ class TestLangfuseOtelIntegration:
         }
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 MagicMock(), kwargs, response_obj
@@ -364,8 +364,8 @@ class TestLangfuseOtelIntegration:
 
     def test_set_langfuse_specific_attributes_with_tool_calls(self):
         """Test that _set_langfuse_specific_attributes correctly sets observation.output with tool calls in Langfuse format."""
-        from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
-        from litellm.types.utils import (
+        from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
+        from token_iq.gateway.types.utils import (
             ChatCompletionMessageToolCall,
             Choices,
             Function,
@@ -397,7 +397,7 @@ class TestLangfuseOtelIntegration:
         )
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 MagicMock(), {}, response_obj
@@ -426,7 +426,7 @@ class TestLangfuseOtelIntegration:
 
     def test_construct_dynamic_otel_headers_with_langfuse_keys(self):
         """Test that construct_dynamic_otel_headers creates proper auth headers when langfuse keys are provided."""
-        from litellm.types.utils import StandardCallbackDynamicParams
+        from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
         # Create dynamic params with langfuse keys
         dynamic_params = StandardCallbackDynamicParams(
@@ -455,7 +455,7 @@ class TestLangfuseOtelIntegration:
 
     def test_construct_dynamic_otel_headers_empty_params(self):
         """Test that construct_dynamic_otel_headers returns empty dict when no langfuse keys are provided."""
-        from litellm.types.utils import StandardCallbackDynamicParams
+        from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
         # Create dynamic params without langfuse keys
         dynamic_params = StandardCallbackDynamicParams()
@@ -505,7 +505,7 @@ class TestLangfuseOtelKeyDynamicConfig:
         return patch.dict(os.environ, cleaned, clear=True)
 
     def _dynamic_params(self, **overrides):
-        from litellm.types.utils import StandardCallbackDynamicParams
+        from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
         params = {
             "langfuse_public_key": "key_public",
@@ -624,7 +624,7 @@ class TestLangfuseOtelKeyDynamicConfig:
             OTLPSpanExporter,
         )
 
-        from litellm.integrations import opentelemetry as otel_module
+        from token_iq.gateway.integrations import opentelemetry as otel_module
 
         secret = base64.b64encode(b"key_public:key_secret").decode()
 
@@ -694,15 +694,15 @@ class TestLangfuseOtelResponsesAPI:
 
         mock_span = MagicMock()
 
-        from litellm.integrations.langfuse.langfuse_otel_attributes import (
+        from token_iq.gateway.integrations.langfuse.langfuse_otel_attributes import (
             LangfuseLLMObsOTELAttributes,
         )
 
         with patch(
-            "litellm.integrations.arize._utils.set_attributes"
+            "token_iq.gateway.integrations.arize._utils.set_attributes"
         ) as mock_set_attributes:
             with patch(
-                "litellm.integrations.arize._utils.safe_set_attribute"
+                "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
             ) as mock_safe_set_attribute:
                 logger = LangfuseOtelLogger()
                 logger.set_langfuse_otel_attributes(mock_span, kwargs, mock_response)
@@ -726,7 +726,7 @@ class TestLangfuseOtelResponsesAPI:
         import sys
 
         if "litellm.integrations.langfuse.langfuse" in sys.modules:
-            sys.modules["litellm.integrations.langfuse.langfuse"]
+            sys.modules["token_iq.gateway.integrations.langfuse.langfuse"]
 
         test_metadata = {
             "user_id": "responses_user_123",
@@ -769,12 +769,12 @@ class TestLangfuseOtelResponsesAPI:
         mock_span = MagicMock()
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(mock_span, kwargs, {})
 
             # Verify specific attributes were set
-            from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
+            from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
 
             expected_calls = [
                 (
@@ -817,7 +817,7 @@ class TestLangfuseOtelResponsesAPI:
             ResponseOutputText,
         )
         from openai.types.responses.response_reasoning_item import Summary
-        from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
+        from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
 
         # Create Responses API response with reasoning and message
         response_obj = ResponsesAPIResponse(
@@ -862,7 +862,7 @@ class TestLangfuseOtelResponsesAPI:
         mock_span = MagicMock()
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 mock_span, kwargs, response_obj
@@ -899,7 +899,7 @@ class TestLangfuseOtelResponsesAPI:
 
     def test_responses_api_with_function_calls(self):
         """Test Langfuse OTEL logger with Responses API function_call output."""
-        from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
+        from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
         from openai.types.responses import ResponseFunctionToolCall
 
         # Create Responses API response with function call
@@ -930,7 +930,7 @@ class TestLangfuseOtelResponsesAPI:
         mock_span = MagicMock()
 
         with patch(
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(
                 mock_span, kwargs, response_obj
@@ -963,7 +963,7 @@ class TestLangfuseOtelResponsesAPI:
         """Sentinel arguments (invalid JSON) must not kill the whole observation output."""
         from openai.types.responses import ResponseFunctionToolCall
 
-        from litellm.types.integrations.langfuse_otel import LangfuseSpanAttributes
+        from token_iq.gateway.types.integrations.langfuse_otel import LangfuseSpanAttributes
 
         response_obj = ResponsesAPIResponse(
             id="response-redacted",
@@ -990,7 +990,7 @@ class TestLangfuseOtelResponsesAPI:
         mock_span = MagicMock()
 
         with patch(  # test-quality-ok: the span attribute sink is the observable boundary; sibling tests in this class stub the same seam
-            "litellm.integrations.arize._utils.safe_set_attribute"
+            "token_iq.gateway.integrations.arize._utils.safe_set_attribute"
         ) as mock_safe_set_attribute:
             LangfuseOtelLogger._set_langfuse_specific_attributes(mock_span, kwargs, response_obj)
 

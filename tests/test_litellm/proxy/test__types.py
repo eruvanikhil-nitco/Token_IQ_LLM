@@ -3,7 +3,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     ROLES_WITHIN_ORG,
     GenerateKeyRequest,
     KeyRequest,
@@ -82,7 +82,7 @@ AUDIENCE_CASES = (
 def test_a_jwt_issuer_must_name_an_audience_or_opt_out_of_one_but_never_both(
     audience, disable_audience_validation, is_accepted
 ):
-    from litellm.proxy._types import JWTIssuerConfig
+    from token_iq.gateway.proxy._types import JWTIssuerConfig
 
     fields = {
         "issuer": "https://idp.example.com",

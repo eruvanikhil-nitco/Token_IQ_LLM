@@ -1,5 +1,5 @@
 from unittest.mock import Mock, patch
-import litellm
+from token_iq import gateway as litellm
 
 
 def test_firecrawl_search_request_body():
@@ -22,7 +22,7 @@ def test_firecrawl_search_request_body():
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         litellm.search(

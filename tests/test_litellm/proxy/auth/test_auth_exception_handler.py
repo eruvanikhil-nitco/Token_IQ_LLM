@@ -26,11 +26,11 @@ from prisma.errors import (
 )
 
 
-from litellm._logging import verbose_proxy_logger
-from litellm.constants import INVALID_VIRTUAL_KEY_ERROR_MARKER
-from litellm.exceptions import BudgetExceededError
-from litellm.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
-from litellm.proxy.auth.auth_exception_handler import UserAPIKeyAuthExceptionHandler
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.constants import INVALID_VIRTUAL_KEY_ERROR_MARKER
+from token_iq.gateway.exceptions import BudgetExceededError
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.auth_exception_handler import UserAPIKeyAuthExceptionHandler
 
 
 class _EngineHttp500:
@@ -59,7 +59,7 @@ async def test_handle_authentication_error_db_unavailable_connectivity(db_error)
 
     mock_request = MagicMock()
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"allow_requests_on_db_unavailable": True},
     ):
         result = await handler._handle_authentication_error(
@@ -103,7 +103,7 @@ async def test_handle_authentication_error_permanent_fault_gets_no_fallback_iden
 
     mock_request = MagicMock()
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"allow_requests_on_db_unavailable": True},
     ):
         with pytest.raises(ProxyException) as exc_info:
@@ -139,7 +139,7 @@ async def test_handle_authentication_error_permanent_fault_503_is_not_worded_as_
     handler = UserAPIKeyAuthExceptionHandler()
 
     with patch(  # test-quality-ok: the handler reads general_settings off the proxy module, no injection seam
-        "litellm.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
+        "token_iq.gateway.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
     ):
         with pytest.raises(ProxyException) as exc_info:
             await handler._handle_authentication_error(prisma_error, MagicMock(), {}, "/test", None, "test-key")
@@ -167,7 +167,7 @@ async def test_handle_authentication_error_transport_error_raised_over_a_permane
     handler = UserAPIKeyAuthExceptionHandler()
 
     with patch(  # test-quality-ok: the handler reads general_settings off the proxy module, no injection seam
-        "litellm.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
+        "token_iq.gateway.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
     ):
         with pytest.raises(ProxyException) as exc_info:
             await handler._handle_authentication_error(transport_over_fault, MagicMock(), {}, "/test", None, "k")
@@ -193,7 +193,7 @@ async def test_handle_authentication_error_transient_outage_503_keeps_retry_word
     handler = UserAPIKeyAuthExceptionHandler()
 
     with patch(  # test-quality-ok: the handler reads general_settings off the proxy module, no injection seam
-        "litellm.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
+        "token_iq.gateway.proxy.proxy_server.general_settings", {"allow_requests_on_db_unavailable": False}
     ):
         with pytest.raises(ProxyException) as exc_info:
             await handler._handle_authentication_error(db_error, MagicMock(), {}, "/test", None, "test-key")
@@ -239,7 +239,7 @@ async def test_handle_authentication_error_data_layer_errors_do_not_fall_back(
 
     mock_request = MagicMock()
     with patch(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"allow_requests_on_db_unavailable": True},
     ):
         with pytest.raises(ProxyException):
@@ -281,15 +281,15 @@ async def test_handle_authentication_error_db_infra_error_returns_503(db_error):
 
     with (
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -338,15 +338,15 @@ async def test_handle_authentication_error_prisma_engine_teardown_returns_503():
 
     with (
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -388,15 +388,15 @@ async def test_handle_authentication_error_genuine_auth_failure_stays_401(auth_e
 
     with (
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -425,7 +425,7 @@ async def test_handle_authentication_error_budget_exceeded():
     mock_api_key = "test-key"
 
     # Test with budget exceeded error
-    from litellm.exceptions import BudgetExceededError
+    from token_iq.gateway.exceptions import BudgetExceededError
 
     budget_error = BudgetExceededError(
         message="Budget exceeded", current_cost=100, max_budget=100
@@ -461,12 +461,12 @@ async def test_route_passed_to_post_call_failure_hook():
 
     # Mock proxy_logging_obj.post_call_failure_hook
     with patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
         new_callable=AsyncMock,
     ) as mock_post_call_failure_hook:
         # Test with DB connection error
         with patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ):
             try:
@@ -520,15 +520,15 @@ async def test_resolved_identity_exported_on_auth_failure():
 
     with (
         patch(
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
             side_effect=_capture_seed,
         ) as mock_seed,
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
         ) as mock_hook,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -568,14 +568,14 @@ async def test_auth_failure_without_resolved_identity_still_logs():
 
     with (
         patch(
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
         ) as mock_hook,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -667,13 +667,13 @@ async def test_auth_failure_logs_requester_ip_address(
     the caller IP, so without this the failure logs (spend logs, prometheus client_ip)
     had no IP, and a 401 rarely carries a key or user identity either."""
     with (
-        patch("litellm.proxy.auth.auth_exception_handler.seed_request_identity"),
+        patch("token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity"),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ) as mock_hook,
-        patch("litellm.proxy.proxy_server.general_settings", general_settings),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings),
     ):
         with pytest.raises(ProxyException):
             await UserAPIKeyAuthExceptionHandler._handle_authentication_error(
@@ -694,14 +694,14 @@ async def test_auth_failure_keeps_existing_requester_ip_address():
     """An IP already recorded upstream (e.g. a trusted-proxy resolved value) wins over
     the socket peer."""
     with (
-        patch("litellm.proxy.auth.auth_exception_handler.seed_request_identity"),
+        patch("token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity"),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ) as mock_hook,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -729,14 +729,14 @@ async def test_auth_failure_ip_uses_litellm_metadata_when_present():
     """Routes that keep proxy metadata under `litellm_metadata` (e.g. /responses) must
     get the IP there, since that is the dict the logging layer reads for them."""
     with (
-        patch("litellm.proxy.auth.auth_exception_handler.seed_request_identity"),
+        patch("token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity"),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ) as mock_hook,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -766,14 +766,14 @@ async def test_auth_failure_ip_stamp_does_not_mutate_callers_request_data():
     request_data = {"model": "gpt-4o"}
 
     with (
-        patch("litellm.proxy.auth.auth_exception_handler.seed_request_identity"),
+        patch("token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity"),
         patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):
@@ -836,15 +836,15 @@ async def test_handle_authentication_error_traceback_only_for_unexpected_errors(
 
     with (
         patch(  # test-quality-ok: handler reads proxy_server globals at call time
-            "litellm.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj.post_call_failure_hook",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(  # test-quality-ok: handler reads proxy_server globals at call time
-            "litellm.proxy.auth.auth_exception_handler.seed_request_identity",
+            "token_iq.gateway.proxy.auth.auth_exception_handler.seed_request_identity",
         ),
         patch(  # test-quality-ok: handler reads proxy_server globals at call time
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"allow_requests_on_db_unavailable": False},
         ),
     ):

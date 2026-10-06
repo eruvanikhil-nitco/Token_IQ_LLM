@@ -6,11 +6,11 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-from litellm.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+from token_iq.gateway.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.types.llms.openai import (
     ImageGenerationPartialImageEvent,
     OutputTextDeltaEvent,
     ResponseCompletedEvent,
@@ -18,7 +18,7 @@ from litellm.types.llms.openai import (
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 class TestOpenAIResponsesAPIConfig:
@@ -273,7 +273,7 @@ class TestOpenAIResponsesAPIConfig:
     def test_transform_keeps_foreign_tool_call_item_ids_for_other_providers(self):
         """Providers reusing this config that do not enforce OpenAI's id
         shapes must keep replayed ids untouched."""
-        from litellm.types.utils import LlmProviders
+        from token_iq.gateway.types.utils import LlmProviders
 
         class _OpenRouterLikeConfig(OpenAIResponsesAPIConfig):
             @property
@@ -407,7 +407,7 @@ class TestOpenAIResponsesAPIConfig:
         # Test with empty headers
         headers = {}
 
-        with patch("litellm.api_key", "litellm_api_key"):
+        with patch("token_iq.gateway.api_key", "litellm_api_key"):
             litellm_params = GenericLiteLLMParams()
             result = self.config.validate_environment(
                 headers=headers, model=self.model, litellm_params=litellm_params
@@ -419,8 +419,8 @@ class TestOpenAIResponsesAPIConfig:
         # Test with existing headers
         headers = {"Content-Type": "application/json"}
 
-        with patch("litellm.openai_key", "openai_key"):
-            with patch("litellm.api_key", None):
+        with patch("token_iq.gateway.openai_key", "openai_key"):
+            with patch("token_iq.gateway.api_key", None):
                 litellm_params = GenericLiteLLMParams()
                 result = self.config.validate_environment(
                     headers=headers, model=self.model, litellm_params=litellm_params
@@ -434,10 +434,10 @@ class TestOpenAIResponsesAPIConfig:
         # Test with environment variable
         headers = {}
 
-        with patch("litellm.api_key", None):
-            with patch("litellm.openai_key", None):
+        with patch("token_iq.gateway.api_key", None):
+            with patch("token_iq.gateway.openai_key", None):
                 with patch(
-                    "litellm.llms.openai.responses.transformation.get_secret_str",
+                    "token_iq.gateway.llms.openai.responses.transformation.get_secret_str",
                     return_value="env_api_key",
                 ):
                     litellm_params = GenericLiteLLMParams()
@@ -461,7 +461,7 @@ class TestOpenAIResponsesAPIConfig:
         assert result == "https://custom-openai.example.com/v1/responses"
 
         # Test with litellm.api_base
-        with patch("litellm.api_base", "https://litellm-api-base.example.com/v1"):
+        with patch("token_iq.gateway.api_base", "https://litellm-api-base.example.com/v1"):
             result = self.config.get_complete_url(
                 api_base=None,
                 litellm_params={},
@@ -470,9 +470,9 @@ class TestOpenAIResponsesAPIConfig:
             assert result == "https://litellm-api-base.example.com/v1/responses"
 
         # Test with environment variable
-        with patch("litellm.api_base", None):
+        with patch("token_iq.gateway.api_base", None):
             with patch(
-                "litellm.llms.openai.responses.transformation.get_secret_str",
+                "token_iq.gateway.llms.openai.responses.transformation.get_secret_str",
                 return_value="https://env-api-base.example.com/v1",
             ):
                 result = self.config.get_complete_url(
@@ -483,9 +483,9 @@ class TestOpenAIResponsesAPIConfig:
                 assert result == "https://env-api-base.example.com/v1/responses"
 
         # Test with default API base
-        with patch("litellm.api_base", None):
+        with patch("token_iq.gateway.api_base", None):
             with patch(
-                "litellm.llms.openai.responses.transformation.get_secret_str",
+                "token_iq.gateway.llms.openai.responses.transformation.get_secret_str",
                 return_value=None,
             ):
                 result = self.config.get_complete_url(
@@ -525,7 +525,7 @@ class TestOpenAIResponsesAPIConfig:
 
     def test_get_event_model_class_generic_event(self):
         """Test that get_event_model_class returns the correct event model class"""
-        from litellm.types.llms.openai import GenericEvent
+        from token_iq.gateway.types.llms.openai import GenericEvent
 
         event_type = "test"
         result = self.config.get_event_model_class(event_type)
@@ -533,7 +533,7 @@ class TestOpenAIResponsesAPIConfig:
 
     def test_transform_streaming_response_generic_event(self):
         """Test that transform_streaming_response returns the correct event model class"""
-        from litellm.types.llms.openai import GenericEvent
+        from token_iq.gateway.types.llms.openai import GenericEvent
 
         chunk = {"type": "test", "test": "test"}
         result = self.config.transform_streaming_response(
@@ -656,7 +656,7 @@ class TestOpenAIResponsesAPIConfig:
         transform_streaming_response coalesces it to 'unknown_error' and returns
         an ErrorEvent instance without raising a ValidationError.
         """
-        from litellm.types.llms.openai import ErrorEvent
+        from token_iq.gateway.types.llms.openai import ErrorEvent
 
         parsed_chunk = {
             "type": "error",
@@ -686,7 +686,7 @@ class TestOpenAIResponsesAPIConfig:
 
         Reproduces https://github.com/BerriAI/litellm/issues/20570
         """
-        from litellm.types.llms.openai import ResponseCreatedEvent
+        from token_iq.gateway.types.llms.openai import ResponseCreatedEvent
 
         # Minimal payload an OpenAI-compatible provider might send,
         # omitting `created_at` and `output` inside the response object.
@@ -715,7 +715,7 @@ class TestOpenAIResponsesAPIConfig:
 
         Reproduces https://github.com/BerriAI/litellm/issues/20570
         """
-        from litellm.types.llms.openai import OutputTextDeltaEvent
+        from token_iq.gateway.types.llms.openai import OutputTextDeltaEvent
 
         # Provider omits output_index and content_index
         parsed_chunk = {
@@ -741,7 +741,7 @@ class TestOpenAIResponsesAPIConfig:
 
         Reproduces https://github.com/BerriAI/litellm/issues/20570
         """
-        from litellm.types.llms.openai import ContentPartAddedEvent
+        from token_iq.gateway.types.llms.openai import ContentPartAddedEvent
 
         # Provider omits output_index and content_index
         parsed_chunk = {
@@ -766,7 +766,7 @@ class TestOpenAIResponsesAPIConfig:
 
         Reproduces https://github.com/BerriAI/litellm/issues/20570
         """
-        from litellm.types.llms.openai import OutputItemAddedEvent
+        from token_iq.gateway.types.llms.openai import OutputItemAddedEvent
 
         # Provider omits output_index
         parsed_chunk = {
@@ -1152,7 +1152,7 @@ class TestTransformListInputItemsRequest:
         }
         assert params == expected_params
 
-    @patch("litellm.router.Router")
+    @patch("token_iq.gateway.router.Router")
     def test_mock_litellm_router_with_transform_list_input_items_request(
         self, mock_router
     ):
@@ -1200,7 +1200,7 @@ class TestTransformListInputItemsRequest:
         assert url == "https://api.openai.com/v1/responses/resp_123/input_items"
         assert params == {"limit": 20, "order": "desc"}
 
-    @patch("litellm.list_input_items")
+    @patch("token_iq.gateway.list_input_items")
     def test_mock_litellm_list_input_items_integration(self, mock_list_input_items):
         """Test integration with litellm.list_input_items function"""
         # Setup mock response
@@ -1339,12 +1339,12 @@ class TestPhaseParameter:
 
     @staticmethod
     def _make_output_text(text: str):
-        from litellm.types.responses.main import OutputText
+        from token_iq.gateway.types.responses.main import OutputText
 
         return OutputText(type="output_text", text=text, annotations=[])
 
     def test_generic_response_output_item_accepts_phase_commentary(self):
-        from litellm.types.responses.main import GenericResponseOutputItem
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem
 
         item = GenericResponseOutputItem(
             type="message",
@@ -1357,7 +1357,7 @@ class TestPhaseParameter:
         assert item.phase == "commentary"
 
     def test_generic_response_output_item_accepts_phase_final_answer(self):
-        from litellm.types.responses.main import GenericResponseOutputItem
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem
 
         item = GenericResponseOutputItem(
             type="message",
@@ -1370,7 +1370,7 @@ class TestPhaseParameter:
         assert item.phase == "final_answer"
 
     def test_generic_response_output_item_phase_defaults_to_none(self):
-        from litellm.types.responses.main import GenericResponseOutputItem
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem
 
         item = GenericResponseOutputItem(
             type="message",
@@ -1382,7 +1382,7 @@ class TestPhaseParameter:
         assert item.phase is None
 
     def test_output_function_tool_call_accepts_phase(self):
-        from litellm.types.responses.main import OutputFunctionToolCall
+        from token_iq.gateway.types.responses.main import OutputFunctionToolCall
 
         item = OutputFunctionToolCall(
             type="function_call",
@@ -1433,7 +1433,7 @@ class TestPhaseParameter:
 
     def test_input_passthrough_pydantic_preserves_non_null_phase(self):
         """Pydantic input items must preserve non-null phase values."""
-        from litellm.types.responses.main import GenericResponseOutputItem
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem
 
         item = GenericResponseOutputItem(
             type="message",
@@ -1493,7 +1493,7 @@ class TestPhaseParameter:
 
     def test_streaming_output_item_done_preserves_phase(self):
         """OutputItemDoneEvent must preserve phase on its item."""
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             OutputItemDoneEvent,
             ResponsesAPIStreamEvents,
         )
@@ -1522,7 +1522,7 @@ class TestPhaseParameter:
 
     def test_streaming_output_item_added_preserves_phase(self):
         """OutputItemAddedEvent must preserve phase on its item."""
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             OutputItemAddedEvent,
             ResponsesAPIStreamEvents,
         )
@@ -1649,7 +1649,7 @@ class TestPromptCacheOptionsOnResponsesPath:
     OPTIONS = {"mode": "explicit", "ttl": "30m"}
 
     def test_prompt_cache_options_survives_optional_param_filter(self):
-        from litellm.responses.utils import ResponsesAPIRequestUtils
+        from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
         result = ResponsesAPIRequestUtils.get_requested_response_api_optional_param(
             {"prompt_cache_options": dict(self.OPTIONS), "temperature": 0.2, "not_a_responses_param": 1}
@@ -1856,7 +1856,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
         assert "anyOf" in tool["parameters"]
 
     def test_non_openai_subclass_does_not_flatten(self):
-        from litellm.llms.hosted_vllm.responses.transformation import HostedVLLMResponsesAPIConfig
+        from token_iq.gateway.llms.hosted_vllm.responses.transformation import HostedVLLMResponsesAPIConfig
 
         result = HostedVLLMResponsesAPIConfig().transform_responses_api_request(
             model="hosted_vllm/qwen",

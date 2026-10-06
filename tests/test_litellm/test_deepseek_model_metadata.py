@@ -13,8 +13,8 @@ import json
 import os
 
 
-import litellm
-from litellm.utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.utils import (
     _supports_factory,
     supports_response_schema,
 )

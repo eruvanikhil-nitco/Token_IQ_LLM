@@ -1,12 +1,12 @@
 
 
-from litellm.constants import RESPONSE_FORMAT_TOOL_NAME
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     _handle_invalid_parallel_tool_calls,
     _should_convert_tool_call_to_json_mode,
     convert_to_model_response_object,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageCustomToolCall,
     ChatCompletionMessageToolCall,
     Function,

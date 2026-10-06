@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.types.prompts.init_prompts import (
+from token_iq.gateway.types.prompts.init_prompts import (
     PromptInfo,
     PromptLiteLLMParams,
     PromptSpec,
@@ -22,7 +22,7 @@ class TestPromptVersioning:
         """
         Test that get_latest_prompt_versions returns only the latest version of each prompt
         """
-        from litellm.proxy.prompts.prompt_endpoints import get_latest_prompt_versions
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_latest_prompt_versions
 
         # Create mock prompts with different versions
         prompts = [
@@ -85,7 +85,7 @@ class TestPromptVersioning:
         """
         Test that get_version_number correctly extracts version numbers
         """
-        from litellm.proxy.prompts.prompt_endpoints import get_version_number
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_version_number
 
         assert get_version_number(prompt_id="jack.v1") == 1
         assert get_version_number(prompt_id="jack.v2") == 2
@@ -97,7 +97,7 @@ class TestPromptVersioning:
         """
         Test that get_base_prompt_id correctly strips version suffixes
         """
-        from litellm.proxy.prompts.prompt_endpoints import get_base_prompt_id
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_base_prompt_id
 
         assert get_base_prompt_id(prompt_id="jack.v1") == "jack"
         assert get_base_prompt_id(prompt_id="jack.v2") == "jack"
@@ -108,7 +108,7 @@ class TestPromptVersioning:
         """
         Test that get_latest_version_prompt_id returns the highest version
         """
-        from litellm.proxy.prompts.prompt_endpoints import get_latest_version_prompt_id
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_latest_version_prompt_id
 
         # Mock prompt IDs dictionary
         all_prompt_ids = {
@@ -163,7 +163,7 @@ class TestPromptVersioning:
         """
         Test that construct_versioned_prompt_id correctly builds versioned IDs
         """
-        from litellm.proxy.prompts.prompt_endpoints import construct_versioned_prompt_id
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import construct_versioned_prompt_id
 
         # Test with base prompt ID and version
         assert (
@@ -208,8 +208,8 @@ class TestPromptVersionsEndpoint:
         """
         from unittest.mock import patch
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.prompts.prompt_endpoints import get_prompt_versions
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         # Mock user with admin role
         mock_user = UserAPIKeyAuth(
@@ -258,9 +258,9 @@ class TestPromptVersionsEndpoint:
 
         # Force the in-memory path so this test is isolated from any leaked prisma mocks.
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+                "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
             ) as mock_registry,
         ):
             mock_registry.IN_MEMORY_PROMPTS = mock_prompts
@@ -297,17 +297,17 @@ class TestPromptVersionsEndpoint:
 
         from fastapi import HTTPException
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.prompts.prompt_endpoints import get_prompt_versions
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         mock_user = UserAPIKeyAuth(
             api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN
         )
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+                "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
             ) as mock_registry,
         ):
             mock_registry.IN_MEMORY_PROMPTS = {}
@@ -331,8 +331,8 @@ class TestAdminViewerReadAccess:
         """A role without admin view falls through to the empty-list branch here."""
         from unittest.mock import patch
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.prompts.prompt_endpoints import list_prompts
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import list_prompts
 
         viewer = UserAPIKeyAuth(
             api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
@@ -369,7 +369,7 @@ class TestAdminViewerReadAccess:
         }
 
         with patch(
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry:
             mock_registry.IN_MEMORY_PROMPTS = mock_prompts
 
@@ -384,8 +384,8 @@ class TestAdminViewerReadAccess:
         """Version history used to 403 anyone who was not exactly proxy_admin."""
         from unittest.mock import patch
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.prompts.prompt_endpoints import get_prompt_versions
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         viewer = UserAPIKeyAuth(
             api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
@@ -413,9 +413,9 @@ class TestAdminViewerReadAccess:
         }
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+                "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
             ) as mock_registry,
         ):
             mock_registry.IN_MEMORY_PROMPTS = mock_prompts
@@ -431,17 +431,17 @@ class TestAdminViewerReadAccess:
         """Prompt info used to 403 anyone who was not exactly proxy_admin."""
         from unittest.mock import patch
 
-        from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-        from litellm.proxy.prompts.prompt_endpoints import get_prompt_info
+        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_info
 
         viewer = UserAPIKeyAuth(
             api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
         )
 
         with (
-            patch("litellm.proxy.proxy_server.prisma_client", None),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
             patch(
-                "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+                "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
             ) as mock_registry,
         ):
             mock_registry.get_prompt_by_id.return_value = PromptSpec(

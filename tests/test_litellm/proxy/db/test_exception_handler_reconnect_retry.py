@@ -15,7 +15,7 @@ import pytest
 from prisma.errors import ClientNotConnectedError, UniqueViolationError
 
 
-from litellm.proxy.db.exception_handler import call_with_db_reconnect_retry
+from token_iq.gateway.proxy.db.exception_handler import call_with_db_reconnect_retry
 
 
 def _make_client(

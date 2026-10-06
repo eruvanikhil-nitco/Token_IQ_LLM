@@ -6,7 +6,7 @@ Run with: uv run pytest tests/test_litellm/integrations/test_prometheus_cache_me
 
 import pytest
 from unittest.mock import MagicMock, patch
-from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
 
 class TestPrometheusCacheMetrics:
@@ -27,7 +27,7 @@ class TestPrometheusCacheMetrics:
 
     def test_cache_metrics_defined_in_types(self):
         """Test that cache metrics are defined in DEFINED_PROMETHEUS_METRICS"""
-        from litellm.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
+        from token_iq.gateway.types.integrations.prometheus import DEFINED_PROMETHEUS_METRICS
         from typing import get_args
 
         defined_metrics = get_args(DEFINED_PROMETHEUS_METRICS)
@@ -40,7 +40,7 @@ class TestPrometheusCacheMetrics:
 
     def test_cache_metric_labels_defined(self):
         """Test that cache metric labels are properly defined"""
-        from litellm.types.integrations.prometheus import PrometheusMetricLabels
+        from token_iq.gateway.types.integrations.prometheus import PrometheusMetricLabels
 
         # Verify labels are defined for each cache metric
         assert hasattr(PrometheusMetricLabels, "litellm_cache_hits_metric")
@@ -83,7 +83,7 @@ class TestPrometheusCacheMetrics:
         mock_logger = MagicMock()
 
         # Import the method directly and bind it to our mock
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         # Create a mock standard logging payload with cache_hit=True
         standard_logging_payload = {
@@ -152,7 +152,7 @@ class TestPrometheusCacheMetrics:
         # Create mock for PrometheusLogger instance
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         # Create a mock standard logging payload with cache_hit=False
         standard_logging_payload = {
@@ -215,7 +215,7 @@ class TestPrometheusCacheMetrics:
         """Explicit cache_read_input_tokens=0 must not trigger fallback to cached_tokens."""
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         standard_logging_payload = {
             "cache_hit": False,
@@ -265,7 +265,7 @@ class TestPrometheusCacheMetrics:
         cache_creation_input_tokens) must populate the provider cache creation metric."""
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         standard_logging_payload = {
             "cache_hit": False,
@@ -318,7 +318,7 @@ class TestPrometheusCacheMetrics:
         prompt_tokens_details; the fallback must read it when cache_write_tokens is absent."""
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         standard_logging_payload = {
             "cache_hit": False,
@@ -368,7 +368,7 @@ class TestPrometheusCacheMetrics:
         prompt_tokens_details, mirroring the cache-read semantics."""
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         standard_logging_payload = {
             "cache_hit": False,
@@ -415,7 +415,7 @@ class TestPrometheusCacheMetrics:
         # Create mock for PrometheusLogger instance
         mock_logger = MagicMock()
 
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         # Create a mock standard logging payload with cache_hit=None
         standard_logging_payload = {

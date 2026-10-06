@@ -17,7 +17,7 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 )
 
-from litellm.proxy.types_utils.utils import get_instance_fn  # noqa: E402
+from token_iq.gateway.proxy.types_utils.utils import get_instance_fn  # noqa: E402
 
 
 @pytest.mark.parametrize("scheme", ["s3", "gcs"])
@@ -35,7 +35,7 @@ def test_remote_url_with_config_file_path_is_allowed():
     # the gate doesn't fire. Documented operator feature must keep
     # working.
     with patch(
-        "litellm.proxy.types_utils.utils._load_instance_from_remote_storage",
+        "token_iq.gateway.proxy.types_utils.utils._load_instance_from_remote_storage",
         return_value="loaded",
     ) as mock_loader:
         result = get_instance_fn(
@@ -54,7 +54,7 @@ def test_dotted_module_path_is_unaffected_by_gate():
     # have nothing to do with the remote-URL gate. Regression that the
     # gate doesn't accidentally affect them.
     with patch(
-        "litellm.proxy.types_utils.utils.importlib.import_module"
+        "token_iq.gateway.proxy.types_utils.utils.importlib.import_module"
     ) as mock_import:
         mock_module = type("M", (), {"my_instance": "loaded"})
         mock_import.return_value = mock_module
@@ -128,12 +128,12 @@ def test_pass_through_route_threads_config_file_path():
     # an operator with ``custom_handler: s3://...`` declared in
     # ``config.yaml`` still resolves at startup. Callers that omit it
     # (DB-overlay / runtime admin API) fall through to the gate.
-    from litellm.proxy.pass_through_endpoints import pass_through_endpoints as pte
+    from token_iq.gateway.proxy.pass_through_endpoints import pass_through_endpoints as pte
 
     # ``get_instance_fn`` is imported lazily inside the function — patch
     # at the source so the deferred import resolves to the mock.
     with patch(
-        "litellm.proxy.types_utils.utils.get_instance_fn", return_value=object()
+        "token_iq.gateway.proxy.types_utils.utils.get_instance_fn", return_value=object()
     ) as mock_get:
         pte.create_pass_through_route(
             endpoint="/x",
@@ -151,7 +151,7 @@ def test_mcp_tool_registry_threads_config_file_path():
     # MCP tool handlers declared in ``config.yaml`` mcp_tools[].handler
     # may legitimately be ``s3://...``; the YAML-load path must thread
     # ``config_file_path`` so they resolve.
-    from litellm.proxy._experimental.mcp_server import tool_registry as tr
+    from token_iq.gateway.proxy._experimental.mcp_server import tool_registry as tr
 
     fake_handler = lambda **kwargs: None  # noqa: E731 — registry requires callable
     with patch.object(tr, "get_instance_fn", return_value=fake_handler) as mock_get:

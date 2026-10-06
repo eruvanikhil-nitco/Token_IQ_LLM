@@ -5,8 +5,8 @@ import pytest
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 
-import litellm
-from litellm.types.realtime import RealtimeQueryParams
+from token_iq import gateway as litellm
+from token_iq.gateway.types.realtime import RealtimeQueryParams
 
 
 @pytest.mark.asyncio
@@ -328,7 +328,7 @@ def test_realtime_query_params_construction():
     """
     Test that query params are constructed correctly by the proxy server logic
     """
-    from litellm.types.realtime import RealtimeQueryParams
+    from token_iq.gateway.types.realtime import RealtimeQueryParams
 
     # Test case 1: intent is None (should not be included)
     model = "gpt-4o-realtime-preview"
@@ -359,7 +359,7 @@ async def test_realtime_query_params_use_normalized_model_name(monkeypatch):
     """
     Ensure query params overwrite model with normalized provider model name.
     """
-    from litellm.realtime_api import main as realtime_main
+    from token_iq.gateway.realtime_api import main as realtime_main
 
     mock_async_realtime = AsyncMock()
     monkeypatch.setattr(
@@ -398,7 +398,7 @@ async def test_realtime_query_params_preserve_missing_model(monkeypatch):
     ?intent=transcription and send the model in session.update. Do not add
     model= back into the upstream query params when the client omitted it.
     """
-    from litellm.realtime_api import main as realtime_main
+    from token_iq.gateway.realtime_api import main as realtime_main
 
     mock_async_realtime = AsyncMock()
     monkeypatch.setattr(

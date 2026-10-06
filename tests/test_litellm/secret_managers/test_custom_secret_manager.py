@@ -8,9 +8,9 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.integrations.custom_secret_manager import CustomSecretManager
-from litellm.types.secret_managers.main import KeyManagementSystem
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
+from token_iq.gateway.types.secret_managers.main import KeyManagementSystem
 
 
 class TestCustomSecretManager(CustomSecretManager):
@@ -175,13 +175,13 @@ def test_custom_secret_manager_integration_with_litellm():
     litellm._key_management_system = KeyManagementSystem.CUSTOM
 
     # Set access mode to enable secret reading
-    from litellm.types.secret_managers.main import KeyManagementSettings
+    from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     litellm._key_management_settings = KeyManagementSettings(access_mode="read_only")
 
     try:
         # Test getting a secret through LiteLLM's get_secret function
-        from litellm.secret_managers.main import get_secret
+        from token_iq.gateway.secret_managers.main import get_secret
 
         api_key = get_secret("TEST_API_KEY")
         assert api_key == "test-api-key-12345"

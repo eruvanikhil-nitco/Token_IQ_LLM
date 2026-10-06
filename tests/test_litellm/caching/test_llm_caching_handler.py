@@ -14,8 +14,8 @@ import warnings
 import pytest
 
 
-from litellm.caching.evicted_client_closer import EvictedClientCloser
-from litellm.caching.llm_caching_handler import LLMClientCache
+from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
+from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
 
 class MockAsyncClient:

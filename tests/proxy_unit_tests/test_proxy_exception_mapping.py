@@ -15,8 +15,8 @@ import pytest
 from fastapi import Response
 from fastapi.testclient import TestClient
 
-import litellm
-from litellm.proxy.proxy_server import (  # Replace with the actual module where your FastAPI router is defined
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import (  # Replace with the actual module where your FastAPI router is defined
     initialize,
     router,
     save_worker_config,
@@ -45,7 +45,7 @@ def client():
     filepath = os.path.dirname(os.path.abspath(__file__))
     config_fp = f"{filepath}/test_configs/test_bad_config.yaml"
     asyncio.run(initialize(config=config_fp))
-    from litellm.proxy.proxy_server import app
+    from token_iq.gateway.proxy.proxy_server import app
 
     return TestClient(app)
 
@@ -94,7 +94,7 @@ def test_chat_completion_exception(client):
 
 # raise openai.AuthenticationError
 @mock.patch(
-    "litellm.proxy.proxy_server.llm_router.acompletion",
+    "token_iq.gateway.proxy.proxy_server.llm_router.acompletion",
     return_value=invalid_authentication_error_response,
 )
 def test_chat_completion_exception_azure(mock_acompletion, client):
@@ -138,7 +138,7 @@ def test_chat_completion_exception_azure(mock_acompletion, client):
 
 # raise openai.AuthenticationError
 @mock.patch(
-    "litellm.proxy.proxy_server.llm_router.aembedding",
+    "token_iq.gateway.proxy.proxy_server.llm_router.aembedding",
     return_value=invalid_authentication_error_response,
 )
 def test_embedding_auth_exception_azure(mock_aembedding, client):
@@ -270,7 +270,7 @@ def test_embedding_exception_any_model(client):
 
 # raise openai.BadRequestError
 @mock.patch(
-    "litellm.proxy.proxy_server.llm_router.acompletion",
+    "token_iq.gateway.proxy.proxy_server.llm_router.acompletion",
     return_value=context_length_exceeded_error_response,
 )
 def test_chat_completion_exception_azure_context_window(mock_acompletion, client):

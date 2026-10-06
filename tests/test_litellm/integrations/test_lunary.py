@@ -1,7 +1,7 @@
 
 
-from litellm.integrations.lunary import parse_tool_calls
-from litellm.types.utils import (
+from token_iq.gateway.integrations.lunary import parse_tool_calls
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageCustomToolCall,
     ChatCompletionMessageToolCall,
     Function,

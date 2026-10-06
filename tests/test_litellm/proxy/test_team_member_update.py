@@ -5,16 +5,16 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-import litellm.proxy.proxy_server as proxy_server
-import litellm.proxy.management_endpoints.team_endpoints as team_endpoints
-from litellm.proxy._types import (
+import token_iq.gateway.proxy.proxy_server as proxy_server
+import token_iq.gateway.proxy.management_endpoints.team_endpoints as team_endpoints
+from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LitellmUserRoles,
     Member,
     TeamMemberUpdateRequest,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.team_endpoints import team_member_update
+from token_iq.gateway.proxy.management_endpoints.team_endpoints import team_member_update
 
 
 @pytest.mark.asyncio

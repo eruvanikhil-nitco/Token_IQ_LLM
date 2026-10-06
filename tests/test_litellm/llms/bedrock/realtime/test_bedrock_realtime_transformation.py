@@ -6,13 +6,13 @@ import pytest
 
 import base64
 
-from litellm.llms.bedrock.realtime.transformation import (
+from token_iq.gateway.llms.bedrock.realtime.transformation import (
     TRIGGER_LEADING_SILENCE,
     TRIGGER_TRAILING_SILENCE,
     BedrockRealtimeConfig,
 )
-from litellm.llms.bedrock.realtime.trigger_audio import ready_trigger_pcm
-from litellm.types.llms.openai import OpenAIRealtimeEventTypes
+from token_iq.gateway.llms.bedrock.realtime.trigger_audio import ready_trigger_pcm
+from token_iq.gateway.types.llms.openai import OpenAIRealtimeEventTypes
 
 
 class TestBedrockRealtimeConfig:

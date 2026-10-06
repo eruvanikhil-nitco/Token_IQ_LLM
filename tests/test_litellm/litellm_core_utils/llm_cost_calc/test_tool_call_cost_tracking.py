@@ -2,12 +2,12 @@ import os
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
-from litellm.types.llms.openai import FileSearchTool, WebSearchOptions
-from litellm.types.utils import ModelResponse, StandardBuiltInToolsParams
+from token_iq.gateway.types.llms.openai import FileSearchTool, WebSearchOptions
+from token_iq.gateway.types.utils import ModelResponse, StandardBuiltInToolsParams
 
 
 
@@ -118,7 +118,7 @@ def test_get_cost_for_anthropic_web_search():
     is set. Use claude-3-7-sonnet-20250219 (has search_context_cost_per_query) and
     custom_llm_provider=anthropic so get_cost_for_anthropic_web_search is invoked.
     """
-    from litellm.types.utils import ServerToolUse, Usage
+    from token_iq.gateway.types.utils import ServerToolUse, Usage
 
     model = "claude-3-7-sonnet-20250219"
     usage = Usage(server_tool_use=ServerToolUse(web_search_requests=1))
@@ -138,7 +138,7 @@ def test_get_cost_for_anthropic_web_search_with_server_tool_use_dict():
     usage payload. Ensure dict server_tool_use values are normalized before
     built-in tool cost tracking reads server_tool_use.web_search_requests.
     """
-    from litellm.types.utils import ServerToolUse, Usage
+    from token_iq.gateway.types.utils import ServerToolUse, Usage
 
     usage = Usage(server_tool_use={"web_search_requests": 1})
 
@@ -155,7 +155,7 @@ def test_anthropic_web_search_cost_from_raw_response_dict_when_usage_drops_serve
     The web-search fee must still be charged by reading the count off the raw dict,
     and the passed-in Usage must not be mutated.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model = "claude-3-7-sonnet-20250219"
     web_search_requests = 3
@@ -268,7 +268,7 @@ def test_anthropic_response_usage_block_preserves_server_tool_use():
     server_tool_use so the /v1/messages logging fallback does not strip the
     web-search usage before cost tracking sees it.
     """
-    from litellm.types.llms.anthropic import AnthropicResponse
+    from token_iq.gateway.types.llms.anthropic import AnthropicResponse
 
     raw_response = {
         "id": "msg_1",
@@ -297,7 +297,7 @@ def test_get_cost_for_gemini_web_search(model):
     """
     Test that the cost for a web search is 0.00 when no response object is provided
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     usage = Usage(
         prompt_tokens_details=PromptTokensDetailsWrapper(web_search_requests=1)
@@ -329,7 +329,7 @@ def test_get_cost_for_vertex_ai_gemini_web_search(model, custom_llm_provider):
     for url_citation annotations, not usage.prompt_tokens_details.web_search_requests.
     This causes Vertex AI grounding costs to not be tracked.
     """
-    from litellm.types.utils import Choices, Message, PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import Choices, Message, PromptTokensDetailsWrapper, Usage
 
     # Create a realistic ModelResponse like what Vertex AI returns
     response = ModelResponse(
@@ -417,7 +417,7 @@ def test_completion_cost_includes_web_search_without_standard_built_in_tools_par
     causing under-counted costs for providers like Vertex AI Gemini that
     report web search usage via usage.prompt_tokens_details.web_search_requests.
     """
-    from litellm.types.utils import Choices, Message, PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import Choices, Message, PromptTokensDetailsWrapper, Usage
 
     response = ModelResponse(
         id="test-id",
@@ -479,7 +479,7 @@ def test_gemini_3x_web_search_billed_per_query(model, local_model_cost_map):
     to a single charge. The "gemini/..." case additionally covers response_cost_calculator
     resolving a provider-prefixed model name that get_model_info cannot map under vertex_ai.
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     web_search_requests = 2
     model_info = litellm.get_model_info(model)
@@ -526,7 +526,7 @@ def test_gemini_2x_maps_grounding_billed_at_maps_rate(model, custom_llm_provider
     and not $0 as on Vertex AI where webSearchQueries is never populated for Maps.
     Regression for https://github.com/BerriAI/litellm/issues/35906
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model_info = litellm.get_model_info(model)
     expected_cost = model_info["google_maps_grounding_cost_per_query"]
@@ -550,7 +550,7 @@ def test_gemini_2x_maps_grounding_billed_at_maps_rate(model, custom_llm_provider
 
 def test_gemini_3x_maps_grounding_billed_per_query(local_model_cost_map):
     """Gemini 3.x bills Maps grounding per executed query: N queries cost N * $0.014."""
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "vertex_ai/gemini-3.5-flash"
     model_info = litellm.get_model_info(model)
@@ -576,7 +576,7 @@ def test_gemini_3x_maps_grounding_billed_per_query(local_model_cost_map):
 
 def test_gemini_combined_search_and_maps_costs_are_additive(local_model_cost_map):
     """A prompt grounded with both Google Search and Google Maps pays both fees."""
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "gemini/gemini-3.5-flash"
     model_info = litellm.get_model_info(model)
@@ -608,7 +608,7 @@ def test_gemini_2x_web_search_still_billed_per_prompt(local_model_cost_map):
     web_search_billing_unit always present on the resolved ModelInfo (None for 2.x), so the
     clamp must treat a None billing unit as per_prompt rather than skipping the clamp.
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "vertex_ai/gemini-2.5-flash"
     model_info = litellm.get_model_info(model)
@@ -651,7 +651,7 @@ def test_web_search_provider_prefix_fallback_does_not_misprice_non_gemini_model(
     the request's vertex_ai Gemini calculator, which charges its $0.035 per_prompt default for a
     model that should cost nothing for web search.
     """
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "openrouter/google/gemini-3.1-flash-lite"
     model_info = litellm.get_model_info(model)
@@ -682,7 +682,7 @@ def test_web_search_provider_prefix_fallback_does_not_misprice_non_gemini_model(
 
 
 def _openai_responses_with_web_search_calls(model, num_calls):
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
     from openai.types.responses.response_function_web_search import (
         ActionSearch,
         ResponseFunctionWebSearch,
@@ -716,7 +716,7 @@ def test_openai_responses_web_search_priced_per_call(local_model_cost_map):
     (no openai branch) returned None and the default fallback billed web search as $0. gpt-5-nano now
     prices at $0.01 per call, and two web_search_call items in the Responses output must bill 2 x $0.01.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model = "gpt-5-nano"
     per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
@@ -744,7 +744,7 @@ def test_openai_responses_web_search_multiplied_by_call_count(local_model_cost_m
     multiple web searches was charged once. gpt-4o-search-preview carries per-call pricing; N calls
     must bill N times, and a single call must still bill exactly once.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     model = "gpt-4o-search-preview"
     per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
@@ -773,8 +773,8 @@ def test_web_search_call_count_reads_dict_output_items(local_model_cost_map):
     counter must read their "type" key like the detection gate does, instead of flooring
     a multi-search response to a single billable search.
     """
-    from litellm.types.llms.openai import ResponsesAPIResponse
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.utils import Usage
 
     model = "gpt-4o-search-preview"
     per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
@@ -816,7 +816,7 @@ def test_dated_search_preview_entries_carry_search_pricing(local_model_cost_map)
     search_context_cost_per_query, so the default chat path silently billed the $0.035 search
     fee as $0. Dated entries must price identically to their undated siblings.
     """
-    from litellm.types.utils import Usage
+    from token_iq.gateway.types.utils import Usage
 
     for dated, undated in (
         ("gpt-4o-search-preview-2025-03-11", "gpt-4o-search-preview"),
@@ -873,7 +873,7 @@ def test_response_includes_output_type_reads_dict_output_items():
     items without an "action" field) stay plain dicts in the output union. The gate must
     read their "type" key instead of returning False and skipping the web search fee.
     """
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     response = ResponsesAPIResponse.model_validate(
         {
@@ -901,8 +901,8 @@ def test_web_search_gate_reads_server_side_tool_usage_details_without_citations(
     usage.server_side_tool_usage_details; a searched answer with no url_citation
     annotations must still be billed for its web search calls.
     """
-    from litellm.llms.xai.cost_calculator import _DEFAULT_WEB_SEARCH_COST_PER_CALL
-    from litellm.types.utils import Usage
+    from token_iq.gateway.llms.xai.cost_calculator import _DEFAULT_WEB_SEARCH_COST_PER_CALL
+    from token_iq.gateway.types.utils import Usage
 
     usage = Usage(
         prompt_tokens=10,

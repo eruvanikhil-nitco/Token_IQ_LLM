@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     _resolve_bedrock_agent_runtime_region,
 )
 

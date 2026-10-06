@@ -1,7 +1,7 @@
 import os
 
-from litellm.proxy.config_resolvers._descriptors import FieldDescriptor, resolve_fields
-from litellm.proxy.config_resolvers.sso import (
+from token_iq.gateway.proxy.config_resolvers._descriptors import FieldDescriptor, resolve_fields
+from token_iq.gateway.proxy.config_resolvers.sso import (
     SSO_FIELD_ENV_VARS,
     SSO_SECRET_FIELDS,
     resolve_sso_config,

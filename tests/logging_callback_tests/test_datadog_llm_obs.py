@@ -15,13 +15,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
 from datetime import datetime, timedelta
-from litellm.types.integrations.datadog_llm_obs import *
-from litellm.types.utils import (
+from token_iq.gateway.types.integrations.datadog_llm_obs import *
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingModelInformation,
     StandardLoggingMetadata,

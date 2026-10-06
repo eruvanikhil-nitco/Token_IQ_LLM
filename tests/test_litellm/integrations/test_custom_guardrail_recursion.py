@@ -1,6 +1,6 @@
 import pytest
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 import json
 
 

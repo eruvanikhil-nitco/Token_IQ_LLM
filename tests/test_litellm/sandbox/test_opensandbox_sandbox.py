@@ -3,14 +3,14 @@ import json
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.base_llm.sandbox.transformation import ContainerHandle
-from litellm.llms.opensandbox.sandbox.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.sandbox.transformation import ContainerHandle
+from token_iq.gateway.llms.opensandbox.sandbox.transformation import (
     MAX_OUTPUT_BYTES,
     OPEN_SANDBOX_DEFAULT_TEMPLATE,
     OpenSandboxSandboxConfig,
 )
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.utils import ProviderConfigManager
 
 TEST_API_BASE = "https://sandbox.test/v1"
 
@@ -223,7 +223,7 @@ def test_static_helpers_cover_defaults_and_fallbacks(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "litellm.llms.opensandbox.sandbox.transformation.get_secret_str",
+        "token_iq.gateway.llms.opensandbox.sandbox.transformation.get_secret_str",
         fake_secret,
     )
     config = OpenSandboxSandboxConfig()
@@ -285,7 +285,7 @@ def test_static_helpers_cover_defaults_and_fallbacks(monkeypatch):
 
 def test_api_base_requires_kwarg_or_env(monkeypatch):
     monkeypatch.setattr(
-        "litellm.llms.opensandbox.sandbox.transformation.get_secret_str",
+        "token_iq.gateway.llms.opensandbox.sandbox.transformation.get_secret_str",
         lambda key: None,
     )
 
@@ -403,7 +403,7 @@ async def test_create_waits_across_pending_state(monkeypatch):
         sleeps.append(interval)
 
     monkeypatch.setattr(
-        "litellm.llms.opensandbox.sandbox.transformation.asyncio.sleep", fake_sleep
+        "token_iq.gateway.llms.opensandbox.sandbox.transformation.asyncio.sleep", fake_sleep
     )
 
     handle = await OpenSandboxSandboxConfig().acreate_sandbox(
@@ -469,7 +469,7 @@ async def test_create_waits_for_endpoint_resolution(monkeypatch):
         sleeps.append(interval)
 
     monkeypatch.setattr(
-        "litellm.llms.opensandbox.sandbox.transformation.asyncio.sleep", fake_sleep
+        "token_iq.gateway.llms.opensandbox.sandbox.transformation.asyncio.sleep", fake_sleep
     )
 
     handle = await OpenSandboxSandboxConfig().acreate_sandbox(

@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching.dual_cache import DualCache
-from litellm.router_utils.pre_call_checks.model_rate_limit_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.router_utils.pre_call_checks.model_rate_limit_check import (
     ModelRateLimitingCheck,
 )
 

@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.management_endpoints.scim.scim_v2 import (
+from token_iq.gateway.proxy.management_endpoints.scim.scim_v2 import (
     _get_resource_types,
     _get_schemas,
     get_resource_type,
@@ -21,7 +21,7 @@ from litellm.proxy.management_endpoints.scim.scim_v2 import (
     get_schemas,
     get_scim_base,
 )
-from litellm.types.proxy.management_endpoints.scim_v2 import (
+from token_iq.gateway.types.proxy.management_endpoints.scim_v2 import (
     SCIMResourceType,
     SCIMSchema,
 )
@@ -316,7 +316,7 @@ class TestSCIMSchemaModel:
         assert schema.attributes == []
 
     def test_sub_attributes_omitted_when_none(self):
-        from litellm.types.proxy.management_endpoints.scim_v2 import SCIMSchemaAttribute
+        from token_iq.gateway.types.proxy.management_endpoints.scim_v2 import SCIMSchemaAttribute
 
         attr = SCIMSchemaAttribute(
             name="test",

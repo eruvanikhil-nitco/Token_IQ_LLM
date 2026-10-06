@@ -4,12 +4,12 @@ import pytest
 
 
 from base_llm_unit_tests import BaseLLMChatTest
-from litellm.llms.vertex_ai.context_caching.transformation import (
+from token_iq.gateway.llms.vertex_ai.context_caching.transformation import (
     separate_cached_messages,
     transform_openai_messages_to_gemini_context_caching,
 )
-import litellm
-from litellm import completion
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
 import json
 
 
@@ -82,7 +82,7 @@ class TestGoogleAIStudioGemini(BaseLLMChatTest):
 
     def test_tool_call_no_arguments(self, tool_call_no_arguments):
         """Test that tool calls with no arguments is translated correctly. Relevant issue: https://github.com/BerriAI/litellm/issues/6833"""
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             convert_to_gemini_tool_call_invoke,
         )
 
@@ -91,7 +91,7 @@ class TestGoogleAIStudioGemini(BaseLLMChatTest):
 
     @pytest.mark.flaky(retries=3, delay=2)
     def test_url_context(self):
-        from litellm.utils import supports_url_context
+        from token_iq.gateway.utils import supports_url_context
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         litellm.model_cost = litellm.get_model_cost_map()
@@ -360,14 +360,14 @@ def test_gemini_flash_image_preview_models(model_name: str):
     and invoke the generateContent endpoint returning inline image data.
     """
     from unittest.mock import patch, MagicMock
-    from litellm.types.utils import ImageResponse, ImageObject
+    from token_iq.gateway.types.utils import ImageResponse, ImageObject
 
     # Mock successful response to avoid API limits
     mock_response = ImageResponse()
     mock_response.data = [ImageObject(b64_json="test_base64_data", url=None)]
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         # Mock successful HTTP response
         mock_http_response = MagicMock()
@@ -442,7 +442,7 @@ def test_gemini_image_generation_forwards_image_config(
     from unittest.mock import patch, MagicMock
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         mock_http_response = MagicMock()
         mock_http_response.json.return_value = {
@@ -469,7 +469,7 @@ def test_gemini_image_generation_forwards_image_config(
 
 
 def test_gemini_image_generation_image_config_takes_precedence_over_size():
-    from litellm.llms.gemini.image_generation.transformation import GoogleImageGenConfig
+    from token_iq.gateway.llms.gemini.image_generation.transformation import GoogleImageGenConfig
 
     explicit_image_config = {"aspectRatio": "16:9", "imageSize": "2K"}
 
@@ -487,7 +487,7 @@ def test_gemini_image_generation_image_config_takes_precedence_over_size():
 
 
 def test_gemini_image_generation_ignores_non_dict_image_config():
-    from litellm.llms.gemini.image_generation.transformation import GoogleImageGenConfig
+    from token_iq.gateway.llms.gemini.image_generation.transformation import GoogleImageGenConfig
 
     mapped_params = GoogleImageGenConfig().map_openai_params(
         non_default_params={
@@ -509,7 +509,7 @@ def test_gemini_image_generation_ignores_non_dict_image_config():
 def test_gemini_image_generation_openai_size_maps_to_google_table(
     size: str, expected_aspect_ratio: str, expected_image_size: str
 ):
-    from litellm.llms.gemini.common_utils import (
+    from token_iq.gateway.llms.gemini.common_utils import (
         map_openai_size_to_gemini_image_config,
     )
 
@@ -535,7 +535,7 @@ def test_gemini_image_generation_openai_size_maps_to_google_table(
 def test_gemini_image_generation_openai_size_snaps_to_nearest_option(
     size: str, expected_aspect_ratio: str, expected_image_size: str
 ):
-    from litellm.llms.gemini.common_utils import (
+    from token_iq.gateway.llms.gemini.common_utils import (
         map_openai_size_to_gemini_image_config,
     )
 
@@ -549,7 +549,7 @@ def test_gemini_image_generation_openai_size_snaps_to_nearest_option(
 
 @pytest.mark.parametrize("size", ["auto", "invalid", "0x1024", "1024x0"])
 def test_gemini_image_generation_openai_size_auto_uses_google_defaults(size: str):
-    from litellm.llms.gemini.common_utils import (
+    from token_iq.gateway.llms.gemini.common_utils import (
         map_openai_size_to_gemini_image_config,
     )
 
@@ -563,10 +563,10 @@ def test_gemini_imagen_models_use_predict_endpoint():
     Test that Imagen models still use :predict endpoint (not broken by gemini-2.5-flash-image-preview fix)
     """
     from unittest.mock import patch, MagicMock
-    from litellm.types.utils import ImageResponse, ImageObject
+    from token_iq.gateway.types.utils import ImageResponse, ImageObject
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         # Mock successful HTTP response for Imagen
         mock_http_response = MagicMock()
@@ -611,8 +611,8 @@ def test_gemini_imagen_models_use_predict_endpoint():
 
 def test_gemini_thinking():
     litellm._turn_on_debug()
-    from litellm.types.utils import Message, CallTypes
-    from litellm.utils import return_raw_request
+    from token_iq.gateway.types.utils import Message, CallTypes
+    from token_iq.gateway.utils import return_raw_request
     import json
 
     messages = [
@@ -651,8 +651,8 @@ def test_gemini_thinking():
 
 def test_gemini_thinking_budget_0():
     litellm._turn_on_debug()
-    from litellm.types.utils import Message, CallTypes
-    from litellm.utils import return_raw_request
+    from token_iq.gateway.types.utils import Message, CallTypes
+    from token_iq.gateway.utils import return_raw_request
     import json
 
     raw_request = return_raw_request(
@@ -674,7 +674,7 @@ def test_gemini_thinking_budget_0():
 
 def test_gemini_finish_reason():
     import os
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
     response = completion(
@@ -689,7 +689,7 @@ def test_gemini_finish_reason():
 
 @pytest.mark.flaky(retries=3, delay=2)
 def test_gemini_url_context():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
     URL1 = "https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-chicken-recipe-1940592"
@@ -715,7 +715,7 @@ def test_gemini_url_context():
 
 @pytest.mark.flaky(retries=3, delay=2)
 def test_gemini_with_grounding():
-    from litellm import completion, Usage, stream_chunk_builder
+    from token_iq.gateway import completion, Usage, stream_chunk_builder
 
     litellm._turn_on_debug()
     litellm.set_verbose = True
@@ -751,7 +751,7 @@ def test_gemini_with_grounding():
 
 
 def test_gemini_with_empty_function_call_arguments():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
     tools = [
@@ -783,7 +783,7 @@ async def test_claude_tool_use_with_gemini():
     test focuses on verifying the streaming transformation logic rather than live model behavior.
     """
     from unittest.mock import patch, AsyncMock
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
@@ -862,7 +862,7 @@ async def test_claude_tool_use_with_gemini():
                 return chunk
             raise StopAsyncIteration
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = MockAsyncStream()
 
         response = await litellm.anthropic.messages.acreate(
@@ -1117,7 +1117,7 @@ def get_current_weather(location, unit="fahrenheit"):
 
 
 def test_gemini_with_thinking():
-    from litellm import completion
+    from token_iq.gateway import completion
 
     litellm._turn_on_debug()
     litellm.modify_params = True
@@ -1212,8 +1212,8 @@ def test_gemini_reasoning_effort_minimal():
     """
     Test that reasoning_effort='minimal' correctly maps to model-specific minimum thinking budgets
     """
-    from litellm.utils import return_raw_request
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
     import json
 
     # Test with different Gemini models to verify model-specific mapping
@@ -1294,8 +1294,8 @@ def test_gemini_exception_message_format():
     """
     import httpx
     from unittest.mock import Mock
-    from litellm.litellm_core_utils.exception_mapping_utils import exception_type
-    from litellm import BadRequestError
+    from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
+    from token_iq.gateway import BadRequestError
 
     # Mock a typical Gemini API error response
     mock_response = Mock(spec=httpx.Response)
@@ -1356,8 +1356,8 @@ def l(status_code, expected_exception):
     """
     import httpx
     from unittest.mock import Mock
-    from litellm.litellm_core_utils.exception_mapping_utils import exception_type
-    from litellm.exceptions import (
+    from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
+    from token_iq.gateway.exceptions import (
         BadRequestError,
         AuthenticationError,
         PermissionDeniedError,
@@ -1433,7 +1433,7 @@ def test_reasoning_effort_none_mapping():
     Test that reasoning_effort='none' correctly maps to thinkingConfig.
     Related issue: https://github.com/BerriAI/litellm/issues/16420
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -1456,7 +1456,7 @@ def test_gemini_function_args_preserve_unicode():
     Before fix: "や" becomes "\u3084"
     After fix: "や" stays as "や"
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -1529,10 +1529,10 @@ def test_anthropic_thinking_param_to_gemini_3_provider_defaults():
 
     Related issue: https://github.com/BerriAI/litellm/issues/XXXX
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.anthropic import AnthropicThinkingParam
+    from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
     original_force_low_flag = litellm.enable_gemini_default_thinking_level_low
     litellm.enable_gemini_default_thinking_level_low = False
@@ -1608,10 +1608,10 @@ def test_anthropic_thinking_param_to_gemini_3_force_low_feature_flag():
     """
     Test that Gemini 3 thinkingLevel forced mapping is available behind a feature flag.
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.anthropic import AnthropicThinkingParam
+    from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
     original_force_low_flag = litellm.enable_gemini_default_thinking_level_low
     litellm.enable_gemini_default_thinking_level_low = True
@@ -1650,10 +1650,10 @@ def test_anthropic_thinking_param_to_gemini_2_thinkingBudget():
 
     Related issue: https://github.com/BerriAI/litellm/issues/XXXX
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.anthropic import AnthropicThinkingParam
+    from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
     # Test 1: Anthropic thinking enabled with budget_tokens for Gemini 2 model
     thinking_param: AnthropicThinkingParam = {
@@ -1693,10 +1693,10 @@ def test_anthropic_thinking_param_via_map_openai_params():
 
     This tests the full integration from Anthropic API format to Gemini format.
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
-    from litellm.types.llms.anthropic import AnthropicThinkingParam
+    from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
     config = VertexGeminiConfig()
 
@@ -1756,7 +1756,7 @@ def test_gemini_31_flash_lite_reasoning_effort_minimal():
 
     Regression test for: "minimal" reasoning_effort not supported for gemini-3.1-flash-lite-preview
     """
-    from litellm.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
+    from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
         VertexGeminiConfig,
     )
 
@@ -1771,8 +1771,8 @@ def test_gemini_31_flash_lite_reasoning_effort_minimal():
     assert result["includeThoughts"] is True
 
     # Also verify via the full map_openai_params flow
-    from litellm.utils import return_raw_request
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
 
     raw_request = return_raw_request(
         endpoint=CallTypes.completion,
@@ -1806,7 +1806,7 @@ def test_gemini_image_size_limit_exceeded(monkeypatch):
     """
     from httpx import Request, Response
 
-    from litellm.litellm_core_utils.prompt_templates import image_handling
+    from token_iq.gateway.core_utils.prompt_templates import image_handling
 
     class LargeImageClient:
         """Returns a response whose Content-Length exceeds the 50MB limit."""

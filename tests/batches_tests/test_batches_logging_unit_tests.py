@@ -10,10 +10,10 @@ import time
 
 import pytest
 from typing import Optional
-import litellm
-from litellm import create_batch, create_file
-from litellm._logging import verbose_logger
-from litellm.batches.batch_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway import create_batch, create_file
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.batches.batch_utils import (
     _aggregate_batch_cost_usage_models,
     _get_file_content_as_dictionary,
     _get_batch_job_usage_from_response_body,
@@ -132,7 +132,7 @@ def test_get_file_content_as_dictionary(sample_file_content):
 
 
 def test_get_batch_job_total_usage_from_file_content(sample_file_content_dict):
-    with patch("litellm.completion_cost", return_value=0.0):
+    with patch("token_iq.gateway.completion_cost", return_value=0.0):
         result = _aggregate_batch_cost_usage_models(
             entries=sample_file_content_dict, custom_llm_provider="openai"
         )
@@ -150,7 +150,7 @@ async def test_batch_cost_calculator(sample_file_content_dict):
 
     so we expect the cost to be 0.5 * 2 = 1.0
     """
-    with patch("litellm.completion_cost", return_value=0.5):
+    with patch("token_iq.gateway.completion_cost", return_value=0.5):
         result = _aggregate_batch_cost_usage_models(
             entries=sample_file_content_dict,
             custom_llm_provider="openai",
@@ -173,9 +173,9 @@ async def test_batch_retrieve_cost_tracking_with_completed_batch_no_explicit_cos
     Regression test for: When batch status is "completed" and explicit batch_cost/batch_usage/batch_models
     are not provided, the system should compute batch data by calling _handle_completed_batch.
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.types.utils import CallTypes
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.types.utils import CallTypes
+    from token_iq.gateway.types.utils import LiteLLMBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
@@ -221,7 +221,7 @@ async def test_batch_retrieve_cost_tracking_with_completed_batch_no_explicit_cos
     logging_obj.custom_llm_provider = "openai"
 
     # Mock _handle_completed_batch to return cost data
-    from litellm.batches.batch_utils import BatchCostUsageResult
+    from token_iq.gateway.batches.batch_utils import BatchCostUsageResult
 
     expected_cost = 0.05
     expected_usage = litellm.Usage(
@@ -232,7 +232,7 @@ async def test_batch_retrieve_cost_tracking_with_completed_batch_no_explicit_cos
     expected_models = ["gpt-5-mini"]
 
     with patch(
-        "litellm.litellm_core_utils.litellm_logging._handle_completed_batch",
+        "token_iq.gateway.core_utils.litellm_logging._handle_completed_batch",
         new=AsyncMock(
             return_value=BatchCostUsageResult(
                 cost=expected_cost,
@@ -270,8 +270,8 @@ async def test_handle_completed_batch_computes_real_cost_from_output_file(
     the function the retrieve handler invokes on completion; a dropped output line, a
     wrong token sum, or mispriced model fails this test.
     """
-    from litellm.batches.batch_utils import _handle_completed_batch
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.batches.batch_utils import _handle_completed_batch
+    from token_iq.gateway.types.utils import LiteLLMBatch
 
     batch = LiteLLMBatch(
         id="batch-real-cost-123",
@@ -288,7 +288,7 @@ async def test_handle_completed_batch_computes_real_cost_from_output_file(
         json.dumps(row) for row in sample_file_content_dict
     ).encode()
     with patch(
-        "litellm.batches.batch_utils._fetch_batch_output_file_content",
+        "token_iq.gateway.batches.batch_utils._fetch_batch_output_file_content",
         new=AsyncMock(return_value=sample_file_content_bytes),
     ):
         result = await _handle_completed_batch(
@@ -323,9 +323,9 @@ async def test_batch_retrieve_cost_tracking_with_explicit_cost_data():
     Regression test for: When batch_cost, batch_usage, and batch_models are explicitly
     provided in kwargs, they should be used directly without calling _handle_completed_batch.
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.types.utils import CallTypes
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.types.utils import CallTypes
+    from token_iq.gateway.types.utils import LiteLLMBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
@@ -380,7 +380,7 @@ async def test_batch_retrieve_cost_tracking_with_explicit_cost_data():
     explicit_models = ["gpt-5-mini", "gpt-5.5"]
 
     with patch(
-        "litellm.litellm_core_utils.litellm_logging._handle_completed_batch",
+        "token_iq.gateway.core_utils.litellm_logging._handle_completed_batch",
         new=AsyncMock(),
     ) as mock_handle_batch:
         # Call async_success_handler with explicit cost data
@@ -411,9 +411,9 @@ async def test_batch_retrieve_cost_tracking_with_unified_file_id_incomplete_batc
     when batch status is "completed" and explicit data is not provided.
     """
     import base64
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.types.utils import CallTypes, SpecialEnums
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.types.utils import CallTypes, SpecialEnums
+    from token_iq.gateway.types.utils import LiteLLMBatch
     from unittest.mock import AsyncMock, patch
 
     # Create a proper unified file ID by encoding the correct prefix
@@ -465,7 +465,7 @@ async def test_batch_retrieve_cost_tracking_with_unified_file_id_incomplete_batc
     logging_obj.custom_llm_provider = "openai"
 
     with patch(
-        "litellm.litellm_core_utils.litellm_logging._handle_completed_batch",
+        "token_iq.gateway.core_utils.litellm_logging._handle_completed_batch",
         new=AsyncMock(),
     ) as mock_handle_batch:
         # Call async_success_handler with in_progress batch (unified file ID)
@@ -492,9 +492,9 @@ async def test_batch_retrieve_cost_tracking_with_partial_explicit_data():
     Regression test for: If batch_cost, batch_usage, or batch_models is missing
     (not all three provided), and batch is completed, system should compute the data.
     """
-    from litellm.litellm_core_utils.litellm_logging import Logging
-    from litellm.types.utils import CallTypes
-    from litellm.types.utils import LiteLLMBatch
+    from token_iq.gateway.core_utils.litellm_logging import Logging
+    from token_iq.gateway.types.utils import CallTypes
+    from token_iq.gateway.types.utils import LiteLLMBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
@@ -551,10 +551,10 @@ async def test_batch_retrieve_cost_tracking_with_partial_explicit_data():
     )
     expected_models = ["gpt-5-mini"]
 
-    from litellm.batches.batch_utils import BatchCostUsageResult
+    from token_iq.gateway.batches.batch_utils import BatchCostUsageResult
 
     with patch(
-        "litellm.litellm_core_utils.litellm_logging._handle_completed_batch",
+        "token_iq.gateway.core_utils.litellm_logging._handle_completed_batch",
         new=AsyncMock(
             return_value=BatchCostUsageResult(
                 cost=expected_cost,

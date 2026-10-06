@@ -18,9 +18,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.proxy_server import app
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import app
 
 
 def _make_admin_viewer_auth() -> UserAPIKeyAuth:

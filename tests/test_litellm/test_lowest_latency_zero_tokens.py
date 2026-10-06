@@ -5,9 +5,9 @@ import time
 import pytest
 
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.router_strategy.lowest_latency import LowestLatencyLoggingHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_strategy.lowest_latency import LowestLatencyLoggingHandler
 
 
 def test_zero_completion_tokens_no_division_error():

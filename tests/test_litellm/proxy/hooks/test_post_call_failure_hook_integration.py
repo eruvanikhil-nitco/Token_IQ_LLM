@@ -11,8 +11,8 @@ from unittest.mock import patch
 
 
 from fastapi import HTTPException
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 class ErrorTransformerLogger(CustomLogger):
@@ -46,9 +46,9 @@ async def test_failure_hook_transforms_error_response():
     transformer = ErrorTransformerLogger()
 
     # Mock litellm.callbacks to include our transformer
-    with patch("litellm.callbacks", [transformer]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [transformer]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         original_exception = Exception("Technical error message")
@@ -89,9 +89,9 @@ async def test_failure_hook_returns_none_when_no_transformation():
 
     logger = NoOpLogger()
 
-    with patch("litellm.callbacks", [logger]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [logger]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         original_exception = Exception("Original error")
@@ -125,9 +125,9 @@ async def test_failure_hook_handles_exceptions_gracefully():
 
     logger = FailingLogger()
 
-    with patch("litellm.callbacks", [logger]):
-        from litellm.proxy.utils import ProxyLogging
-        from litellm.caching.caching import DualCache
+    with patch("token_iq.gateway.callbacks", [logger]):
+        from token_iq.gateway.proxy.utils import ProxyLogging
+        from token_iq.gateway.caching.caching import DualCache
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
         original_exception = Exception("Original error")

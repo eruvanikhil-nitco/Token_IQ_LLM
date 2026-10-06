@@ -3,15 +3,15 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 
-from litellm.llms.watsonx.common_utils import generate_iam_token
+from token_iq.gateway.llms.watsonx.common_utils import generate_iam_token
 
 
 class TestGenerateIAMToken:
     """Tests for the generate_iam_token function, specifically testing API key fallback logic."""
 
-    @patch("litellm.llms.watsonx.common_utils.iam_token_cache")
-    @patch("litellm.llms.watsonx.common_utils.litellm.module_level_client")
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_with_watsonx_zenapikey(
         self, mock_get_secret_str, mock_client, mock_cache
     ):
@@ -51,9 +51,9 @@ class TestGenerateIAMToken:
         call_kwargs = mock_client.post.call_args
         assert call_kwargs.kwargs["data"]["apikey"] == "zen-api-key-12345"
 
-    @patch("litellm.llms.watsonx.common_utils.iam_token_cache")
-    @patch("litellm.llms.watsonx.common_utils.litellm.module_level_client")
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_api_key_priority_order(
         self, mock_get_secret_str, mock_client, mock_cache
     ):
@@ -154,9 +154,9 @@ class TestGenerateIAMToken:
                 actual_calls == expected_calls
             ), f"Expected calls {expected_calls} but got {actual_calls} for env_keys: {env_keys}"
 
-    @patch("litellm.llms.watsonx.common_utils.iam_token_cache")
-    @patch("litellm.llms.watsonx.common_utils.litellm.module_level_client")
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_with_direct_api_key(
         self, mock_get_secret_str, mock_client, mock_cache
     ):
@@ -193,8 +193,8 @@ class TestGenerateIAMToken:
         call_kwargs = mock_client.post.call_args
         assert call_kwargs.kwargs["data"]["apikey"] == direct_key
 
-    @patch("litellm.llms.watsonx.common_utils.iam_token_cache")
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_no_api_key_raises_error(
         self, mock_get_secret_str, mock_cache
     ):
@@ -219,9 +219,9 @@ class TestGenerateIAMToken:
         assert "WATSONX_APIKEY" in calls
         assert "WATSONX_ZENAPIKEY" in calls
 
-    @patch("litellm.llms.watsonx.common_utils.iam_token_cache")
-    @patch("litellm.llms.watsonx.common_utils.litellm.module_level_client")
-    @patch("litellm.llms.watsonx.common_utils.get_secret_str")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_uses_cache(
         self, mock_get_secret_str, mock_client, mock_cache
     ):

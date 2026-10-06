@@ -4,7 +4,7 @@ Tests for XAI Responses API transformation
 Tests the XAIResponsesAPIConfig class that handles XAI-specific
 transformations for the Responses API.
 
-Source: litellm/llms/xai/responses/transformation.py
+Source: token_iq/gateway/llms/xai/responses/transformation.py
 """
 
 from unittest.mock import MagicMock, Mock
@@ -12,18 +12,18 @@ from unittest.mock import MagicMock, Mock
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.xai.cost_calculator import cost_per_token
-from litellm.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from litellm.responses.utils import ResponseAPILoggingUtils
-from litellm.types.llms.openai import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.xai.cost_calculator import cost_per_token
+from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
+from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
+from token_iq.gateway.types.llms.openai import (
     ResponseAPIUsage,
     ResponseCompletedEvent,
     ResponsesAPIOptionalRequestParams,
     ResponsesAPIResponse,
 )
-from litellm.types.utils import LlmProviders, Usage
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.utils import LlmProviders, Usage
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class TestXAIResponsesAPITransformation:

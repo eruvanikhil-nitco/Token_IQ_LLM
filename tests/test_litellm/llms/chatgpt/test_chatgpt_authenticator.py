@@ -5,7 +5,7 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from litellm.llms.chatgpt.authenticator import Authenticator
+from token_iq.gateway.llms.chatgpt.authenticator import Authenticator
 
 
 def _make_jwt(payload: dict) -> str:

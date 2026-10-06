@@ -42,7 +42,7 @@ def classify(category: str, changed: list[str]) -> str:
 
 DOCS = ["README.md", "docs/my_website/index.mdx", "litellm/anywhere.md"]
 CLIENT = ["ui/litellm-dashboard/src/App.tsx"]
-BACKEND = ["litellm/main.py"]
+BACKEND = ["token_iq/gateway/main.py"]
 CI = [".github/workflows/test-litellm-ui-unit.yml"]
 
 

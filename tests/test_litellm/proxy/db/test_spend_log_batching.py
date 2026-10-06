@@ -13,7 +13,7 @@ Symbols pinned here:
 import json
 from typing import Any, Dict, List
 
-from litellm.proxy.db.spend_log_batching import (
+from token_iq.gateway.proxy.db.spend_log_batching import (
     _row_payload_bytes,
     spend_log_queue_within_budget,
     spend_log_write_batches,

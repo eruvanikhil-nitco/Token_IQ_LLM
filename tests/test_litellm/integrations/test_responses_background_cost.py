@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from litellm.constants import MAX_OBJECTS_PER_POLL_CYCLE
-from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
+from token_iq.gateway.constants import MAX_OBJECTS_PER_POLL_CYCLE
+from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
 
 class TestResponsesBackgroundCostTracking:
@@ -390,7 +390,7 @@ class TestCheckResponsesCost:
         )
 
         # Mock litellm.aget_responses to return completed response
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = completed_response
 
             await checker.check_responses_cost()
@@ -445,7 +445,7 @@ class TestCheckResponsesCost:
             llm_router=mock_llm_router,
         )
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = failed_response
 
             await checker.check_responses_cost()
@@ -498,7 +498,7 @@ class TestCheckResponsesCost:
             llm_router=mock_llm_router,
         )
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = in_progress_response
 
             await checker.check_responses_cost()
@@ -543,7 +543,7 @@ class TestCheckResponsesCost:
 
         # Mock litellm.aget_responses to raise an exception
         with patch(
-            "litellm.aget_responses",
+            "token_iq.gateway.aget_responses",
             new_callable=AsyncMock,
             side_effect=Exception("API error"),
         ):

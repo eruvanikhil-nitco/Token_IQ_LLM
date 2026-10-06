@@ -3,9 +3,9 @@ import logging
 import pytest
 from dotenv import load_dotenv
 
-import litellm
-from litellm._logging import verbose_logger, verbose_proxy_logger
-from litellm.integrations.arize.arize_phoenix import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
+from token_iq.gateway.integrations.arize.arize_phoenix import (
     ArizePhoenixConfig,
     ArizePhoenixLogger,
 )

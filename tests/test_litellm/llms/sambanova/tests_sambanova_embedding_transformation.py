@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import litellm
+from token_iq import gateway as litellm
 
 
 def mock_embedding_response(*args, **kwargs):
@@ -21,7 +21,7 @@ def mock_embedding_response(*args, **kwargs):
 
 def test_sambanova_embeddings():
     """Mocked test for SambaNova embeddings using MagicMock."""
-    with patch("litellm.embedding", side_effect=mock_embedding_response) as mock_embed:
+    with patch("token_iq.gateway.embedding", side_effect=mock_embedding_response) as mock_embed:
         response = litellm.embedding(
             model="sambanova/E5-Mistral-7B-Instruct",
             input=["good morning from litellm"],

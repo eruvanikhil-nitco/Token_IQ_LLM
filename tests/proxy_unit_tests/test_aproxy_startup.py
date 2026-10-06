@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 load_dotenv()
 import io
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import pytest, logging, asyncio
-import litellm
-from litellm.proxy.proxy_server import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import (
     router,
     save_worker_config,
     initialize,
@@ -31,7 +31,7 @@ async def test_proxy_gunicorn_startup_direct_config():
     Test both approaches
     """
     try:
-        from litellm._logging import verbose_proxy_logger, verbose_router_logger
+        from token_iq.gateway._logging import verbose_proxy_logger, verbose_router_logger
         import logging
 
         # unset set DATABASE_URL in env for this test
@@ -61,7 +61,7 @@ async def test_proxy_gunicorn_startup_direct_config():
 @pytest.mark.asyncio
 async def test_proxy_gunicorn_startup_config_dict():
     try:
-        from litellm._logging import verbose_proxy_logger, verbose_router_logger
+        from token_iq.gateway._logging import verbose_proxy_logger, verbose_router_logger
         import logging
 
         verbose_proxy_logger.setLevel(level=logging.DEBUG)

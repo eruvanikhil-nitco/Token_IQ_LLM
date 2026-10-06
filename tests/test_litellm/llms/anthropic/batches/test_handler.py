@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/llms/anthropic/batches/handler.py
+Unit tests for token_iq/gateway/llms/anthropic/batches/handler.py
 
 AnthropicBatchesHandler is the HTTP/auth glue for retrieving Anthropic Message
 Batches. It resolves credentials, builds the retrieve URL + auth headers via the
@@ -20,8 +20,8 @@ import httpx
 import pytest
 
 
-from litellm.llms.anthropic.batches.handler import AnthropicBatchesHandler
-from litellm.types.utils import LiteLLMBatch
+from token_iq.gateway.llms.anthropic.batches.handler import AnthropicBatchesHandler
+from token_iq.gateway.types.utils import LiteLLMBatch
 
 
 def _ok_batch_response():
@@ -52,7 +52,7 @@ def patched_client():
     fake_client = MagicMock()
     fake_client.get = AsyncMock(return_value=_ok_batch_response())
     with patch(
-        "litellm.llms.anthropic.batches.handler.get_async_httpx_client",
+        "token_iq.gateway.llms.anthropic.batches.handler.get_async_httpx_client",
         return_value=fake_client,
     ) as factory:
         yield fake_client, factory
@@ -96,7 +96,7 @@ async def test_aretrieve_batch_fires_get_with_correct_url_and_headers(
 async def test_aretrieve_batch_uses_anthropic_provider_for_client(
     handler, patched_client
 ):
-    from litellm.types.utils import LlmProviders
+    from token_iq.gateway.types.utils import LlmProviders
 
     _, factory = patched_client
     await handler.aretrieve_batch(
@@ -183,7 +183,7 @@ async def test_aretrieve_batch_raises_for_status(handler):
     fake_client = MagicMock()
     fake_client.get = AsyncMock(return_value=error_response)
     with patch(
-        "litellm.llms.anthropic.batches.handler.get_async_httpx_client",
+        "token_iq.gateway.llms.anthropic.batches.handler.get_async_httpx_client",
         return_value=fake_client,
     ):
         with pytest.raises(httpx.HTTPStatusError):
@@ -226,7 +226,7 @@ async def test_aretrieve_batch_builds_default_logging_obj_when_absent(
     # must still complete (no AttributeError on a missing logger).
     _, _ = patched_client
     with patch(
-        "litellm.litellm_core_utils.litellm_logging.Logging"
+        "token_iq.gateway.core_utils.litellm_logging.Logging"
     ) as logging_cls:
         logging_cls.return_value = MagicMock()
         batch = await handler.aretrieve_batch(

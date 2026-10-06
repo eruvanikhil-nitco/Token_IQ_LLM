@@ -5,8 +5,8 @@ import pytest
 from fastapi import HTTPException
 
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_helpers.team_metadata_validation import (
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.management_helpers.team_metadata_validation import (
     DEFAULT_TEAM_METADATA_VALIDATION_REJECTED_MESSAGE,
     DEFAULT_TEAM_METADATA_VALIDATION_TIMEOUT_SECONDS,
     DEFAULT_TEAM_METADATA_VALIDATION_UNAVAILABLE_MESSAGE,
@@ -211,9 +211,9 @@ async def test_adapter_builds_payload_and_reads_settings():
         return TeamMetadataValidationResult(valid=True)
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"team_metadata_validation_timeout": 3, "team_metadata_validation_error_message": "ops msg"},
         ),
     ):
@@ -252,8 +252,8 @@ async def test_adapter_normalizes_non_dict_metadata_to_empty_dict():
         return TeamMetadataValidationResult(valid=True)
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         await validate_team_metadata_if_configured(
             operation="create",
@@ -285,8 +285,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import team_metadata_validator_impls as impls
 
-from litellm.proxy._types import ProxyException
-from litellm.proxy.management_helpers.team_metadata_validation import (
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.management_helpers.team_metadata_validation import (
     TEAM_METADATA_VALIDATOR_REGISTRY,
 )
 
@@ -338,8 +338,8 @@ def _configured(validator):
     TEAM_METADATA_VALIDATOR_REGISTRY.set(validator)
     try:
         with (
-            patch("litellm.proxy.proxy_server.premium_user", True),
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         ):
             yield
     finally:
@@ -349,13 +349,13 @@ def _configured(validator):
 async def _drive_create(metadata, mock_sink=None):
     from fastapi import Request
 
-    from litellm.proxy._types import LiteLLM_TeamTable, NewTeamRequest
-    from litellm.proxy.management_endpoints.team_endpoints import new_team
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, NewTeamRequest
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as pc,
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as pc,
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
     ):
         team_row = MagicMock(team_id="matrix-team-1")
         team_row.model_dump.return_value = {"team_id": "matrix-team-1"}
@@ -384,8 +384,8 @@ async def _drive_create(metadata, mock_sink=None):
 async def _drive_update(kind, existing_metadata, payload):
     from fastapi import Request
 
-    from litellm.proxy._types import LiteLLM_TeamTable, PatchTeamRequest, UpdateTeamRequest
-    from litellm.proxy.management_endpoints.team_endpoints import patch_team, update_team
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, PatchTeamRequest, UpdateTeamRequest
+    from token_iq.gateway.proxy.management_endpoints.team_endpoints import patch_team, update_team
 
     team_id = "matrix-team-upd"
     existing = LiteLLM_TeamTable(
@@ -397,13 +397,13 @@ async def _drive_update(kind, existing_metadata, payload):
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as pc,
-        patch("litellm.proxy.proxy_server.llm_router", None),
-        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", MagicMock()),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as pc,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", None),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_endpoints.team_endpoints._refresh_cached_team",
+            "token_iq.gateway.proxy.management_endpoints.team_endpoints._refresh_cached_team",
             new=AsyncMock(),
         ),
     ):
@@ -597,7 +597,7 @@ async def test_class_instance_with_sync_call_is_rejected():
     assert exc_info.value.status_code == 500
 
 
-from litellm.proxy.management_helpers.team_metadata_validation import (
+from token_iq.gateway.proxy.management_helpers.team_metadata_validation import (
     TeamMetadataSchemaRegistry,
     parse_team_metadata_schema,
 )
@@ -683,9 +683,9 @@ async def test_adapter_applies_configured_timeout_to_slow_validator():
     registry.set(slow_validator)
 
     with (
-        patch("litellm.proxy.proxy_server.premium_user", True),
+        patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"team_metadata_validation_timeout": 0.01},
         ),
     ):

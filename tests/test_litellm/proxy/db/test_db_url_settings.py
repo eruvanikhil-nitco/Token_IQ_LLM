@@ -18,12 +18,12 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-from litellm.proxy.db.db_url_settings import (
+from token_iq.gateway.proxy.db.db_url_settings import (
     DatabaseURLSettings,
     unsupported_db_scheme,
     unsupported_db_scheme_message,
 )
-from litellm.proxy.db.token_auth import AzureEntraTokenAuth, RdsIamTokenAuth
+from token_iq.gateway.proxy.db.token_auth import AzureEntraTokenAuth, RdsIamTokenAuth
 
 
 def _apply() -> bool:
@@ -76,7 +76,7 @@ def _scrub_db_env(monkeypatch):
 def _stub_iam_token(token: str = "FAKE_TOKEN"):
     """Patch the AWS-touching token mint so tests don't need boto3 / network."""
     return patch(
-        "litellm.proxy.auth.rds_iam_token.generate_iam_auth_token",
+        "token_iq.gateway.proxy.auth.rds_iam_token.generate_iam_auth_token",
         return_value=token,
     )
 
@@ -84,7 +84,7 @@ def _stub_iam_token(token: str = "FAKE_TOKEN"):
 def _stub_entra_token(token: str = "FAKE_TOKEN"):
     """Patch the Azure-touching token provider so tests don't need azure-identity."""
     return patch(
-        "litellm.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
+        "token_iq.gateway.secret_managers.get_azure_ad_token_provider.get_azure_ad_token_provider",
         return_value=lambda: token,
     )
 
@@ -303,7 +303,7 @@ def test_the_toggle_agrees_with_the_refresh_loop_on_every_spelling(monkeypatch):
     """This model and `resolve_database_token_auth` (which arms the refresh loop) both
     read the same env var. When they disagreed, `AZURE_POSTGRESQL_AUTH=1` minted a token
     here and left the refresh loop convinced token auth was off."""
-    from litellm.proxy.db.token_auth import resolve_database_token_auth
+    from token_iq.gateway.proxy.db.token_auth import resolve_database_token_auth
 
     monkeypatch.setenv("AZURE_POSTGRESQL_AUTH", "1")
 

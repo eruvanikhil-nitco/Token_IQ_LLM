@@ -4,15 +4,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.SlackAlerting.batching_handler import send_to_webhook
-from litellm.integrations.SlackAlerting.ms_teams import (
+from token_iq.gateway.integrations.SlackAlerting.batching_handler import send_to_webhook
+from token_iq.gateway.integrations.SlackAlerting.ms_teams import (
     MS_TEAMS_ALERTING_DESTINATION,
     MS_TEAMS_WEBHOOK_URL_ENV,
     build_ms_teams_payload,
     get_ms_teams_webhook_url,
 )
-from litellm.integrations.SlackAlerting.slack_alerting import SlackAlerting
-from litellm.proxy._types import AlertType
+from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
+from token_iq.gateway.proxy._types import AlertType
 
 
 def test_build_ms_teams_payload_wraps_text_in_adaptive_card():

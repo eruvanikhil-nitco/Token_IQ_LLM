@@ -4,8 +4,8 @@ import sys
 import pytest
 from prometheus_client import REGISTRY
 
-import litellm
-from litellm.integrations.prometheus import PrometheusLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
 
 def _clear_prometheus_registry() -> None:

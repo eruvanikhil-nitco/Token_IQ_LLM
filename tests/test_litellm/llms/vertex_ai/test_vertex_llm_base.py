@@ -4,13 +4,13 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from litellm.constants import DEFAULT_MAX_RECURSE_DEPTH
+from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 
 
-import litellm
-from litellm.llms.vertex_ai.vertex_ai_aws_wif import VertexAIAwsWifAuth
-from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
-from litellm.types.llms.vertex_ai import VertexPartnerProvider
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.vertex_ai_aws_wif import VertexAIAwsWifAuth
+from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
+from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
 
 
 def run_sync(coro):
@@ -1485,7 +1485,7 @@ class TestVertexBase:
         # The imports happen inside the function via `from X import Y`, so
         # the mock must replace the class in its defining module.
         with (
-            patch("litellm.llms.bedrock.base_aws_llm.BaseAWSLLM") as MockBaseAWSLLM,
+            patch("token_iq.gateway.llms.bedrock.base_aws_llm.BaseAWSLLM") as MockBaseAWSLLM,
             patch(
                 "google.auth.aws.Credentials",
             ) as MockAwsCredentials,
@@ -1566,7 +1566,7 @@ class TestVertexBase:
 
         with (
             patch(
-                "litellm.llms.vertex_ai.vertex_ai_aws_wif.VertexAIAwsWifAuth.credentials_from_explicit_aws",
+                "token_iq.gateway.llms.vertex_ai.vertex_ai_aws_wif.VertexAIAwsWifAuth.credentials_from_explicit_aws",
                 return_value=mock_creds,
             ) as mock_explicit_auth,
             patch.object(
@@ -1629,7 +1629,7 @@ class TestVertexBase:
 
         with (
             patch(
-                "litellm.llms.vertex_ai.vertex_ai_aws_wif.VertexAIAwsWifAuth.credentials_from_explicit_aws",
+                "token_iq.gateway.llms.vertex_ai.vertex_ai_aws_wif.VertexAIAwsWifAuth.credentials_from_explicit_aws",
             ) as mock_explicit_auth,
             patch.object(
                 vertex_base,
@@ -1664,7 +1664,7 @@ class TestVertexBase:
 
     def test_aws_credentials_supplier(self):
         """Test AwsCredentialsSupplier: wraps credentials provider, handles token=None."""
-        from litellm.llms.vertex_ai.aws_credentials_supplier import (
+        from token_iq.gateway.llms.vertex_ai.aws_credentials_supplier import (
             AwsCredentialsSupplier,
         )
 
@@ -1706,7 +1706,7 @@ class TestVertexBase:
         """Test that AwsCredentialsSupplier returns AwsSecurityCredentials dataclass."""
         from google.auth.aws import AwsSecurityCredentials
 
-        from litellm.llms.vertex_ai.aws_credentials_supplier import (
+        from token_iq.gateway.llms.vertex_ai.aws_credentials_supplier import (
             AwsCredentialsSupplier,
         )
 

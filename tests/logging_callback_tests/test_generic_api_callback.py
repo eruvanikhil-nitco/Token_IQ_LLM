@@ -4,7 +4,7 @@ import os
 
 
 import asyncio
-import litellm
+from token_iq import gateway as litellm
 import gzip
 import httpx
 import json
@@ -14,11 +14,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.gcs_pubsub.pub_sub import *
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.gcs_pubsub.pub_sub import *
 from datetime import datetime, timedelta
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingModelInformation,
     StandardLoggingMetadata,
@@ -26,7 +26,7 @@ from litellm.types.utils import (
 )
 
 verbose_logger.setLevel(logging.DEBUG)
-from litellm.integrations.generic_api.generic_api_callback import GenericAPILogger
+from token_iq.gateway.integrations.generic_api.generic_api_callback import GenericAPILogger
 
 
 @pytest.mark.asyncio

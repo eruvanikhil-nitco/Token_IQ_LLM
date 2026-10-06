@@ -12,14 +12,14 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-import litellm
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import (
     AddTeamCallback,
     LitellmTableNames,
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.team_callback_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import (
     add_team_callbacks,
     delete_team_callback,
     disable_team_logging,
@@ -78,7 +78,7 @@ def stub_team_cache_refresh():
     test_disable_team_logging_refreshes_cached_team.
     """
     with patch(
-        "litellm.proxy.management_endpoints.team_callback_endpoints._refresh_cached_team",
+        "token_iq.gateway.proxy.management_endpoints.team_callback_endpoints._refresh_cached_team",
         new_callable=AsyncMock,
     ) as refresh:
         yield refresh
@@ -96,9 +96,9 @@ def unauthorized_caller():
 @pytest.fixture
 def patched_prisma():
     with (
-        patch("litellm.proxy.proxy_server.prisma_client") as mock_client,
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_client,
         patch(
-            "litellm.proxy.management_endpoints.team_endpoints._is_user_org_admin_for_team",
+            "token_iq.gateway.proxy.management_endpoints.team_endpoints._is_user_org_admin_for_team",
             new_callable=AsyncMock,
             return_value=False,
         ),
@@ -226,10 +226,10 @@ async def test_disable_team_logging_emits_audit_log_when_enabled(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -282,9 +282,9 @@ async def test_disable_team_logging_no_audit_when_disabled(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -309,10 +309,10 @@ async def test_add_team_callbacks_emits_audit_log_when_enabled(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -382,10 +382,10 @@ async def test_disable_team_logging_redacts_existing_callback_secrets(monkeypatc
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -419,9 +419,9 @@ async def test_add_team_callbacks_no_audit_when_disabled(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -446,15 +446,15 @@ async def test_add_team_callbacks_no_audit_when_disabled(monkeypatch):
 @pytest.mark.asyncio
 async def test_add_team_callbacks_writes_encrypted_callback_vars(monkeypatch):
     """add_team_callbacks must encrypt callback_vars values before the DB write."""
-    from litellm.proxy.common_utils.callback_utils import decrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import decrypt_callback_vars
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={"logging": []}))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await add_team_callbacks(
             data=AddTeamCallback(
@@ -496,9 +496,9 @@ async def test_get_team_callbacks_returns_callbacks_registered_via_post(monkeypa
     mock_prisma = _patch_prisma(row)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await add_team_callbacks(
             data=AddTeamCallback(
@@ -561,7 +561,7 @@ async def test_get_team_callbacks_prefers_logging_over_deprecated_callback_setti
     }
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
@@ -594,7 +594,7 @@ async def test_get_team_callbacks_reports_nothing_when_logging_slot_is_empty():
     }
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
@@ -614,8 +614,8 @@ async def test_get_team_callbacks_decrypts_vars_stored_under_non_sensitive_keys(
     encrypted at rest under a key that later stops being masked on read. Without
     the decrypt step that value comes back as an unusable litellm_enc:: blob.
     """
-    from litellm.proxy.common_utils.callback_utils import _CALLBACK_VAR_ENCRYPTED_PREFIX, is_sensitive_callback_key
-    from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
+    from token_iq.gateway.proxy.common_utils.callback_utils import _CALLBACK_VAR_ENCRYPTED_PREFIX, is_sensitive_callback_key
+    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     assert not is_sensitive_callback_key("langsmith_project"), "test needs a key that is not masked on read"
@@ -634,8 +634,8 @@ async def test_get_team_callbacks_decrypts_vars_stored_under_non_sensitive_keys(
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
@@ -655,8 +655,8 @@ async def test_get_team_callbacks_masks_values_that_fail_to_decrypt(monkeypatch)
     classified as sensitive it would otherwise reach the caller as an opaque
     blob that is indistinguishable from a real value.
     """
-    from litellm.proxy.common_utils.callback_utils import _CALLBACK_VAR_ENCRYPTED_PREFIX
-    from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
+    from token_iq.gateway.proxy.common_utils.callback_utils import _CALLBACK_VAR_ENCRYPTED_PREFIX
+    from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     stale = _CALLBACK_VAR_ENCRYPTED_PREFIX + encrypt_value_helper("tenant-project")
@@ -674,8 +674,8 @@ async def test_get_team_callbacks_masks_values_that_fail_to_decrypt(monkeypatch)
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
@@ -705,7 +705,7 @@ async def test_get_team_callbacks_falls_back_to_deprecated_callback_settings():
     }
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
@@ -726,7 +726,7 @@ async def test_get_team_callbacks_reports_empty_for_team_without_callbacks():
     """A team with no callback config still returns the documented empty shape."""
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={}))
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         response = await get_team_callbacks(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
@@ -752,7 +752,7 @@ async def test_disable_team_logging_stops_callbacks_registered_via_api():
     the endpoint and then asks the real request-time resolver what the written
     row would do.
     """
-    from litellm.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
 
     metadata = {
         "logging": [
@@ -766,8 +766,8 @@ async def test_disable_team_logging_stops_callbacks_registered_via_api():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await disable_team_logging(
             http_request=MagicMock(spec=Request),
@@ -808,8 +808,8 @@ async def test_disable_team_logging_refreshes_cached_team(stub_team_cache_refres
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await disable_team_logging(
             http_request=MagicMock(spec=Request),
@@ -834,8 +834,8 @@ async def test_add_team_callbacks_refreshes_cached_team(stub_team_cache_refresh)
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={"logging": []}))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await add_team_callbacks(
             data=AddTeamCallback(
@@ -859,7 +859,7 @@ async def test_add_team_callbacks_refreshes_cached_team(stub_team_cache_refresh)
 @pytest.mark.asyncio
 async def test_disable_team_logging_clears_both_metadata_shapes():
     """A team carrying both shapes ends up with neither active."""
-    from litellm.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
 
     metadata = {
         "logging": [
@@ -878,8 +878,8 @@ async def test_disable_team_logging_clears_both_metadata_shapes():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await disable_team_logging(
             http_request=MagicMock(spec=Request),
@@ -917,8 +917,8 @@ async def test_disable_team_logging_leaves_team_re_enablable():
     mock_prisma = _patch_prisma(row)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await disable_team_logging(
             http_request=MagicMock(spec=Request),
@@ -993,8 +993,8 @@ async def test_delete_team_callback_removes_only_the_named_callback():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1023,13 +1023,13 @@ async def test_delete_team_callback_leaves_the_other_callback_firing():
     Asks the real request-time resolver what the written row would do, the same
     way the disable_logging regression test does.
     """
-    from litellm.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
 
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1080,8 +1080,8 @@ async def test_delete_team_callback_removes_every_type_under_that_name():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1103,8 +1103,8 @@ async def test_delete_team_callback_404s_for_unregistered_callback():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         with pytest.raises(HTTPException) as exc:
             await delete_team_callback(
@@ -1133,8 +1133,8 @@ async def test_delete_team_callback_404s_when_team_has_no_logging_slot():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         with pytest.raises(HTTPException) as exc:
             await delete_team_callback(
@@ -1155,7 +1155,7 @@ async def test_delete_team_callback_404s_for_unknown_team():
     mock_prisma.get_data = AsyncMock(return_value=None)
     mock_prisma.db.litellm_teamtable.update = AsyncMock()
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         with pytest.raises(HTTPException) as exc:
             await delete_team_callback(
                 http_request=MagicMock(spec=Request),
@@ -1191,8 +1191,8 @@ async def test_add_team_callbacks_rejects_team_deleted_before_write():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-        patch("litellm.proxy.proxy_server.master_key", None),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
     ):
         with pytest.raises(HTTPException) as exc:
             await add_team_callbacks(
@@ -1215,7 +1215,7 @@ async def test_delete_team_callback_keeps_last_removal_from_reviving_legacy_shap
     dropping the key would fall through to a legacy callback_settings block and
     silently re-enable a destination the caller just removed.
     """
-    from litellm.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
+    from token_iq.gateway.proxy.litellm_pre_call_utils import _get_dynamic_logging_metadata
 
     metadata = {
         "logging": [
@@ -1234,8 +1234,8 @@ async def test_delete_team_callback_keeps_last_removal_from_reviving_legacy_shap
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1267,8 +1267,8 @@ async def test_delete_team_callback_refreshes_cached_team(stub_team_cache_refres
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1300,11 +1300,11 @@ async def test_delete_team_callback_emits_redacted_audit_log(monkeypatch):
         audit_calls.append(request_data)
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new=capture,
         ),
     ):
@@ -1340,14 +1340,14 @@ async def test_delete_team_callback_emits_redacted_audit_log(monkeypatch):
 @pytest.mark.asyncio
 async def test_delete_team_callback_encrypts_surviving_callback_vars(monkeypatch):
     """The write must not downgrade the survivors' stored credentials to plaintext."""
-    from litellm.proxy.common_utils.callback_utils import decrypt_callback_vars
+    from token_iq.gateway.proxy.common_utils.callback_utils import decrypt_callback_vars
 
     monkeypatch.setenv("LITELLM_SALT_KEY", "test-salt-32-bytes-aaaaaaaaaaaaaa")
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1383,8 +1383,8 @@ async def test_delete_team_callback_keeps_entries_it_cannot_parse():
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=metadata))
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         await delete_team_callback(
             http_request=MagicMock(spec=Request),
@@ -1409,8 +1409,8 @@ async def test_delete_team_callback_route_accepts_team_ids_containing_slashes():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.management_endpoints.team_callback_endpoints import router
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import router
 
     team_id = "tenant/eu-west"
     metadata = {
@@ -1434,8 +1434,8 @@ async def test_delete_team_callback_route_accepts_team_ids_containing_slashes():
     app.dependency_overrides[user_api_key_auth] = _admin_auth
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.master_key", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.proxy.proxy_server.master_key", None),
     ):
         response = TestClient(app).delete(f"/team/{team_id}/callback/langfuse")
 

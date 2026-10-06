@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.container_endpoints import ownership
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.containers.main import ContainerListResponse, ContainerObject
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.container_endpoints import ownership
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.containers.main import ContainerListResponse, ContainerObject
 
 
 @pytest.fixture(autouse=True)
@@ -352,8 +352,8 @@ async def test_should_clear_dict_has_more_when_filtered_container_list_is_empty(
 async def test_should_validate_owner_and_forward_decoded_id_for_multipart_upload(
     monkeypatch,
 ):
-    from litellm.proxy.common_utils import http_parsing_utils
-    from litellm.proxy.container_endpoints import handler_factory
+    from token_iq.gateway.proxy.common_utils import http_parsing_utils
+    from token_iq.gateway.proxy.container_endpoints import handler_factory
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -368,7 +368,7 @@ async def test_should_validate_owner_and_forward_decoded_id_for_multipart_upload
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     captured = {}
 
@@ -427,7 +427,7 @@ async def test_should_validate_owner_and_forward_decoded_id_for_multipart_upload
 
 @pytest.mark.asyncio
 async def test_should_forward_decoded_container_id_for_proxy_retrieve(monkeypatch):
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -442,7 +442,7 @@ async def test_should_forward_decoded_container_id_for_proxy_retrieve(monkeypatc
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     captured = {}
 
@@ -482,7 +482,7 @@ async def test_should_forward_decoded_container_id_for_proxy_retrieve(monkeypatc
 
 @pytest.mark.asyncio
 async def test_should_record_container_owner_inside_create_endpoint(monkeypatch):
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -497,7 +497,7 @@ async def test_should_record_container_owner_inside_create_endpoint(monkeypatch)
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     response = _container("cntr_provider")
 
@@ -538,7 +538,7 @@ async def test_should_record_container_owner_inside_create_endpoint(monkeypatch)
 async def test_should_not_route_owner_record_errors_through_llm_error_handler(
     monkeypatch,
 ):
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -553,7 +553,7 @@ async def test_should_not_route_owner_record_errors_through_llm_error_handler(
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     class FakeProcessor:
         def __init__(self, data):
@@ -596,7 +596,7 @@ async def test_should_return_response_when_owner_recording_raises_unexpected(
     response (not a 500) so they aren't billed for an unusable resource — an
     operator reconciles via logs.
     """
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -611,7 +611,7 @@ async def test_should_return_response_when_owner_recording_raises_unexpected(
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     created = _container("cntr_provider")
 
@@ -648,7 +648,7 @@ async def test_should_return_response_when_owner_recording_raises_unexpected(
 
 @pytest.mark.asyncio
 async def test_should_filter_container_list_inside_list_endpoint(monkeypatch):
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -663,7 +663,7 @@ async def test_should_filter_container_list_inside_list_endpoint(monkeypatch):
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     response = ContainerListResponse(
         object="list",
@@ -705,7 +705,7 @@ async def test_should_filter_container_list_inside_list_endpoint(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_should_forward_decoded_container_id_for_proxy_delete(monkeypatch):
-    from litellm.proxy.container_endpoints import endpoints
+    from token_iq.gateway.proxy.container_endpoints import endpoints
 
     proxy_server_stub = SimpleNamespace(
         general_settings={},
@@ -720,7 +720,7 @@ async def test_should_forward_decoded_container_id_for_proxy_delete(monkeypatch)
         user_temperature=None,
         version="test",
     )
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_stub)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_stub)
 
     captured = {}
 
@@ -1022,7 +1022,7 @@ async def test_should_record_container_ownership_after_streaming_responses_finis
     created during the stream stay unregistered and follow-up file API
     calls 403.
     """
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
     encoded_container_id = (
         "cntr_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOmF6dXJlO21vZGVsX2lkOmR"
@@ -1082,7 +1082,7 @@ async def test_streaming_ownership_wrap_no_op_when_stream_did_not_complete(
     """If the stream errored before ``response.completed``,
     ``completed_response`` is ``None`` — we must skip the ownership
     write rather than crash the response generator."""
-    from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+    from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
     stream_response = SimpleNamespace(completed_response=None)
 

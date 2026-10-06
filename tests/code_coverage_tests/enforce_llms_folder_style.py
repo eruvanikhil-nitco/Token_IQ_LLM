@@ -2,7 +2,7 @@ import ast
 import os
 
 
-import litellm
+from token_iq import gateway as litellm
 
 SEARCH_PROVIDERS = [
     "tavily",
@@ -36,7 +36,7 @@ ALLOWED_FILES_IN_LLMS_FOLDER = [
 
 def get_unique_names_from_llms_dir(base_dir: str):
     """
-    Returns a set of unique file and folder names from the root level of litellm/llms directory,
+    Returns a set of unique file and folder names from the root level of token_iq/gateway/llms directory,
     excluding file extensions and __init__.py
     """
     unique_names = set()

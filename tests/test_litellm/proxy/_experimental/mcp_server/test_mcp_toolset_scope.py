@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
     LitellmUserRoles,
     UserAPIKeyAuth,
@@ -35,7 +35,7 @@ class TestApplyToolsetScope:
 
     @pytest.mark.asyncio
     async def test_restricts_to_toolset_servers_and_tools(self):
-        from litellm.proxy._experimental.mcp_server.server import _apply_toolset_scope
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _apply_toolset_scope
 
         toolset_perms = {
             "server-a": ["tool1", "tool2"],
@@ -61,7 +61,7 @@ class TestApplyToolsetScope:
     @pytest.mark.asyncio
     async def test_admin_creates_object_permission_when_none(self):
         """Admin key with object_permission=None can access any toolset."""
-        from litellm.proxy._experimental.mcp_server.server import _apply_toolset_scope
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _apply_toolset_scope
 
         toolset_perms = {"server-a": ["tool1"]}
         with patch(
@@ -86,7 +86,7 @@ class TestApplyToolsetScope:
         """Non-admin key with object_permission=None is denied (no grants configured)."""
         from starlette.exceptions import HTTPException
 
-        from litellm.proxy._experimental.mcp_server.server import _apply_toolset_scope
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _apply_toolset_scope
 
         auth = UserAPIKeyAuth(api_key="sk-test", object_permission=None)
         with pytest.raises(HTTPException) as exc_info:
@@ -101,7 +101,7 @@ class TestApplyToolsetScope:
         toolset path, which replaces mcp_servers and would drop the sentinel."""
         from starlette.exceptions import HTTPException
 
-        from litellm.proxy._experimental.mcp_server.server import _apply_toolset_scope
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _apply_toolset_scope
 
         op = LiteLLM_ObjectPermissionTable(
             object_permission_id="test",
@@ -131,7 +131,7 @@ class TestFetchMCPToolsetsAccess:
     @pytest.mark.asyncio
     async def test_non_admin_empty_grants_returns_empty(self):
         """Non-admin key with mcp_toolsets=[] must not see any toolsets."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             fetch_mcp_toolsets,
         )
 
@@ -140,11 +140,11 @@ class TestFetchMCPToolsetsAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
                 new=AsyncMock(return_value=[]),
             ) as mock_list,
         ):
@@ -156,7 +156,7 @@ class TestFetchMCPToolsetsAccess:
     @pytest.mark.asyncio
     async def test_admin_unrestricted_returns_all(self):
         """Admin key with mcp_toolsets absent (None) gets all toolsets."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             fetch_mcp_toolsets,
         )
 
@@ -170,11 +170,11 @@ class TestFetchMCPToolsetsAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
                 new=AsyncMock(return_value=fake_toolsets),
             ) as mock_list,
         ):
@@ -186,7 +186,7 @@ class TestFetchMCPToolsetsAccess:
     @pytest.mark.asyncio
     async def test_non_admin_none_grants_returns_empty(self):
         """Non-admin key with no object_permission (field absent) gets no toolsets."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             fetch_mcp_toolsets,
         )
 
@@ -195,11 +195,11 @@ class TestFetchMCPToolsetsAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
                 new=AsyncMock(return_value=[]),
             ) as mock_list,
         ):
@@ -211,7 +211,7 @@ class TestFetchMCPToolsetsAccess:
     @pytest.mark.asyncio
     async def test_populated_grants_filters_toolsets(self):
         """Key with explicit toolset IDs fetches only those IDs from the DB."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             fetch_mcp_toolsets,
         )
 
@@ -221,11 +221,11 @@ class TestFetchMCPToolsetsAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.list_mcp_toolsets",
                 new=AsyncMock(return_value=fake_toolsets),
             ) as mock_list,
         ):
@@ -272,10 +272,10 @@ class TestToolsetPrefixResolution:
     ):
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             filter_tools_by_key_team_permissions,
         )
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
         )
@@ -336,7 +336,7 @@ class TestToolsetPrefixResolution:
     async def test_resolve_keeps_a_name_that_looks_like_its_own_server_prefix(
         self, alias, server_name, server_id
     ):
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
         )
@@ -354,7 +354,7 @@ class TestToolsetPrefixResolution:
     async def _resolve(server, server_id, stored):
         from types import SimpleNamespace
 
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             global_mcp_server_manager,
         )
 
@@ -369,10 +369,10 @@ class TestToolsetPrefixResolution:
                 "global_mcp_server_manager.get_mcp_server_by_id",
                 return_value=server,
             ),
-            patch("litellm.proxy.proxy_server.prisma_client", MagicMock()),
-            patch("litellm.proxy.proxy_server.user_api_key_cache", cache),
+            patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
+            patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache),
             patch(
-                "litellm.proxy._experimental.mcp_server.toolset_db.list_mcp_toolsets",
+                "token_iq.gateway.proxy._experimental.mcp_server.toolset_db.list_mcp_toolsets",
                 new=AsyncMock(return_value=[toolset]),
             ),
         ):
@@ -391,10 +391,10 @@ class TestToolsetPrefixResolution:
         """
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             filter_tools_by_key_team_permissions,
         )
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
             strip_known_server_prefix,
@@ -455,10 +455,10 @@ class TestToolsetPrefixResolution:
         """
         from mcp.types import Tool as MCPTool
 
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             filter_tools_by_key_team_permissions,
         )
-        from litellm.proxy._experimental.mcp_server.utils import (
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import (
             add_server_prefix_to_name,
             get_server_prefix,
         )
@@ -500,7 +500,7 @@ class TestToolsetPrefixResolution:
     async def test_bare_stored_name_without_collision_grants_only_that_tool(self):
         """The ordinary row must stay exact; accepting both readings of an
         ambiguous row must not widen an unambiguous one."""
-        from litellm.proxy._experimental.mcp_server.utils import get_server_prefix
+        from token_iq.gateway.proxy._experimental.mcp_server.utils import get_server_prefix
 
         server = self._server("deepwiki", None, "srv-clean")
         assert get_server_prefix(server) == "deepwiki"
@@ -514,12 +514,12 @@ class TestMCPActiveToolsetContextVar:
     """Tests for _mcp_active_toolset_id ContextVar — clients cannot inject it."""
 
     def test_contextvar_default_is_none(self):
-        from litellm.proxy._experimental.mcp_server.server import _mcp_active_toolset_id
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _mcp_active_toolset_id
 
         assert _mcp_active_toolset_id.get() is None
 
     def test_contextvar_set_and_reset(self):
-        from litellm.proxy._experimental.mcp_server.server import _mcp_active_toolset_id
+        from token_iq.gateway.proxy._experimental.mcp_server.server import _mcp_active_toolset_id
 
         token = _mcp_active_toolset_id.set("toolset-abc")
         assert _mcp_active_toolset_id.get() == "toolset-abc"
@@ -529,7 +529,7 @@ class TestMCPActiveToolsetContextVar:
     @pytest.mark.asyncio
     async def test_client_header_is_stripped_in_scope(self):
         """handle_streamable_http_mcp strips x-mcp-toolset-id from scope before passing to session manager."""
-        from litellm.proxy._experimental.mcp_server.server import (
+        from token_iq.gateway.proxy._experimental.mcp_server.server import (
             handle_streamable_http_mcp,
         )
 
@@ -554,35 +554,35 @@ class TestMCPActiveToolsetContextVar:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.extract_mcp_auth_context",
                 new=AsyncMock(
                     return_value=(mock_auth, None, [], {}, {}, scope["headers"])
                 ),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.IPAddressUtils",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.IPAddressUtils",
                 MagicMock(get_mcp_client_ip=MagicMock(return_value="127.0.0.1")),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.global_mcp_server_manager",
                 MagicMock(get_mcp_server_by_name=MagicMock(return_value=None)),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.MCPDebug",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.MCPDebug",
                 MagicMock(
                     maybe_build_debug_headers=MagicMock(return_value=None),
                 ),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server.set_auth_context",
+                "token_iq.gateway.proxy._experimental.mcp_server.server.set_auth_context",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._SESSION_MANAGERS_INITIALIZED",
                 True,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
+                "token_iq.gateway.proxy._experimental.mcp_server.server._handle_stale_mcp_session",
                 new=AsyncMock(return_value=True),
             ),
         ):

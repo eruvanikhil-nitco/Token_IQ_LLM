@@ -9,8 +9,8 @@ import os
 from abc import ABC, abstractmethod
 
 import pytest
-import litellm
-import litellm.interactions as interactions
+from token_iq import gateway as litellm
+import token_iq.gateway.interactions as interactions
 
 
 class BaseInteractionsTest(ABC):

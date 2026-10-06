@@ -8,21 +8,21 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.caching.dual_cache import DualCache
+from token_iq.gateway.caching.dual_cache import DualCache
 
 
 from fastapi import HTTPException
 
-from litellm.exceptions import GuardrailRaisedException
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.tool_permission import (
+from token_iq.gateway.exceptions import GuardrailRaisedException
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.tool_permission import (
     ToolPermissionGuardrail,
 )
-from litellm.types.guardrails import GuardrailEventHooks, LitellmParams
-from litellm.types.proxy.guardrails.guardrail_hooks.tool_permission import (
+from token_iq.gateway.types.guardrails import GuardrailEventHooks, LitellmParams
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.tool_permission import (
     PermissionError,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Choices,
     ModelResponse,
@@ -700,7 +700,7 @@ class TestToolPermissionGuardrail:
             choices=[Choices(message={"content": "Hello, world!"})]
         )
 
-        with patch("litellm.main.stream_chunk_builder", return_value=assembled):
+        with patch("token_iq.gateway.main.stream_chunk_builder", return_value=assembled):
             chunks = []
             async for chunk in self.guardrail.async_post_call_streaming_iterator_hook(
                 user_api_key_dict=UserAPIKeyAuth(),

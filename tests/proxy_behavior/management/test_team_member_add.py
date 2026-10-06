@@ -1,4 +1,4 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
 from .actors import Actor

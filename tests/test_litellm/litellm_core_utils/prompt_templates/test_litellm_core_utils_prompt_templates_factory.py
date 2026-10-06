@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     BAD_MESSAGE_ERROR_STR,
     BEDROCK_DOCUMENT_PLACEHOLDER_TEXT,
     BedrockConverseMessagesProcessor,
@@ -24,7 +24,7 @@ from litellm.litellm_core_utils.prompt_templates.factory import (
     ollama_pt,
     sanitize_messages_for_tool_calling,
 )
-from litellm.types.llms.openai import ChatCompletionToolMessage
+from token_iq.gateway.types.llms.openai import ChatCompletionToolMessage
 
 
 def _get_gemini_function_response_inline_data_parts(result):
@@ -263,10 +263,10 @@ def test_convert_to_azure_openai_messages():
 
     from typing import List
 
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_azure_openai_messages,
     )
-    from litellm.types.llms.openai import AllMessageValues
+    from token_iq.gateway.types.llms.openai import AllMessageValues
 
     input: List[AllMessageValues] = [
         {
@@ -559,7 +559,7 @@ def test_vertex_ai_transform_empty_function_call_arguments():
     """
     Test that the _transform_parts method handles empty function call arguments correctly
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         VertexFunctionCall,
         _gemini_tool_call_invoke_helper,
     )
@@ -580,7 +580,7 @@ async def test_bedrock_process_image_async_factory():
     """
     Test that the _process_image_async_factory method handles image input correctly
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         BedrockImageProcessor,
     )
 
@@ -594,7 +594,7 @@ async def test_bedrock_process_image_async_factory():
 
 def test_unpack_defs_resolves_nested_ref_inside_anyof_items():
     """Ensure unpack_defs correctly resolves $ref inside items within anyOf (Issue #11372)."""
-    from litellm.litellm_core_utils.prompt_templates.common_utils import unpack_defs
+    from token_iq.gateway.core_utils.prompt_templates.common_utils import unpack_defs
 
     # Define a minimal schema reproducing the bug scenario
     schema = {
@@ -643,10 +643,10 @@ def test_convert_gemini_messages():
     """
     Handle 'content' not being present in the message - https://github.com/BerriAI/litellm/issues/13169
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_result,
     )
-    from litellm.types.llms.openai import ChatCompletionToolMessage
+    from token_iq.gateway.types.llms.openai import ChatCompletionToolMessage
 
     message = ChatCompletionToolMessage(
         role="tool",
@@ -676,10 +676,10 @@ def test_convert_gemini_tool_call_result_with_image_url():
     Test that image_url content type in tool results is handled correctly for Gemini.
     Fixes: https://github.com/BerriAI/litellm/issues/18187
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_gemini_tool_call_result,
     )
-    from litellm.types.llms.openai import ChatCompletionToolMessage
+    from token_iq.gateway.types.llms.openai import ChatCompletionToolMessage
 
     # Test with string image_url format
     message_str_format = ChatCompletionToolMessage(
@@ -909,7 +909,7 @@ def test_bedrock_tools_unpack_defs():
     """
     Test that the unpack_defs method handles nested $ref inside anyOf items correctly
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     circularRefSchema = {
         "type": "object",
@@ -1296,7 +1296,7 @@ def test_bedrock_tools_pt_empty_description():
     When a tool has an empty string description, Bedrock doesn't accept it,
     so the function should fall back to using the function name as the description.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     tools = [
         {
@@ -1571,7 +1571,7 @@ def test_bedrock_nova_web_search_options_mapping():
     - Anthropic maps web_search_options to {"type": "web_search_20250305", ...}
     - Nova should map web_search_options to {"systemTool": {"name": "nova_grounding"}}
     """
-    from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+    from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
     config = AmazonConverseConfig()
 
@@ -1603,7 +1603,7 @@ def test_bedrock_tools_pt_does_not_handle_system_tool():
     not via the tools parameter directly.
     """
 
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     # Regular function tools should still work
     tools = [
@@ -1636,7 +1636,7 @@ def test_bedrock_tools_pt_drops_unmappable_responses_builtin_tools():
     emitted as junk ``litellm_unnamed_tool_N`` toolSpecs the model can hallucinate calls to.
     Mappable ``function`` and Anthropic ``input_schema`` tools must survive untouched.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     tools = [
         {
@@ -1666,7 +1666,7 @@ def test_bedrock_tools_pt_keeps_anthropic_input_schema_tools():
     The drop guard for unmappable tools must not regress Anthropic Messages format tools,
     which carry an ``input_schema`` instead of an OpenAI ``function`` key.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     tools = [
         {
@@ -1698,7 +1698,7 @@ def test_convert_to_anthropic_tool_result_image_with_cache_control():
     This tests the functionality added in the uncommitted changes where
     add_cache_control_to_content is called for image_url content types.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_anthropic_tool_result,
     )
 
@@ -1743,7 +1743,7 @@ def test_convert_to_anthropic_tool_result_image_without_cache_control():
     """
     Test that images without cache_control in tool results work correctly.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_anthropic_tool_result,
     )
 
@@ -1777,7 +1777,7 @@ def test_convert_to_anthropic_tool_result_mixed_content_with_cache_control():
     """
     Test tool results with mixed content types (text and image) where only some have cache_control.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_anthropic_tool_result,
     )
 
@@ -1833,7 +1833,7 @@ def test_convert_to_anthropic_tool_result_image_url_as_http():
     """
     Test that HTTP/HTTPS URLs with cache_control are handled correctly.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         convert_to_anthropic_tool_result,
     )
 
@@ -1868,7 +1868,7 @@ def test_anthropic_messages_pt_server_tool_use_passthrough():
 
     Fixes: https://github.com/BerriAI/litellm/issues/XXXXX
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         anthropic_messages_pt,
     )
 
@@ -1956,7 +1956,7 @@ def test_bedrock_tools_unpack_defs_no_oom_with_nested_refs():
     import sys
     import copy
 
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     # Schema with multiple nested $defs that reference each other
     # This pattern would cause OOM with the old "flatten defs" loop
@@ -2799,7 +2799,7 @@ def test_anthropic_messages_pt_file_block_preserves_cache_control():
     when translated to Anthropic document params.
     Regression test for https://github.com/BerriAI/litellm/issues/23873
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         anthropic_messages_pt,
     )
 
@@ -2863,7 +2863,7 @@ def test_add_cache_point_tool_block_passes_ttl_for_claude_4_5(monkeypatch):
     this branch's pricing data rather than the network-fetched `main` copy,
     which lacks the fix until merge.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         add_cache_point_tool_block,
     )
 
@@ -2936,7 +2936,7 @@ def test_add_cache_point_tool_block_stands_down_for_model_without_prompt_caching
     """A tool carrying cache_control must not become a cachePoint for a Bedrock model
     whose cost-map entry lacks prompt caching support, since Bedrock rejects the whole
     request. An unmapped id keeps emitting so ARN deployments do not lose caching."""
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         add_cache_point_tool_block,
     )
 
@@ -2964,7 +2964,7 @@ def test_bedrock_tools_pt_passes_ttl_for_claude_4_5(monkeypatch):
     this branch's pricing data rather than the network-fetched `main` copy,
     which lacks the fix until merge.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import _bedrock_tools_pt
+    from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
@@ -3317,7 +3317,7 @@ def _n_choices_response(*names_per_choice):
 
 
 def test_get_tool_calls_from_response_defaults_to_primary_choice_only():
-    from litellm.litellm_core_utils.prompt_templates.factory import get_tool_calls_from_response
+    from token_iq.gateway.core_utils.prompt_templates.factory import get_tool_calls_from_response
 
     response = _n_choices_response("tool_alpha", "tool_beta")
 
@@ -3325,7 +3325,7 @@ def test_get_tool_calls_from_response_defaults_to_primary_choice_only():
 
 
 def test_get_tool_calls_from_response_include_all_choices_reads_every_choice():
-    from litellm.litellm_core_utils.prompt_templates.factory import get_tool_calls_from_response
+    from token_iq.gateway.core_utils.prompt_templates.factory import get_tool_calls_from_response
 
     response = _n_choices_response("tool_alpha", "tool_beta")
 
@@ -3334,7 +3334,7 @@ def test_get_tool_calls_from_response_include_all_choices_reads_every_choice():
 
 
 def test_get_tool_calls_from_response_silences_redacted_arguments(caplog):
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         get_tool_calls_from_response,
     )
 
@@ -3364,7 +3364,7 @@ def test_get_tool_calls_from_response_silences_redacted_arguments(caplog):
 
 
 def test_get_tool_calls_from_response_warns_for_malformed_arguments(caplog):
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         get_tool_calls_from_response,
     )
 
@@ -3394,7 +3394,7 @@ def test_get_tool_calls_from_response_warns_for_malformed_arguments(caplog):
 
 
 def test_group_tool_exchanges_pairs_assistant_with_its_tool_rows():
-    from litellm.litellm_core_utils.prompt_templates.factory import group_tool_exchanges
+    from token_iq.gateway.core_utils.prompt_templates.factory import group_tool_exchanges
 
     messages = [
         {"role": "user", "content": "first turn"},
@@ -3417,7 +3417,7 @@ def test_group_tool_exchanges_pairs_assistant_with_its_tool_rows():
 def test_group_tool_exchanges_uses_ownership_not_adjacency():
     """A tool row answering some other call must not be swept into the exchange
     it happens to sit next to."""
-    from litellm.litellm_core_utils.prompt_templates.factory import group_tool_exchanges
+    from token_iq.gateway.core_utils.prompt_templates.factory import group_tool_exchanges
 
     messages = [
         {
@@ -3433,7 +3433,7 @@ def test_group_tool_exchanges_uses_ownership_not_adjacency():
 
 
 def test_group_tool_exchanges_assistant_without_tool_calls_stands_alone():
-    from litellm.litellm_core_utils.prompt_templates.factory import group_tool_exchanges
+    from token_iq.gateway.core_utils.prompt_templates.factory import group_tool_exchanges
 
     messages = [
         {"role": "assistant", "content": "no tools here"},
@@ -3453,7 +3453,7 @@ def test_group_tool_exchanges_is_linear_in_message_count():
     """
     import time
 
-    from litellm.litellm_core_utils.prompt_templates.factory import group_tool_exchanges
+    from token_iq.gateway.core_utils.prompt_templates.factory import group_tool_exchanges
 
     messages = [{"role": "user", "content": "x"} for _ in range(100_000)]
 
@@ -3603,7 +3603,7 @@ async def test_bedrock_converse_pdf_only_user_message_gets_text_block_async():
 
 
 def test_convert_to_anthropic_tool_result_keeps_tool_reference_blocks():
-    from litellm.litellm_core_utils.prompt_templates.factory import convert_to_anthropic_tool_result
+    from token_iq.gateway.core_utils.prompt_templates.factory import convert_to_anthropic_tool_result
 
     result = convert_to_anthropic_tool_result(
         {
@@ -3657,7 +3657,7 @@ def test_convert_to_anthropic_tool_invoke_degrades_unpaired_server_tool_use():
     must become a plain client tool_use so the client's tool_result can pair
     with it. A dangling server_tool_use makes Anthropic 400 the request with
     "unexpected `tool_use_id` found in `tool_result` blocks"."""
-    from litellm.litellm_core_utils.prompt_templates.factory import convert_to_anthropic_tool_invoke
+    from token_iq.gateway.core_utils.prompt_templates.factory import convert_to_anthropic_tool_invoke
 
     result = convert_to_anthropic_tool_invoke(
         tool_calls=[
@@ -3684,7 +3684,7 @@ def test_convert_to_anthropic_tool_invoke_degrades_unpaired_server_tool_use():
 def test_convert_to_anthropic_tool_invoke_keeps_paired_server_tool_use():
     """When the paired server tool result is available, the srvtoolu_ call is
     still reconstructed as server_tool_use followed by its result block."""
-    from litellm.litellm_core_utils.prompt_templates.factory import convert_to_anthropic_tool_invoke
+    from token_iq.gateway.core_utils.prompt_templates.factory import convert_to_anthropic_tool_invoke
 
     server_result = {
         "type": "web_search_tool_result",

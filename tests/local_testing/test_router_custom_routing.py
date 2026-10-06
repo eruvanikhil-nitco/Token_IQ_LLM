@@ -9,9 +9,9 @@ from typing import Dict, List, Optional, Union
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.router import CustomRoutingStrategyBase
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import CustomRoutingStrategyBase
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 

@@ -26,7 +26,7 @@ import pytest
 
 
 def test_azure_di_sync_rejects_cross_origin_polling():
-    from litellm.llms.azure_ai.ocr.document_intelligence.transformation import (
+    from token_iq.gateway.llms.azure_ai.ocr.document_intelligence.transformation import (
         AzureDocumentIntelligenceOCRConfig,
     )
 
@@ -60,7 +60,7 @@ def test_azure_di_sync_rejects_cross_origin_polling():
 
 
 def test_bfl_image_generation_sync_rejects_cross_origin_polling():
-    from litellm.llms.black_forest_labs.image_generation.handler import (
+    from token_iq.gateway.llms.black_forest_labs.image_generation.handler import (
         BlackForestLabsImageGeneration,
     )
 
@@ -89,7 +89,7 @@ def test_bfl_image_generation_sync_rejects_cross_origin_polling():
 
 @pytest.mark.asyncio
 async def test_bfl_image_generation_async_rejects_cross_origin_polling():
-    from litellm.llms.black_forest_labs.image_generation.handler import (
+    from token_iq.gateway.llms.black_forest_labs.image_generation.handler import (
         BlackForestLabsImageGeneration,
     )
 
@@ -117,7 +117,7 @@ async def test_bfl_image_generation_async_rejects_cross_origin_polling():
 
 
 def test_bfl_image_edit_sync_rejects_cross_origin_polling():
-    from litellm.llms.black_forest_labs.image_edit.handler import (
+    from token_iq.gateway.llms.black_forest_labs.image_edit.handler import (
         BlackForestLabsImageEdit,
     )
 
@@ -147,7 +147,7 @@ def test_bfl_image_edit_sync_rejects_cross_origin_polling():
 def test_bfl_image_generation_same_origin_polling_passes():
     """Sanity check: when the polling URL shares origin with the original
     request, the origin check passes and polling proceeds."""
-    from litellm.llms.black_forest_labs.image_generation.handler import (
+    from token_iq.gateway.llms.black_forest_labs.image_generation.handler import (
         BlackForestLabsImageGeneration,
     )
 

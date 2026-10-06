@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.management_endpoints.fallback_management_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.fallback_management_endpoints import (
     FallbackCreateRequest,
     create_fallback,
     delete_fallback,
@@ -150,19 +150,19 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.proxy_config",
+                "token_iq.gateway.proxy.proxy_server.proxy_config",
                 mock_proxy_config,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
         ):
@@ -190,7 +190,7 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 None,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -211,15 +211,15 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -240,15 +240,15 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -269,15 +269,15 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -298,11 +298,11 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 False,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -324,19 +324,19 @@ class TestCreateFallback:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.proxy_config",
+                "token_iq.gateway.proxy.proxy_server.proxy_config",
                 mock_proxy_config,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
         ):
@@ -370,7 +370,7 @@ class TestGetFallback:
     ):
         """Test successful fallback retrieval"""
         with patch(
-            "litellm.proxy.proxy_server.llm_router",
+            "token_iq.gateway.proxy.proxy_server.llm_router",
             mock_router_with_fallbacks,
         ):
             response = await get_fallback(
@@ -387,7 +387,7 @@ class TestGetFallback:
         """Test error when fallback is not found"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router_with_fallbacks,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -401,7 +401,7 @@ class TestGetFallback:
         """Test error when router is not initialized"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 None,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -461,19 +461,19 @@ class TestDeleteFallback:
         """Test successful fallback deletion"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router_with_fallbacks,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.proxy_config",
+                "token_iq.gateway.proxy.proxy_server.proxy_config",
                 mock_proxy_config,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
         ):
@@ -498,19 +498,19 @@ class TestDeleteFallback:
         """Test error when fallback to delete is not found"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router_with_fallbacks,
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.proxy_server.proxy_config",
+                "token_iq.gateway.proxy.proxy_server.proxy_config",
                 mock_proxy_config,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 True,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -524,7 +524,7 @@ class TestDeleteFallback:
         """Test error when router is not initialized"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 None,
             ),
             pytest.raises(HTTPException) as exc_info,
@@ -540,11 +540,11 @@ class TestDeleteFallback:
         """Test error when database storage is not enabled"""
         with (
             patch(
-                "litellm.proxy.proxy_server.llm_router",
+                "token_iq.gateway.proxy.proxy_server.llm_router",
                 mock_router_with_fallbacks,
             ),
             patch(
-                "litellm.proxy.proxy_server.store_model_in_db",
+                "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 False,
             ),
             pytest.raises(HTTPException) as exc_info,

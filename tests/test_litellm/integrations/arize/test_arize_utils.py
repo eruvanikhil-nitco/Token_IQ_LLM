@@ -7,15 +7,15 @@ import asyncio
 
 import pytest
 
-import litellm
-from litellm.integrations._types.open_inference import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations._types.open_inference import (
     MessageAttributes,
     SpanAttributes,
     ToolCallAttributes,
 )
-from litellm.integrations.arize.arize import ArizeLogger
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import Choices, StandardCallbackDynamicParams
+from token_iq.gateway.integrations.arize.arize import ArizeLogger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import Choices, StandardCallbackDynamicParams
 
 
 def test_arize_set_attributes():
@@ -25,7 +25,7 @@ def test_arize_set_attributes():
     """
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     span = MagicMock()  # Mocked tracing span to test attribute setting
 
@@ -187,7 +187,7 @@ def test_arize_set_attributes_responses_api():
     Verifies that multiple output types are correctly handled.
     """
     from unittest.mock import MagicMock
-    from litellm.types.llms.openai import (
+    from token_iq.gateway.types.llms.openai import (
         ResponsesAPIResponse,
         ResponseAPIUsage,
         OutputTokensDetails,
@@ -305,7 +305,7 @@ def test_set_usage_outputs_pydantic_completion_usage():
         CompletionUsage,
     )
 
-    from litellm.integrations.arize._utils import _set_usage_outputs
+    from token_iq.gateway.integrations.arize._utils import _set_usage_outputs
 
     span = MagicMock()
 
@@ -339,8 +339,8 @@ def test_set_usage_outputs_pydantic_response_api_usage():
     """
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _set_usage_outputs
-    from litellm.types.llms.openai import OutputTokensDetails
+    from token_iq.gateway.integrations.arize._utils import _set_usage_outputs
+    from token_iq.gateway.types.llms.openai import OutputTokensDetails
 
     # Build an object that mimics openai ResponsesAPI usage but lacks `.get`
     # (uses a plain class — not BaseLiteLLMOpenAIResponseObject)
@@ -425,7 +425,7 @@ def test_construct_dynamic_arize_headers():
     Test the construct_dynamic_arize_headers method with various input scenarios.
     Ensures that dynamic Arize headers are properly constructed from callback parameters.
     """
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     # Test with all parameters present
     dynamic_params_full = StandardCallbackDynamicParams(
@@ -483,7 +483,7 @@ def test_arize_emits_cache_tokens_openai_style():
     """OpenAI prompt_tokens_details.cached_tokens → cache_read attr."""
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _set_usage_outputs
+    from token_iq.gateway.integrations.arize._utils import _set_usage_outputs
 
     span = MagicMock()
     response_obj = {
@@ -504,7 +504,7 @@ def test_arize_emits_cache_tokens_anthropic_style():
     """Anthropic/Bedrock cache_read_input_tokens / cache_creation_input_tokens."""
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _set_usage_outputs
+    from token_iq.gateway.integrations.arize._utils import _set_usage_outputs
 
     span = MagicMock()
     response_obj = {
@@ -525,7 +525,7 @@ def test_arize_emits_no_cache_tokens_when_absent():
     """Regression guard: when no cache fields exist, no cache attrs emitted."""
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _set_usage_outputs
+    from token_iq.gateway.integrations.arize._utils import _set_usage_outputs
 
     span = MagicMock()
     response_obj = {
@@ -539,8 +539,8 @@ def test_arize_emits_no_cache_tokens_when_absent():
 
 def test_passthrough_call_type_resolves_to_llm_span_kind():
     """`allm_passthrough_route` should map to LLM (was UNKNOWN before fix)."""
-    from litellm.integrations._types.open_inference import OpenInferenceSpanKindValues
-    from litellm.integrations.arize._utils import _infer_open_inference_span_kind
+    from token_iq.gateway.integrations._types.open_inference import OpenInferenceSpanKindValues
+    from token_iq.gateway.integrations.arize._utils import _infer_open_inference_span_kind
 
     assert (
         _infer_open_inference_span_kind("allm_passthrough_route")
@@ -557,7 +557,7 @@ def test_arize_chat_completion_with_tools_stays_llm_span_kind():
     that passes `tools=[...]` AND returns `tool_calls` must remain LLM."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -618,7 +618,7 @@ def test_arize_emits_assistant_tool_calls_on_output_message():
     """Assistant tool_calls should surface as MESSAGE_TOOL_CALLS.* attrs."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -674,7 +674,7 @@ def test_arize_output_value_falls_back_to_tool_calls_summary():
     pane shows something."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -726,7 +726,7 @@ def test_arize_output_value_unchanged_when_content_present():
     exactly that content (no summary written)."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -769,7 +769,7 @@ def test_arize_emits_tool_call_id_and_name_on_input_tool_message():
     """A tool-result input message should expose tool_call_id + name."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -829,7 +829,7 @@ def test_arize_emits_multimodal_input_contents():
     legacy MESSAGE_CONTENT (which stays for back-compat)."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -877,7 +877,7 @@ def test_arize_emits_session_and_user_attrs_from_metadata():
     optional_params.user/model_params.user absent)."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -919,7 +919,7 @@ def test_arize_does_not_use_trace_id_as_session_id_fallback():
     """
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -953,7 +953,7 @@ def test_arize_does_not_overwrite_user_id_from_optional_params():
     """If optional_params.user is set, metadata USER_ID must NOT overwrite."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -986,7 +986,7 @@ def test_arize_emits_response_cost():
     """StandardLoggingPayload.response_cost → llm.cost.total (+ legacy llm.response.cost)."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {
@@ -1104,7 +1104,7 @@ def test_arize_passthrough_call_type_does_not_run_on_chat_completion():
     """
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _maybe_normalize_passthrough
+    from token_iq.gateway.integrations.arize._utils import _maybe_normalize_passthrough
 
     span = MagicMock()
     _maybe_normalize_passthrough(
@@ -1128,7 +1128,7 @@ def test_arize_passthrough_skipped_when_message_redaction_enabled():
     """
     from unittest.mock import MagicMock
 
-    from litellm.integrations.arize._utils import _maybe_normalize_passthrough
+    from token_iq.gateway.integrations.arize._utils import _maybe_normalize_passthrough
 
     span = MagicMock()
     kwargs = {
@@ -1156,7 +1156,7 @@ def test_arize_passthrough_skipped_when_message_redaction_enabled():
 
 def test_arize_coerce_response_obj_passes_dicts_through_untouched():
     """Regression guard for the BaseModel/dict path."""
-    from litellm.integrations.arize._utils import _coerce_response_obj_for_attrs
+    from token_iq.gateway.integrations.arize._utils import _coerce_response_obj_for_attrs
 
     d = {"id": "x", "model": "m"}
     assert _coerce_response_obj_for_attrs(d) is d
@@ -1173,7 +1173,7 @@ def test_arize_coerce_response_obj_passes_dicts_through_untouched():
 
 def test_arize_coerce_response_obj_parses_httpx_like():
     """httpx.Response-like objects without `.get` should JSON-decode."""
-    from litellm.integrations.arize._utils import _coerce_response_obj_for_attrs
+    from token_iq.gateway.integrations.arize._utils import _coerce_response_obj_for_attrs
 
     class FakeHttpxResponse:
         text = '{"id": "msg_1", "model": "claude"}'
@@ -1183,7 +1183,7 @@ def test_arize_coerce_response_obj_parses_httpx_like():
 
 
 def test_arize_coerce_response_obj_returns_original_on_bad_json():
-    from litellm.integrations.arize._utils import _coerce_response_obj_for_attrs
+    from token_iq.gateway.integrations.arize._utils import _coerce_response_obj_for_attrs
 
     class BadJson:
         text = "not-json"
@@ -1229,7 +1229,7 @@ def test_arize_mcp_call_tool_result_does_not_break_attribute_setting():
 def test_arize_coerce_response_obj_dumps_pydantic_without_get():
     from mcp.types import CallToolResult, TextContent
 
-    from litellm.integrations.arize._utils import _coerce_response_obj_for_attrs
+    from token_iq.gateway.integrations.arize._utils import _coerce_response_obj_for_attrs
 
     result = CallToolResult(content=[TextContent(type="text", text="hi")], isError=False)
     coerced = _coerce_response_obj_for_attrs(result)
@@ -1356,7 +1356,7 @@ def test_arize_non_mcp_span_gets_no_tool_name():
     """The MCP emitter must not fire on ordinary completions."""
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Choices, ModelResponse
+    from token_iq.gateway.types.utils import Choices, ModelResponse
 
     span = MagicMock()
     kwargs = {

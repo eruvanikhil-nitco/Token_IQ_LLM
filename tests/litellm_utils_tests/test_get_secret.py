@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-import litellm
-from litellm.proxy._types import KeyManagementSystem
-from litellm.secret_managers.main import get_secret
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import KeyManagementSystem
+from token_iq.gateway.secret_managers.main import get_secret
 
 
 class MockSecretClient:
@@ -19,7 +19,7 @@ async def test_azure_kms():
     """
     Basic asserts that the value from get secret is from Azure Key Vault when Key Management System is Azure Key Vault
     """
-    with patch("litellm.secret_manager_client", new=MockSecretClient()):
+    with patch("token_iq.gateway.secret_manager_client", new=MockSecretClient()):
         litellm._key_management_system = KeyManagementSystem.AZURE_KEY_VAULT
         secret = get_secret(secret_name="ishaan-test-key")
         assert secret == "mocked_secret_value"

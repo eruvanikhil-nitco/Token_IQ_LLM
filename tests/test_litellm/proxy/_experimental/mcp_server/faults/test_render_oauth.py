@@ -3,11 +3,11 @@ code can never ship on a server-fault status and gateway-side faults never carry
 
 import json
 
-from litellm.proxy._experimental.mcp_server.faults.render_oauth import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.render_oauth import (
     dcr_fault_detail,
     render_token_fault,
 )
-from litellm.proxy._experimental.mcp_server.faults.types import (
+from token_iq.gateway.proxy._experimental.mcp_server.faults.types import (
     CallerRejected,
     GatewayRejected,
     UpstreamProtocolFault,

@@ -9,14 +9,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-import litellm
-from litellm.proxy.hooks.prompt_injection_detection import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.hooks.prompt_injection_detection import (
     _OPTIONAL_PromptInjectionDetection,
 )
-from litellm import Router, mock_completion
-from litellm.proxy.utils import ProxyLogging
-from litellm.proxy._types import UserAPIKeyAuth, LiteLLMPromptInjectionParams
-from litellm.caching.caching import DualCache
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, LiteLLMPromptInjectionParams
+from token_iq.gateway.caching.caching import DualCache
 
 
 @pytest.mark.asyncio

@@ -16,14 +16,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.integrations.s3_v2 import S3Logger
-from litellm.proxy._types import SpendLogsMetadata, SpendLogsPayload
-from litellm.proxy.spend_tracking.cold_storage_handler import ColdStorageHandler
-from litellm.proxy.spend_tracking.spend_tracking_utils import _get_spend_logs_metadata
-from litellm.responses.litellm_completion_transformation.session_handler import (
+from token_iq.gateway.integrations.s3_v2 import S3Logger
+from token_iq.gateway.proxy._types import SpendLogsMetadata, SpendLogsPayload
+from token_iq.gateway.proxy.spend_tracking.cold_storage_handler import ColdStorageHandler
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import _get_spend_logs_metadata
+from token_iq.gateway.responses.litellm_completion_transformation.session_handler import (
     ResponsesSessionHandler,
 )
-from litellm.types.utils import StandardLoggingMetadata, StandardLoggingPayload
+from token_iq.gateway.types.utils import StandardLoggingMetadata, StandardLoggingPayload
 
 
 class TestColdStorageObjectKeyIntegration:
@@ -157,7 +157,7 @@ class TestColdStorageObjectKeyIntegration:
                 handler, "_select_custom_logger_for_cold_storage", return_value="s3_v2"
             ),
             patch(
-                "litellm.logging_callback_manager.get_active_custom_logger_for_callback_name",
+                "token_iq.gateway.logging_callback_manager.get_active_custom_logger_for_callback_name",
                 return_value=mock_logger,
             ),
         ):

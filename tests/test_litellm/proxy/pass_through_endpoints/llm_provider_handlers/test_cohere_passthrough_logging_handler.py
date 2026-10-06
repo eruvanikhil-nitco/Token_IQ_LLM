@@ -6,11 +6,11 @@ import httpx
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.pass_through_endpoints.llm_provider_handlers.cohere_passthrough_logging_handler import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.cohere_passthrough_logging_handler import (
     CoherePassthroughLoggingHandler,
 )
-from litellm.types.passthrough_endpoints.pass_through_endpoints import (
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
 
@@ -63,15 +63,15 @@ class TestCoherePassthroughLoggingHandler:
             request_method="POST",
         )
 
-    @patch("litellm.completion_cost")
-    @patch("litellm.litellm_core_utils.litellm_logging.get_standard_logging_object_payload")
-    @patch("litellm.llms.cohere.embed.v1_transformation.CohereEmbeddingConfig._transform_response")
+    @patch("token_iq.gateway.completion_cost")
+    @patch("token_iq.gateway.core_utils.litellm_logging.get_standard_logging_object_payload")
+    @patch("token_iq.gateway.llms.cohere.embed.v1_transformation.CohereEmbeddingConfig._transform_response")
     def test_cohere_embed_passthrough_cost_tracking(
         self, mock_transform_response, mock_get_standard_logging, mock_completion_cost
     ):
         """Test successful cost tracking for Cohere embed passthrough"""
         # Arrange
-        from litellm.types.utils import EmbeddingResponse
+        from token_iq.gateway.types.utils import EmbeddingResponse
 
         # Create a mock embedding response
         mock_embedding_response = EmbeddingResponse()
@@ -81,7 +81,7 @@ class TestCoherePassthroughLoggingHandler:
         ]
         mock_embedding_response.model = "embed-english-v3.0"
         mock_embedding_response.object = "list"
-        from litellm.types.utils import Usage
+        from token_iq.gateway.types.utils import Usage
 
         mock_embedding_response.usage = Usage(prompt_tokens=3, completion_tokens=0, total_tokens=3)
 
@@ -141,9 +141,9 @@ class TestCoherePassthroughLoggingHandler:
         assert result["result"].model == "embed-english-v3.0"
 
     @patch(
-        "litellm.proxy.pass_through_endpoints.llm_provider_handlers.base_passthrough_logging_handler.BasePassthroughLoggingHandler.passthrough_chat_handler"
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.base_passthrough_logging_handler.BasePassthroughLoggingHandler.passthrough_chat_handler"
     )
-    @patch("litellm.completion_cost")
+    @patch("token_iq.gateway.completion_cost")
     def test_openai_embeddings_route_does_not_use_cohere_embed_path(self, mock_completion_cost, mock_chat_handler):
         mock_chat_handler.return_value = {"result": None, "kwargs": {}}
         response_body = {

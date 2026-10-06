@@ -5,13 +5,13 @@ import os
 import time
 from unittest.mock import patch, Mock
 import opentelemetry.exporter.otlp.proto.grpc.trace_exporter
-from litellm import Choices
+from token_iq.gateway import Choices
 import pytest
 from dotenv import load_dotenv
 
-import litellm
-from litellm._logging import verbose_logger, verbose_proxy_logger
-from litellm.integrations.arize.arize import ArizeConfig, ArizeLogger
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
+from token_iq.gateway.integrations.arize.arize import ArizeConfig, ArizeLogger
 
 load_dotenv()
 

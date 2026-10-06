@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import litellm
-from litellm.llms.bedrock.common_utils import BedrockError
-from litellm.llms.bedrock.realtime.handler import BedrockRealtime
-from litellm.llms.bedrock.realtime.transformation import BedrockRealtimeConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.common_utils import BedrockError
+from token_iq.gateway.llms.bedrock.realtime.handler import BedrockRealtime
+from token_iq.gateway.llms.bedrock.realtime.transformation import BedrockRealtimeConfig
 
 
 class FakePayloadPart:
@@ -346,7 +346,7 @@ class TestBedrockRealtimeHandler:
 
     @pytest.mark.asyncio
     async def test_trailing_usage_after_last_done_is_dispatched_for_spend(self, stub_aws_sdk_client, monkeypatch):
-        import litellm.llms.bedrock.realtime.handler as handler_module
+        import token_iq.gateway.llms.bedrock.realtime.handler as handler_module
 
         dispatched = {}
 

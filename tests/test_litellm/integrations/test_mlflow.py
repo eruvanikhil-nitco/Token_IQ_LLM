@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_mlflow_logging_functionality():
         },
     ):
         # Now we can safely import MlflowLogger
-        from litellm.integrations.mlflow import MlflowLogger
+        from token_iq.gateway.integrations.mlflow import MlflowLogger
 
         # Create MlflowLogger instance
         mlflow_logger = MlflowLogger()
@@ -114,7 +114,7 @@ def test_mlflow_token_usage_attribute_structure():
             "mlflow.tracing.utils": MagicMock(),
         },
     ):
-        from litellm.integrations.mlflow import MlflowLogger
+        from token_iq.gateway.integrations.mlflow import MlflowLogger
 
         mlflow_logger = MlflowLogger()
 
@@ -162,7 +162,7 @@ def _mock_mlflow_modules():
 def test_mlflow_stream_handler_uses_async_complete_response():
     modules = _mock_mlflow_modules()
     with patch.dict("sys.modules", modules):
-        from litellm.integrations.mlflow import MlflowLogger
+        from token_iq.gateway.integrations.mlflow import MlflowLogger
 
         mlflow_logger = MlflowLogger()
         mlflow_logger._start_span_or_trace = MagicMock(return_value="mock_span")

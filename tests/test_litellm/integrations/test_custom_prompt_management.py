@@ -7,12 +7,12 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.integrations.custom_prompt_management import CustomPromptManagement
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.types.llms.openai import AllMessageValues
-from litellm.types.prompts.init_prompts import PromptSpec
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_prompt_management import CustomPromptManagement
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.prompts.init_prompts import PromptSpec
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 @pytest.fixture(autouse=True)

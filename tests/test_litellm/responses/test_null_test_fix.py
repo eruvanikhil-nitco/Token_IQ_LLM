@@ -12,7 +12,7 @@ be a string (or omitted), causing TypeErrors.
 
 import pytest
 
-from litellm.types.llms.openai import ResponsesAPIResponse
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 
 class TestNullTextHandling:
@@ -210,10 +210,10 @@ class TestStreamingIteratorTextHandling:
         """
         from unittest.mock import Mock
 
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
-        from litellm.types.llms.openai import (
+        from token_iq.gateway.types.llms.openai import (
             ResponseInputParam,
             ResponsesAPIOptionalRequestParams,
         )
@@ -247,10 +247,10 @@ class TestStreamingIteratorTextHandling:
         """
         from unittest.mock import Mock
 
-        from litellm.responses.litellm_completion_transformation.streaming_iterator import (
+        from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
-        from litellm.types.utils import Delta, StreamingChoices
+        from token_iq.gateway.types.utils import Delta, StreamingChoices
 
         # Create a mock stream wrapper
         mock_wrapper = Mock()

@@ -5,7 +5,7 @@ from types import ModuleType, SimpleNamespace
 import pytest
 
 
-from litellm.proxy.common_utils.callback_utils import (
+from token_iq.gateway.proxy.common_utils.callback_utils import (
     add_guardrail_scan_id,
     add_policy_to_applied_policies_header,
     decrypt_callback_vars,
@@ -17,14 +17,14 @@ from litellm.proxy.common_utils.callback_utils import (
     sanitize_openai_provider_metadata,
     strip_callback_config,
 )
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.utils import ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 from unittest.mock import patch
-from litellm.proxy.common_utils.callback_utils import process_callback
+from token_iq.gateway.proxy.common_utils.callback_utils import process_callback
 
 
 def test_get_remaining_tokens_and_requests_from_request_data():
@@ -47,7 +47,7 @@ def test_get_remaining_tokens_and_requests_from_request_data():
 
 
 @patch(
-    "litellm.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
+    "token_iq.gateway.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
     return_value=["API_KEY", "MISSING_VAR"],
 )
 def test_process_callback_with_env_vars(mock_get_env_vars):
@@ -71,7 +71,7 @@ def test_process_callback_with_env_vars(mock_get_env_vars):
 
 
 @patch(
-    "litellm.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
+    "token_iq.gateway.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
     return_value=[],
 )
 def test_process_callback_with_no_required_env_vars(mock_get_env_vars):
@@ -87,7 +87,7 @@ def test_process_callback_with_no_required_env_vars(mock_get_env_vars):
 
 
 @patch(
-    "litellm.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
+    "token_iq.gateway.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
     return_value=["LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"],
 )
 def test_process_callback_falls_back_to_process_env(mock_get_env_vars, monkeypatch):
@@ -116,7 +116,7 @@ def test_process_callback_falls_back_to_process_env(mock_get_env_vars, monkeypat
 
 
 @patch(
-    "litellm.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
+    "token_iq.gateway.proxy.common_utils.callback_utils.CustomLogger.get_callback_env_vars",
     return_value=["LANGFUSE_SECRET_KEY"],
 )
 def test_process_callback_reports_none_when_absent_everywhere(mock_get_env_vars, monkeypatch):
@@ -211,11 +211,11 @@ def test_initialize_callbacks_on_proxy_instantiates_compression_interception(
     dummy_callback = object()
     monkeypatch.setitem(
         sys.modules,
-        "litellm.proxy.proxy_server",
+        "token_iq.gateway.proxy.proxy_server",
         SimpleNamespace(prisma_client=None),
     )
     monkeypatch.setattr(
-        "litellm.integrations.compression_interception.handler.CompressionInterceptionLogger.initialize_from_proxy_config",
+        "token_iq.gateway.integrations.compression_interception.handler.CompressionInterceptionLogger.initialize_from_proxy_config",
         lambda litellm_settings, callback_specific_params: dummy_callback,
     )
 
@@ -401,16 +401,16 @@ def test_initialize_callbacks_on_proxy_lakera_ignores_non_dict_callback_settings
     # `from ...lakera_ai import lakeraAI_Moderation` resolves to our stub without
     # importing the real module (which imports proxy_server symbols not present
     # under the stubbed proxy_server below).
-    fake_lakera = ModuleType("litellm.proxy.guardrails.guardrail_hooks.lakera_ai")
+    fake_lakera = ModuleType("token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai")
     fake_lakera.lakeraAI_Moderation = _DummyLakera
     monkeypatch.setitem(
         sys.modules,
-        "litellm.proxy.guardrails.guardrail_hooks.lakera_ai",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.lakera_ai",
         fake_lakera,
     )
     monkeypatch.setitem(
         sys.modules,
-        "litellm.proxy.proxy_server",
+        "token_iq.gateway.proxy.proxy_server",
         SimpleNamespace(prisma_client=None),
     )
 
@@ -446,10 +446,10 @@ def test_initialize_callbacks_on_proxy_non_dict_callback_specific_params_root(
     """
     monkeypatch.setitem(
         sys.modules,
-        "litellm.proxy.proxy_server",
+        "token_iq.gateway.proxy.proxy_server",
         SimpleNamespace(prisma_client=None),
     )
-    from litellm.integrations.compression_interception.handler import (
+    from token_iq.gateway.integrations.compression_interception.handler import (
         CompressionInterceptionLogger,
     )
 
@@ -520,7 +520,7 @@ def test_strip_callback_config_passes_through_non_dicts(value):
 _PROBE_MODULE_NAME = "custom_callback_probe"
 
 _PROBE_MODULE_SOURCE = '''
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class FloorMaxTokens(CustomLogger):

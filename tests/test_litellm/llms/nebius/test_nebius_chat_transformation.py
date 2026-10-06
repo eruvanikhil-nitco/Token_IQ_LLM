@@ -9,9 +9,9 @@ Nebius AI Studio is an OpenAI-compatible provider with minor customizations.
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.llms.nebius.chat.transformation import NebiusConfig
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.llms.nebius.chat.transformation import NebiusConfig
 
 
 class TestNebiusConfig:

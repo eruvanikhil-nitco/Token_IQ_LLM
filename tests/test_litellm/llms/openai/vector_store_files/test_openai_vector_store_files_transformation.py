@@ -1,10 +1,10 @@
 import httpx
 import pytest
 
-from litellm.llms.openai.vector_store_files.transformation import (
+from token_iq.gateway.llms.openai.vector_store_files.transformation import (
     OpenAIVectorStoreFilesConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 @pytest.fixture()

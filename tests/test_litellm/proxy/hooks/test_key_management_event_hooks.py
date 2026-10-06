@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from litellm.proxy.hooks.key_management_event_hooks import KeyManagementEventHooks
+from token_iq.gateway.proxy.hooks.key_management_event_hooks import KeyManagementEventHooks
 
 
 class TestKeyManagementEventHooksIndependentOperations:
@@ -69,9 +69,9 @@ class TestKeyManagementEventHooksIndependentOperations:
                 "_is_email_sending_enabled",
                 return_value=True,
             ),
-            patch("litellm.store_audit_logs", False),
+            patch("token_iq.gateway.store_audit_logs", False),
             patch(
-                "litellm.proxy.hooks.key_management_event_hooks.verbose_proxy_logger"
+                "token_iq.gateway.proxy.hooks.key_management_event_hooks.verbose_proxy_logger"
             ),
         ):
             # Should not raise even though email fails
@@ -137,9 +137,9 @@ class TestKeyManagementEventHooksIndependentOperations:
                 "_is_email_sending_enabled",
                 return_value=True,
             ),
-            patch("litellm.store_audit_logs", False),
+            patch("token_iq.gateway.store_audit_logs", False),
             patch(
-                "litellm.proxy.hooks.key_management_event_hooks.verbose_proxy_logger"
+                "token_iq.gateway.proxy.hooks.key_management_event_hooks.verbose_proxy_logger"
             ),
         ):
             # Should not raise even though secret manager fails
@@ -163,16 +163,16 @@ async def test_key_generated_audit_log_uses_license_default(
     premium_user: bool,
     expected_audit_log_calls: int,
 ):
-    from litellm.proxy._types import GenerateKeyRequest, GenerateKeyResponse, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GenerateKeyResponse, UserAPIKeyAuth
 
-    monkeypatch.setattr("litellm.store_audit_logs", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", premium_user)
+    monkeypatch.setattr("token_iq.gateway.store_audit_logs", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", premium_user)
     monkeypatch.delenv("LITELLM_STORE_AUDIT_LOGS", raising=False)
 
     response = GenerateKeyResponse(key="sk-test-key", token_id="token-123")
     with (
         patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+            "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
             new_callable=AsyncMock,
         ) as mock_create_audit_log,
         patch.object(
@@ -197,12 +197,12 @@ class TestRotateVirtualKeyInSecretManager:
     @pytest.mark.asyncio
     async def test_rotate_virtual_key_with_team_id(self):
         """Test that team_id is passed to async_rotate_secret."""
-        from litellm.types.secret_managers.main import (
+        from token_iq.gateway.types.secret_managers.main import (
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        from litellm.secret_managers.base_secret_manager import BaseSecretManager
-        import litellm
+        from token_iq.gateway.secret_managers.base_secret_manager import BaseSecretManager
+        from token_iq import gateway as litellm
 
         # Setup - Create a mock that inherits from BaseSecretManager
         mock_secret_manager = MagicMock(spec=BaseSecretManager)
@@ -246,7 +246,7 @@ class TestRotateVirtualKeyInSecretManager:
                 return_value=team_settings,
             ) as mock_get_params,
             patch(
-                "litellm.proxy.hooks.key_management_event_hooks.isinstance",
+                "token_iq.gateway.proxy.hooks.key_management_event_hooks.isinstance",
                 side_effect=mock_isinstance,
             ),
         ):
@@ -273,12 +273,12 @@ class TestRotateVirtualKeyInSecretManager:
     @pytest.mark.asyncio
     async def test_rotate_virtual_key_without_team_id(self):
         """Test that None team_id is handled correctly."""
-        from litellm.types.secret_managers.main import (
+        from token_iq.gateway.types.secret_managers.main import (
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        from litellm.secret_managers.base_secret_manager import BaseSecretManager
-        import litellm
+        from token_iq.gateway.secret_managers.base_secret_manager import BaseSecretManager
+        from token_iq import gateway as litellm
 
         # Setup - Create a mock that inherits from BaseSecretManager
         mock_secret_manager = MagicMock(spec=BaseSecretManager)
@@ -315,7 +315,7 @@ class TestRotateVirtualKeyInSecretManager:
                 return_value=None,
             ) as mock_get_params,
             patch(
-                "litellm.proxy.hooks.key_management_event_hooks.isinstance",
+                "token_iq.gateway.proxy.hooks.key_management_event_hooks.isinstance",
                 side_effect=mock_isinstance,
             ),
         ):
@@ -337,16 +337,16 @@ class TestRotateVirtualKeyInSecretManager:
     @pytest.mark.asyncio
     async def test_rotate_virtual_key_in_key_rotated_hook(self):
         """Test that async_key_rotated_hook passes team_id to _rotate_virtual_key_in_secret_manager."""
-        from litellm.proxy._types import (
+        from token_iq.gateway.proxy._types import (
             LiteLLM_VerificationToken,
             GenerateKeyResponse,
             RegenerateKeyRequest,
         )
-        from litellm.types.secret_managers.main import (
+        from token_iq.gateway.types.secret_managers.main import (
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        import litellm
+        from token_iq import gateway as litellm
 
         # Setup
         mock_secret_manager = MagicMock()
@@ -390,7 +390,7 @@ class TestRotateVirtualKeyInSecretManager:
                 "_rotate_virtual_key_in_secret_manager",
                 new_callable=AsyncMock,
             ) as mock_rotate,
-            patch("litellm.store_audit_logs", False),
+            patch("token_iq.gateway.store_audit_logs", False),
             patch.object(
                 KeyManagementEventHooks,
                 "_send_key_rotated_email",
@@ -417,11 +417,11 @@ class TestRotateVirtualKeyInSecretManager:
     @pytest.mark.asyncio
     async def test_rotate_virtual_key_when_store_virtual_keys_disabled(self):
         """Test that rotation is skipped when store_virtual_keys is False."""
-        from litellm.types.secret_managers.main import (
+        from token_iq.gateway.types.secret_managers.main import (
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        import litellm
+        from token_iq import gateway as litellm
 
         # Setup
         mock_secret_manager = MagicMock()
@@ -447,8 +447,8 @@ class TestRotateVirtualKeyInSecretManager:
     @pytest.mark.asyncio
     async def test_rotate_virtual_key_when_secret_manager_not_set(self):
         """Test that rotation is skipped when secret_manager_client is None."""
-        from litellm.types.secret_managers.main import KeyManagementSettings
-        import litellm
+        from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
+        from token_iq import gateway as litellm
 
         # Setup
         litellm.secret_manager_client = None
@@ -478,12 +478,12 @@ class TestKeyUpdatedAuditLogObjectId:
     async def _run_updated_hook_and_capture_audit_log(self, request_key: str):
         import asyncio
 
-        from litellm.proxy._types import (
+        from token_iq.gateway.proxy._types import (
             LiteLLM_VerificationToken,
             UpdateKeyRequest,
             UserAPIKeyAuth,
         )
-        from litellm.proxy.utils import hash_token
+        from token_iq.gateway.proxy.utils import hash_token
 
         captured = []
 
@@ -496,9 +496,9 @@ class TestKeyUpdatedAuditLogObjectId:
         )
 
         with (
-            patch("litellm.store_audit_logs", True),
+            patch("token_iq.gateway.store_audit_logs", True),
             patch(
-                "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
+                "token_iq.gateway.proxy.management_helpers.audit_logs.create_audit_log_for_update",
                 new=capture_audit_log,
             ),
         ):
@@ -519,7 +519,7 @@ class TestKeyUpdatedAuditLogObjectId:
     @pytest.mark.asyncio
     async def test_update_audit_log_hashes_raw_key_in_object_id(self):
         """A raw sk- key sent to /key/update must be stored hashed in object_id."""
-        from litellm.proxy.utils import hash_token
+        from token_iq.gateway.proxy.utils import hash_token
 
         raw_key = "sk-raw-test-key-31620"
 
@@ -533,7 +533,7 @@ class TestKeyUpdatedAuditLogObjectId:
     @pytest.mark.asyncio
     async def test_update_audit_log_passes_through_hashed_key(self):
         """An already-hashed token sent to /key/update is stored unchanged."""
-        from litellm.proxy.utils import hash_token
+        from token_iq.gateway.proxy.utils import hash_token
 
         hashed_key = hash_token("sk-raw-test-key-31620")
 

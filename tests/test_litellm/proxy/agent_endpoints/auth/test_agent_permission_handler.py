@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.agent_endpoints.agent_registry import AgentRegistry
-from litellm.proxy.agent_endpoints.auth.agent_permission_handler import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.agent_endpoints.agent_registry import AgentRegistry
+from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     AgentRequestHandler,
     RestrictedAgentAccess,
     UnrestrictedAgentAccess,
@@ -133,7 +133,7 @@ class TestAgentRequestHandler:
     async def test_empty_access_group_denies_every_agent(self):
         """LIT-5143: a key restricted to an access group that resolves to no agents is
         restricted to nothing, not unrestricted. A failed group lookup still fails open."""
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         mock_user_auth: Final = UserAPIKeyAuth(api_key="test-key", user_id="test-user")
         mock_user_auth.object_permission = LiteLLM_ObjectPermissionTable(
@@ -280,7 +280,7 @@ class TestAgentRequestHandler:
             AgentRequestHandler, "_get_key_object_permission", return_value=None
         ):
             with patch(
-                "litellm.proxy.auth.auth_checks._get_agent_ids_from_access_groups",
+                "token_iq.gateway.proxy.auth.auth_checks._get_agent_ids_from_access_groups",
                 new_callable=AsyncMock,
                 return_value=["agent-from-ag-1", "agent-from-ag-2"],
             ):
@@ -296,7 +296,7 @@ class TestAgentRequestHandler:
         Test that _get_allowed_agents_for_key combines agents from native object_permission
         and key's access_group_ids (unified access groups).
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         mock_permission = LiteLLM_ObjectPermissionTable(
             object_permission_id="obj-1",
@@ -312,7 +312,7 @@ class TestAgentRequestHandler:
         mock_user_auth.object_permission = mock_permission
 
         with patch(
-            "litellm.proxy.auth.auth_checks._get_agent_ids_from_access_groups",
+            "token_iq.gateway.proxy.auth.auth_checks._get_agent_ids_from_access_groups",
             new_callable=AsyncMock,
             return_value=["agent-from-ag"],
         ):
@@ -344,7 +344,7 @@ class TestAgentRequestHandler:
         mock_user_auth: Final = UserAPIKeyAuth(api_key="test-key", user_id="test-user")
 
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             registry,
         ):
             with patch.object(AgentRequestHandler, "resolve_agent_access") as mock_get_allowed:
@@ -384,7 +384,7 @@ class TestAgentRequestHandler:
         mock_user_auth: Final = UserAPIKeyAuth(api_key="test-key", user_id="test-user", team_id="test-team")
 
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             registry,
         ):
             with patch.object(AgentRequestHandler, "_get_allowed_agents_for_key") as mock_key:

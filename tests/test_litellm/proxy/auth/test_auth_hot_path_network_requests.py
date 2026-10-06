@@ -25,9 +25,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.proxy._types import (
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
     LitellmUserRoles,
@@ -35,7 +35,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamMembership,
     hash_token,
 )
-from litellm.proxy.auth.auth_checks import (
+from token_iq.gateway.proxy.auth.auth_checks import (
     get_key_object,
     get_team_membership,
     get_team_object,
@@ -556,7 +556,7 @@ async def test_get_user_object_missing_user_rechecks_after_expiry():
     The negative cache must expire: a user created after a miss becomes
     visible once the db_cache_expiry window has passed.
     """
-    from litellm.proxy.auth.auth_checks import db_cache_expiry, last_db_access_time
+    from token_iq.gateway.proxy.auth.auth_checks import db_cache_expiry, last_db_access_time
 
     user_id = "user-missing-expiry-recheck"
 
@@ -601,8 +601,8 @@ def test_should_check_db_negative_entry_throttles_then_expires():
     window and allows them again after it. Exercises the timestamp element
     of the stored (value, time) tuple directly.
     """
-    from litellm.caching.dual_cache import LimitedSizeOrderedDict
-    from litellm.proxy.auth.auth_checks import (
+    from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
+    from token_iq.gateway.proxy.auth.auth_checks import (
         _should_check_db,
         _update_last_db_access_time,
     )

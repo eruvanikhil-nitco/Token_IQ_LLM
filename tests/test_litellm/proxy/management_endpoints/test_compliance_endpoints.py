@@ -6,8 +6,8 @@ Unit tests for compliance check endpoints (EU AI Act and GDPR).
 import pytest
 
 
-from litellm.proxy.compliance_checks import ComplianceChecker
-from litellm.types.proxy.compliance_endpoints import ComplianceCheckRequest
+from token_iq.gateway.proxy.compliance_checks import ComplianceChecker
+from token_iq.gateway.types.proxy.compliance_endpoints import ComplianceCheckRequest
 
 # ---------------------------------------------------------------------------
 # EU AI Act — Non-compliant cases (Task #3)

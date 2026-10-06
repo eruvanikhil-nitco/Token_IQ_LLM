@@ -9,10 +9,10 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from litellm.proxy.client.cli.commands import up as up_module
-from litellm.proxy.client.cli.commands.agents import AgentRunError
-from litellm.proxy.client.cli.commands.claude_settings import ClaudeSettingsError
-from litellm.proxy.client.cli.commands.up import (
+from token_iq.gateway.proxy.client.cli.commands import up as up_module
+from token_iq.gateway.proxy.client.cli.commands.agents import AgentRunError
+from token_iq.gateway.proxy.client.cli.commands.claude_settings import ClaudeSettingsError
+from token_iq.gateway.proxy.client.cli.commands.up import (
     BackupRecord,
     UpError,
     _ensure_fresh_login,
@@ -26,8 +26,8 @@ from litellm.proxy.client.cli.commands.up import (
     write_backup,
 )
 
-UP_MODULE = "litellm.proxy.client.cli.commands.up"
-AUTH_MODULE = "litellm.proxy.client.cli.commands.auth"
+UP_MODULE = "token_iq.gateway.proxy.client.cli.commands.up"
+AUTH_MODULE = "token_iq.gateway.proxy.client.cli.commands.auth"
 
 
 def _patch_paths(monkeypatch, tmp_path):
@@ -583,7 +583,7 @@ class TestUpCanInvokeTheRealLoginCommand:
     """
 
     def test_ctx_invoke_supplies_every_login_parameter(self):
-        from litellm.proxy.client.cli.commands.auth import login as real_login
+        from token_iq.gateway.proxy.client.cli.commands.auth import login as real_login
 
         reached = []
 
@@ -603,7 +603,7 @@ class TestUpCanInvokeTheRealLoginCommand:
         assert reached == ["http://127.0.0.1:9"]
 
     def test_ctx_invoke_leaves_claude_settings_alone(self, tmp_path):
-        from litellm.proxy.client.cli.commands.auth import login as real_login
+        from token_iq.gateway.proxy.client.cli.commands.auth import login as real_login
 
         settings_path = tmp_path / "settings.json"
 

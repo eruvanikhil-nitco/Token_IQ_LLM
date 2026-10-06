@@ -9,20 +9,20 @@ import time
 
 import pytest
 
-from litellm.integrations.code_interpreter_interception.handler import (
+from token_iq.gateway.integrations.code_interpreter_interception.handler import (
     CodeInterpreterInterceptionLogger,
     LITELLM_CODE_EXECUTION_TOOL_NAME,
     _INTERCEPTION_ACTIVE_KEY as _ACTIVE_KEY,
     _SANDBOX_KEY,
     _SESSION_SCOPED_KEY,
 )
-from litellm.types.integrations.custom_logger import (
+from token_iq.gateway.types.integrations.custom_logger import (
     CHAT_COMPLETION_AGENTIC_SURFACE,
     NON_CODE_INTERPRETER_INTERCEPTION_INTERNAL_PREFIXES,
     is_interception_internal_key,
 )
-from litellm.llms.base_llm.sandbox.transformation import CodeExecutionResult
-from litellm.types.utils import CallTypes
+from token_iq.gateway.llms.base_llm.sandbox.transformation import CodeExecutionResult
+from token_iq.gateway.types.utils import CallTypes
 
 
 class FakeHandle:
@@ -453,7 +453,7 @@ async def test_build_plan_outputs_empty_array_when_no_stdout():
 
 @pytest.mark.asyncio
 async def test_post_hook_injects_code_interpreter_call_matching_openai_shape():
-    from litellm.types.integrations.custom_logger import AgenticLoopPlan
+    from token_iq.gateway.types.integrations.custom_logger import AgenticLoopPlan
 
     logger = CodeInterpreterInterceptionLogger(sandbox_config=FakeSandbox())
     ci_item = {
@@ -488,7 +488,7 @@ async def test_post_hook_injects_code_interpreter_call_matching_openai_shape():
 
 @pytest.mark.asyncio
 async def test_post_hook_noop_without_recorded_calls():
-    from litellm.types.integrations.custom_logger import AgenticLoopPlan
+    from token_iq.gateway.types.integrations.custom_logger import AgenticLoopPlan
 
     logger = CodeInterpreterInterceptionLogger(sandbox_config=FakeSandbox())
     response = FakeResponse(output=[{"type": "message", "content": []}])
@@ -865,10 +865,10 @@ async def test_cleanup_hook_is_idempotent_with_post_hook():
 async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
     """If the agentic rerun fails, _execute_responses_agentic_plan must still
     invoke the cleanup hook so the sandbox is not left running."""
-    import litellm
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from litellm.types.integrations.custom_logger import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.types.integrations.custom_logger import (
         AgenticLoopPlan,
         AgenticLoopRequestPatch,
     )
@@ -921,8 +921,8 @@ async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
 async def test_run_code_does_not_re_resolve_registry(monkeypatch):
     """Params resolved once at create time must be reused for running code, so a
     registry clear between create and run cannot turn into a create-then-fail."""
-    import litellm
-    from litellm.sandbox import sandbox_tools
+    from token_iq import gateway as litellm
+    from token_iq.gateway.sandbox import sandbox_tools
 
     sandbox_tools.register_sandbox_tools(
         [
@@ -1061,7 +1061,7 @@ async def test_delete_container_swallows_errors():
 async def test_prune_expired_cache_deletes_underlying_container():
     """Expired cache entries must have their sandbox deleted, not just dropped,
     otherwise an orphaned sandbox keeps running."""
-    import litellm.integrations.code_interpreter_interception.handler as handler_mod
+    import token_iq.gateway.integrations.code_interpreter_interception.handler as handler_mod
 
     sandbox = FakeSandbox()
     logger = CodeInterpreterInterceptionLogger(sandbox_config=sandbox)
@@ -1392,7 +1392,7 @@ async def test_per_identity_cap_evicts_lru_session():
     """When a single identity holds the cap limit of session sandboxes and opens a
     new one, the least-recently-used session is evicted so the allocation stays
     bounded.  Without this, rotating session IDs is an unbounded sandbox leak."""
-    from litellm.integrations.code_interpreter_interception.handler import _SESSION_SCOPED_PER_IDENTITY_CAP
+    from token_iq.gateway.integrations.code_interpreter_interception.handler import _SESSION_SCOPED_PER_IDENTITY_CAP
 
     sandbox = FakeSandbox(stdout="ok")
     logger = CodeInterpreterInterceptionLogger(sandbox_config=sandbox)

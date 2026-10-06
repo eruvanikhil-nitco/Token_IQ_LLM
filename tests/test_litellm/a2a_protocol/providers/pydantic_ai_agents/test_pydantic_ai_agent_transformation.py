@@ -8,7 +8,7 @@ Tests the helper functions and response transformation without making real API c
 import pytest
 
 
-from litellm.a2a_protocol.providers.pydantic_ai_agents.transformation import (
+from token_iq.gateway.a2a_protocol.providers.pydantic_ai_agents.transformation import (
     PydanticAITransformation,
 )
 

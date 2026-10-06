@@ -4,19 +4,19 @@ import json
 import pytest
 
 
-import litellm
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_openai_transformation import (
     AmazonBedrockOpenAIConfig,
 )
-from litellm.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
     AmazonInvokeConfig,
 )
-from litellm.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
+from token_iq.gateway.llms.bedrock.messages.invoke_transformations.anthropic_claude3_transformation import (
     AmazonAnthropicClaudeMessagesConfig,
 )
-from litellm.llms.bedrock.request_metadata import (
+from token_iq.gateway.llms.bedrock.request_metadata import (
     BEDROCK_REQUEST_METADATA_HEADER,
     BEDROCK_REQUEST_METADATA_MAX_PAIRS,
     resolve_bedrock_request_metadata,

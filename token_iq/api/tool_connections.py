@@ -13,8 +13,8 @@ from typing import Final
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.tool_connections import (
     ToolConnection,
     ToolConnectionAccount,
@@ -132,7 +132,7 @@ async def tool_connections(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> ToolConnectionsResponse:
     """One row per user tool, with one row per stored account inside it."""
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
     from token_iq.connectors.tools.scheduled import build_tool_credentials_lookup
 
     _admin_or_403(user_api_key_dict)

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm._logging import (
+from token_iq.gateway._logging import (
     JsonFormatter,
     _redact_string,
     _secret_filter,
@@ -19,7 +19,7 @@ from litellm._logging import (
     verbose_proxy_logger,
     verbose_router_logger,
 )
-from litellm.litellm_core_utils.secret_redaction import redact_internal_details, redact_string
+from token_iq.gateway.core_utils.secret_redaction import redact_internal_details, redact_string
 
 SECRET = "sk-proj-abc123def456ghi789jklmnopqrst"
 
@@ -27,7 +27,7 @@ SECRET = "sk-proj-abc123def456ghi789jklmnopqrst"
 @pytest.fixture(autouse=True)
 def _enable_redaction():
     """Ensure secret redaction is on (the default) for all tests in this module."""
-    with patch("litellm._logging._ENABLE_SECRET_REDACTION", True):
+    with patch("token_iq.gateway._logging._ENABLE_SECRET_REDACTION", True):
         yield
 
 
@@ -262,7 +262,7 @@ def test_filter_redacts_secrets_substituted_into_color_message():
 
 def test_disable_redaction_passes_secrets_through():
     """When LITELLM_DISABLE_REDACT_SECRETS=true, secrets pass through."""
-    with patch("litellm._logging._ENABLE_SECRET_REDACTION", False):
+    with patch("token_iq.gateway._logging._ENABLE_SECRET_REDACTION", False):
         record = logging.LogRecord(
             name="test",
             level=logging.DEBUG,
@@ -718,6 +718,6 @@ def test_redact_internal_details_drops_embedded_traceback():
 
 
 def test_redact_internal_details_from_client_message_respects_disable_flag():
-    with patch("litellm._logging._ENABLE_SECRET_REDACTION", False):  # test-quality-ok: the opt-out flag is the SUT
+    with patch("token_iq.gateway._logging._ENABLE_SECRET_REDACTION", False):  # test-quality-ok: the opt-out flag is the SUT
         text = "config file /etc/litellm/secrets/db.yaml"
         assert redact_internal_details_from_client_message(text) == text

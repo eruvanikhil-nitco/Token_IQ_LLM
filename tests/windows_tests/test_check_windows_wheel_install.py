@@ -23,7 +23,7 @@ def test_flags_entry_one_char_over_budget(tmp_path):
 def test_allows_entry_exactly_at_budget(tmp_path):
     at_limit = "a" * (MAX_PATH - WORST_CASE_PREFIX)
     assert (
-        overlong_install_paths(_wheel(tmp_path, at_limit, "litellm/__init__.py")) == []
+        overlong_install_paths(_wheel(tmp_path, at_limit, "token_iq/gateway/__init__.py")) == []
     )
 
 

@@ -7,12 +7,12 @@ import httpx
 import pytest
 
 
-from litellm.llms.openrouter.common_utils import OpenRouterException
-from litellm.llms.openrouter.image_edit.transformation import (
+from token_iq.gateway.llms.openrouter.common_utils import OpenRouterException
+from token_iq.gateway.llms.openrouter.image_edit.transformation import (
     OpenRouterImageEditConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import ImageResponse
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import ImageResponse
 
 
 class TestOpenRouterImageEditTransformation:
@@ -163,7 +163,7 @@ class TestOpenRouterImageEditTransformation:
 
     # Validate environment tests
 
-    @patch("litellm.llms.openrouter.image_edit.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.get_secret_str")
     def test_validate_environment_with_api_key(self, mock_get_secret):
         """Test that validate_environment sets authorization header with provided key."""
         headers = {}
@@ -176,7 +176,7 @@ class TestOpenRouterImageEditTransformation:
         assert result["Authorization"] == "Bearer test_api_key"
         mock_get_secret.assert_not_called()
 
-    @patch("litellm.llms.openrouter.image_edit.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.get_secret_str")
     def test_validate_environment_with_secret_key(self, mock_get_secret):
         """Test that validate_environment falls back to secret key."""
         mock_get_secret.return_value = "secret_api_key"
@@ -189,8 +189,8 @@ class TestOpenRouterImageEditTransformation:
 
         assert result["Authorization"] == "Bearer secret_api_key"
 
-    @patch("litellm.llms.openrouter.image_edit.transformation.litellm")
-    @patch("litellm.llms.openrouter.image_edit.transformation.get_secret_str")
+    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.litellm")
+    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.get_secret_str")
     def test_validate_environment_missing_api_key_raises(
         self, mock_get_secret, mock_litellm
     ):

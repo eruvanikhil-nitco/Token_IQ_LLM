@@ -10,7 +10,7 @@ def test_helicone_gemini_model_in_list():
     """
     Test that Gemini models are in the helicone_model_list.
     """
-    from litellm.integrations.helicone import HeliconeLogger
+    from token_iq.gateway.integrations.helicone import HeliconeLogger
 
     logger = HeliconeLogger()
 
@@ -24,7 +24,7 @@ def test_helicone_gemini_models_recognized():
     """
     Test that Gemini models are recognized and not replaced with gpt-3.5-turbo.
     """
-    from litellm.integrations.helicone import HeliconeLogger
+    from token_iq.gateway.integrations.helicone import HeliconeLogger
 
     logger = HeliconeLogger()
 
@@ -80,7 +80,7 @@ def test_helicone_vertex_gemini_gets_vertex_provider_url():
     """
     from unittest.mock import MagicMock, patch
 
-    from litellm.integrations.helicone import HeliconeLogger
+    from token_iq.gateway.integrations.helicone import HeliconeLogger
 
     logger = HeliconeLogger()
 
@@ -116,7 +116,7 @@ def test_helicone_vertex_gemini_gets_vertex_provider_url():
         captured.clear()
         mock_client = MagicMock()
         mock_client.post = mock_post
-        with patch("litellm.module_level_client", mock_client):
+        with patch("token_iq.gateway.module_level_client", mock_client):
             logger.log_success(
                 model=model,
                 messages=[{"role": "user", "content": "test"}],

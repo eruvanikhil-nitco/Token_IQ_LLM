@@ -16,9 +16,9 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
-from litellm.llms.bedrock.common_utils import init_bedrock_client
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.common_utils import init_bedrock_client
 
 
 class TestBedrockSSLVerify:
@@ -254,7 +254,7 @@ class TestBedrockSSLVerify:
             os.environ.pop("SSL_CERT_FILE", None)
             os.unlink(ca_bundle_path)
 
-    @patch("litellm.llms.bedrock.base_aws_llm.get_secret")
+    @patch("token_iq.gateway.llms.bedrock.base_aws_llm.get_secret")
     @patch("boto3.client")
     def test_base_aws_llm_auth_with_web_identity_passes_ssl_verify(
         self, mock_boto3_client, mock_get_secret

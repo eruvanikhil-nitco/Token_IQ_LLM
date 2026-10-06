@@ -7,7 +7,7 @@ class TestContentFilterPathTraversal:
     """Tests that _resolve_category_file_path rejects path traversal."""
 
     def _get_guardrail(self):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -28,7 +28,7 @@ class TestContentFilterPathTraversal:
         categories_dir = os.path.join(
             os.path.dirname(
                 __import__(
-                    "litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
+                    "token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
                     fromlist=["content_filter"],
                 ).__file__
             ),
@@ -41,7 +41,7 @@ class TestContentFilterPathTraversal:
         assert result == valid_file
 
     def test_invalid_category_name_skipped(self):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -56,7 +56,7 @@ class TestContentFilterPathTraversal:
         assert "../../etc/passwd" not in guardrail.loaded_categories
 
     def test_category_name_with_slash_skipped(self):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -72,14 +72,14 @@ class TestContentFilterPathTraversal:
         assert "foo/../../etc/passwd" not in guardrail.loaded_categories
 
     def test_assert_within_categories_dir_blocks_parent_traversal(self):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
         categories_dir = os.path.join(
             os.path.dirname(
                 __import__(
-                    "litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
+                    "token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
                     fromlist=["content_filter"],
                 ).__file__
             ),
@@ -91,7 +91,7 @@ class TestContentFilterPathTraversal:
             )
 
     def test_assert_within_categories_dir_allows_valid_file(self, tmp_path):
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -102,7 +102,7 @@ class TestContentFilterPathTraversal:
 
     def test_assert_within_categories_dir_commonpath_raises_valueerror(self, tmp_path):
         """Cover the except-ValueError branch (Windows cross-drive paths)."""
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -125,7 +125,7 @@ class TestContentFilterPathTraversal:
         categories_dir = os.path.join(
             os.path.dirname(
                 __import__(
-                    "litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
+                    "token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
                     fromlist=["content_filter"],
                 ).__file__
             ),
@@ -144,7 +144,7 @@ class TestContentFilterPathTraversal:
         categories_dir = os.path.join(
             os.path.dirname(
                 __import__(
-                    "litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
+                    "token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter",
                     fromlist=["content_filter"],
                 ).__file__
             ),
@@ -161,7 +161,7 @@ class TestContentFilterPathTraversal:
 
     def test_load_categories_traversal_category_file_skipped(self):
         """Cover the except-ValueError branch in _load_categories (lines 451-454)."""
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 
@@ -186,7 +186,7 @@ class TestContentFilterPathTraversal:
     def test_allow_external_paths_env_var_bypasses_jail(self, tmp_path):
         """LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS=true skips the directory jail."""
         import os as _os
-        from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
 

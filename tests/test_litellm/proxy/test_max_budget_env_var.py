@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.mark.asyncio
@@ -19,10 +19,10 @@ async def test_max_budget_string_converted_to_float():
     `litellm.max_budget > 0` doesn't raise TypeError.
     """
     with (
-        patch("litellm.proxy.common_utils.banner.show_banner"),
-        patch("litellm.proxy.proxy_server.generate_feedback_box"),
+        patch("token_iq.gateway.proxy.common_utils.banner.show_banner"),
+        patch("token_iq.gateway.proxy.proxy_server.generate_feedback_box"),
     ):
-        from litellm.proxy.proxy_server import initialize
+        from token_iq.gateway.proxy.proxy_server import initialize
 
         original = litellm.max_budget
         try:
@@ -37,10 +37,10 @@ async def test_max_budget_string_converted_to_float():
 async def test_max_budget_float_stays_float():
     """max_budget as float should still work."""
     with (
-        patch("litellm.proxy.common_utils.banner.show_banner"),
-        patch("litellm.proxy.proxy_server.generate_feedback_box"),
+        patch("token_iq.gateway.proxy.common_utils.banner.show_banner"),
+        patch("token_iq.gateway.proxy.proxy_server.generate_feedback_box"),
     ):
-        from litellm.proxy.proxy_server import initialize
+        from token_iq.gateway.proxy.proxy_server import initialize
 
         original = litellm.max_budget
         try:

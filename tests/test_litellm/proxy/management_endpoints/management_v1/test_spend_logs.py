@@ -6,16 +6,16 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import LiteLLMRoutes, LitellmUserRoles
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
-from litellm.proxy.list_api.common import (
+from token_iq.gateway.proxy._types import LiteLLMRoutes, LitellmUserRoles
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
+from token_iq.gateway.proxy.list_api.common import (
     PROBLEM_TYPE_BASE,
     ManagementProblem,
     problem_response,
 )
-from litellm.proxy.management_endpoints.management_v1 import router
-from litellm.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
-from litellm.types.proxy.management_endpoints.management_v1 import ProblemDetail
+from token_iq.gateway.proxy.management_endpoints.management_v1 import router
+from token_iq.gateway.proxy.management_endpoints.management_v1.common import MANAGEMENT_V1_PREFIX
+from token_iq.gateway.types.proxy.management_endpoints.management_v1 import ProblemDetail
 
 app = FastAPI()
 
@@ -52,7 +52,7 @@ WINDOW = "filter[startTime][gte]=2026-07-23T00:00:00Z&filter[startTime][lte]=202
 def mock_prisma_client(monkeypatch):
     prisma_client = MagicMock()
     prisma_client.db.query_raw = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client)
     return prisma_client
 
 
@@ -138,7 +138,7 @@ def test_reads_spend_logs_not_the_end_user_table(mock_prisma_client, as_proxy_ad
 
 def test_caps_the_rows_it_scans(mock_prisma_client, as_proxy_admin):
     """The inner LIMIT is the crash guard: DISTINCT must never see an unbounded set."""
-    from litellm.proxy.management_endpoints.management_v1.spend_logs import (
+    from token_iq.gateway.proxy.management_endpoints.management_v1.spend_logs import (
         SPEND_LOGS_FACET_SCAN_CAP,
     )
 
@@ -159,10 +159,10 @@ def test_scan_cap_matches_the_logs_page_bound():
     Asserting the param equals the constant is tautological: raising the constant
     to a billion keeps that assertion green while removing the bound entirely.
     """
-    from litellm.proxy.management_endpoints.management_v1.spend_logs import (
+    from token_iq.gateway.proxy.management_endpoints.management_v1.spend_logs import (
         SPEND_LOGS_FACET_SCAN_CAP,
     )
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         SPEND_LOGS_PAGINATION_COUNT_CAP,
     )
 
@@ -286,7 +286,7 @@ def test_scopes_a_team_admin_to_their_own_rows_and_teams(mock_prisma_client, rol
     original = _as_role(role, user_id="team-admin-1")
     try:
         with patch(
-            "litellm.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
+            "token_iq.gateway.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
             new=AsyncMock(return_value=["team-a", "team-b"]),
         ):
             response = _get()
@@ -305,7 +305,7 @@ def test_scopes_a_teamless_user_to_their_own_rows(mock_prisma_client):
     original = _as_role(LitellmUserRoles.INTERNAL_USER, user_id="solo")
     try:
         with patch(
-            "litellm.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
+            "token_iq.gateway.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
             new=AsyncMock(return_value=[]),
         ):
             response = _get()
@@ -325,7 +325,7 @@ def test_returns_nothing_when_the_caller_owns_no_scope(mock_prisma_client):
     original = _as_role(LitellmUserRoles.INTERNAL_USER, user_id=None)
     try:
         with patch(
-            "litellm.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
+            "token_iq.gateway.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
             new=AsyncMock(return_value=[]),
         ):
             response = _get()
@@ -342,7 +342,7 @@ def test_scopes_when_the_permitted_team_lookup_fails(mock_prisma_client):
     original = _as_role(LitellmUserRoles.INTERNAL_USER, user_id="solo")
     try:
         with patch(
-            "litellm.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
+            "token_iq.gateway.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
             new=AsyncMock(side_effect=RuntimeError("db down")),
         ):
             response = _get()
@@ -425,7 +425,7 @@ def test_user_facet_uses_the_same_team_scope_as_request_logs(mock_prisma_client)
     original = _as_role(LitellmUserRoles.INTERNAL_USER, user_id="team-admin-1")
     try:
         with patch(
-            "litellm.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
+            "token_iq.gateway.proxy.spend_tracking.spend_management_endpoints._get_permitted_team_ids_for_spend_logs",
             new=AsyncMock(return_value=["team-a"]),
         ):
             response = _get_users()
@@ -462,7 +462,7 @@ def test_is_reachable_by_every_role_that_can_open_the_logs_page(role):
 
     Handler-side team scoping is dead code if RouteChecks rejects the role first.
     """
-    from litellm.proxy.auth.route_checks import RouteChecks
+    from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 
     for facet_path in (END_USERS_PATH, USERS_PATH):
         for allowed in (

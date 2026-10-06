@@ -5,13 +5,13 @@ import httpx
 import pytest
 
 
-import litellm
-from litellm.llms.gemini.audio_transcription.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gemini.audio_transcription.transformation import (
     GeminiAudioTranscriptionConfig,
 )
-from litellm.llms.gemini.common_utils import GeminiError
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.llms.gemini.common_utils import GeminiError
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 AUDIO_BYTES = b"RIFF....WAVEfmt fake-wav-bytes"
 
@@ -254,8 +254,8 @@ class TestSubtitleSynthesisThroughHandler:
     def _transform(self, config, response_format):
         from unittest.mock import Mock
 
-        from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-        from litellm.types.utils import TranscriptionResponse
+        from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+        from token_iq.gateway.types.utils import TranscriptionResponse
 
         return BaseLLMHTTPHandler()._transform_audio_transcription_response(
             provider_config=config,

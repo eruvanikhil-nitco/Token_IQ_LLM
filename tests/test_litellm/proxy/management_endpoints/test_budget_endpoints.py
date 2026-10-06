@@ -8,9 +8,9 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 
-import litellm.proxy.proxy_server as ps
-from litellm.proxy.proxy_server import app
-from litellm.proxy._types import UserAPIKeyAuth, LitellmUserRoles, CommonProxyErrors
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy.proxy_server import app
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles, CommonProxyErrors
 
 
 
@@ -107,7 +107,7 @@ async def test_new_budget_db_not_connected(client_and_mocks, monkeypatch):
     client, mock_prisma, mock_table = client_and_mocks
 
     # override the prisma_client that the handler imports at runtime
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
@@ -152,7 +152,7 @@ async def test_update_budget_db_not_connected(client_and_mocks, monkeypatch):
     client, mock_prisma, mock_table = client_and_mocks
 
     # override the prisma_client that the handler imports at runtime
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
@@ -279,7 +279,7 @@ async def test_new_budget_invalid_model_max_budget(client_and_mocks, monkeypatch
     Test that /budget/new validates model_max_budget and returns 400 for invalid structure.
     Per-model budget implementation: validate_model_max_budget is called in new_budget.
     """
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "premium_user", True)
 

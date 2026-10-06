@@ -9,16 +9,16 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 
-import litellm.proxy.proxy_server as proxy_server_module
-from litellm.proxy._types import ProxyException
-from litellm.proxy.proxy_server import (
+import token_iq.gateway.proxy.proxy_server as proxy_server_module
+from token_iq.gateway.proxy._types import ProxyException
+from token_iq.gateway.proxy.proxy_server import (
     _close_dangling_otel_server_span,
     openai_exception_handler,
     otel_request_validation_exception_handler,
     otel_unhandled_exception_handler,
 )
 
-from litellm.integrations._types.open_inference import ErrorAttributes
+from token_iq.gateway.integrations._types.open_inference import ErrorAttributes
 
 from ._helpers import assert_server_span_attrs, get_server_span
 

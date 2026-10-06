@@ -11,9 +11,9 @@ from unittest.mock import patch, MagicMock
 import asyncio
 import pytest
 
-import litellm
-from litellm.integrations.arize.arize import ArizeLogger
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.arize.arize import ArizeLogger
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 class TestArizeHealthCheck:

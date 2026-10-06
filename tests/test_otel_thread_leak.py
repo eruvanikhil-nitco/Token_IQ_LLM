@@ -7,8 +7,8 @@ import pytest
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from litellm.integrations.opentelemetry import OpenTelemetry, OpenTelemetryConfig
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry, OpenTelemetryConfig
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 def get_thread_count() -> int:

@@ -18,7 +18,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import FastAPI
 
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     _generate_stable_operation_id,
     _get_cors_config,
     _inject_websocket_stubs_into_openapi_schema,
@@ -223,7 +223,7 @@ def test_inject_websocket_stubs_into_openapi_schema_missing_paths_key_raises_err
 def test_get_openapi_schema_returns_well_formed_schema(monkeypatch):
     """Patch ps.app to a fresh FastAPI so we get a deterministic minimal schema
     without depending on whatever the session app currently has cached."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     fresh = FastAPI(title="pinned-title", version="0.0.1")
 
@@ -252,7 +252,7 @@ def test_get_openapi_schema_returns_well_formed_schema(monkeypatch):
 def test_get_openapi_schema_returns_cached_when_present(monkeypatch):
     """When the patched app already has openapi_schema set, the function
     returns it untouched (no regeneration)."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     fresh = FastAPI()
     sentinel = {"openapi": "3.0.0", "paths": {}, "info": {"title": "cached"}}
@@ -274,7 +274,7 @@ def test_get_openapi_schema_returns_cached_when_present(monkeypatch):
 def test_get_openapi_schema_missing_app_attribute_raises_error(monkeypatch):
     """If the module-level ``app`` is replaced by something without
     ``openapi_schema`` and without ``routes``, the function fails fast."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "app", SimpleNamespace(), raising=True)
     with pytest.raises(AttributeError):
@@ -289,7 +289,7 @@ def test_get_openapi_schema_missing_app_attribute_raises_error(monkeypatch):
 def test_custom_openapi_filters_to_openai_routes(monkeypatch):
     """custom_openapi() filters paths down to the OpenAI-compatible set and
     caches the result on the patched app."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     fresh = FastAPI(title="pinned-custom", version="0.0.1")
 
@@ -316,7 +316,7 @@ def test_custom_openapi_filters_to_openai_routes(monkeypatch):
 
 
 def test_custom_openapi_returns_cached_when_present(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     fresh = FastAPI()
     sentinel = {"openapi": "3.0.0", "paths": {}, "info": {"title": "cached"}}
@@ -336,7 +336,7 @@ def test_custom_openapi_returns_cached_when_present(monkeypatch):
 
 
 def test_custom_openapi_missing_app_attribute_raises_error(monkeypatch):
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     monkeypatch.setattr(ps, "app", SimpleNamespace(), raising=True)
     with pytest.raises(AttributeError):
@@ -351,7 +351,7 @@ def test_custom_openapi_missing_app_attribute_raises_error(monkeypatch):
 def test_mount_swagger_ui_mounts_static_route(monkeypatch):
     """mount_swagger_ui mutates the global app — patch the module's `app` to a
     fresh FastAPI() so we don't pollute the session app's mount table."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
     from fastapi import applications as fa_applications
 
     fresh_app = FastAPI()
@@ -381,7 +381,7 @@ def test_mount_swagger_ui_mounts_static_route(monkeypatch):
 
 def test_mount_swagger_ui_missing_directory_raises_error(monkeypatch, tmp_path):
     """If the swagger directory is missing, StaticFiles raises RuntimeError."""
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
     from fastapi import applications as fa_applications
 
     fresh_app = FastAPI()

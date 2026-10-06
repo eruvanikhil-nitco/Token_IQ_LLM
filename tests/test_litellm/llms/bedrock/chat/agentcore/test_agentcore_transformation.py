@@ -16,8 +16,8 @@ import pytest
 
 from unittest.mock import MagicMock, Mock, patch
 
-import litellm
-from litellm.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
 
 
 class TestAgentCoreAcceptHeader:
@@ -72,7 +72,7 @@ class TestAgentCoreAcceptHeader:
         injected client was silently ignored and a real network call was made),
         the test must fail with that error, not a misleading mock assertion.
         """
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
         mock_response = Mock(spec=httpx.Response)
@@ -275,7 +275,7 @@ class TestAgentCoreStreamingJsonFallback:
         content is extracted and returned instead of silently returning empty.
         Exercises the full path through litellm.completion().
         """
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
         json_body = {"response": [{"text": "Strands sync response"}]}
@@ -310,7 +310,7 @@ class TestAgentCoreStreamingJsonFallback:
         """
         from unittest.mock import AsyncMock
 
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
         client = AsyncHTTPHandler()
         json_body = {"response": [{"text": "Strands async response"}]}
@@ -345,7 +345,7 @@ class TestAgentCoreStreamingJsonFallback:
         is malformed JSON, an error is raised with a descriptive message
         (not a raw JSONDecodeError).
         """
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
 
@@ -373,7 +373,7 @@ class TestAgentCoreStreamingJsonFallback:
         """
         from unittest.mock import AsyncMock
 
-        from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
         client = AsyncHTTPHandler()
 

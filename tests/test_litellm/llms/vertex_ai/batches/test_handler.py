@@ -1,5 +1,5 @@
 """
-Unit tests for ``VertexAIBatchPrediction`` (litellm/llms/vertex_ai/batches/handler.py).
+Unit tests for ``VertexAIBatchPrediction`` (token_iq/gateway/llms/vertex_ai/batches/handler.py).
 
 The handler is HTTP/auth glue around the (separately-tested) pure
 ``VertexAIBatchTransformation``. Each public method (create / retrieve / list /
@@ -36,13 +36,13 @@ import httpx
 import pytest
 
 
-from litellm.llms.vertex_ai.batches.handler import (  # noqa: E402
+from token_iq.gateway.llms.vertex_ai.batches.handler import (  # noqa: E402
     VertexAIBatchPrediction,
 )
-from litellm.llms.vertex_ai.common_utils import VertexAIError  # noqa: E402
-from litellm.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError  # noqa: E402
+from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
 
-HMOD = "litellm.llms.vertex_ai.batches.handler"
+HMOD = "token_iq.gateway.llms.vertex_ai.batches.handler"
 TOKEN = "ya29.fake-access-token"
 PROJECT = "my-project"
 LOCATION = "us-central1"
@@ -314,7 +314,7 @@ def test_retrieve_batch_sync_non_200_raises():
 def test_retrieve_batch_sync_invokes_logging_pre_call():
     """When a real ``Logging`` obj is passed, ``pre_call`` is invoked with the
     request url + headers (the curl-redaction branch)."""
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     h = _make_handler()
     logging_obj = MagicMock(spec=LiteLLMLogging)
@@ -662,7 +662,7 @@ def test_async_retrieve_batch_non_200_raises():
 
 
 def test_async_retrieve_batch_invokes_logging_pre_call():
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     h = _make_handler()
     logging_obj = MagicMock(spec=LiteLLMLogging)

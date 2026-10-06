@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/batches/batch_utils.py
+Unit tests for token_iq/gateway/batches/batch_utils.py
 
 batch_utils.py is the batch cost/usage/parsing layer: it turns a batch output
 JSONL into spend (cost), token usage, and the list of models seen, and counts
@@ -23,9 +23,9 @@ import pytest
 import respx
 
 
-import litellm
-import litellm.batches.batch_utils as bu
-from litellm.types.utils import Usage
+from token_iq import gateway as litellm
+import token_iq.gateway.batches.batch_utils as bu
+from token_iq.gateway.types.utils import Usage
 
 # --------------------------------------------------------------------------- #
 # Builders for batch OUTPUT file rows.
@@ -557,7 +557,7 @@ def test_empty_body_line_does_not_zero_whole_batch():
 
 def test_cost_from_content_model_info_path(monkeypatch):
     # model_info set -> batch_cost_calculator(prompt_cost, completion_cost).
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.1, 0.2))
     rows = [
@@ -649,7 +649,7 @@ async def test_calculate_vertex_disable_transform_needs_model_name(monkeypatch):
 
 
 def test_vertex_cost_and_usage_aggregation(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.1, 0.2))
     responses = [
@@ -686,7 +686,7 @@ def test_vertex_cost_and_usage_aggregation(monkeypatch):
 
 
 def test_vertex_cost_skips_none_response_body(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (1.0, 0.0))
     responses = [
@@ -712,7 +712,7 @@ def test_vertex_cost_skips_none_response_body(monkeypatch):
 
 def test_vertex_usage_total_token_fallback(monkeypatch):
     # no totalTokenCount -> falls back to prompt + completion.
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.0, 0.0))
     responses = [{"response": {"usageMetadata": {"promptTokenCount": 8, "candidatesTokenCount": 4}}}]
@@ -723,7 +723,7 @@ def test_vertex_usage_total_token_fallback(monkeypatch):
 
 def test_vertex_cost_error_in_line_is_swallowed(monkeypatch):
     # a cost error on one line must not abort aggregation; usage still tallies.
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     def _boom(**kw):
         raise RuntimeError("price map miss")
@@ -769,7 +769,7 @@ async def test_calculate_batch_cost_and_usage_orchestration(monkeypatch):
 
 
 def _batch(output_file_id):
-    from litellm.types.llms.openai import Batch
+    from token_iq.gateway.types.llms.openai import Batch
 
     return Batch(
         id="b",
@@ -814,7 +814,7 @@ def _vertex_jsonl(rows):
 
 @pytest.mark.asyncio
 async def test_output_file_content_vertex_fetches_via_afile_content(monkeypatch):
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     rows = [_vertex_openai_row("request-1", "gemini-3.6-flash", 10, 5)]
     captured: dict = {}
@@ -851,7 +851,7 @@ async def test_output_file_content_vertex_fetches_via_afile_content(monkeypatch)
 async def test_output_file_content_vertex_unified_file_id_extracts_gcs_uri(monkeypatch):
     import base64
 
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     captured: dict = {}
 
@@ -874,8 +874,8 @@ async def test_output_file_content_vertex_unified_file_id_extracts_gcs_uri(monke
 
 @pytest.mark.asyncio
 async def test_output_file_content_model_encoded_file_id_decoded_to_provider_id(monkeypatch):
-    import litellm.files.main as files_main
-    from litellm.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
+    import token_iq.gateway.files.main as files_main
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import encode_file_id_with_model
 
     captured: dict = {}
 
@@ -894,7 +894,7 @@ async def test_output_file_content_model_encoded_file_id_decoded_to_provider_id(
 
 @pytest.mark.asyncio
 async def test_output_file_content_raw_openai_file_id_passes_through(monkeypatch):
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     captured: dict = {}
 
@@ -1003,7 +1003,7 @@ async def test_output_file_content_vertex_foreign_bucket_rejected_by_real_valida
 
 @pytest.mark.asyncio
 async def test_handle_completed_vertex_batch_computes_cost_usage_and_models(monkeypatch):
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     rows = [
         _vertex_openai_row("request-1", "gemini-3.6-flash", 10, 5),
@@ -1043,8 +1043,8 @@ async def test_output_file_content_no_output_file_id_raises():
 
 @pytest.mark.asyncio
 async def test_output_file_content_fetches_and_parses(monkeypatch):
-    import litellm.files.main as files_main
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.files.main as files_main
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     captured: dict = {}
 
@@ -1074,8 +1074,8 @@ async def test_output_file_content_fetches_and_parses(monkeypatch):
 async def test_output_file_content_unified_file_id_extraction(monkeypatch):
     # a base64 unified id carries the real provider file id inside
     # "llm_output_file_id,<FID>;" - it must be unwrapped before the fetch.
-    import litellm.files.main as files_main
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.files.main as files_main
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     captured: dict = {}
 
@@ -1122,7 +1122,7 @@ async def test_handle_completed_batch_counts_error_file_failures(monkeypatch):
     """Regression test: OpenAI writes per-request failures (e.g. a rejected param)
     to a separate error_file_id, never into the output file - so failed_requests
     must include them or it silently undercounts real batch failures."""
-    from litellm.types.llms.openai import Batch
+    from token_iq.gateway.types.llms.openai import Batch
 
     rows = [_success_row(model="gpt-5-mini", usage=_usage(24, 107))]
     error_rows = [
@@ -1140,7 +1140,7 @@ async def test_handle_completed_batch_counts_error_file_failures(monkeypatch):
     async def fake_afile_content(**kw):
         return type("R", (), {"content": _vertex_jsonl(error_rows)})()
 
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
     monkeypatch.setattr(files_main, "afile_content", fake_afile_content)
@@ -1171,7 +1171,7 @@ async def test_handle_completed_batch_decodes_model_encoded_error_file_id(monkey
     the provider 404s, and the swallowed fetch failure silently reports 0 failures."""
     import base64
 
-    from litellm.types.llms.openai import Batch
+    from token_iq.gateway.types.llms.openai import Batch
 
     provider_error_file_id = "file-real-error-id"
     encoded_error_file_id = "file-" + base64.urlsafe_b64encode(
@@ -1187,7 +1187,7 @@ async def test_handle_completed_batch_decodes_model_encoded_error_file_id(monkey
         requested_file_ids.append(kw["file_id"])
         return type("R", (), {"content": _vertex_jsonl([{"custom_id": "bad-1"}])})()
 
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
     monkeypatch.setattr(files_main, "afile_content", fake_afile_content)
@@ -1395,7 +1395,7 @@ def test_bedrock_cost_uses_deployment_model_name():
 
 
 def test_anthropic_total_usage_sums_succeeded_only(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.0, 0.0))
     rows = [
@@ -1410,7 +1410,7 @@ def test_anthropic_total_usage_sums_succeeded_only(monkeypatch):
 
 
 def test_anthropic_total_usage_aggregates_cache_token_details(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.0, 0.0))
     rows = [
@@ -1457,7 +1457,7 @@ def test_anthropic_cost_applies_batch_discount_and_cache_pricing():
 
 
 def test_anthropic_cost_without_model_info_uses_batch_cost_calculator(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     seen = []
 
@@ -1481,7 +1481,7 @@ def test_anthropic_cost_without_model_info_uses_batch_cost_calculator(monkeypatc
 
 
 def test_anthropic_batch_models_collected_from_succeeded_rows(monkeypatch):
-    import litellm.cost_calculator as cc
+    import token_iq.gateway.cost_calculator as cc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", lambda **kw: (0.0, 0.0))
     rows = [
@@ -1546,7 +1546,7 @@ def test_extract_credentials_forwards_the_deployment_aws_credentials():
 
 @pytest.mark.asyncio
 async def test_output_file_content_bedrock_reads_with_deployment_aws_credentials(monkeypatch):
-    import litellm.files.main as files_main
+    import token_iq.gateway.files.main as files_main
 
     captured: dict = {}
 

@@ -3,8 +3,8 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.constants import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import (
     ANTHROPIC_MIN_THINKING_BUDGET_TOKENS,
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_LOW_THINKING_BUDGET,
@@ -13,12 +13,12 @@ from litellm.constants import (
     DEFAULT_REASONING_EFFORT_XHIGH_THINKING_BUDGET,
     RESPONSE_FORMAT_TOOL_NAME,
 )
-from litellm.llms.anthropic.chat.transformation import AnthropicConfig
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
-from litellm.types.llms.anthropic import ANTHROPIC_BETA_HEADER_VALUES
-from litellm.types.utils import ServerToolUse, Usage
+from token_iq.gateway.types.llms.anthropic import ANTHROPIC_BETA_HEADER_VALUES
+from token_iq.gateway.types.utils import ServerToolUse, Usage
 
 
 def test_response_format_transformation_unit_test():
@@ -131,7 +131,7 @@ def test_streaming_iterator_persists_served_speed_across_usage_chunks():
     value so the last usage chunk, which wins in the stream chunk builder, does
     not fall back to the requested speed.
     """
-    from litellm.llms.anthropic.chat.handler import ModelResponseIterator
+    from token_iq.gateway.llms.anthropic.chat.handler import ModelResponseIterator
 
     iterator = ModelResponseIterator(None, sync_stream=True, speed="fast")
 
@@ -150,7 +150,7 @@ def test_calculate_usage_aggregates_cache_creation_split_across_iterations():
 
     Regression for LIT-4868.
     """
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
 
     config = AnthropicConfig()
     usage_object = {
@@ -202,7 +202,7 @@ def test_calculate_usage_bills_undetailed_iteration_cache_writes_at_5m_rate():
 
     Regression for the Cursor Bugbot finding on the LIT-4868 fix.
     """
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
 
     config = AnthropicConfig()
     usage_object = {
@@ -605,7 +605,7 @@ def test_server_tool_use_usage():
 
 
 def test_web_search_tool_transformation():
-    from litellm.types.llms.openai import OpenAIWebSearchOptions
+    from token_iq.gateway.types.llms.openai import OpenAIWebSearchOptions
 
     config = AnthropicConfig()
 
@@ -631,7 +631,7 @@ def test_web_search_tool_transformation():
 def test_web_search_tool_transformation_with_search_context_size(
     search_context_size, expected_max_uses
 ):
-    from litellm.types.llms.openai import OpenAIWebSearchOptions
+    from token_iq.gateway.types.llms.openai import OpenAIWebSearchOptions
 
     config = AnthropicConfig()
 
@@ -750,7 +750,7 @@ def test_web_search_tool_result_in_provider_specific_fields():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -996,7 +996,7 @@ def test_map_tool_choice_dict_type_function_without_name():
 def test_transform_response_with_prefix_prompt():
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -1213,8 +1213,8 @@ def test_anthropic_chat_transform_request_includes_context_management():
 
 
 def test_anthropic_structured_output_beta_header():
-    from litellm.types.utils import CallTypes
-    from litellm.utils import return_raw_request
+    from token_iq.gateway.types.utils import CallTypes
+    from token_iq.gateway.utils import return_raw_request
 
     response = return_raw_request(
         endpoint=CallTypes.completion,
@@ -1378,7 +1378,7 @@ def test_non_structured_output_model_uses_tool_workaround():
 
 def test_tool_search_regex_detection():
     """Test that tool search regex tools are properly detected"""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     config = AnthropicModelInfo()
 
@@ -1395,7 +1395,7 @@ def test_tool_search_regex_detection():
 
 def test_tool_search_bm25_detection():
     """Test that tool search BM25 tools are properly detected"""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     config = AnthropicModelInfo()
 
@@ -1408,7 +1408,7 @@ def test_tool_search_bm25_detection():
 
 def test_tool_search_beta_header():
     """Test that tool search beta header is automatically added"""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     config = AnthropicModelInfo()
 
@@ -1679,7 +1679,7 @@ def test_allowed_callers_field_preservation():
 
 def test_programmatic_tool_calling_beta_header():
     """Test that beta header is automatically added when programmatic tool calling is detected."""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model_info = AnthropicModelInfo()
 
@@ -1826,7 +1826,7 @@ def test_input_examples_field_preservation():
 
 def test_input_examples_beta_header():
     """Test that beta header is automatically added when input_examples is detected."""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model_info = AnthropicModelInfo()
 
@@ -1988,7 +1988,7 @@ def test_output_config_format_preservation_and_beta_header():
 
 def test_effort_beta_header_injection():
     """Test that effort beta header is automatically added when output_config is detected."""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model_info = AnthropicModelInfo()
 
@@ -2279,7 +2279,7 @@ def test_anthropic_model_supports_speed_param_rejects_non_anthropic_providers(
 def test_vertex_anthropic_drops_speed_for_opus_with_drop_params(monkeypatch):
     """Regression: vertex_ai Opus must drop ``speed`` even though the prefix-stripped
     ``claude-opus-4-8`` maps to a fast-mode-capable direct-Anthropic entry."""
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
         VertexAIAnthropicConfig,
     )
 
@@ -2298,7 +2298,7 @@ def test_vertex_anthropic_drops_speed_for_opus_with_drop_params(monkeypatch):
 def test_vertex_anthropic_raises_on_speed_without_drop_params(monkeypatch):
     """Regression: vertex_ai Opus raises rather than forwarding an unsupported
     ``speed`` when neither global nor per-request drop_params is set."""
-    from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
+    from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation import (
         VertexAIAnthropicConfig,
     )
 
@@ -2435,7 +2435,7 @@ def test_get_max_tokens_for_model_claude_35():
 
     # Claude 3.5 Sonnet should return 8192
     with patch(
-        "litellm.llms.anthropic.chat.transformation.get_max_tokens",
+        "token_iq.gateway.llms.anthropic.chat.transformation.get_max_tokens",
         return_value=8192,
     ):
         max_tokens = config.get_max_tokens_for_model("claude-3-5-sonnet-20241022")
@@ -2499,7 +2499,7 @@ def test_get_config_with_model_uses_dynamic_max_tokens():
         return result
 
     with patch(
-        "litellm.llms.anthropic.chat.transformation.get_max_tokens",
+        "token_iq.gateway.llms.anthropic.chat.transformation.get_max_tokens",
         side_effect=_mock_get_max_tokens,
     ):
         # Claude 3 model should get 4096
@@ -3248,7 +3248,7 @@ def test_effort_beta_header_not_injected_for_46_models():
     Claude 4.6 models use output_config as a stable API feature —
     no beta header should be injected.
     """
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model_info = AnthropicModelInfo()
 
@@ -3362,7 +3362,7 @@ def test_effort_beta_header_still_injected_for_older_models():
     Test that is_effort_used still returns True for pre-4.6 models
     when output_config is present.
     """
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model_info = AnthropicModelInfo()
 
@@ -3384,7 +3384,7 @@ def test_code_execution_tool_results_extraction():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -3510,7 +3510,7 @@ def test_code_execution_tool_results_in_hidden_params():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -3576,7 +3576,7 @@ def test_tool_search_tool_result_not_in_tool_results():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -3621,7 +3621,7 @@ def test_web_search_tool_result_backwards_compatibility():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -3725,7 +3725,7 @@ def test_compaction_block_in_provider_specific_fields():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -3805,7 +3805,7 @@ def test_compaction_block_request_transformation():
     Test that compaction blocks from provider_specific_fields are correctly
     transformed back to Anthropic format in requests.
     """
-    from litellm.litellm_core_utils.prompt_templates.factory import (
+    from token_iq.gateway.core_utils.prompt_templates.factory import (
         anthropic_messages_pt,
     )
 
@@ -4097,7 +4097,7 @@ def test_compaction_block_empty_list_not_added():
     """
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AnthropicConfig()
 
@@ -4194,17 +4194,17 @@ def test_fast_mode_cost_calculation():
     on top of the base model cost (1.1x for claude-opus-4-6).
     """
 
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
-    from litellm.types.utils import Usage
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.types.utils import Usage
 
     base_prompt = 0.005
     base_completion = 0.025
 
     with (
         patch(
-            "litellm.llms.anthropic.cost_calculation.generic_cost_per_token"
+            "token_iq.gateway.llms.anthropic.cost_calculation.generic_cost_per_token"
         ) as mock_cost,
-        patch("litellm.get_model_info") as mock_info,
+        patch("token_iq.gateway.get_model_info") as mock_info,
     ):
         mock_cost.return_value = (base_prompt, base_completion)
         mock_info.return_value = {"provider_specific_entry": {"fast": 1.1, "us": 1.1}}
@@ -4236,17 +4236,17 @@ def test_fast_mode_with_inference_geo():
     provider_specific_entry (1.1 * 1.1 = 1.21x for claude-opus-4-6).
     """
 
-    from litellm.llms.anthropic.cost_calculation import cost_per_token
-    from litellm.types.utils import Usage
+    from token_iq.gateway.llms.anthropic.cost_calculation import cost_per_token
+    from token_iq.gateway.types.utils import Usage
 
     base_prompt = 0.005
     base_completion = 0.025
 
     with (
         patch(
-            "litellm.llms.anthropic.cost_calculation.generic_cost_per_token"
+            "token_iq.gateway.llms.anthropic.cost_calculation.generic_cost_per_token"
         ) as mock_cost,
-        patch("litellm.get_model_info") as mock_info,
+        patch("token_iq.gateway.get_model_info") as mock_info,
     ):
         mock_cost.return_value = (base_prompt, base_completion)
         mock_info.return_value = {"provider_specific_entry": {"fast": 1.1, "us": 1.1}}
@@ -4734,7 +4734,7 @@ def test_strip_advisor_blocks_when_no_advisor_tool():
     Auto-strip removes server_tool_use(advisor) + advisor_tool_result blocks when
     advisor tool is absent, preventing Anthropic 400 on follow-up turns.
     """
-    from litellm.llms.anthropic.common_utils import strip_advisor_blocks_from_messages
+    from token_iq.gateway.llms.anthropic.common_utils import strip_advisor_blocks_from_messages
 
     messages = [
         {"role": "user", "content": "Build a worker pool."},
@@ -4768,7 +4768,7 @@ def test_strip_advisor_blocks_when_no_advisor_tool():
 
 def test_strip_advisor_blocks_no_op_when_no_advisor_blocks():
     """strip_advisor_blocks_from_messages is a no-op when no advisor blocks exist."""
-    from litellm.llms.anthropic.common_utils import strip_advisor_blocks_from_messages
+    from token_iq.gateway.llms.anthropic.common_utils import strip_advisor_blocks_from_messages
 
     messages = [
         {"role": "user", "content": "Hello"},
@@ -4799,7 +4799,7 @@ def test_strip_advisor_blocks_no_op_when_no_advisor_blocks():
 
 
 def test_basic_sanitize_anthropic_tool_name_replaces_invalid_chars():
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _basic_sanitize_anthropic_tool_name,
     )
 
@@ -4823,7 +4823,7 @@ def test_basic_sanitize_anthropic_tool_name_replaces_invalid_chars():
 
 def test_build_anthropic_tool_name_maps_no_collisions():
     """Names that need rewriting go in the maps; valid names stay out."""
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -4850,7 +4850,7 @@ def test_build_anthropic_tool_name_maps_disambiguates_collision_with_existing_va
     """If `foo/bar` would collapse to `foo_bar` but `foo_bar` already exists,
     the rewritten one must get a unique suffix and only THAT one shows up in
     the reverse map. The legitimately-named `foo_bar` round-trips identically."""
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -4869,7 +4869,7 @@ def test_build_anthropic_tool_name_maps_disambiguates_collision_with_existing_va
 def test_build_anthropic_tool_name_maps_disambiguates_two_rewrites_to_same_target():
     """Two different invalid names that collapse to the same candidate must
     both end up with unique sanitized forms."""
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -4884,7 +4884,7 @@ def test_build_anthropic_tool_name_maps_disambiguates_two_rewrites_to_same_targe
 
 def test_build_anthropic_tool_name_maps_three_way_collision():
     """`foo/bar`, `foo.bar`, and an existing `foo_bar` must all coexist."""
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -4904,7 +4904,7 @@ def test_build_anthropic_tool_name_maps_reverse_order_collision():
     """REGRESSION: when the invalid name appears *before* the valid name that
     its sanitized form collides with, both must still end up with distinct
     names on the wire."""
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -4927,7 +4927,7 @@ def test_build_anthropic_tool_name_maps_duplicate_originals():
     map, *both* tool entries got the suffixed name and Anthropic 400'd
     on duplicates.
     """
-    from litellm.llms.anthropic.chat.transformation import (
+    from token_iq.gateway.llms.anthropic.chat.transformation import (
         _build_anthropic_tool_name_maps,
     )
 
@@ -5147,7 +5147,7 @@ def test_transform_parsed_response_reverse_maps_tool_names():
             }
         ],
     }
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     model_response = ModelResponse()
 
@@ -5193,7 +5193,7 @@ def test_transform_parsed_response_does_not_rewrite_unmapped_names():
             }
         ],
     }
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     model_response = ModelResponse()
     out = config.transform_parsed_response(
@@ -5227,7 +5227,7 @@ def test_transform_parsed_response_no_reverse_map_is_noop():
             }
         ],
     }
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     model_response = ModelResponse()
     out = config.transform_parsed_response(
@@ -5240,7 +5240,7 @@ def test_transform_parsed_response_no_reverse_map_is_noop():
 
 def test_streaming_iterator_reverse_maps_tool_use_name():
     """Streaming `content_block_start` for tool_use should reverse-map the name."""
-    from litellm.llms.anthropic.chat.handler import ModelResponseIterator
+    from token_iq.gateway.llms.anthropic.chat.handler import ModelResponseIterator
 
     iterator = ModelResponseIterator(
         streaming_response=iter([]),
@@ -5270,7 +5270,7 @@ def test_streaming_iterator_reverse_maps_tool_use_name():
 
 
 def test_streaming_iterator_passthrough_when_name_not_in_map():
-    from litellm.llms.anthropic.chat.handler import ModelResponseIterator
+    from token_iq.gateway.llms.anthropic.chat.handler import ModelResponseIterator
 
     iterator = ModelResponseIterator(
         streaming_response=iter([]),
@@ -5783,7 +5783,7 @@ def test_translate_system_message_keeps_billing_header_for_first_party_anthropic
 
 
 def test_translate_system_message_strips_billing_header_for_bedrock():
-    from litellm.llms.bedrock.claude_platform.transformation import (
+    from token_iq.gateway.llms.bedrock.claude_platform.transformation import (
         BedrockClaudePlatformConfig,
     )
 
@@ -5800,7 +5800,7 @@ def test_translate_system_message_strips_billing_header_for_bedrock():
 
 
 def test_anthropic_messages_request_keeps_billing_header_for_first_party():
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     config = AnthropicMessagesConfig()
     assert config.should_strip_billing_metadata() is False
@@ -5825,8 +5825,8 @@ def test_anthropic_messages_request_keeps_billing_header_for_first_party():
 
 
 def test_anthropic_messages_request_strips_billing_header_for_minimax():
-    from litellm.llms.minimax.messages.transformation import MinimaxMessagesConfig
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.minimax.messages.transformation import MinimaxMessagesConfig
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     config = MinimaxMessagesConfig()
     assert config.should_strip_billing_metadata() is True
@@ -5851,7 +5851,7 @@ def test_anthropic_messages_request_strips_billing_header_for_minimax():
 
 
 def test_translate_system_message_strips_billing_header_for_bedrock_invoke():
-    from litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
+    from token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation import (
         AmazonAnthropicClaudeConfig,
     )
 
@@ -5870,45 +5870,45 @@ def test_translate_system_message_strips_billing_header_for_bedrock_invoke():
 @pytest.mark.parametrize(
     "module_path, class_name, expected_strip",
     [
-        ("litellm.llms.anthropic.chat.transformation", "AnthropicConfig", False),
+        ("token_iq.gateway.llms.anthropic.chat.transformation", "AnthropicConfig", False),
         (
-            "litellm.llms.anthropic.experimental_pass_through.messages.transformation",
+            "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation",
             "AnthropicMessagesConfig",
             False,
         ),
         (
-            "litellm.llms.bedrock.claude_platform.transformation",
+            "token_iq.gateway.llms.bedrock.claude_platform.transformation",
             "BedrockClaudePlatformConfig",
             True,
         ),
         (
-            "litellm.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation",
+            "token_iq.gateway.llms.bedrock.chat.invoke_transformations.anthropic_claude3_transformation",
             "AmazonAnthropicClaudeConfig",
             True,
         ),
         (
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.transformation",
             "VertexAIAnthropicConfig",
             True,
         ),
         (
-            "litellm.llms.azure_ai.anthropic.transformation",
+            "token_iq.gateway.llms.azure_ai.anthropic.transformation",
             "AzureAnthropicConfig",
             True,
         ),
-        ("litellm.llms.minimax.messages.transformation", "MinimaxMessagesConfig", True),
+        ("token_iq.gateway.llms.minimax.messages.transformation", "MinimaxMessagesConfig", True),
         (
-            "litellm.llms.azure_ai.anthropic.messages_transformation",
+            "token_iq.gateway.llms.azure_ai.anthropic.messages_transformation",
             "AzureAnthropicMessagesConfig",
             True,
         ),
         (
-            "litellm.llms.deepseek.messages.transformation",
+            "token_iq.gateway.llms.deepseek.messages.transformation",
             "DeepSeekAnthropicMessagesConfig",
             True,
         ),
         (
-            "litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation",
+            "token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation",
             "VertexAIPartnerModelsAnthropicMessagesConfig",
             True,
         ),

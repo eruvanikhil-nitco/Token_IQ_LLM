@@ -5,12 +5,12 @@ Test for GitHub issue #11267 - System message format issue with Ollama + tools
 from unittest.mock import patch
 
 
-@patch("litellm.add_function_to_prompt", True)
+@patch("token_iq.gateway.add_function_to_prompt", True)
 def test_system_message_format_issue_reproduction():
     """
     Reproduces the system message format bug from GitHub issue #11267.
     """
-    from litellm import completion
+    from token_iq.gateway import completion
 
     # Define test data directly from data.jsonl content
     model = "ollama/custom_model_name"  # Use explicit Ollama model

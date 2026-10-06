@@ -8,18 +8,18 @@ import pytest
 import respx
 from openai import AsyncOpenAI, OpenAI
 
-import litellm
-from litellm.llms.litellm_proxy.responses.transformation import LiteLLMProxyResponsesAPIConfig
-from litellm.llms.openai.common_utils import BaseOpenAILLM, OpenAIError
-from litellm.llms.openai.openai import OpenAIChatCompletion
-from litellm.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from litellm.llms.openai.workload_identity import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.litellm_proxy.responses.transformation import LiteLLMProxyResponsesAPIConfig
+from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM, OpenAIError
+from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
+from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
+from token_iq.gateway.llms.openai.workload_identity import (
     OpenAIWorkloadIdentityConfig,
     _workload_identity_auth,
     get_workload_identity_bearer_token,
     resolve_openai_workload_identity_config,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 TOKEN_EXCHANGE_URL: Final = "https://auth.openai.com/oauth/token"
 

@@ -20,12 +20,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-from litellm.constants import STREAM_SSE_DONE_STRING
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-from litellm.responses.streaming_iterator import BaseResponsesAPIStreamingIterator
-from litellm.responses.utils import ResponsesAPIRequestUtils
-from litellm.types.llms.openai import (
+from token_iq.gateway.constants import STREAM_SSE_DONE_STRING
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+from token_iq.gateway.responses.streaming_iterator import BaseResponsesAPIStreamingIterator
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponseFailedEvent,
     ResponseIncompleteEvent,
@@ -44,7 +44,7 @@ class TestBaseResponsesAPIStreamingIterator:
         U+2028 inside JSON must not split the SSE event. httpx aiter_lines uses
         str.splitlines() and drops response.completed; OpenAI SSEDecoder does not.
         """
-        from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
+        from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 
         u2028 = "\u2028"
         payload = json.dumps(
@@ -86,7 +86,7 @@ class TestBaseResponsesAPIStreamingIterator:
         chunks = []
         with (
             patch("asyncio.create_task"),
-            patch("litellm.responses.streaming_iterator.executor"),
+            patch("token_iq.gateway.responses.streaming_iterator.executor"),
         ):
             async for chunk in iterator:
                 chunks.append(chunk)
@@ -324,7 +324,7 @@ class TestBaseResponsesAPIStreamingIterator:
         The fix uses model_dump + model_validate instead of copy.deepcopy.
         """
         import asyncio
-        from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
+        from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 
         # Mock dependencies
         mock_response = Mock()
@@ -367,7 +367,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock asyncio.create_task and executor.submit since we're not in async context
         with (
             patch("asyncio.create_task") as mock_create_task,
-            patch("litellm.responses.streaming_iterator.executor") as mock_executor,
+            patch("token_iq.gateway.responses.streaming_iterator.executor") as mock_executor,
         ):
             try:
                 iterator._handle_logging_completed_response()
@@ -388,7 +388,7 @@ class TestBaseResponsesAPIStreamingIterator:
         and other logging integrations.
 
         """
-        from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
+        from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 
         # Mock dependencies
         mock_response = Mock()
@@ -447,7 +447,7 @@ class TestBaseResponsesAPIStreamingIterator:
 
         Regression test for: https://github.com/BerriAI/litellm/issues/XXXXX
         """
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             SyncResponsesAPIStreamingIterator,
         )
 
@@ -504,7 +504,7 @@ class TestBaseResponsesAPIStreamingIterator:
         not success handlers. Failed responses represent genuine LLM-level
         errors and should be logged as failures.
         """
-        from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
+        from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 
         mock_response = Mock()
         mock_response.headers = {}
@@ -559,9 +559,9 @@ class TestBaseResponsesAPIStreamingIterator:
                 return_value=mock_responses_api_response,
             ),
             patch(
-                "litellm.responses.streaming_iterator.run_async_function"
+                "token_iq.gateway.responses.streaming_iterator.run_async_function"
             ) as mock_run_async,
-            patch("litellm.responses.streaming_iterator.executor") as mock_executor,
+            patch("token_iq.gateway.responses.streaming_iterator.executor") as mock_executor,
         ):
             result = iterator._process_chunk(json.dumps(test_chunk_data))
 
@@ -587,7 +587,7 @@ class TestBaseResponsesAPIStreamingIterator:
         Incomplete responses (e.g. max_output_tokens reached) are still valid
         responses with usage data — analogous to finish_reason='length' in chat.
         """
-        from litellm.responses.streaming_iterator import ResponsesAPIStreamingIterator
+        from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 
         mock_response = Mock()
         mock_response.headers = {}
@@ -636,7 +636,7 @@ class TestBaseResponsesAPIStreamingIterator:
                 return_value=mock_responses_api_response,
             ),
             patch("asyncio.create_task") as mock_create_task,
-            patch("litellm.responses.streaming_iterator.executor") as mock_executor,
+            patch("token_iq.gateway.responses.streaming_iterator.executor") as mock_executor,
         ):
             result = iterator._process_chunk(json.dumps(test_chunk_data))
 

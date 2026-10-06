@@ -9,8 +9,8 @@ Tests:
 
 import pytest
 
-from litellm.proxy.policy_engine.policy_resolver import PolicyResolver
-from litellm.types.proxy.policy_engine import (
+from token_iq.gateway.proxy.policy_engine.policy_resolver import PolicyResolver
+from token_iq.gateway.types.proxy.policy_engine import (
     Policy,
     PolicyCondition,
     PolicyGuardrails,

@@ -2,8 +2,8 @@ import json
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
-from litellm.proxy._types import UserAPIKeyAuth, LitellmUserRoles
-from litellm.types.prompts.init_prompts import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+from token_iq.gateway.types.prompts.init_prompts import (
     PromptSpec,
     PromptLiteLLMParams,
     PromptInfo,
@@ -37,7 +37,7 @@ async def test_delete_prompt_success():
     Test that delete_prompt correctly identifies the base prompt ID
     and deletes all versions from DB and memory.
     """
-    from litellm.proxy.prompts.prompt_endpoints import delete_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import delete_prompt
 
     # Mock user auth
     mock_user_auth = UserAPIKeyAuth(
@@ -50,7 +50,7 @@ async def test_delete_prompt_success():
 
     # Mock In-Memory Registry
     with patch(
-        "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+        "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
     ) as mock_registry:
         # User passes "test_prompt.v2"
         # We simulate that get_prompt_by_id returns the prompt spec for v2
@@ -64,7 +64,7 @@ async def test_delete_prompt_success():
         mock_registry.get_prompt_by_id.return_value = prompt_spec
 
         # Patch the prisma client in the endpoint module
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
             response = await delete_prompt(
                 prompt_id="test_prompt.v2", user_api_key_dict=mock_user_auth
             )
@@ -93,7 +93,7 @@ async def test_delete_prompt_by_base_id_success():
     Test that delete_prompt works when passed a base ID directly,
     finding the latest version to confirm existence, then deleting.
     """
-    from litellm.proxy.prompts.prompt_endpoints import delete_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import delete_prompt
 
     # Mock user auth
     mock_user_auth = UserAPIKeyAuth(
@@ -106,7 +106,7 @@ async def test_delete_prompt_by_base_id_success():
 
     # Mock In-Memory Registry
     with patch(
-        "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+        "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
     ) as mock_registry:
         # User passes "test_prompt" (base ID)
         # 1. get_prompt_by_id("test_prompt") -> None (if it's not registered as base)
@@ -135,7 +135,7 @@ async def test_delete_prompt_by_base_id_success():
         }
 
         # Patch the prisma client in the endpoint module
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
             response = await delete_prompt(
                 prompt_id="test_prompt", user_api_key_dict=mock_user_auth
             )
@@ -160,14 +160,14 @@ async def test_delete_prompt_by_base_id_success():
 
 @pytest.mark.asyncio
 async def test_delete_prompt_environment_scope_reaches_db_and_registry():
-    from litellm.proxy.prompts.prompt_endpoints import delete_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import delete_prompt
 
     mock_user_auth = UserAPIKeyAuth(api_key="sk-1234", user_role=LitellmUserRoles.PROXY_ADMIN)
     mock_prisma_client = MagicMock()
     mock_prisma_client.db.litellm_prompttable.delete_many = AsyncMock(return_value=None)
 
     with patch(  # test-quality-ok: stubs the collaborator so the test pins what the endpoint deletes
-        "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+        "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
     ) as mock_registry:
         mock_registry.get_prompt_by_id.return_value = PromptSpec(
             prompt_id="test_prompt.v2",
@@ -175,7 +175,7 @@ async def test_delete_prompt_environment_scope_reaches_db_and_registry():
             prompt_info=PromptInfo(prompt_type="db"),
         )
 
-        with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
             response = await delete_prompt(
                 prompt_id="test_prompt.v2",
                 environment="production",
@@ -194,7 +194,7 @@ async def test_get_prompt_info_by_base_id():
     """
     Test that get_prompt_info correctly resolves a base ID to the latest version.
     """
-    from litellm.proxy.prompts.prompt_endpoints import get_prompt_info
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_info
 
     # Mock user auth
     mock_user_auth = UserAPIKeyAuth(
@@ -204,9 +204,9 @@ async def test_get_prompt_info_by_base_id():
     # Mock In-Memory Registry
     # Patch prisma_client to None to avoid leaking state from other tests
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", None),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         patch(
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry,
     ):
         # Setup mocks behavior
@@ -256,7 +256,7 @@ async def test_patch_prompt_row_deleted_mid_update_returns_404():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234", user_role=LitellmUserRoles.PROXY_ADMIN
@@ -279,9 +279,9 @@ async def test_patch_prompt_row_deleted_mid_update_returns_404():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         patch(  # test-quality-ok: stubs the collaborator so the test pins the endpoint's own error contract
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry,
     ):
         mock_registry.get_prompt_by_id.return_value = existing_prompt
@@ -302,7 +302,7 @@ async def test_patch_prompt_row_deleted_mid_update_returns_404():
 
 @pytest.mark.asyncio
 async def test_patch_prompt_merges_unsent_fields_from_db_row_not_stale_memory():
-    from litellm.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
 
     mock_user_auth = UserAPIKeyAuth(api_key="sk-1234", user_role=LitellmUserRoles.PROXY_ADMIN)
     db_row = _db_row("Begin every reply with HOWDY")
@@ -320,9 +320,9 @@ async def test_patch_prompt_merges_unsent_fields_from_db_row_not_stale_memory():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         patch(  # test-quality-ok: stubs the collaborator so the test pins what the endpoint writes and reloads
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry,
     ):
         mock_registry.get_prompt_by_id.return_value = stale_in_memory
@@ -343,7 +343,7 @@ async def test_patch_prompt_merges_unsent_fields_from_db_row_not_stale_memory():
 
 
 def test_is_ambiguous_keyed_prompt_data_shapes():
-    from litellm.proxy.prompts.prompt_endpoints import is_ambiguous_keyed_prompt_data
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import is_ambiguous_keyed_prompt_data
 
     keyed_with_id = PromptLiteLLMParams(
         prompt_id="agent-prompt",
@@ -377,7 +377,7 @@ def test_is_ambiguous_keyed_prompt_data_shapes():
 async def test_create_prompt_rejects_keyed_prompt_data_with_prompt_id():
     from fastapi import HTTPException
 
-    from litellm.proxy.prompts.prompt_endpoints import (
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import (
         AMBIGUOUS_PROMPT_DATA_ERROR,
         Prompt,
         create_prompt,
@@ -395,7 +395,7 @@ async def test_create_prompt_rejects_keyed_prompt_data_with_prompt_id():
         ),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         with pytest.raises(HTTPException) as exc_info:
             await create_prompt(request=request, user_api_key_dict=mock_user_auth)
 
@@ -407,7 +407,7 @@ async def test_create_prompt_rejects_keyed_prompt_data_with_prompt_id():
 async def test_patch_prompt_rejects_keyed_prompt_data_with_prompt_id():
     from fastapi import HTTPException
 
-    from litellm.proxy.prompts.prompt_endpoints import (
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import (
         AMBIGUOUS_PROMPT_DATA_ERROR,
         PatchPromptRequest,
         patch_prompt,
@@ -424,7 +424,7 @@ async def test_patch_prompt_rejects_keyed_prompt_data_with_prompt_id():
         ),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         with pytest.raises(HTTPException) as exc_info:
             await patch_prompt(
                 prompt_id="agent-prompt",
@@ -438,7 +438,7 @@ async def test_patch_prompt_rejects_keyed_prompt_data_with_prompt_id():
 
 @pytest.mark.asyncio
 async def test_patch_prompt_info_only_keeps_legacy_keyed_row_patchable():
-    from litellm.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import PatchPromptRequest, patch_prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234", user_role=LitellmUserRoles.PROXY_ADMIN
@@ -482,9 +482,9 @@ async def test_patch_prompt_info_only_keeps_legacy_keyed_row_patchable():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         patch(  # test-quality-ok: keeps the registry reload from touching global callback state
-            "litellm.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
+            "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
         ) as mock_registry,
     ):
         mock_registry.get_prompt_by_id.return_value = existing_prompt
@@ -507,7 +507,7 @@ async def test_patch_prompt_info_only_keeps_legacy_keyed_row_patchable():
 async def test_update_prompt_rejects_keyed_prompt_data_with_prompt_id():
     from fastapi import HTTPException
 
-    from litellm.proxy.prompts.prompt_endpoints import (
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import (
         AMBIGUOUS_PROMPT_DATA_ERROR,
         Prompt,
         update_prompt,
@@ -525,7 +525,7 @@ async def test_update_prompt_rejects_keyed_prompt_data_with_prompt_id():
         ),
     )
 
-    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
         with pytest.raises(HTTPException) as exc_info:
             await update_prompt(
                 prompt_id="agent-prompt",
@@ -538,7 +538,7 @@ async def test_update_prompt_rejects_keyed_prompt_data_with_prompt_id():
 
 
 def test_create_versioned_prompt_spec_populates_version():
-    from litellm.proxy.prompts.prompt_endpoints import create_versioned_prompt_spec
+    from token_iq.gateway.proxy.prompts.prompt_endpoints import create_versioned_prompt_spec
 
     db_prompt = MagicMock()
     db_prompt.model_dump.return_value = {
@@ -562,8 +562,8 @@ def test_create_versioned_prompt_spec_populates_version():
 
 
 def test_initialize_prompt_keeps_version_and_created_by():
-    import litellm
-    from litellm.proxy.prompts.prompt_registry import InMemoryPromptRegistry
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy.prompts.prompt_registry import InMemoryPromptRegistry
 
     registry = InMemoryPromptRegistry()
     prompt_spec = PromptSpec(

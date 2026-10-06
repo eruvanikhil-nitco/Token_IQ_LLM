@@ -23,10 +23,10 @@ from prisma.errors import (
 )
 
 
-import litellm
-from litellm._logging import verbose_proxy_logger
-from litellm.proxy._types import ProxyErrorTypes, ProxyException
-from litellm.proxy.db.exception_handler import PrismaDBExceptionHandler
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_proxy_logger
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
+from token_iq.gateway.proxy.db.exception_handler import PrismaDBExceptionHandler
 
 
 # Test is_database_connection_error method
@@ -290,7 +290,7 @@ def test_is_database_service_unavailable_error_excludes_non_infra(error):
 
 
 def _wrapped_like_get_user_object(original):
-    """Reproduce get_user_object's exception contract (litellm/proxy/auth/auth_checks.py): it catches
+    """Reproduce get_user_object's exception contract (token_iq/gateway/proxy/auth/auth_checks.py): it catches
     every DB failure in a broad ``except`` and re-raises a bare ``ValueError``, so the original error
     survives only as ``__context__``. Building it by raising inside an ``except`` sets ``__context__``
     exactly as production does."""
@@ -414,7 +414,7 @@ def test_is_database_service_unavailable_error_asyncpg(monkeypatch):
 
 # Test should_allow_request_on_db_unavailable method
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"allow_requests_on_db_unavailable": True},
 )
 def test_should_allow_request_on_db_unavailable_true():
@@ -422,7 +422,7 @@ def test_should_allow_request_on_db_unavailable_true():
 
 
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"allow_requests_on_db_unavailable": False},
 )
 def test_should_allow_request_on_db_unavailable_false():
@@ -430,7 +430,7 @@ def test_should_allow_request_on_db_unavailable_false():
 
 
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"allow_requests_on_db_unavailable": True},
 )
 def test_handle_db_exception_with_connection_error():
@@ -443,7 +443,7 @@ def test_handle_db_exception_with_connection_error():
 
 
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"allow_requests_on_db_unavailable": False},
 )
 def test_handle_db_exception_raises_error():
@@ -619,7 +619,7 @@ def test_engine_connection_error_is_the_transient_prisma_type():
 
 
 @patch(
-    "litellm.proxy.proxy_server.general_settings",
+    "token_iq.gateway.proxy.proxy_server.general_settings",
     {"allow_requests_on_db_unavailable": True},
 )
 def test_handle_db_exception_surfaces_a_permanent_fault_even_when_degraded_mode_is_enabled():

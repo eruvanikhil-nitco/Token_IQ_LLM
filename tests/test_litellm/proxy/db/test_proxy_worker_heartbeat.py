@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.db.proxy_worker_heartbeat import (
+from token_iq.gateway.proxy.db.proxy_worker_heartbeat import (
     BEAT_SQL,
     COUNT_SQL,
     DEREGISTER_SQL,
@@ -12,7 +12,7 @@ from litellm.proxy.db.proxy_worker_heartbeat import (
     ProxyWorkerHeartbeat,
     count_live_proxy_workers,
 )
-from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
 
 def _prisma():

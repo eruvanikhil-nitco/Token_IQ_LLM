@@ -12,13 +12,13 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from litellm._uuid import uuid
-from litellm.proxy.management_endpoints import (
+from token_iq.gateway._uuid import uuid
+from token_iq.gateway.proxy.management_endpoints import (
     mcp_management_endpoints as mgmt_endpoints,
 )
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_MCPServerTable,
     LitellmUserRoles,
     MCPTransport,
@@ -26,8 +26,8 @@ from litellm.proxy._types import (
     UpdateMCPServerRequest,
     UserAPIKeyAuth,
 )
-from litellm.types.mcp import MCPAuth
-from litellm.types.mcp_server.mcp_server_manager import MCPServer
+from token_iq.gateway.types.mcp import MCPAuth
+from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 
 def generate_mock_mcp_server_db_record(
@@ -125,7 +125,7 @@ def setup_mock_prisma_client(
 
 
 def create_mcp_router_test_client() -> TestClient:
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import router
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import router
 
     app = FastAPI()
     app.include_router(router)
@@ -136,7 +136,7 @@ def patch_proxy_general_settings(settings: dict):
     fake_proxy_server_module = types.SimpleNamespace(general_settings=settings)
     return patch.dict(
         sys.modules,
-        {"litellm.proxy.proxy_server": fake_proxy_server_module},
+        {"token_iq.gateway.proxy.proxy_server": fake_proxy_server_module},
     )
 
 
@@ -239,24 +239,24 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
             # Import and call the function
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -298,15 +298,15 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
                 return_value="view_all",
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -346,23 +346,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
                 return_value="view_all",
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -482,24 +482,24 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
             # Import and call the function
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -601,24 +601,24 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
             # Import and call the function
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -654,7 +654,7 @@ class TestListMCPServers:
         Scenario: Admin user has object_permission.mcp_servers set to specific servers
         Expected: Only those servers are returned, not all servers in the registry
         """
-        from litellm.proxy._types import LiteLLM_ObjectPermissionTable
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable
 
         # Create mock object permission with specific servers
         mock_object_permission = LiteLLM_ObjectPermissionTable(
@@ -690,15 +690,15 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -729,23 +729,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=mock_health_result),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -776,23 +776,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=mock_health_result),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -833,23 +833,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=mock_health_result),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -877,23 +877,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=mock_health_result),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -923,23 +923,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=mock_health_result),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -992,23 +992,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1056,23 +1056,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1119,23 +1119,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1186,23 +1186,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1268,23 +1268,23 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_all_mcp_servers_for_user",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_all_mcp_servers_for_user",
                 AsyncMock(return_value=[generate_mock_mcp_server_db_record(server_id="env-server")]),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1335,19 +1335,19 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1393,19 +1393,19 @@ class TestListMCPServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=mock_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_mcp_server,
             )
 
@@ -1427,7 +1427,7 @@ class TestTeamScopedMCPServerAccess:
     @pytest.mark.asyncio
     async def test_non_member_cannot_query_foreign_team(self):
         """Non-admin user who is NOT a member of the target team should get 403."""
-        from litellm.proxy._types import Member
+        from token_iq.gateway.proxy._types import Member
 
         mock_user_auth = generate_mock_user_api_key_auth(
             user_role=LitellmUserRoles.INTERNAL_USER,
@@ -1442,15 +1442,15 @@ class TestTeamScopedMCPServerAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_object",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
                 AsyncMock(return_value=mock_team_obj),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -1462,7 +1462,7 @@ class TestTeamScopedMCPServerAccess:
     @pytest.mark.asyncio
     async def test_team_member_can_query_own_team(self):
         """User who IS a member of the team should be able to query it."""
-        from litellm.proxy._types import Member
+        from token_iq.gateway.proxy._types import Member
 
         mock_user_auth = generate_mock_user_api_key_auth(
             user_role=LitellmUserRoles.INTERNAL_USER,
@@ -1484,23 +1484,23 @@ class TestTeamScopedMCPServerAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=False,
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_object",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
                 AsyncMock(return_value=mock_team_obj),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_team_scoped_mcp_server_list",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_team_scoped_mcp_server_list",
                 AsyncMock(return_value=[generate_mock_mcp_server_db_record(server_id="server-1")]),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -1518,15 +1518,15 @@ class TestTeamScopedMCPServerAccess:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
                 return_value=True,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_team_scoped_mcp_server_list",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_team_scoped_mcp_server_list",
                 AsyncMock(return_value=[generate_mock_mcp_server_db_record(server_id="server-1")]),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -1544,7 +1544,7 @@ class TestTeamScopedMCPServerAccess:
             allowed_routes=["mcp_routes"],
         )
 
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             fetch_all_mcp_servers,
         )
 
@@ -1579,10 +1579,10 @@ class TestTemporaryMCPSessionEndpoints:
         mock_manager.get_mcp_server_by_id.return_value = existing_server
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
             mock_manager,
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 _inherit_credentials_from_existing_server,
             )
 
@@ -1623,10 +1623,10 @@ class TestTemporaryMCPSessionEndpoints:
         mock_manager = MagicMock()
         mock_manager.get_mcp_server_by_id.return_value = existing_server
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
             mock_manager,
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 _inherit_credentials_from_existing_server,
             )
 
@@ -1677,13 +1677,13 @@ class TestTemporaryMCPSessionEndpoints:
         assert updated.credentials["upstream_resource"] == "api://typed"
 
     def test_cache_temporary_mcp_server_stores_entry_with_ttl(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _cache_temporary_mcp_server,
         )
 
         server = generate_mock_mcp_server_config_record(server_id="temp-cache")
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
             {},
         ) as cache:
             cached_server = _cache_temporary_mcp_server(server, ttl_seconds=2)
@@ -1695,7 +1695,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_prunes_expired_entries(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _TemporaryMCPServerEntry,
             get_cached_temporary_mcp_server,
         )
@@ -1708,11 +1708,11 @@ class TestTemporaryMCPSessionEndpoints:
         cache = {"expired": expired_entry}
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
                 cache,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=None,
             ),
         ):
@@ -1729,7 +1729,7 @@ class TestTemporaryMCPSessionEndpoints:
         /authorize and /token legs land on a process whose dict is empty and 404. An empty dict
         here IS that other worker. Before the DB-backed draft this returned None.
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_cached_temporary_mcp_server,
         )
 
@@ -1741,19 +1741,19 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
                 {},
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_draft_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_draft_mcp_server",
                 get_draft,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -1771,7 +1771,7 @@ class TestTemporaryMCPSessionEndpoints:
         Pins the deliberate divergence from a DB-only design: single-process deployments with no
         DATABASE_URL must keep working exactly as before.
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _TemporaryMCPServerEntry,
             get_cached_temporary_mcp_server,
         )
@@ -1785,15 +1785,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
                 {"no-db": entry},
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_draft_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_draft_mcp_server",
                 get_draft,
             ),
         ):
@@ -1808,7 +1808,7 @@ class TestTemporaryMCPSessionEndpoints:
         """The edit form authorizes against a saved server's own id, so a draft write would
         collide on the primary key. That row is already visible to every worker, so it is
         returned untouched and no draft is created."""
-        from litellm.proxy._experimental.mcp_server.db import create_draft_mcp_server
+        from token_iq.gateway.proxy._experimental.mcp_server.db import create_draft_mcp_server
 
         real_row = generate_mock_mcp_server_db_record(server_id="already-saved")
         real_row.approval_status = "active"
@@ -1817,15 +1817,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
                 AsyncMock(return_value=real_row),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
                 AsyncMock(return_value=[]),
             ),
-            patch("litellm.proxy._experimental.mcp_server.db.create_mcp_server", create_call),
-            patch("litellm.proxy._experimental.mcp_server.db.delete_mcp_server", delete_call),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db.create_mcp_server", create_call),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db.delete_mcp_server", delete_call),
         ):
             result = await create_draft_mcp_server(
                 MagicMock(),
@@ -1846,7 +1846,7 @@ class TestTemporaryMCPSessionEndpoints:
         live two-worker proxy. The loser's session is in fact ready, because the winner wrote a
         draft for it, so it adopts that row instead of failing the caller.
         """
-        from litellm.proxy._experimental.mcp_server.db import create_draft_mcp_server
+        from token_iq.gateway.proxy._experimental.mcp_server.db import create_draft_mcp_server
 
         winner_draft = generate_mock_mcp_server_db_record(server_id="raced")
         winner_draft.approval_status = "draft"
@@ -1854,13 +1854,13 @@ class TestTemporaryMCPSessionEndpoints:
         lookups = AsyncMock(side_effect=[None, winner_draft])
 
         with (
-            patch("litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_row", lookups),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_row", lookups),
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
                 AsyncMock(return_value=[]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.create_mcp_server",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.create_mcp_server",
                 AsyncMock(side_effect=Exception("duplicate key value violates unique constraint")),
             ),
         ):
@@ -1877,19 +1877,19 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_create_draft_mcp_server_reraises_when_the_create_failure_was_not_a_race(self):
         """A genuine database error must not be swallowed by the race-adoption path."""
-        from litellm.proxy._experimental.mcp_server.db import create_draft_mcp_server
+        from token_iq.gateway.proxy._experimental.mcp_server.db import create_draft_mcp_server
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
                 AsyncMock(side_effect=[None, None]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
                 AsyncMock(return_value=[]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.create_mcp_server",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.create_mcp_server",
                 AsyncMock(side_effect=Exception("connection refused")),
             ),
             pytest.raises(Exception, match="connection refused"),
@@ -1905,7 +1905,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_create_draft_mcp_server_prunes_drafts_past_their_lifetime(self):
         """Regression: abandoned OAuth sessions accumulated forever. Verified against a live
         proxy, where 12 drafts aged past the lifetime were still present and a 13th was added."""
-        from litellm.proxy._experimental.mcp_server.db import create_draft_mcp_server
+        from token_iq.gateway.proxy._experimental.mcp_server.db import create_draft_mcp_server
 
         from datetime import timezone
 
@@ -1921,14 +1921,14 @@ class TestTemporaryMCPSessionEndpoints:
         delete_call = AsyncMock()
 
         with (
-            patch("litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows", find_rows),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows", find_rows),
             patch(
-                "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_row",
                 AsyncMock(return_value=None),
             ),
-            patch("litellm.proxy._experimental.mcp_server.db.delete_mcp_server", delete_call),
+            patch("token_iq.gateway.proxy._experimental.mcp_server.db.delete_mcp_server", delete_call),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.create_mcp_server",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.create_mcp_server",
                 AsyncMock(return_value=generate_mock_mcp_server_db_record(server_id="fresh")),
             ),
         ):
@@ -1948,11 +1948,11 @@ class TestTemporaryMCPSessionEndpoints:
         """Drafts are addressable only by their own id and must never appear in a listing, but a
         bare inequality would also drop pre-approval-workflow rows, since SQL evaluates
         NULL != 'draft' as NULL."""
-        from litellm.proxy._experimental.mcp_server.db import get_all_mcp_servers
+        from token_iq.gateway.proxy._experimental.mcp_server.db import get_all_mcp_servers
 
         find_rows = AsyncMock(return_value=[])
         with patch(
-            "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
+            "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
             find_rows,
         ):
             await get_all_mcp_servers(MagicMock())
@@ -1964,11 +1964,11 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_get_all_mcp_servers_propagates_read_failures(self):
         """Regression: a swallowed read failure returned [] and silently disabled the bulk-import
         dedupe, so a flaky DB read turned a re-import into duplicate servers."""
-        from litellm.proxy._experimental.mcp_server.db import get_all_mcp_servers
+        from token_iq.gateway.proxy._experimental.mcp_server.db import get_all_mcp_servers
 
         find_rows = AsyncMock(side_effect=RuntimeError("db down"))
         with patch(  # test-quality-ok: the helper takes its row reader from module scope, matching the suite's pattern
-            "litellm.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
+            "token_iq.gateway.proxy._experimental.mcp_server.db._db_find_mcp_server_rows",
             find_rows,
         ):
             with pytest.raises(RuntimeError, match="db down"):
@@ -1982,7 +1982,7 @@ class TestTemporaryMCPSessionEndpoints:
         run OAuth against its URL and client credentials, silently. An id naming no real server is
         therefore replaced with a fresh one.
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _resolve_session_server_id,
         )
 
@@ -1991,15 +1991,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=None),
             ),
         ):
@@ -2014,7 +2014,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_resolve_session_server_id_refuses_an_id_that_names_another_sessions_draft(self):
         """A draft row is another session's, not a saved server. Replaying an id this endpoint
         previously returned must not let a later session inherit the earlier one's config."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _resolve_session_server_id,
         )
 
@@ -2025,15 +2025,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=someone_elses_draft),
             ),
         ):
@@ -2048,7 +2048,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_resolve_session_server_id_keeps_a_real_servers_id_for_the_edit_flow(self):
         """The edit form re-authorizes a saved server against its own id, which must be preserved
         or the flow would authorize a throwaway id instead of the server being edited."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _resolve_session_server_id,
         )
 
@@ -2056,7 +2056,7 @@ class TestTemporaryMCPSessionEndpoints:
         mock_manager.get_mcp_server_by_id.return_value = generate_mock_mcp_server_config_record(server_id="saved")
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
             mock_manager,
         ):
             resolved = await _resolve_session_server_id(
@@ -2068,7 +2068,7 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_resolve_session_server_id_keeps_the_supplied_id_without_a_database(self):
         """No database means nothing shared to collide over, so behaviour stays as it is today."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _resolve_session_server_id,
         )
 
@@ -2077,11 +2077,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=None,
             ),
         ):
@@ -2093,7 +2093,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_or_404(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_cached_temporary_mcp_server_or_404,
         )
 
@@ -2103,7 +2103,7 @@ class TestTemporaryMCPSessionEndpoints:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
             return_value=server,
         ) as get_cached:
             result = await _get_cached_temporary_mcp_server_or_404("cached", admin_auth)
@@ -2112,7 +2112,7 @@ class TestTemporaryMCPSessionEndpoints:
         get_cached.assert_awaited_once_with("cached")
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
             return_value=None,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -2123,7 +2123,7 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_non_admin_denied(self):
         """Non-admin without access to the server gets 403, not the server."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_cached_temporary_mcp_server_or_404,
         )
 
@@ -2138,15 +2138,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[non_admin]),
             ),
         ):
@@ -2159,7 +2159,7 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_non_admin_allowed(self):
         """Non-admin with the server in their allowed set gets the server."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_cached_temporary_mcp_server_or_404,
         )
 
@@ -2174,15 +2174,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[non_admin]),
             ),
         ):
@@ -2199,8 +2199,8 @@ class TestTemporaryMCPSessionEndpoints:
         expand the UI session into per-team contexts (build_effective_auth_contexts),
         the same way the server-list grid does; checking only the bare session
         context leaves the team grant invisible and 403s the user."""
-        from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_cached_temporary_mcp_server_or_404,
         )
 
@@ -2223,15 +2223,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[ui_session_auth, team_context]),
             ),
         ):
@@ -2243,7 +2243,7 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_temp_cache_non_admin_denied(self):
         """Servers resolved from the admin-only temp cache reject non-admins."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_cached_temporary_mcp_server_or_404,
         )
 
@@ -2253,7 +2253,7 @@ class TestTemporaryMCPSessionEndpoints:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_cached_temporary_mcp_server",
             return_value=temp_server,
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -2263,7 +2263,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_add_session_mcp_server_caches_and_redacts_credentials(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             TEMPORARY_MCP_SERVER_TTL_SECONDS,
             add_session_mcp_server,
         )
@@ -2298,23 +2298,23 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
                 MagicMock(),
             ) as validate_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._cache_temporary_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._cache_temporary_mcp_server",
                 MagicMock(),
             ) as cache_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._cache_temporary_mcp_server_in_redis",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._cache_temporary_mcp_server_in_redis",
                 AsyncMock(),
             ) as redis_cache_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                 return_value=None,
             ),
         ):
@@ -2340,7 +2340,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_add_session_mcp_server_rejects_non_admins(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_session_mcp_server,
         )
 
@@ -2355,7 +2355,7 @@ class TestTemporaryMCPSessionEndpoints:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
             MagicMock(),
         ):
             with pytest.raises(Exception, match='User does not have permission to create temporary mcp') as exc_info:
@@ -2375,7 +2375,7 @@ class TestTemporaryMCPSessionEndpoints:
         """
         import jwt
 
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _mcp_oauth_user_api_key_auth,
         )
 
@@ -2402,17 +2402,17 @@ class TestTemporaryMCPSessionEndpoints:
         fake_proxy_server = types.SimpleNamespace(master_key=master_key)
 
         with (
-            patch.dict(sys.modules, {"litellm.proxy.proxy_server": fake_proxy_server}),
+            patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": fake_proxy_server}),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
                 AsyncMock(return_value=expected_auth),
             ) as auth_builder_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value={}),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
                 side_effect=lambda request_data, request: request_data,
             ),
         ):
@@ -2427,7 +2427,7 @@ class TestTemporaryMCPSessionEndpoints:
         self,
     ):
         """When Authorization header is present it takes priority over the cookie."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _mcp_oauth_user_api_key_auth,
         )
 
@@ -2438,15 +2438,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
                 AsyncMock(return_value=expected_auth),
             ) as auth_builder_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value={}),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
                 side_effect=lambda request_data, request: request_data,
             ),
         ):
@@ -2461,7 +2461,7 @@ class TestTemporaryMCPSessionEndpoints:
         self,
     ):
         """Non-oauth2 servers must not get anonymous access from the delegate flag."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _mcp_oauth_user_api_key_auth,
         )
 
@@ -2479,21 +2479,21 @@ class TestTemporaryMCPSessionEndpoints:
         fake_proxy_server = types.SimpleNamespace(master_key=None)
 
         with (
-            patch.dict(sys.modules, {"litellm.proxy.proxy_server": fake_proxy_server}),
+            patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": fake_proxy_server}),
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
                 AsyncMock(return_value=expected_auth),
             ) as auth_builder_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value={}),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
                 side_effect=lambda request_data, request: request_data,
             ),
         ):
@@ -2509,7 +2509,7 @@ class TestTemporaryMCPSessionEndpoints:
         self,
     ):
         """Internal-only delegate servers still get anonymous PKCE /authorize bypass."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _mcp_oauth_user_api_key_auth,
         )
 
@@ -2531,21 +2531,21 @@ class TestTemporaryMCPSessionEndpoints:
         fake_proxy_server = types.SimpleNamespace(master_key=None)
 
         with (
-            patch.dict(sys.modules, {"litellm.proxy.proxy_server": fake_proxy_server}),
+            patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": fake_proxy_server}),
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_api_key_auth_builder",
                 AsyncMock(return_value=expected_auth),
             ) as auth_builder_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value={}),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.populate_request_with_path_params",
                 side_effect=lambda request_data, request: request_data,
             ),
         ):
@@ -2557,7 +2557,7 @@ class TestTemporaryMCPSessionEndpoints:
     def test_mcp_oauth_authorize_token_routes_use_browser_auth_dependency(self):
         from fastapi.routing import APIRoute
 
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _mcp_oauth_user_api_key_auth,
             router,
         )
@@ -2587,7 +2587,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_mcp_authorize_proxies_to_discoverable_endpoint(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_authorize,
         )
 
@@ -2601,11 +2601,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ) as get_server,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
                 AsyncMock(return_value=authorize_response),
             ) as authorize_mock,
         ):
@@ -2643,7 +2643,7 @@ class TestTemporaryMCPSessionEndpoints:
         """Drive mcp_authorize with no caller client_id against ``server``, returning the
         (authorize_with_server mock, raised HTTPException or None) pair. Sends a valid S256 PKCE
         pair by default because the ephemeral mint requires it."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_authorize,
         )
 
@@ -2651,18 +2651,18 @@ class TestTemporaryMCPSessionEndpoints:
         admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
         patches = [
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
                 AsyncMock(return_value=MagicMock()),
             ),
         ]
         if mint_mock is not None:
             patches.append(
                 patch(
-                    "litellm.proxy._experimental.mcp_server.discoverable_endpoints.mint_ephemeral_dcr_client",
+                    "token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints.mint_ephemeral_dcr_client",
                     mint_mock,
                 )
             )
@@ -2717,7 +2717,7 @@ class TestTemporaryMCPSessionEndpoints:
         through to a gateway-side DCR mint and proceed with the minted client instead of
         dead-ending on a 400 missing_client_id. Both modes share the caller-held-client contract,
         so both get the fall-through."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             EphemeralDcrClient,
         )
 
@@ -2740,7 +2740,7 @@ class TestTemporaryMCPSessionEndpoints:
         """An untrusted redirect_uri must be rejected before the gateway performs any upstream
         registration, so bad-redirect requests cannot be used to generate orphan clients at the
         IdP."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_authorize,
         )
 
@@ -2756,11 +2756,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.discoverable_endpoints.mint_ephemeral_dcr_client",
+                "token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints.mint_ephemeral_dcr_client",
                 mint_mock,
             ),
         ):
@@ -2841,7 +2841,7 @@ class TestTemporaryMCPSessionEndpoints:
         one (the minted flow runs the bridge short-circuit arm) instead of dead-ending on
         missing_client_id. The relay front door stays reserved for clients that present their own
         client_id."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             EphemeralDcrClient,
         )
 
@@ -2885,10 +2885,10 @@ class TestTemporaryMCPSessionEndpoints:
         callback forwarded, so the token endpoint recovers the ephemeral client and the real
         upstream code from it and authenticates the exchange with them, with no client_id supplied
         by the caller and none stored on the server."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             seal_passthrough_authorization_code,
         )
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -2900,13 +2900,13 @@ class TestTemporaryMCPSessionEndpoints:
         admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
         with (
-            patch("litellm.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(return_value={"access_token": "token"}),
             ) as exchange_mock,
         ):
@@ -2944,10 +2944,10 @@ class TestTemporaryMCPSessionEndpoints:
         contract: a refresh_token grant that echoes a leftover sealed passthrough code (plus any
         verifier) must not recover the minted credentials, so a clientless server answers
         missing_client_id and the client re-runs authorize instead."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             seal_passthrough_authorization_code,
         )
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -2959,13 +2959,13 @@ class TestTemporaryMCPSessionEndpoints:
         admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
         with (
-            patch("litellm.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(return_value={"access_token": "token"}),
             ) as exchange_mock,
         ):
@@ -3000,10 +3000,10 @@ class TestTemporaryMCPSessionEndpoints:
         """A sealed code is minted only for S256 PKCE flows, so redeeming one without the
         corresponding verifier is refused at the gateway rather than trusting the upstream to
         enforce the binding."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             seal_passthrough_authorization_code,
         )
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -3013,13 +3013,13 @@ class TestTemporaryMCPSessionEndpoints:
         admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
         with (
-            patch("litellm.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(),
             ) as exchange_mock,
         ):
@@ -3050,10 +3050,10 @@ class TestTemporaryMCPSessionEndpoints:
         """A sealed passthrough code is bound to the server it was minted for: presenting it at
         another server's token endpoint is a 400 before any upstream exchange, so a code cannot be
         replayed across a server boundary."""
-        from litellm.proxy._experimental.mcp_server.discoverable_endpoints import (
+        from token_iq.gateway.proxy._experimental.mcp_server.discoverable_endpoints import (
             seal_passthrough_authorization_code,
         )
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -3063,13 +3063,13 @@ class TestTemporaryMCPSessionEndpoints:
         admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
         with (
-            patch("litellm.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(),
             ) as exchange_mock,
         ):
@@ -3101,7 +3101,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_mcp_authorize_rejects_non_oauth2_server(self):
         """mcp_authorize must reject a none-auth server with an accurate 'does not use OAuth'
         400 before the client_id check, never delegating to authorize_with_server."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_authorize,
         )
 
@@ -3113,11 +3113,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.authorize_with_server",
                 AsyncMock(),
             ) as authorize_mock,
         ):
@@ -3141,7 +3141,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_mcp_token_rejects_non_oauth2_server(self):
         """mcp_token must reject a none-auth server with 'does not use OAuth' 400 before the
         client_id check, never delegating to exchange_token_with_server."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -3153,11 +3153,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(),
             ) as exchange_mock,
         ):
@@ -3184,7 +3184,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_mcp_token_proxies_to_exchange_endpoint(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -3198,11 +3198,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ) as get_server,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(return_value=exchange_response),
             ) as exchange_mock,
         ):
@@ -3238,7 +3238,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_mcp_token_proxies_refresh_token_grant(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_token,
         )
 
@@ -3252,11 +3252,11 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ) as get_server,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.exchange_token_with_server",
                 AsyncMock(return_value=exchange_response),
             ) as exchange_mock,
         ):
@@ -3292,7 +3292,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_mcp_register_proxies_request_body(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_register,
         )
 
@@ -3312,15 +3312,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ) as get_server,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value=request_body),
             ) as read_body,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
                 AsyncMock(return_value=register_response),
             ) as register_mock,
         ):
@@ -3363,7 +3363,7 @@ class TestTemporaryMCPSessionEndpoints:
         door, so a malformed list is rejected whole at both doors (RFC 7591 redirect_uris is
         all-or-nothing) rather than silently forwarding the surviving entries here and rejecting
         them there."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_register,
         )
 
@@ -3375,15 +3375,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value=request_body),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
                 AsyncMock(return_value={"client_id": "generated"}),
             ) as register_mock,
         ):
@@ -3401,7 +3401,7 @@ class TestTemporaryMCPSessionEndpoints:
         result onto the shared server row. register_client_with_server is invoked with
         persist_credentials=False, so user-side registration returns the DCR response without
         writing shared client credentials. Only a full PROXY_ADMIN establishes the shared client."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             mcp_register,
         )
 
@@ -3420,15 +3420,15 @@ class TestTemporaryMCPSessionEndpoints:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
                 return_value=server,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._read_request_body",
                 AsyncMock(return_value=request_body),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.register_client_with_server",
                 AsyncMock(return_value=register_response),
             ) as register_mock,
         ):
@@ -3443,7 +3443,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_get_cached_temporary_mcp_server_falls_back_to_redis(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_cached_temporary_mcp_server,
         )
 
@@ -3455,15 +3455,15 @@ class TestTemporaryMCPSessionEndpoints:
         try:
             with (
                 patch(
-                    "litellm.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
+                    "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._temporary_mcp_servers",
                     {},
                 ),
                 patch(
-                    "litellm.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
+                    "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
                     return_value=serialized,
                 ),
                 patch(
-                    "litellm.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
+                    "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_prisma_client_or_none",
                     return_value=None,
                 ),
             ):
@@ -3477,7 +3477,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_cache_temporary_mcp_server_in_redis_uses_ttl_and_key(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _cache_temporary_mcp_server_in_redis,
         )
 
@@ -3487,7 +3487,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
                 return_value="encrypted-payload",
             ):
                 await _cache_temporary_mcp_server_in_redis(server, ttl_seconds=123)
@@ -3501,7 +3501,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_cache_temporary_mcp_server_in_redis_encrypts_payload(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _cache_temporary_mcp_server_in_redis,
         )
 
@@ -3511,7 +3511,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
                 return_value="encrypted-payload",
             ) as encrypt_mock:
                 await _cache_temporary_mcp_server_in_redis(server, ttl_seconds=60)
@@ -3524,7 +3524,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_get_temporary_mcp_server_from_redis_decrypts_payload(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_temporary_mcp_server_from_redis,
         )
 
@@ -3535,7 +3535,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
                 return_value=serialized,
             ) as decrypt_mock:
                 result = await _get_temporary_mcp_server_from_redis("from-redis-encrypted")
@@ -3548,7 +3548,7 @@ class TestTemporaryMCPSessionEndpoints:
 
     @pytest.mark.asyncio
     async def test_cache_temporary_mcp_server_in_redis_skips_on_encrypt_failure(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _cache_temporary_mcp_server_in_redis,
         )
 
@@ -3558,7 +3558,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
                 side_effect=Exception("boom"),
             ):
                 await _cache_temporary_mcp_server_in_redis(server, ttl_seconds=60)
@@ -3571,7 +3571,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_cache_temporary_mcp_server_in_redis_skips_non_string_encryption_result(
         self,
     ):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _cache_temporary_mcp_server_in_redis,
         )
 
@@ -3581,7 +3581,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.encrypt_value_helper",
                 return_value={"not": "a-string"},
             ):
                 await _cache_temporary_mcp_server_in_redis(server, ttl_seconds=60)
@@ -3594,7 +3594,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_get_temporary_mcp_server_from_redis_returns_none_on_invalid_decrypt_json(
         self,
     ):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_temporary_mcp_server_from_redis,
         )
 
@@ -3603,7 +3603,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
                 return_value="{not json}",
             ):
                 result = await _get_temporary_mcp_server_from_redis("bad-json")
@@ -3616,7 +3616,7 @@ class TestTemporaryMCPSessionEndpoints:
     async def test_get_temporary_mcp_server_from_redis_returns_none_on_decrypt_none(
         self,
     ):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_temporary_mcp_server_from_redis,
         )
 
@@ -3625,7 +3625,7 @@ class TestTemporaryMCPSessionEndpoints:
         mgmt_endpoints.litellm.cache = SimpleNamespace(cache=mock_cache_backend)
         try:
             with patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.decrypt_value_helper",
                 return_value=None,
             ):
                 result = await _get_temporary_mcp_server_from_redis("decrypt-none")
@@ -3637,7 +3637,7 @@ class TestTemporaryMCPSessionEndpoints:
     @pytest.mark.asyncio
     async def test_get_temporary_mcp_server_from_redis_rejects_plain_dict_payload(self):
         """Plain dict values in Redis are not accepted (write path is encrypted-only)."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _get_temporary_mcp_server_from_redis,
         )
 
@@ -3701,28 +3701,28 @@ class TestUpdateMCPServer:
         # Mock the update_mcp_server function to capture the call
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=mock_prisma_client,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
                 AsyncMock(return_value=updated_server),
             ) as update_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.add_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.add_server",
                 AsyncMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.reload_servers_from_database",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.reload_servers_from_database",
                 AsyncMock(),
             ),
         ):
             # Import and call the function
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 edit_mcp_server,
             )
 
@@ -3757,7 +3757,7 @@ class TestAddMCPServerAtomicity:
 
     @pytest.mark.asyncio
     async def test_create_succeeds_when_registry_refresh_fails(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
 
@@ -3775,19 +3775,19 @@ class TestAddMCPServerAtomicity:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
                 AsyncMock(return_value=created_server),
             ) as create_mock,
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -3799,7 +3799,7 @@ class TestAddMCPServerAtomicity:
 
     @pytest.mark.asyncio
     async def test_create_500s_and_skips_registry_when_db_write_fails(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             add_mcp_server,
         )
 
@@ -3816,19 +3816,19 @@ class TestAddMCPServerAtomicity:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
                 AsyncMock(side_effect=Exception("db down")),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -3851,7 +3851,7 @@ class TestHealthCheckServers:
         Scenario: User has access to 2 servers, checks all
         Expected: Returns health status for both servers
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             health_check_servers,
         )
 
@@ -3885,11 +3885,11 @@ class TestHealthCheckServers:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
@@ -3941,7 +3941,7 @@ class TestMCPRegistryEndpoint:
         with (
             patch_proxy_general_settings({"enable_mcp_registry": True}),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -3967,7 +3967,7 @@ class TestMCPRegistryEndpoint:
         Scenario: User requests health check for specific server IDs
         Expected: Returns health status only for requested servers
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             health_check_servers,
         )
 
@@ -3990,11 +3990,11 @@ class TestMCPRegistryEndpoint:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
@@ -4031,7 +4031,7 @@ class TestManagementPayloadValidation:
     async def test_health_check_view_all_mode(self):
         """view_all mode should return health info for all MCP servers."""
 
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             health_check_servers,
         )
 
@@ -4050,11 +4050,11 @@ class TestManagementPayloadValidation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
                 return_value="view_all",
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -4077,7 +4077,7 @@ class TestManagementPayloadValidation:
         Scenario: User requests health check for servers they don't have access to
         Expected: Only checks accessible servers, unauthorized servers are filtered out
         """
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             health_check_servers,
         )
 
@@ -4103,11 +4103,11 @@ class TestManagementPayloadValidation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[mock_user_auth]),
             ),
         ):
@@ -4127,7 +4127,7 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_register_mcp_server_requires_team_key(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             register_mcp_server,
         )
 
@@ -4152,7 +4152,7 @@ class TestMCPApprovalWorkflow:
         # them from the non-admin submission endpoint would let a team member
         # propose a config that an admin could rubber-stamp into local code
         # execution. Admins use POST /v1/mcp/server or config.yaml instead.
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             register_mcp_server,
         )
 
@@ -4174,8 +4174,8 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_register_mcp_server_sets_pending_review(self):
-        from litellm.proxy._types import MCPApprovalStatus
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPApprovalStatus
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             register_mcp_server,
         )
 
@@ -4198,15 +4198,15 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
                 MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
                 AsyncMock(return_value=created_record),
             ) as mock_create,
         ):
@@ -4220,7 +4220,7 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_get_submissions_non_admin_forbidden(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_mcp_server_submissions,
         )
 
@@ -4233,8 +4233,8 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_get_submissions_admin_returns_summary(self):
-        from litellm.proxy._types import MCPSubmissionsSummary
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPSubmissionsSummary
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_mcp_server_submissions,
         )
 
@@ -4245,11 +4245,11 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
                 AsyncMock(return_value=summary),
             ),
         ):
@@ -4265,8 +4265,8 @@ class TestMCPApprovalWorkflow:
         static_headers, env, env_vars, and credentials are all dropped. A
         mutation swapping the gate back to the old partial-blank pattern (which
         left url/static_headers/env and env-var names intact) would fail this."""
-        from litellm.proxy._types import MCPSubmissionsSummary
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPSubmissionsSummary
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_mcp_server_submissions,
         )
 
@@ -4276,11 +4276,11 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
                 AsyncMock(return_value=summary),
             ),
         ):
@@ -4305,8 +4305,8 @@ class TestMCPApprovalWorkflow:
         """The view-only redaction must not over-redact for a full PROXY_ADMIN,
         who needs url/static_headers/env/env_vars to review the pending
         submission. Only the explicit credentials field is cleared."""
-        from litellm.proxy._types import MCPSubmissionsSummary
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPSubmissionsSummary
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             get_mcp_server_submissions,
         )
 
@@ -4316,11 +4316,11 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_submissions",
                 AsyncMock(return_value=summary),
             ),
         ):
@@ -4346,8 +4346,8 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_approve_non_pending_server_raises_400(self):
-        from litellm.proxy._types import MCPApprovalStatus
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPApprovalStatus
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             approve_mcp_server_submission,
         )
 
@@ -4357,11 +4357,11 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=active_server),
             ),
         ):
@@ -4371,8 +4371,8 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_approve_pending_server_loads_into_registry(self):
-        from litellm.proxy._types import MCPApprovalStatus
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPApprovalStatus
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             approve_mcp_server_submission,
         )
 
@@ -4389,19 +4389,19 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=pending_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.approve_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.approve_mcp_server",
                 AsyncMock(return_value=approved_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -4413,8 +4413,8 @@ class TestMCPApprovalWorkflow:
 
     @pytest.mark.asyncio
     async def test_reject_already_rejected_raises_400(self):
-        from litellm.proxy._types import MCPApprovalStatus, RejectMCPServerRequest
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPApprovalStatus, RejectMCPServerRequest
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             reject_mcp_server_submission,
         )
 
@@ -4424,11 +4424,11 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=rejected_server),
             ),
         ):
@@ -4443,8 +4443,8 @@ class TestMCPApprovalWorkflow:
     @pytest.mark.asyncio
     async def test_reject_active_server_allowed(self):
         """Admin can deactivate an already-approved server via the reject endpoint."""
-        from litellm.proxy._types import MCPApprovalStatus, RejectMCPServerRequest
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy._types import MCPApprovalStatus, RejectMCPServerRequest
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             reject_mcp_server_submission,
         )
 
@@ -4459,19 +4459,19 @@ class TestMCPApprovalWorkflow:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=active_server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.reject_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.reject_mcp_server",
                 AsyncMock(return_value=now_rejected),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         ):
@@ -4488,7 +4488,7 @@ class TestValidateMCPRequiredFields:
     """Tests for _validate_mcp_required_fields."""
 
     def test_missing_required_field_raises_400(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _validate_mcp_required_fields,
         )
 
@@ -4505,7 +4505,7 @@ class TestValidateMCPRequiredFields:
         assert "source_url" in str(exc_info.value.detail)
 
     def test_auth_type_sentinel_treated_as_absent(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _validate_mcp_required_fields,
         )
 
@@ -4522,7 +4522,7 @@ class TestValidateMCPRequiredFields:
         assert "auth_type" in str(exc_info.value.detail)
 
     def test_all_required_fields_present_passes(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _validate_mcp_required_fields,
         )
 
@@ -4538,7 +4538,7 @@ class TestValidateMCPRequiredFields:
             _validate_mcp_required_fields(payload)
 
     def test_no_required_fields_configured_always_passes(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _validate_mcp_required_fields,
         )
 
@@ -4552,7 +4552,7 @@ class TestValidateMCPRequiredFields:
             _validate_mcp_required_fields(payload)
 
     def test_unknown_field_name_in_config_raises_500(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _validate_mcp_required_fields,
         )
 
@@ -4590,7 +4590,7 @@ def _make_prisma_client():
 @pytest.mark.asyncio
 async def test_store_mcp_oauth_user_credential_returns_status():
     """store_mcp_oauth_user_credential persists the token and echoes back status."""
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         MCPOAuthUserCredentialRequest,
         MCPOAuthUserCredentialStatus,
     )
@@ -4598,7 +4598,7 @@ async def test_store_mcp_oauth_user_credential_returns_status():
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         store_mcp_oauth_user_credential,
     )
 
@@ -4616,23 +4616,23 @@ async def test_store_mcp_oauth_user_credential_returns_status():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=mock_prisma,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             new=AsyncMock(return_value=generate_mock_mcp_server_db_record(server_id=server_id)),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.store_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.store_user_oauth_credential",
             new=AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
             new=AsyncMock(return_value=stored_payload),
         ),
     ):
@@ -4655,12 +4655,12 @@ async def test_store_mcp_oauth_user_credential_returns_status():
 @pytest.mark.asyncio
 async def test_delete_mcp_oauth_user_credential_only_deletes_oauth():
     """delete_mcp_oauth_user_credential only deletes OAuth2 credentials, not BYOK."""
-    from litellm.proxy._types import MCPOAuthUserCredentialStatus
+    from token_iq.gateway.proxy._types import MCPOAuthUserCredentialStatus
 
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         delete_mcp_oauth_user_credential,
     )
 
@@ -4671,15 +4671,15 @@ async def test_delete_mcp_oauth_user_credential_only_deletes_oauth():
     # When get_user_oauth_credential returns None (no OAuth cred), delete should NOT be called.
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=_make_prisma_client(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
             new=AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
             new=delete_mock,
         ),
     ):
@@ -4697,13 +4697,13 @@ async def test_delete_mcp_oauth_user_credential_only_deletes_oauth():
 async def test_store_mcp_oauth_user_credential_invalidates_cached_token():
     """Re-authorizing via the Tools-tab persist drops the v2 per-user token cache entry, so
     egress stops serving the replaced token immediately instead of until its TTL."""
-    from litellm.proxy._types import MCPOAuthUserCredentialRequest
+    from token_iq.gateway.proxy._types import MCPOAuthUserCredentialRequest
 
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager as manager_module
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as manager_module
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         store_mcp_oauth_user_credential,
     )
 
@@ -4713,23 +4713,23 @@ async def test_store_mcp_oauth_user_credential_invalidates_cached_token():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=_make_prisma_client(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             new=AsyncMock(return_value=generate_mock_mcp_server_db_record(server_id=server_id)),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._user_has_admin_view",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.store_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.store_user_oauth_credential",
             new=AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
             new=AsyncMock(return_value={"type": "oauth2", "access_token": "new-tok"}),
         ),
         patch.object(
@@ -4754,8 +4754,8 @@ async def test_delete_mcp_oauth_user_credential_invalidates_cached_token():
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager as manager_module
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as manager_module
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         delete_mcp_oauth_user_credential,
     )
 
@@ -4765,15 +4765,15 @@ async def test_delete_mcp_oauth_user_credential_invalidates_cached_token():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=_make_prisma_client(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
             new=AsyncMock(return_value={"type": "oauth2", "access_token": "revoked-tok"}),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
             new=AsyncMock(return_value=None),
         ),
         patch.object(
@@ -4798,8 +4798,8 @@ async def test_delete_mcp_oauth_user_credential_invalidates_when_record_already_
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy._experimental.mcp_server import mcp_server_manager as manager_module
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy._experimental.mcp_server import mcp_server_manager as manager_module
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         delete_mcp_oauth_user_credential,
     )
 
@@ -4809,15 +4809,15 @@ async def test_delete_mcp_oauth_user_credential_invalidates_when_record_already_
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=_make_prisma_client(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_user_oauth_credential",
             new=AsyncMock(return_value={"type": "oauth2", "access_token": "revoked-tok"}),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.delete_user_credential",
             new=AsyncMock(side_effect=mgmt_endpoints.RecordNotFoundError({}, message="already gone")),
         ),
         patch.object(
@@ -4838,12 +4838,12 @@ async def test_delete_mcp_oauth_user_credential_invalidates_when_record_already_
 @pytest.mark.asyncio
 async def test_list_mcp_user_credentials_batch_server_fetch():
     """list_mcp_user_credentials uses a single batch DB call, not N+1 queries."""
-    from litellm.proxy._types import MCPUserCredentialListItem
+    from token_iq.gateway.proxy._types import MCPUserCredentialListItem
 
     if not mgmt_endpoints.MCP_AVAILABLE:
         pytest.skip("MCP module not installed")
 
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         list_mcp_user_credentials,
     )
 
@@ -4865,19 +4865,19 @@ async def test_list_mcp_user_credentials_batch_server_fetch():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=_make_prisma_client(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.list_user_oauth_credentials",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.list_user_oauth_credentials",
             new=AsyncMock(return_value=stored_creds),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_servers",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_servers",
             new=batch_mock,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             new=single_mock,
         ),
     ):
@@ -4906,7 +4906,7 @@ async def test_list_mcp_servers_non_admin_url_redacted():
     virtual key) used to receive the raw `url` field, which can contain
     bearer tokens like `https://actions.zapier.com/mcp/<api-key>/sse`.
     They must now get the credential-bearing fields stripped."""
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         fetch_all_mcp_servers,
     )
 
@@ -4937,19 +4937,19 @@ async def test_list_mcp_servers_non_admin_url_redacted():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
             return_value="view_all",
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
             mock_manager,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
             AsyncMock(return_value=[user]),
         ),
     ):
@@ -4976,7 +4976,7 @@ async def test_list_mcp_servers_non_admin_url_redacted():
 async def test_list_mcp_servers_admin_keeps_url():
     """Proxy admins must continue to see the raw URL — the redaction
     only applies to non-admin viewers."""
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         fetch_all_mcp_servers,
     )
 
@@ -4999,19 +4999,19 @@ async def test_list_mcp_servers_admin_keeps_url():
 
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
             return_value="view_all",
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
             mock_manager,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
             AsyncMock(return_value=[admin]),
         ),
     ):
@@ -5024,7 +5024,7 @@ async def test_list_mcp_servers_admin_keeps_url():
 
 def test_sanitize_mcp_server_for_non_admin_clears_credential_fields():
     """Direct unit test on the helper for fast feedback."""
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
         _sanitize_mcp_server_for_non_admin,
     )
 
@@ -5090,7 +5090,7 @@ def test_sanitize_non_admin_drops_all_env_vars():
     """The non-admin view drops env vars entirely; even the names are admin
     config metadata (e.g. DB_PASSWORD) that must not leak. Non-admins get the
     per-user vars they need from the /user-env-vars/status endpoint."""
-    import litellm.proxy.management_endpoints.mcp_management_endpoints as mgmt
+    import token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints as mgmt
 
     server = _server_with_global_and_user_env_vars()
 
@@ -5107,7 +5107,7 @@ def test_sanitize_virtual_key_drops_all_env_vars():
     """Virtual-key callers get a discovery-only view; env var entries (even the
     names, which are admin config metadata) must be dropped entirely, not just
     have their global values blanked."""
-    import litellm.proxy.management_endpoints.mcp_management_endpoints as mgmt
+    import token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints as mgmt
 
     server = _server_with_global_and_user_env_vars()
 
@@ -5122,7 +5122,7 @@ def test_sanitize_virtual_key_drops_all_env_vars():
 def test_sanitize_virtual_key_clears_token_exchange_endpoint_and_audience():
     """Virtual-key callers must not receive the token-exchange IdP endpoint or audience,
     matching how token_url is scrubbed for the same view."""
-    import litellm.proxy.management_endpoints.mcp_management_endpoints as mgmt
+    import token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints as mgmt
 
     server = generate_mock_mcp_server_db_record()
     server.token_url = "https://idp/token"
@@ -5170,19 +5170,19 @@ async def test_fetch_single_mcp_server_env_vars_full_admin_vs_view_only():
     async def _fetch(user_role):
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
                 AsyncMock(return_value=server),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.add_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.add_server",
                 AsyncMock(return_value=None),
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.health_check_server",
                 AsyncMock(return_value=health_result),
             ),
         ):
@@ -5214,15 +5214,15 @@ async def test_fetch_all_mcp_servers_env_vars_full_admin_vs_view_only():
     async def _fetch_all(user_role):
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
                 return_value="view_all",
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.get_all_mcp_servers_unfiltered",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.get_all_mcp_servers_unfiltered",
                 AsyncMock(return_value=[server]),
             ),
             patch(
-                "litellm.proxy.proxy_server.prisma_client",
+                "token_iq.gateway.proxy.proxy_server.prisma_client",
                 None,
             ),
         ):
@@ -5266,15 +5266,15 @@ async def _fetch_all_via_view_all(user_role: LitellmUserRoles):
     server = _leaky_list_server()
     with (
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
             return_value="view_all",
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.get_all_mcp_servers_unfiltered",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager.get_all_mcp_servers_unfiltered",
             AsyncMock(return_value=[server]),
         ),
         patch(
-            "litellm.proxy.proxy_server.prisma_client",
+            "token_iq.gateway.proxy.proxy_server.prisma_client",
             None,
         ),
     ):
@@ -5982,7 +5982,7 @@ class TestMCPUserEnvVarsAccessControl:
 
 def test_oauth2_flow_accepted_on_create_request():
     """NewMCPServerRequest carries oauth2_flow through to the persisted dict."""
-    from litellm.proxy._experimental.mcp_server.db import _prepare_mcp_server_data
+    from token_iq.gateway.proxy._experimental.mcp_server.db import _prepare_mcp_server_data
 
     payload = NewMCPServerRequest(
         server_name="m2m-server",
@@ -6000,7 +6000,7 @@ def test_oauth2_flow_round_trips_on_update_and_response_models():
     """oauth2_flow survives UpdateMCPServerRequest and the LiteLLM_MCPServerTable
     response model. Before the fix these models dropped the field (no attribute),
     which is why a persisted value never round-tripped."""
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_MCPServerTable,
         UpdateMCPServerRequest,
     )
@@ -6018,7 +6018,7 @@ def test_oauth2_flow_round_trips_on_update_and_response_models():
 
 def test_oauth2_flow_defaults_to_none_when_omitted():
     """Omitting oauth2_flow is valid and resolves to None (runtime infers it)."""
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_MCPServerTable,
         UpdateMCPServerRequest,
     )
@@ -6030,7 +6030,7 @@ def test_oauth2_flow_defaults_to_none_when_omitted():
 def test_dcr_bridge_rejected_on_create_for_gateway_managed_auth_type():
     from pydantic import ValidationError
 
-    from litellm.proxy._types import NewMCPServerRequest
+    from token_iq.gateway.proxy._types import NewMCPServerRequest
 
     with pytest.raises(ValidationError) as exc:
         NewMCPServerRequest(
@@ -6047,7 +6047,7 @@ def test_dcr_bridge_rejected_on_create_for_gateway_managed_auth_type():
 def test_dcr_bridge_rejected_on_create_when_auth_type_omitted():
     from pydantic import ValidationError
 
-    from litellm.proxy._types import NewMCPServerRequest
+    from token_iq.gateway.proxy._types import NewMCPServerRequest
 
     with pytest.raises(ValidationError) as exc:
         NewMCPServerRequest(
@@ -6061,8 +6061,8 @@ def test_dcr_bridge_rejected_on_create_when_auth_type_omitted():
 
 @pytest.mark.parametrize("auth_type", ["true_passthrough", "oauth_delegate"])
 def test_dcr_bridge_accepted_on_create_for_client_forwarded_modes(auth_type):
-    from litellm.proxy._experimental.mcp_server.db import _prepare_mcp_server_data
-    from litellm.proxy._types import NewMCPServerRequest
+    from token_iq.gateway.proxy._experimental.mcp_server.db import _prepare_mcp_server_data
+    from token_iq.gateway.proxy._types import NewMCPServerRequest
 
     payload = NewMCPServerRequest(
         server_name="bridge-server",
@@ -6078,7 +6078,7 @@ def test_dcr_bridge_accepted_on_create_for_client_forwarded_modes(auth_type):
 def test_dcr_bridge_update_rejected_when_payload_auth_type_not_client_forwarded():
     from pydantic import ValidationError
 
-    from litellm.proxy._types import UpdateMCPServerRequest
+    from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
     with pytest.raises(ValidationError) as exc:
         UpdateMCPServerRequest(server_id="srv-1", auth_type="oauth2", dcr_bridge=True)
@@ -6086,13 +6086,13 @@ def test_dcr_bridge_update_rejected_when_payload_auth_type_not_client_forwarded(
 
 
 def test_dcr_bridge_update_without_auth_type_defers_to_endpoint():
-    from litellm.proxy._types import UpdateMCPServerRequest
+    from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
     assert UpdateMCPServerRequest(server_id="srv-1", dcr_bridge=True).dcr_bridge is True
 
 
 def test_dcr_bridge_round_trips_on_response_model():
-    from litellm.proxy._types import LiteLLM_MCPServerTable
+    from token_iq.gateway.proxy._types import LiteLLM_MCPServerTable
 
     row = LiteLLM_MCPServerTable(server_id="srv-1", transport="http", dcr_bridge=True)
     assert row.dcr_bridge is True
@@ -6101,23 +6101,23 @@ def test_dcr_bridge_round_trips_on_response_model():
 
 def _edit_endpoint_patches(old_record, update_mock):
     return (
-        patch("litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE", True),
+        patch("token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE", True),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             AsyncMock(side_effect=old_record)
             if isinstance(old_record, Exception)
             else AsyncMock(return_value=old_record),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
             update_mock,
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
             autospec=True,
         ),
     )
@@ -6126,8 +6126,8 @@ def _edit_endpoint_patches(old_record, update_mock):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stored_auth_type", ["oauth2", "api_key", "none"])
 async def test_edit_mcp_server_rejects_dcr_bridge_when_stored_auth_type_not_client_forwarded(stored_auth_type):
-    from litellm.proxy._types import UpdateMCPServerRequest
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
+    from token_iq.gateway.proxy._types import UpdateMCPServerRequest
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
 
     old_record = MagicMock()
     old_record.auth_type = stored_auth_type
@@ -6146,8 +6146,8 @@ async def test_edit_mcp_server_rejects_dcr_bridge_when_stored_auth_type_not_clie
 
 @pytest.mark.asyncio
 async def test_edit_mcp_server_rejects_dcr_bridge_when_stored_record_unreadable():
-    from litellm.proxy._types import UpdateMCPServerRequest
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
+    from token_iq.gateway.proxy._types import UpdateMCPServerRequest
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
 
     update_mock = AsyncMock()
     p1, p2, p3, p4, p5 = _edit_endpoint_patches(RuntimeError("db down"), update_mock)
@@ -6166,8 +6166,8 @@ async def test_edit_mcp_server_dcr_bridge_on_unknown_server_returns_404_not_400(
     """A dcr_bridge enablement targeting a server_id that does not exist must surface the accurate
     404 from the update path, not a misleading 400 about the stored auth_type: get_mcp_server
     returns None for a missing row without raising, which is distinct from a failed read."""
-    from litellm.proxy._types import UpdateMCPServerRequest
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
+    from token_iq.gateway.proxy._types import UpdateMCPServerRequest
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
 
     update_mock = AsyncMock(return_value=None)
     p1, p2, p3, p4, p5 = _edit_endpoint_patches(None, update_mock)
@@ -6418,32 +6418,32 @@ def test_stamp_oauth2_flow_ignores_non_oauth2():
 
 
 async def _run_edit(old_record, updated_record, purge_mock=None):
-    from litellm.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
+    from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import edit_mcp_server
 
     server_id = updated_record.server_id
     with (
-        patch("litellm.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE", True),
+        patch("token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.MCP_AVAILABLE", True),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=MagicMock(),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_mcp_server",
             AsyncMock(side_effect=old_record)
             if isinstance(old_record, Exception)
             else AsyncMock(return_value=old_record),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.update_mcp_server",
             AsyncMock(return_value=updated_record),
         ),
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.validate_and_normalize_mcp_server_payload",
             autospec=True,
         ),
-        patch("litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager") as mock_manager,
+        patch("token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager") as mock_manager,
         patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.purge_user_oauth_credentials_for_server",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.purge_user_oauth_credentials_for_server",
             purge_mock if purge_mock is not None else AsyncMock(return_value=1),
         ) as mock_purge,
     ):
@@ -6557,7 +6557,7 @@ class TestConnectedAppViewAnnotation:
     virtual key must never be widened to its owning user's identity."""
 
     def _ui_session_auth(self, user_role: LitellmUserRoles = LitellmUserRoles.PROXY_ADMIN) -> UserAPIKeyAuth:
-        from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
+        from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
         return generate_mock_user_api_key_auth(user_role=user_role, team_id=UI_SESSION_TOKEN_TEAM_ID)
 
@@ -6584,19 +6584,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[caller_auth]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 reload_mock,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6616,19 +6616,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_user_mcp_management_mode",
                 return_value="view_all",
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 AsyncMock(return_value=UserAPIKeyAuth(user_id="test_user_id")),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6659,19 +6659,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.ui_session_utils.resolve_ui_session_team_ids",
+                "token_iq.gateway.proxy._experimental.mcp_server.ui_session_utils.resolve_ui_session_team_ids",
                 AsyncMock(return_value=[]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 AsyncMock(return_value=admitted_auth),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6687,19 +6687,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[caller_auth]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 AsyncMock(side_effect=HTTPException(status_code=401, detail="expired")),
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6715,19 +6715,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[caller_auth]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 reload_mock,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6738,7 +6738,7 @@ class TestConnectedAppViewAnnotation:
 
     @pytest.mark.asyncio
     async def test_connected_app_view_userless_ui_credential_leaves_field_unset(self):
-        from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
+        from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
         caller_auth = UserAPIKeyAuth(
             user_role=LitellmUserRoles.PROXY_ADMIN, api_key="test_api_key", team_id=UI_SESSION_TOKEN_TEAM_ID
@@ -6749,19 +6749,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[caller_auth]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 reload_mock,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6780,19 +6780,19 @@ class TestConnectedAppViewAnnotation:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
             patch(
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.build_effective_auth_contexts",
                 AsyncMock(return_value=[caller_auth]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
+                "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp.MCPRequestHandler.reload_admitted_user",
                 reload_mock,
             ),
         ):
-            from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+            from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
                 fetch_all_mcp_servers,
             )
 
@@ -6809,26 +6809,26 @@ class TestImportMCPServers:
     def _import_patches(existing_servers, create_mock, mock_manager):
         return (
             patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
                 return_value=MagicMock(),
             ),
             patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.get_all_mcp_servers",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_all_mcp_servers",
                 AsyncMock(return_value=existing_servers),
             ),
             patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.create_mcp_server",
                 create_mock,
             ),
             patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
-                "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
+                "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager",
                 mock_manager,
             ),
         )
 
     @pytest.mark.asyncio
     async def test_non_admin_is_rejected(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             MCPConnectorImportRequest,
             import_mcp_servers,
         )
@@ -6839,7 +6839,7 @@ class TestImportMCPServers:
         caller = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
 
         with patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
             return_value=MagicMock(),
         ):
             with pytest.raises(HTTPException) as exc_info:
@@ -6849,7 +6849,7 @@ class TestImportMCPServers:
 
     @pytest.mark.asyncio
     async def test_import_reports_imported_skipped_and_errors(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             MCPConnectorImportRequest,
             import_mcp_servers,
         )
@@ -6889,7 +6889,7 @@ class TestImportMCPServers:
 
     @pytest.mark.asyncio
     async def test_duplicate_names_within_payload_are_skipped(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             MCPConnectorImportRequest,
             import_mcp_servers,
         )
@@ -6922,7 +6922,7 @@ class TestImportMCPServers:
 
     @pytest.mark.asyncio
     async def test_no_imports_skips_registry_refresh(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             MCPConnectorImportRequest,
             import_mcp_servers,
         )
@@ -6949,7 +6949,7 @@ class TestImportMCPServers:
 
     @pytest.mark.asyncio
     async def test_registration_failure_keeps_the_import_result(self):
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             MCPConnectorImportRequest,
             import_mcp_servers,
         )

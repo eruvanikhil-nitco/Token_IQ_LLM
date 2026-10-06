@@ -3,9 +3,9 @@ import json
 import pytest
 from unittest.mock import patch, Mock, MagicMock
 
-import litellm
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 class TestBedrockGPTOSS(BaseLLMChatTest):

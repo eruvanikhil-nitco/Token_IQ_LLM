@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import SecretStr
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.bridge_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.bridge_credentials import (
     BridgeEnvelopeAdmitted,
     BridgeEnvelopeInvalid,
     BridgeRefreshInvalid,
@@ -26,7 +26,7 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials.bridge_credenti
     open_bridge_refresh_envelope,
     resolve_bridge_envelope,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.envelope import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.envelope import (
     ENVELOPE_PREFIX,
     EnvelopeIdentity,
     EnvelopeKeys,
@@ -117,7 +117,7 @@ def test_refresh_jwt_wearing_the_access_prefix_is_rejected_at_the_edge():
     """Belt-and-suspenders against a swapped wire prefix: a refresh JWT re-prefixed as an access envelope
     opens far enough to hit the signed kind claim, which rejects it, so admission fails closed rather
     than forwarding a refresh credential's contents upstream."""
-    from litellm.proxy._experimental.mcp_server.outbound_credentials.envelope import REFRESH_ENVELOPE_PREFIX
+    from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.envelope import REFRESH_ENVELOPE_PREFIX
 
     keys = envelope_keys_from_master_key(_MASTER_KEY)
     swapped = ENVELOPE_PREFIX + _sealed_refresh(keys).removeprefix(REFRESH_ENVELOPE_PREFIX)

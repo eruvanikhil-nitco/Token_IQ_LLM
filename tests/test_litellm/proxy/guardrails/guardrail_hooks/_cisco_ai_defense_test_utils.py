@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 from httpx import Request, Response
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     Choices,
     Delta,
     Message,
@@ -38,14 +38,14 @@ def _make_model_response_with_content(content: str) -> ModelResponse:
     )
 
 
-import litellm
-from litellm import DualCache
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+from token_iq import gateway as litellm
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
     CiscoAIDefenseGuardrail,
     CiscoAIDefenseGuardrailMissingSecrets,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 CISCO_BASE = "https://us.api.inspect.aidefense.security.cisco.com"
 CHAT_URL = f"{CISCO_BASE}/api/v1/inspect/chat"
@@ -202,8 +202,8 @@ def _redact_response(
 
 
 def _responses_api_response(text, role="assistant"):
-    from litellm.types.llms.openai import ResponsesAPIResponse
-    from litellm.types.responses.main import GenericResponseOutputItem, OutputText
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
 
     return ResponsesAPIResponse(
         id="resp_1",
@@ -245,7 +245,7 @@ def _make_guardrail(
 
 
 def _find_callback(name):
-    from litellm.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
         CiscoAIDefenseGuardrail,
     )
 

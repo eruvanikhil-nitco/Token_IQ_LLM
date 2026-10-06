@@ -5,8 +5,8 @@ from starlette.datastructures import Headers
 from starlette.requests import HTTPConnection
 
 
-from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
-from litellm.proxy._types import ProxyException
+from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
+from token_iq.gateway.proxy._types import ProxyException
 
 
 @pytest.mark.asyncio

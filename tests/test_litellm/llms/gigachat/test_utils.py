@@ -3,8 +3,8 @@ Tests for litellm.llms.gigachat.utils
 """
 
 import pytest
-from litellm.llms.gigachat.utils import convert_usage
-from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+from token_iq.gateway.llms.gigachat.utils import convert_usage
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
 
 class TestConvertUsage:

@@ -12,9 +12,9 @@ import pytest
 import httpx
 import openai
 
-import litellm
-from litellm import Router
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class MyCustomHandler(CustomLogger):
@@ -146,7 +146,7 @@ async def test_router_retries_errors(sync_mode, error_type):
     ["ContentPolicyViolationErrorRetries"],  # "AuthenticationErrorRetries",
 )
 async def test_router_retry_policy(error_type):
-    from litellm.router import AllowedFailsPolicy, RetryPolicy
+    from token_iq.gateway.router import AllowedFailsPolicy, RetryPolicy
 
     retry_policy = RetryPolicy(
         ContentPolicyViolationErrorRetries=3, AuthenticationErrorRetries=0
@@ -216,7 +216,7 @@ async def test_router_retry_policy(error_type):
     reason="This is a local only test, use this to confirm if retry policy works"
 )
 async def test_router_retry_policy_on_429_errprs():
-    from litellm.router import RetryPolicy
+    from token_iq.gateway.router import RetryPolicy
 
     retry_policy = RetryPolicy(
         RateLimitErrorRetries=2,
@@ -259,7 +259,7 @@ async def test_router_retry_policy_on_429_errprs():
 @pytest.mark.parametrize("model_group", ["gpt-3.5-turbo", "bad-model"])
 @pytest.mark.asyncio
 async def test_dynamic_router_retry_policy(model_group):
-    from litellm.router import RetryPolicy
+    from token_iq.gateway.router import RetryPolicy
 
     model_group_retry_policy = {
         "gpt-3.5-turbo": RetryPolicy(ContentPolicyViolationErrorRetries=2),
@@ -848,7 +848,7 @@ async def test_router_retries_model_specific_and_global():
 @pytest.mark.asyncio
 async def test_router_timeout_model_specific_and_global():
     from unittest.mock import patch, MagicMock
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     router = Router(
         model_list=[

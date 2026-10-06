@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_UserTableFiltered,
     LitellmUserRoles,
     NewUserRequest,
@@ -14,7 +14,7 @@ from litellm.proxy._types import (
     UpdateUserRequest,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.internal_user_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     LiteLLM_UserTableWithKeyCount,
     _resolve_user_email_metadata,
     _update_internal_user_params,
@@ -23,7 +23,7 @@ from litellm.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
     ui_view_users,
 )
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 client = TestClient(app)
 
@@ -53,11 +53,11 @@ async def test_ui_view_users_with_null_email(mocker, caplog):
 
     # Flag OFF by default
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={},
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Proxy admin: no org filter, no get_user_object call
     response = await ui_view_users(
@@ -91,10 +91,10 @@ async def test_ui_view_users_proxy_admin_no_org_filter(mocker):
 
     # Flag OFF by default
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={},
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     await ui_view_users(
         user_api_key_dict=UserAPIKeyAuth(
@@ -114,7 +114,7 @@ async def test_ui_view_users_org_admin_filtered_by_org(mocker):
     Org admin with scope_user_search_to_org ON: find_many is called with
     organization_memberships filter so only users in the caller's org(s) are returned.
     """
-    from litellm.proxy._types import LiteLLM_OrganizationMembershipTable
+    from token_iq.gateway.proxy._types import LiteLLM_OrganizationMembershipTable
 
     mock_prisma_client = mocker.MagicMock()
     org_id = "org-123"
@@ -131,13 +131,13 @@ async def test_ui_view_users_org_admin_filtered_by_org(mocker):
 
     # Flag ON
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     caller_user = mocker.MagicMock()
     caller_user.organization_memberships = [
@@ -154,7 +154,7 @@ async def test_ui_view_users_org_admin_filtered_by_org(mocker):
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -181,13 +181,13 @@ async def test_ui_view_users_non_org_admin_returns_403(mocker):
 
     # Flag ON
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     # Caller has no org admin membership
     caller_user = mocker.MagicMock()
@@ -197,7 +197,7 @@ async def test_ui_view_users_non_org_admin_returns_403(mocker):
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -231,10 +231,10 @@ async def test_ui_view_users_flag_off_internal_user_can_search(mocker):
 
     # Flag OFF
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={},
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     response = await ui_view_users(
         user_api_key_dict=UserAPIKeyAuth(user_id="internal_user", user_role=None),
@@ -253,7 +253,7 @@ async def test_ui_view_users_flag_on_team_admin_org_team(mocker):
     """
     Flag ON, team admin for org-bound team: org filter is applied using team's org.
     """
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     mock_prisma_client = mocker.MagicMock()
     org_id = "org-456"
@@ -271,7 +271,7 @@ async def test_ui_view_users_flag_on_team_admin_org_team(mocker):
 
     # Flag ON
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
@@ -287,13 +287,13 @@ async def test_ui_view_users_flag_on_team_admin_org_team(mocker):
         return team_obj
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_team_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_team_object",
         side_effect=mock_get_team_object,
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     # Caller is not org admin
     caller_user = mocker.MagicMock()
@@ -303,7 +303,7 @@ async def test_ui_view_users_flag_on_team_admin_org_team(mocker):
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -326,14 +326,14 @@ async def test_ui_view_users_flag_on_team_admin_non_org_team_403(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     mock_prisma_client = mocker.MagicMock()
     tid = "team-no-org"
 
     # Flag ON
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
@@ -349,13 +349,13 @@ async def test_ui_view_users_flag_on_team_admin_non_org_team_403(mocker):
         return team_obj
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_team_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_team_object",
         side_effect=mock_get_team_object,
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     # Caller is not org admin
     caller_user = mocker.MagicMock()
@@ -365,7 +365,7 @@ async def test_ui_view_users_flag_on_team_admin_non_org_team_403(mocker):
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -403,13 +403,13 @@ async def test_ui_view_users_flag_on_team_admin_org_member_no_team_id(mocker):
     mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
 
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     # Caller is org member (internal_user role, not org admin)
     membership = mocker.MagicMock()
@@ -423,7 +423,7 @@ async def test_ui_view_users_flag_on_team_admin_org_member_no_team_id(mocker):
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -447,7 +447,7 @@ async def test_ui_view_users_flag_on_team_admin_not_in_org_resolves_via_key_team
     Flag ON, team admin NOT in any org, no team_id query param but
     user_api_key_dict.team_id is set: resolves org via the key's team.
     """
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     mock_prisma_client = mocker.MagicMock()
     org_id = "org-from-team"
@@ -464,7 +464,7 @@ async def test_ui_view_users_flag_on_team_admin_not_in_org_resolves_via_key_team
     mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
 
     mocker.patch(
-        "litellm.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
+        "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
         return_value={"scope_user_search_to_org": True},
     )
 
@@ -479,13 +479,13 @@ async def test_ui_view_users_flag_on_team_admin_not_in_org_resolves_via_key_team
         return team_obj
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_team_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_team_object",
         side_effect=mock_get_team_object,
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mocker.MagicMock())
 
     # Caller has no org memberships
     caller_user = mocker.MagicMock()
@@ -495,7 +495,7 @@ async def test_ui_view_users_flag_on_team_admin_not_in_org_resolves_via_key_team
         return caller_user
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_object",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_object",
         side_effect=mock_get_user_object,
     )
 
@@ -518,7 +518,7 @@ def test_user_daily_activity_types():
     """
     Assert all fiels in SpendMetrics are reported in DailySpendMetadata as "total_"
     """
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         DailySpendMetadata,
         SpendMetrics,
     )
@@ -572,14 +572,14 @@ async def test_get_users_includes_timestamps(mocker):
     mock_prisma_client.db.litellm_usertable.count = mock_count
 
     # Patch the prisma client import in the endpoint
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Mock the helper function get_user_key_counts
     async def mock_get_user_key_counts(*args, **kwargs):
         return {"test-user-timestamps": 0}
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
         mock_get_user_key_counts,
     )
 
@@ -637,13 +637,13 @@ async def test_get_users_redacts_scim_enterprise_metadata(mocker):
 
     mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
     mock_prisma_client.db.litellm_usertable.count = mock_count
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     async def mock_get_user_key_counts(*args, **kwargs):
         return {"listed-user": 0}
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
         mock_get_user_key_counts,
     )
 
@@ -665,7 +665,7 @@ def test_validate_sort_params():
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _validate_sort_params,
     )
 
@@ -692,8 +692,8 @@ def test_update_internal_user_params_email():
     """
     Test that _update_internal_user_params correctly processes an email-only update
     """
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_user_params,
     )
 
@@ -717,8 +717,8 @@ def test_update_internal_user_params_reset_spend_and_max_budget():
     """
     Relevant Issue: https://github.com/BerriAI/litellm/issues/10495
     """
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_user_params,
     )
 
@@ -748,8 +748,8 @@ def test_update_internal_user_params_rejects_a_duration_that_never_advances(bad_
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_user_params,
     )
 
@@ -763,8 +763,8 @@ def test_update_internal_user_params_rejects_a_duration_that_never_advances(bad_
 
 
 def test_update_internal_user_params_accepts_a_normal_duration():
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_user_params,
     )
 
@@ -782,11 +782,11 @@ async def test_new_user_rejects_a_duration_that_never_advances(mocker, bad_durat
     """/user/new must reject the same never-advancing durations /user/update does."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
     duplicate_check = mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         new=AsyncMock(),
     )
     admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -809,8 +809,8 @@ async def test_new_user_license_over_limit(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import NewUserRequest, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy._types import NewUserRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     # Mock the prisma client
     mock_prisma_client = mocker.MagicMock()
@@ -830,19 +830,19 @@ async def test_new_user_license_over_limit(mocker):
         return None  # No duplicate found
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check_duplicate_user_email,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check_duplicate_user_id,
     )
 
     from token_iq.policy.plan import TokenIqPlan
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.proxy_server.token_iq_plan",
+        "token_iq.gateway.proxy.proxy_server.token_iq_plan",
         TokenIqPlan(name="capped", unlocks_gated_features=True, max_users=999, max_teams=None),
     )
 
@@ -877,21 +877,21 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
         return None
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         _noop,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         _noop,
     )
 
     mocker.patch(
-        "litellm.proxy.proxy_server.token_iq_plan",
+        "token_iq.gateway.proxy.proxy_server.token_iq_plan",
         TokenIqPlan(name="capped", unlocks_gated_features=True, max_users=2, max_teams=None),
     )
 
     key_gen = mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
         new=mocker.AsyncMock(side_effect=RuntimeError("reached key generation")),
     )
 
@@ -909,7 +909,7 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
 
     # 2 active + 3 deactivated -> billable 2, not over max_users 2: gate passes
     mocker.patch(
-        "litellm.proxy.proxy_server.prisma_client", _prisma(total=5, deactivated=3)
+        "token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(total=5, deactivated=3)
     )
     with pytest.raises(ProxyException) as passed:
         await new_user(data=request, user_api_key_dict=admin)
@@ -919,7 +919,7 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
     # 3 active, 0 deactivated -> billable 3, over max_users 2: gate blocks
     key_gen.reset_mock()
     mocker.patch(
-        "litellm.proxy.proxy_server.prisma_client", _prisma(total=3, deactivated=0)
+        "token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(total=3, deactivated=0)
     )
     with pytest.raises(ProxyException) as blocked:
         await new_user(data=request, user_api_key_dict=admin)
@@ -934,7 +934,7 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
     Test that non-admin users cannot create administrative users (PROXY_ADMIN or PROXY_ADMIN_VIEW_ONLY).
     This prevents privilege escalation vulnerabilities.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     # Mock the prisma client
     mock_prisma_client = mocker.MagicMock()
@@ -953,17 +953,17 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
         return None  # No duplicate found
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check_duplicate_user_email,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check_duplicate_user_id,
     )
 
 
     # Patch the imports in the endpoint
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Test Case 1: INTERNAL_USER trying to create PROXY_ADMIN
     user_request = NewUserRequest(
@@ -1013,7 +1013,7 @@ async def test_new_user_non_admin_permissions_non_empty_rejected(mocker):
     """`new_user` rejects a non-admin when `permissions` is present in the
     request body. `/user/new` propagates the value into the auto-created
     key via `generate_key_helper_fn`."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -1026,14 +1026,14 @@ async def test_new_user_non_admin_permissions_non_empty_rejected(mocker):
         return None
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check,
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     data = NewUserRequest(
         user_email="alice@example.com",
@@ -1055,7 +1055,7 @@ async def test_new_user_non_admin_permissions_explicit_empty_rejected(mocker):
     """`new_user` rejects a non-admin when `permissions` is present as
     `{}` in the request body. The value matches the model default but
     `model_fields_set` distinguishes the two."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -1068,14 +1068,14 @@ async def test_new_user_non_admin_permissions_explicit_empty_rejected(mocker):
         return None
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check,
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     data = NewUserRequest(
         user_email="alice@example.com",
@@ -1098,7 +1098,7 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
     """`new_user` does not fire the permissions gate when `permissions`
     is absent from the request body. The model-level default `{}` is not
     in `model_fields_set`."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -1111,14 +1111,14 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
         return None
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check,
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     stub_response = {"user_id": "alice", "key": "sk-alice", "expires": None}
 
@@ -1126,7 +1126,7 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
         return stub_response
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
         stub_helper,
     )
 
@@ -1147,7 +1147,7 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
 async def test_new_user_admin_can_set_permissions(mocker):
     """`new_user` accepts a PROXY_ADMIN caller for any shape of
     `permissions` in the request body."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -1160,20 +1160,20 @@ async def test_new_user_admin_can_set_permissions(mocker):
         return None
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check,
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     async def stub_helper(**_kwargs):
         return {"user_id": "alice", "key": "sk-alice", "expires": None}
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
         stub_helper,
     )
 
@@ -1195,14 +1195,14 @@ async def test_update_single_user_non_admin_permissions_rejected(mocker):
     `/user/bulk_update`, which share this helper."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = mocker.MagicMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 
     data = UpdateUserRequest(
         user_id="alice",
@@ -1226,14 +1226,14 @@ async def test_update_single_user_non_admin_permissions_explicit_empty_rejected(
     is present as `{}` in the request body."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UpdateUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = mocker.MagicMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 
     data = UpdateUserRequest(user_id="alice", permissions={})
     assert "permissions" in data.model_fields_set
@@ -1260,8 +1260,8 @@ async def test_user_info_url_encoding_plus_character(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import LiteLLM_UserTable, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info
 
     # Mock the prisma client
     mock_prisma_client = mocker.MagicMock()
@@ -1288,12 +1288,12 @@ async def test_user_info_url_encoding_plus_character(mocker):
     # Mock list_team to return None (patch it from where it's imported)
     mock_list_team = mocker.AsyncMock(return_value=None)
     mocker.patch(
-        "litellm.proxy.management_endpoints.team_endpoints.list_team",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.list_team",
         mock_list_team,
     )
 
     # Patch the prisma client import in the endpoint
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Create a mock request with the raw query string containing +
     mock_request = mocker.MagicMock(spec=Request)
@@ -1336,8 +1336,8 @@ async def test_user_info_nonexistent_user(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import ProxyException, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info
+    from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info
 
     # Mock the prisma client
     mock_prisma_client = mocker.MagicMock()
@@ -1353,7 +1353,7 @@ async def test_user_info_nonexistent_user(mocker):
     mock_prisma_client.get_data = mocker.AsyncMock(side_effect=mock_get_data)
 
     # Patch the prisma client import in the endpoint
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Create a mock request
     mock_request = mocker.MagicMock(spec=Request)
@@ -1385,17 +1385,17 @@ async def test_user_info_no_user_id_view_only_admin_gets_proxy_admin_payload(moc
     silently narrows to the viewer's own row instead of the whole tenant."""
     from fastapi import Request
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth, UserInfoResponse
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth, UserInfoResponse
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info
 
     mock_prisma_client = mocker.MagicMock()
     mock_prisma_client.get_data = mocker.AsyncMock(return_value=None)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     admin_payload = UserInfoResponse(user_id=None, user_info=None, keys=[], teams=[])
     mock_get_user_info_for_proxy_admin = mocker.AsyncMock(return_value=admin_payload)
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._get_user_info_for_proxy_admin",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._get_user_info_for_proxy_admin",
         mock_get_user_info_for_proxy_admin,
     )
 
@@ -1419,9 +1419,9 @@ async def test_new_user_default_teams_flow(mocker):
     - Teams are NOT sent to generate_key_helper_fn
     - Teams ARE sent to _add_user_to_team
     """
-    import litellm
-    from litellm.proxy._types import NewUserRequest, NewUserRequestTeam, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import new_user
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import NewUserRequest, NewUserRequestTeam, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
     # Mock the prisma client
     mock_prisma_client = mocker.MagicMock()
@@ -1440,11 +1440,11 @@ async def test_new_user_default_teams_flow(mocker):
         return None  # No duplicate found
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_email",
         mock_check_duplicate_user_email,
     )
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         mock_check_duplicate_user_id,
     )
 
@@ -1478,17 +1478,17 @@ async def test_new_user_default_teams_flow(mocker):
 
     try:
         # Patch all the imports
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
+            "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
             mock_generate_key_helper_fn,
         )
         mocker.patch(
-            "litellm.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
+            "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
             mock_add_user_to_team,
         )
         mocker.patch(
-            "litellm.proxy.management_endpoints.internal_user_endpoints.UserManagementEventHooks.async_user_created_hook",
+            "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.UserManagementEventHooks.async_user_created_hook",
             mock_user_created_hook,
         )
 
@@ -1532,7 +1532,7 @@ async def test_new_user_default_teams_flow(mocker):
 
     finally:
         # Restore original default params (always assign, never delattr — the attribute
-        # is defined in litellm/__init__.py and delattr-ing it breaks parallel tests)
+        # is defined in token_iq/gateway/__init__.py and delattr-ing it breaks parallel tests)
         litellm.default_internal_user_params = original_default_params
 
 
@@ -1540,9 +1540,9 @@ def test_update_internal_new_user_params_proxy_admin_role():
     """
     Test that default_internal_user_params are NOT applied when user_role is PROXY_ADMIN
     """
-    import litellm
-    from litellm.proxy._types import LitellmUserRoles, NewUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
@@ -1587,9 +1587,9 @@ def test_update_internal_new_user_params_no_role_specified():
     """
     Test that default_internal_user_params ARE applied when user_role is not set
     """
-    import litellm
-    from litellm.proxy._types import NewUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import NewUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
@@ -1623,9 +1623,9 @@ def test_update_internal_new_user_params_internal_user_role():
     """
     Test that default_internal_user_params ARE applied when user_role is INTERNAL_USER
     """
-    import litellm
-    from litellm.proxy._types import LitellmUserRoles, NewUserRequest
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
@@ -1669,7 +1669,7 @@ async def test_check_duplicate_user_email_case_insensitive(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _check_duplicate_user_email,
     )
 
@@ -1745,7 +1745,7 @@ async def test_check_duplicate_user_id(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _check_duplicate_user_id,
     )
 
@@ -1795,8 +1795,8 @@ def test_process_keys_for_user_info_filters_dashboard_keys(monkeypatch):
     """
     from unittest.mock import MagicMock
 
-    from litellm.constants import UI_SESSION_TOKEN_TEAM_ID
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _process_keys_for_user_info,
     )
 
@@ -1829,11 +1829,11 @@ def test_process_keys_for_user_info_filters_dashboard_keys(monkeypatch):
 
     # Mock general_settings and litellm_master_key_hash (they're imported from proxy_server)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {},
     )
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
         "different-hash",
     )
 
@@ -1866,17 +1866,17 @@ def test_process_keys_for_user_info_handles_none_keys(monkeypatch):
     """
     Test that _process_keys_for_user_info handles None keys gracefully
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _process_keys_for_user_info,
     )
 
     # Mock general_settings and litellm_master_key_hash (they're imported from proxy_server)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {},
     )
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
         "different-hash",
     )
 
@@ -1891,17 +1891,17 @@ def test_process_keys_for_user_info_handles_empty_keys(monkeypatch):
     """
     Test that _process_keys_for_user_info handles empty keys list
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _process_keys_for_user_info,
     )
 
     # Mock general_settings and litellm_master_key_hash (they're imported from proxy_server)
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {},
     )
     monkeypatch.setattr(
-        "litellm.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
         "different-hash",
     )
 
@@ -1918,7 +1918,7 @@ async def test_get_users_user_id_partial_match(mocker):
     Test that /user/list endpoint uses partial matching for single user_id
     and exact matching for multiple user_ids.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -1945,13 +1945,13 @@ async def test_get_users_user_id_partial_match(mocker):
     mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
     mock_prisma_client.db.litellm_usertable.count = mock_count
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     async def mock_get_user_key_counts(*args, **kwargs):
         return {"test-user-partial-match": 0}
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_user_key_counts",
         mock_get_user_key_counts,
     )
 
@@ -2042,7 +2042,7 @@ def test_generate_request_base_validator():
     """
     Test that GenerateRequestBase validator converts empty string to None for max_budget
     """
-    from litellm.proxy._types import GenerateRequestBase
+    from token_iq.gateway.proxy._types import GenerateRequestBase
 
     # Test with empty string
     req = GenerateRequestBase(max_budget="")
@@ -2068,13 +2068,13 @@ async def test_get_user_daily_activity_non_admin_cannot_view_other_users(monkeyp
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         get_user_daily_activity,
     )
 
     # Mock the prisma client so the DB-not-connected check passes
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Non-admin caller
     non_admin_key_dict = UserAPIKeyAuth(
@@ -2104,7 +2104,7 @@ async def test_get_user_daily_activity_non_admin_cannot_view_other_users(monkeyp
     # Case 2: Non-admin omits user_id — should default to their own user_id
     mock_response = MagicMock()
     with patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity",
         new_callable=AsyncMock,
         return_value=mock_response,
     ) as mock_get_daily:
@@ -2143,17 +2143,17 @@ async def test_get_user_daily_activity_rejects_service_account_caller(monkeypatc
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         get_user_daily_activity,
     )
 
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Tripwire: ensure get_daily_activity is never reached
     mock_get_daily = AsyncMock()
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity",
         mock_get_daily,
     )
 
@@ -2193,16 +2193,16 @@ async def test_get_user_daily_activity_aggregated_rejects_service_account_caller
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         get_user_daily_activity_aggregated,
     )
 
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_get_daily_agg = AsyncMock()
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
         mock_get_daily_agg,
     )
 
@@ -2237,19 +2237,19 @@ async def test_get_user_daily_activity_aggregated_admin_global_view(monkeypatch,
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         get_user_daily_activity_aggregated,
     )
 
     # Mock the prisma client
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Mock the downstream helper so we don't need a real DB
     mock_response = MagicMock()
     mock_get_daily_agg = AsyncMock(return_value=mock_response)
     monkeypatch.setattr(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
         mock_get_daily_agg,
     )
 
@@ -2304,12 +2304,12 @@ async def test_get_user_daily_activity_aggregated_non_admin_cannot_view_other_us
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         get_user_daily_activity_aggregated,
     )
 
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     non_admin_key_dict = UserAPIKeyAuth(
         user_id="regular-user-123",
@@ -2318,7 +2318,7 @@ async def test_get_user_daily_activity_aggregated_non_admin_cannot_view_other_us
 
     # Case 1: Non-admin targets another user's data — 403, helper never reached
     with patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
         new_callable=AsyncMock,
     ) as mock_get_daily_agg:
         with pytest.raises(HTTPException) as exc_info:
@@ -2339,7 +2339,7 @@ async def test_get_user_daily_activity_aggregated_non_admin_cannot_view_other_us
     # Case 2: Non-admin omits user_id — scoped to their own user_id, not global
     mock_response = MagicMock()
     with patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.get_daily_activity_aggregated",
         new_callable=AsyncMock,
         return_value=mock_response,
     ) as mock_get_daily_agg:
@@ -2366,8 +2366,8 @@ async def test_delete_user_cleans_up_created_by_invitation_links(mocker):
 
     This prevents FK constraint violations when deleting a user who created pending invites.
     """
-    from litellm.proxy._types import DeleteUserRequest, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import delete_user
+    from token_iq.gateway.proxy._types import DeleteUserRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import delete_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2412,7 +2412,7 @@ async def test_delete_user_cleans_up_created_by_invitation_links(mocker):
         return_value=1
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Call delete_user
     data = DeleteUserRequest(user_ids=["admin-creator"])
@@ -2457,8 +2457,8 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import DeleteUserRequest, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import delete_user
+    from token_iq.gateway.proxy._types import DeleteUserRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import delete_user
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2504,7 +2504,7 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
         side_effect=mock_find_memberships
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     data = DeleteUserRequest(user_ids=["victim"])
     user_api_key_dict = UserAPIKeyAuth(
@@ -2533,8 +2533,8 @@ async def test_user_update_rejects_silent_create_for_non_proxy_admin(mocker):
     arbitrary users outside the /user/new authorization flow."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UpdateUserRequest, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import UpdateUserRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -2543,7 +2543,7 @@ async def test_user_update_rejects_silent_create_for_non_proxy_admin(mocker):
     mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
         return_value=None
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     user_request = UpdateUserRequest(
         user_email="newcomer@example.com",
@@ -2574,8 +2574,8 @@ async def test_user_info_v2_proxy_admin_can_query_any_user(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2606,7 +2606,7 @@ async def test_user_info_v2_proxy_admin_can_query_any_user(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2641,8 +2641,8 @@ async def test_user_info_v2_redacts_scim_enterprise_metadata(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2670,7 +2670,7 @@ async def test_user_info_v2_redacts_scim_enterprise_metadata(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2696,7 +2696,7 @@ def test_build_user_info_response_redacts_scim_enterprise_metadata():
     The shared /user/info builder strips scim_enterprise from the returned user row
     while leaving every other metadata key intact.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _build_user_info_response,
     )
 
@@ -2728,8 +2728,8 @@ async def test_user_info_v2_internal_user_can_query_self(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2760,7 +2760,7 @@ async def test_user_info_v2_internal_user_can_query_self(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2787,7 +2787,7 @@ async def test_user_info_v2_internal_user_cannot_query_other(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2805,7 +2805,7 @@ async def test_user_info_v2_internal_user_cannot_query_other(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2830,8 +2830,8 @@ async def test_user_info_v2_no_user_id_defaults_to_self(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2862,7 +2862,7 @@ async def test_user_info_v2_no_user_id_defaults_to_self(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2889,7 +2889,7 @@ async def test_user_info_v2_nonexistent_user_returns_404(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2900,7 +2900,7 @@ async def test_user_info_v2_nonexistent_user_returns_404(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -2927,8 +2927,8 @@ async def test_user_info_v2_response_shape(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -2958,7 +2958,7 @@ async def test_user_info_v2_response_shape(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -3023,8 +3023,8 @@ async def test_user_info_v2_team_admin_can_query_team_member(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import LiteLLM_TeamTable, UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -3083,7 +3083,7 @@ async def test_user_info_v2_team_admin_can_query_team_member(mocker):
         side_effect=mock_find_many_teams
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -3109,7 +3109,7 @@ async def test_user_info_v2_team_admin_cannot_query_non_team_member(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -3151,7 +3151,7 @@ async def test_user_info_v2_team_admin_cannot_query_non_team_member(mocker):
         side_effect=mock_find_many_teams
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -3176,8 +3176,8 @@ async def test_user_info_v2_url_encoding_plus_character(mocker):
     """
     from fastapi import Request
 
-    from litellm.proxy._types import UserInfoV2Response
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy._types import UserInfoV2Response
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     mock_prisma_client = mocker.MagicMock()
 
@@ -3211,7 +3211,7 @@ async def test_user_info_v2_url_encoding_plus_character(mocker):
         side_effect=mock_find_unique
     )
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mock_request = mocker.MagicMock(spec=Request)
     mock_request.url.query = f"user_id={expected_user_id}"
@@ -3246,7 +3246,7 @@ class TestGetUserIdFromRequestValidation:
         return request
 
     def test_valid_uuid(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3255,7 +3255,7 @@ class TestGetUserIdFromRequestValidation:
         assert result == "550e8400-e29b-41d4-a716-446655440000"
 
     def test_valid_email(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3264,7 +3264,7 @@ class TestGetUserIdFromRequestValidation:
         assert result == "user@example.com"
 
     def test_rejects_overlong_user_id(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3274,7 +3274,7 @@ class TestGetUserIdFromRequestValidation:
         assert result is None
 
     def test_rejects_null_byte(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3283,7 +3283,7 @@ class TestGetUserIdFromRequestValidation:
         assert result is None
 
     def test_rejects_control_characters(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3293,7 +3293,7 @@ class TestGetUserIdFromRequestValidation:
         assert result is None
 
     def test_allows_512_char_user_id(self):
-        from litellm.proxy.management_endpoints.internal_user_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
             get_user_id_from_request,
         )
 
@@ -3310,8 +3310,8 @@ class TestGetUserIdFromRequestValidation:
 
 def test_enforce_user_info_access_admin_bypass():
     """Proxy admins must always be allowed past the re-check."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3325,8 +3325,8 @@ def test_enforce_user_info_access_admin_bypass():
 def test_enforce_user_info_access_view_only_admin_can_read_other_users():
     """PROXY_ADMIN_VIEW_ONLY has read parity with PROXY_ADMIN, so the ownership
     re-check must wave it through for another user's id."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3338,8 +3338,8 @@ def test_enforce_user_info_access_view_only_admin_can_read_other_users():
 
 
 def test_enforce_user_info_access_view_only_admin_can_read_own():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3351,8 +3351,8 @@ def test_enforce_user_info_access_view_only_admin_can_read_own():
 
 
 def test_enforce_user_info_access_owner_allowed():
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3365,8 +3365,8 @@ def test_enforce_user_info_access_owner_allowed():
 def test_enforce_user_info_access_no_user_id_allowed():
     """No user_id in query → handler resolves to caller's own id later, so
     this branch must not raise."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3383,8 +3383,8 @@ def test_enforce_user_info_access_blocks_cross_user_lookup():
     import pytest
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
@@ -3413,7 +3413,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_max_budget(mocker):
     max_budget (self-escalation)."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -3427,7 +3427,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_max_budget(mocker):
     mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     user_request = UpdateUserRequest(
         user_id="user-1",
@@ -3451,7 +3451,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_spend(mocker):
     """Non-admin must not be able to reset their own spend to zero."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -3465,7 +3465,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_spend(mocker):
     mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     user_request = UpdateUserRequest(
         user_id="user-1",
@@ -3487,7 +3487,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_spend(mocker):
 @pytest.mark.asyncio
 async def test_ghsa_wvg4_proxy_admin_can_update_user_budget(mocker):
     """PROXY_ADMIN must still be able to modify another user's budget."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -3505,8 +3505,8 @@ async def test_ghsa_wvg4_proxy_admin_can_update_user_budget(mocker):
         return_value={"user_id": "target-user", "max_budget": 500}
     )
     mock_prisma_client.jsonify_object = mocker.MagicMock(side_effect=lambda x: x)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
 
     user_request = UpdateUserRequest(
         user_id="target-user",
@@ -3527,7 +3527,7 @@ async def test_ghsa_wvg4_proxy_admin_can_update_user_budget(mocker):
 async def test_admin_user_update_spend_invalidates_counter(mocker):
     """A direct /user/update spend change must invalidate the cross-pod
     spend counter so enforcement re-reads the new DB value."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -3542,10 +3542,10 @@ async def test_admin_user_update_spend_invalidates_counter(mocker):
         return_value={"user_id": "target-user", "spend": -25.0}
     )
     mock_prisma_client.jsonify_object = mocker.MagicMock(side_effect=lambda x: x)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
     mock_invalidate = mocker.patch(
-        "litellm.proxy.proxy_server._invalidate_spend_counter",
+        "token_iq.gateway.proxy.proxy_server._invalidate_spend_counter",
         new=mocker.AsyncMock(),
     )
 
@@ -3570,7 +3570,7 @@ async def test_user_update_rejects_non_finite_spend(mocker):
     """NaN/inf spend is rejected before any DB write or counter invalidation."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -3582,10 +3582,10 @@ async def test_user_update_rejects_non_finite_spend(mocker):
         return_value=existing_user
     )
     mock_prisma_client.update_data = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
     mock_invalidate = mocker.patch(
-        "litellm.proxy.proxy_server._invalidate_spend_counter",
+        "token_iq.gateway.proxy.proxy_server._invalidate_spend_counter",
         new=mocker.AsyncMock(),
     )
 
@@ -3660,13 +3660,13 @@ async def test_resolve_user_email_metadata_skips_db_when_no_user_ids(mocker):
 async def test_add_new_user_to_default_team_propagates_max_budget_in_team(mocker):
     """A configured per-member budget on a default team must reach the membership
     write; dropping it means the member is unlimited within the team budget."""
-    from litellm.proxy._types import NewUserRequestTeam
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import NewUserRequestTeam
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         add_new_user_to_default_team,
     )
 
     mock_add = mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
         new_callable=mocker.AsyncMock,
     )
 
@@ -3690,12 +3690,12 @@ async def test_add_new_user_to_default_team_propagates_max_budget_in_team(mocker
 @pytest.mark.asyncio
 async def test_add_new_user_to_default_team_string_teams_have_no_member_budget(mocker):
     """Bare-string default teams carry no per-member budget."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         add_new_user_to_default_team,
     )
 
     mock_add = mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._add_user_to_team",
         new_callable=mocker.AsyncMock,
     )
 
@@ -3722,12 +3722,12 @@ async def test_add_user_to_team_logs_unknown_team_at_error(mocker, caplog):
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _add_user_to_team,
     )
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=mocker.AsyncMock,
         side_effect=HTTPException(status_code=404, detail={"error": "Team not found"}),
     )
@@ -3753,12 +3753,12 @@ async def test_add_user_to_team_keeps_already_a_member_quiet(mocker, caplog):
 
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _add_user_to_team,
     )
 
     mocker.patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=mocker.AsyncMock,
         side_effect=HTTPException(status_code=400, detail={"error": "User already exists in team"}),
     )
@@ -3777,8 +3777,8 @@ async def test_add_user_to_team_keeps_already_a_member_quiet(mocker, caplog):
 async def test_get_user_info_for_proxy_admin_validates_keys_and_teams():
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from litellm.proxy._types import LiteLLM_TeamTable, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _get_user_info_for_proxy_admin,
     )
 
@@ -3797,7 +3797,7 @@ async def test_get_user_info_for_proxy_admin_validates_keys_and_teams():
     mock_prisma_client = MagicMock()
     mock_prisma_client.db.query_raw = AsyncMock(return_value=raw_rows)
 
-    with patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client):
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
         result = await _get_user_info_for_proxy_admin(user_api_key_dict=UserAPIKeyAuth(user_id=None))
 
     assert all(isinstance(team, LiteLLM_TeamTable) for team in result.teams)
@@ -3831,10 +3831,10 @@ def _object_permission_mocks(mocker, existing_object_permission_id=None):
         return_value={"user_id": "target-user"}
     )
     mock_prisma_client.jsonify_object = mocker.MagicMock(side_effect=lambda x: x)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
-    mocker.patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin")
     mocker.patch(
-        "litellm.proxy.proxy_server._invalidate_spend_counter",
+        "token_iq.gateway.proxy.proxy_server._invalidate_spend_counter",
         new=mocker.AsyncMock(),
     )
     return mock_prisma_client
@@ -3848,14 +3848,14 @@ async def test_user_update_persists_mcp_entitlement_and_links_it(mocker):
     only the resulting object_permission_id. Passing object_permission through to the user update
     would not even be a column.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = _object_permission_mocks(mocker)
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     await _update_single_user_helper(
         user_request=UpdateUserRequest(
@@ -3887,14 +3887,14 @@ async def test_user_update_invalidates_the_cached_entitlement(mocker):
     Three entries go stale: the permission row (keyed by its own id), the user -> permission link
     (which carries a "no entitlement" sentinel), and the cached user row.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     _object_permission_mocks(mocker)
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     await _update_single_user_helper(
         user_request=UpdateUserRequest(
@@ -3925,14 +3925,14 @@ async def test_admin_can_clear_a_users_mcp_entitlement(mocker):
     A clear also leaves no incoming permission id, so invalidation keyed off one would skip it and
     the gateway would keep enforcing the cleared grants until the cache expired.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = _object_permission_mocks(mocker, "perm-existing")
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     await _update_single_user_helper(
         user_request=UpdateUserRequest(user_id="target-user", object_permission={}),
@@ -3961,14 +3961,14 @@ async def test_user_update_invalidates_both_the_old_and_new_permission_rows(mock
     Only the link cache knows the user moved; the old row's own entry still holds the pre-update
     grants, so anything still resolving that id keeps reading them.
     """
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     _object_permission_mocks(mocker, "perm-existing")
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     await _update_single_user_helper(
         user_request=UpdateUserRequest(
@@ -3996,14 +3996,14 @@ async def test_non_admin_cannot_clear_their_own_mcp_entitlement(mocker):
     """
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = _object_permission_mocks(mocker, "perm-existing")
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     with pytest.raises(HTTPException) as exc:
         await _update_single_user_helper(
@@ -4023,14 +4023,14 @@ async def test_non_admin_cannot_rewrite_their_own_mcp_entitlement(mocker):
     means "no restriction" and would lift a ceiling the admin placed on them."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mock_prisma_client = _object_permission_mocks(mocker, "perm-existing")
     cache = mocker.MagicMock()
     cache.async_delete_cache = mocker.AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.user_api_key_cache", cache)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache)
 
     with pytest.raises(HTTPException) as exc:
         await _update_single_user_helper(
@@ -4060,19 +4060,19 @@ async def test_new_user_persists_the_requested_mcp_entitlement(mocker):
         return_value=None
     )
     mock_prisma_client.db.litellm_usertable.count = mocker.AsyncMock(return_value=0)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.check_if_default_team_set",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.check_if_default_team_set",
         return_value=None,
     )
     mock_generate = mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.generate_key_helper_fn",
         new=mocker.AsyncMock(
             return_value={"user_id": "new-human", "token": "sk-x", "expires": None}
         ),
     )
     mocker.patch(
-        "litellm.proxy.hooks.user_management_event_hooks.UserManagementEventHooks.async_user_created_hook",
+        "token_iq.gateway.proxy.hooks.user_management_event_hooks.UserManagementEventHooks.async_user_created_hook",
         new=mocker.AsyncMock(),
     )
 
@@ -4097,7 +4097,7 @@ async def test_new_user_persists_the_requested_mcp_entitlement(mocker):
 async def test_user_info_v2_returns_the_mcp_entitlement(mocker):
     """The admin UI reads the current entitlement off this endpoint, so the grants have to come back
     with the user row rather than only their id."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import user_info_v2
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info_v2
 
     user_row = SimpleNamespace(
         object_permission=SimpleNamespace(
@@ -4116,9 +4116,9 @@ async def test_user_info_v2_returns_the_mcp_entitlement(mocker):
             "mcp_tool_permissions": {"github": ["list_issues"]},
         },
     }
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.MagicMock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.MagicMock())
     mocker.patch(
-        "litellm.proxy.management_endpoints.internal_user_endpoints._check_user_info_v2_access",
+        "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_user_info_v2_access",
         new=mocker.AsyncMock(return_value=user_row),
     )
 
@@ -4161,7 +4161,7 @@ async def test_user_new_persists_model_max_budget(
     generate_key_helper_fn with no budget, and writing "{}" for them would clear
     an existing user's budgets.
     """
-    from litellm.proxy.management_endpoints import key_management_endpoints
+    from token_iq.gateway.proxy.management_endpoints import key_management_endpoints
 
     captured = {}
 
@@ -4184,7 +4184,7 @@ async def test_user_new_persists_model_max_budget(
         async def get_data(self, *args, **kwargs):
             return None
 
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "prisma_client", _FakePrisma(), raising=False)
     # model_max_budget is an enterprise feature; without this the call is rejected
@@ -4208,10 +4208,10 @@ def _admin_prisma(mocker):
     verbatim)."""
     mock_prisma_client = mocker.MagicMock()
     mocker.patch(  # test-quality-ok: same module-global mocking every test in this file already uses
-        "litellm.proxy.proxy_server.prisma_client", mock_prisma_client
+        "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client
     )
     mocker.patch(  # test-quality-ok: same module-global mocking every test in this file already uses
-        "litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"
+        "token_iq.gateway.proxy.proxy_server.litellm_proxy_admin_name", "admin"
     )
     return mock_prisma_client
 
@@ -4220,8 +4220,8 @@ def _admin_prisma(mocker):
 async def test_user_update_rejects_weak_password(_admin_prisma):
     """/user/update must reject a password that fails the configured
     policy before it ever reaches the DB write."""
-    from litellm.proxy._types import ProxyException
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import ProxyException
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
@@ -4239,13 +4239,13 @@ async def test_user_update_rejects_weak_password(_admin_prisma):
 async def test_user_update_rejects_weak_password_against_configured_policy(_admin_prisma, mocker):
     """A password that meets the default policy but not a stricter
     admin-configured one must still be rejected."""
-    from litellm.proxy._types import ProxyException
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy._types import ProxyException
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 
     mocker.patch(  # test-quality-ok: same module-global mocking every test in this file already uses
-        "litellm.proxy.proxy_server.general_settings",
+        "token_iq.gateway.proxy.proxy_server.general_settings",
         {"password_policy_min_length": 24},
     )
 
@@ -4262,7 +4262,7 @@ async def test_user_update_rejects_weak_password_against_configured_policy(_admi
 async def test_user_update_hashes_and_persists_strong_password(_admin_prisma, mocker):
     """A password meeting the policy is hashed (never stored in plaintext)
     and reaches the DB write."""
-    from litellm.proxy.management_endpoints.internal_user_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_single_user_helper,
     )
 

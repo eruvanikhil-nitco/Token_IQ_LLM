@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-import litellm
-from litellm.cost_calculator import cost_per_token
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import StandardBuiltInToolCostTracking
+from token_iq import gateway as litellm
+from token_iq.gateway.cost_calculator import cost_per_token
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import StandardBuiltInToolCostTracking
 
 MUSE_SPARK_STANDARD = "meta/muse-spark-1.3"
 MUSE_SPARK_CONTRIBUTOR = "meta/muse-spark-1.3-contributor"

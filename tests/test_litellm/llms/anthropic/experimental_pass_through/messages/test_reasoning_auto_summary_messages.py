@@ -13,8 +13,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
     anthropic_messages_handler,
 )
 

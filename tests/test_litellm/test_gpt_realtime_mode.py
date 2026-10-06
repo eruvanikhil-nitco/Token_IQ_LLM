@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-import litellm
-from litellm.types.utils import ModelInfoBase
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import ModelInfoBase
 
 REALTIME_ONLY_GPT_MODELS = (
     "azure/gpt-realtime-2025-08-28",

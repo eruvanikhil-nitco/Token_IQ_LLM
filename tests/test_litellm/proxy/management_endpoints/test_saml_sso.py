@@ -27,11 +27,11 @@ from starlette.datastructures import URL
 
 from typing import cast
 
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.caching.redis_cache import RedisCache
-from litellm.proxy._types import LitellmUserRoles
-from litellm.proxy.management_endpoints.sso.saml_sso import (
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.caching.redis_cache import RedisCache
+from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy.management_endpoints.sso.saml_sso import (
     _SAML_AUTHN_REQUEST_CACHE_PREFIX,
     _SAML_AUTHN_STATE_COOKIE,
     _SAML_MAX_POST_BYTES,
@@ -727,7 +727,7 @@ class TestSAMLAuthnCookieSecureFlag:
         has configured a trusted proxy reporting X-Forwarded-Proto: https."""
         monkeypatch.delenv("PROXY_BASE_URL", raising=False)
         monkeypatch.setattr(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"use_x_forwarded_for": True, "mcp_trusted_proxy_ranges": ["10.0.0.0/8"]},
         )
         cache = DualCache()
@@ -741,7 +741,7 @@ class TestSAMLAuthnCookieSecureFlag:
     @pytest.mark.asyncio
     async def test_untrusted_spoofed_forwarded_proto_is_ignored(self, saml_env, monkeypatch):
         monkeypatch.delenv("PROXY_BASE_URL", raising=False)
-        monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
         cache = DualCache()
         request = _fake_request_with_scheme(
             "http", headers={"X-Forwarded-Proto": "https"}, client_host="203.0.113.5"

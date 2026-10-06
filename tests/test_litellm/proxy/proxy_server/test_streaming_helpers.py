@@ -23,11 +23,11 @@ import pytest
 from fastapi import Response
 from fastapi.responses import StreamingResponse
 
-import litellm
-from litellm.constants import RETURN_RAW_MODEL_NAME_METADATA_KEY
-import litellm.proxy.proxy_server as ps
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.proxy_server import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import RETURN_RAW_MODEL_NAME_METADATA_KEY
+import token_iq.gateway.proxy.proxy_server as ps
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import (
     _apply_streaming_chunk_hooks,
     _fast_serialize_simple_model_response_stream,
     _format_fallback_metadata_sse_event,
@@ -42,7 +42,7 @@ from litellm.proxy.proxy_server import (
     data_generator,
     select_data_generator,
 )
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
 
 from .conftest import normalize
 
@@ -918,13 +918,13 @@ def test_select_data_generator_missing_required_kwarg_raises_type_error():
 # ---------------------------------------------------------------------------
 
 
-from litellm.proxy.proxy_server import (  # noqa: E402
+from token_iq.gateway.proxy.proxy_server import (  # noqa: E402
     _iter_with_keepalive,
     _keepalive_from_deployment_config,
     _make_keepalive_resolver,
     _resolve_keepalive_seconds,
 )
-from litellm.proxy.proxy_server import _KEEPALIVE_MAX_SECONDS, _KEEPALIVE_MIN_SECONDS  # noqa: E402
+from token_iq.gateway.proxy.proxy_server import _KEEPALIVE_MAX_SECONDS, _KEEPALIVE_MIN_SECONDS  # noqa: E402
 
 
 @pytest.mark.asyncio
@@ -1239,7 +1239,7 @@ def test_resolve_keepalive_seconds_global_default_applies_when_unconfigured(monk
     global default: it applies when neither the serving deployment nor the
     request supplies keepalive_seconds, including proxies with no router at
     all."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(ps, "llm_router", None)
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 15.0)
@@ -1249,7 +1249,7 @@ def test_resolve_keepalive_seconds_global_default_applies_when_unconfigured(monk
 
 
 def test_resolve_keepalive_seconds_global_default_is_clamped(monkeypatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(ps, "llm_router", None)
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 900.0)
@@ -1265,7 +1265,7 @@ def test_resolve_keepalive_seconds_deployment_zero_beats_global_default(monkeypa
     comes with them) for a deployment the operator opted out of."""
     from unittest.mock import MagicMock
 
-    import litellm
+    from token_iq import gateway as litellm
 
     deployment = MagicMock()
     deployment.litellm_params.keepalive_seconds = 0
@@ -1287,7 +1287,7 @@ def test_resolve_keepalive_seconds_deployment_zero_beats_global_default(monkeypa
 def test_resolve_keepalive_seconds_deployment_value_beats_global_default(monkeypatch):
     from unittest.mock import MagicMock
 
-    import litellm
+    from token_iq import gateway as litellm
 
     deployment = MagicMock()
     deployment.litellm_params.keepalive_seconds = 30.0
@@ -1564,7 +1564,7 @@ def test_make_keepalive_resolver_expires_cache_after_ttl(monkeypatch):
 
 
 def test_keepalive_seconds_in_all_litellm_params():
-    from litellm.types.utils import all_litellm_params
+    from token_iq.gateway.types.utils import all_litellm_params
 
     assert "keepalive_seconds" in all_litellm_params
 
@@ -1575,7 +1575,7 @@ def test_allow_client_keepalive_override_in_all_litellm_params():
     provider API call as an unrecognized field and gets rejected (confirmed live
     against the real Anthropic API, which returns 'Extra inputs are not
     permitted')."""
-    from litellm.types.utils import all_litellm_params
+    from token_iq.gateway.types.utils import all_litellm_params
 
     assert "allow_client_keepalive_override" in all_litellm_params
 
@@ -1621,7 +1621,7 @@ async def test_async_data_generator_emits_ping_heartbeat_from_global_default_wit
     interval."""
     import asyncio
 
-    import litellm
+    from token_iq import gateway as litellm
 
     _patch_logging_flags(monkeypatch)
     monkeypatch.setattr(ps, "_KEEPALIVE_MIN_SECONDS", 0.05)

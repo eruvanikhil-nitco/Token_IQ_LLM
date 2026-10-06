@@ -31,14 +31,14 @@ def check_environment_is_base_only() -> str:
 def check_import() -> str:
     from importlib.metadata import version
 
-    import litellm
+    from token_iq import gateway as litellm
 
     _require(bool(litellm.__file__), "litellm has no __file__")
     return f"imported litellm {version('litellm')}"
 
 
 def check_completion() -> str:
-    import litellm
+    from token_iq import gateway as litellm
 
     response = litellm.completion(
         model="gpt-4o",
@@ -51,7 +51,7 @@ def check_completion() -> str:
 
 
 def check_embedding() -> str:
-    import litellm
+    from token_iq import gateway as litellm
 
     response = litellm.embedding(
         model="text-embedding-3-small",
@@ -63,7 +63,7 @@ def check_embedding() -> str:
 
 
 def check_bundled_model_metadata() -> str:
-    import litellm
+    from token_iq import gateway as litellm
 
     max_input_tokens = litellm.get_model_info("gpt-4o")["max_input_tokens"]
     _require(
@@ -79,7 +79,7 @@ def check_bundled_model_metadata() -> str:
 
 
 def check_token_counter() -> str:
-    import litellm
+    from token_iq import gateway as litellm
 
     count = litellm.token_counter(model="gpt-4o", text="hello world")
     _require(count > 0, f"token_counter returned {count!r}")
@@ -90,7 +90,7 @@ def check_bedrock_credential_resolution() -> str:
     import os
     from unittest import mock
 
-    from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+    from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
     non_aws_environ = {k: v for k, v in os.environ.items() if not k.startswith("AWS_")}
     with mock.patch.dict(os.environ, non_aws_environ, clear=True):

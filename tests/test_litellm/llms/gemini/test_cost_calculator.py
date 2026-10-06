@@ -2,18 +2,18 @@ import os
 
 import pytest
 
-import litellm
-from litellm.llms.gemini.cost_calculator import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.gemini.cost_calculator import (
     cost_per_google_maps_grounding_request,
     cost_per_web_search_request,
 )
-from litellm.llms.gemini.image_edit.cost_calculator import (
+from token_iq.gateway.llms.gemini.image_edit.cost_calculator import (
     cost_calculator as gemini_image_edit_cost_calculator,
 )
-from litellm.llms.gemini.image_generation.cost_calculator import (
+from token_iq.gateway.llms.gemini.image_generation.cost_calculator import (
     cost_calculator as gemini_image_generation_cost_calculator,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ImageObject,
     ImageResponse,
     ImageUsage,
@@ -85,7 +85,7 @@ def test_no_usage_details():
 
 
 def _make_server_tool_use_usage(web_search_requests: int) -> Usage:
-    from litellm.types.utils import ServerToolUse
+    from token_iq.gateway.types.utils import ServerToolUse
 
     return Usage(
         prompt_tokens=100,
@@ -123,7 +123,7 @@ def test_server_tool_use_fallback_per_prompt_clamps_to_one():
 
 def test_prompt_tokens_details_take_precedence_over_server_tool_use():
     """The native Gemini field wins when both counts are present."""
-    from litellm.types.utils import ServerToolUse
+    from token_iq.gateway.types.utils import ServerToolUse
 
     model_info = {
         "key": "gemini/gemini-3-flash-preview",
@@ -445,7 +445,7 @@ def test_map_traffic_type_to_service_tier(
     that selects flex/priority cost keys. ON_DEMAND_FLEX (Vertex's flex opt-in
     value) must map to "flex" so flex-tier requests are not billed as standard.
     """
-    from litellm.cost_calculator import _map_traffic_type_to_service_tier
+    from token_iq.gateway.cost_calculator import _map_traffic_type_to_service_tier
 
     assert (
         _map_traffic_type_to_service_tier(traffic_type) == expected_service_tier

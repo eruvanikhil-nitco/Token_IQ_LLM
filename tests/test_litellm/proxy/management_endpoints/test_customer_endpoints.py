@@ -7,17 +7,17 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_EndUserTable,
     LitellmUserRoles,
     ProxyException,
 )
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
-from litellm.proxy.management_endpoints.customer_endpoints import router
-from litellm.types.proxy.management_endpoints.common_daily_activity import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
+from token_iq.gateway.proxy.management_endpoints.customer_endpoints import router
+from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import (
     SpendAnalyticsPaginatedResponse,
 )
-from litellm.types.proxy.management_endpoints.customer_endpoints import (
+from token_iq.gateway.types.proxy.management_endpoints.customer_endpoints import (
     BlockUsersResponse,
     CustomerResponse,
     DeleteCustomersResponse,
@@ -44,7 +44,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def mock_prisma_client():
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock:
         yield mock
 
 
@@ -493,15 +493,15 @@ def test_delete_customer_success_serializes_through_response_model(mock_prisma_c
 
 @pytest.mark.asyncio
 async def test_get_customer_daily_activity_admin_param_passing(monkeypatch):
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import customer_endpoints
-    from litellm.proxy.management_endpoints.customer_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import customer_endpoints
+    from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
     )
 
     mock_prisma_client = AsyncMock()
     mock_prisma_client.db.litellm_endusertable.find_many = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mocked_response = MagicMock(name="SpendAnalyticsPaginatedResponse")
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
@@ -538,9 +538,9 @@ async def test_get_customer_daily_activity_admin_param_passing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_customer_daily_activity_with_end_user_aliases(monkeypatch):
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints import customer_endpoints
-    from litellm.proxy.management_endpoints.customer_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.management_endpoints import customer_endpoints
+    from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
     )
 
@@ -553,7 +553,7 @@ async def test_get_customer_daily_activity_with_end_user_aliases(monkeypatch):
     mock_end_user2.alias = "Customer Two"
 
     mock_prisma_client.db.litellm_endusertable.find_many = AsyncMock(return_value=[mock_end_user1, mock_end_user2])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     mocked_response = MagicMock(name="SpendAnalyticsPaginatedResponse")
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
@@ -595,13 +595,13 @@ async def test_get_customer_daily_activity_non_admin_is_rejected(monkeypatch):
     scoping is not possible. The correct fix is admin-only, matching the
     existing /customer/list gate.
     """
-    from litellm.proxy.management_endpoints import customer_endpoints
-    from litellm.proxy.management_endpoints.customer_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints import customer_endpoints
+    from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
     )
 
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     get_daily_activity_mock = AsyncMock()
     monkeypatch.setattr(customer_endpoints, "get_daily_activity", get_daily_activity_mock)
@@ -639,13 +639,13 @@ async def test_get_customer_daily_activity_service_account_key_is_rejected(monke
     entity_id=None and no user identity to scope by — the SQL builder would
     return the full LiteLLM_DailyEndUserSpend table with no WHERE clause.
     """
-    from litellm.proxy.management_endpoints import customer_endpoints
-    from litellm.proxy.management_endpoints.customer_endpoints import (
+    from token_iq.gateway.proxy.management_endpoints import customer_endpoints
+    from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
     )
 
     mock_prisma_client = MagicMock()
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     get_daily_activity_mock = AsyncMock()
     monkeypatch.setattr(customer_endpoints, "get_daily_activity", get_daily_activity_mock)
@@ -878,9 +878,9 @@ def _end_user_cache_doubles():
     recording_cache = _RecordingAuthCache()
     mock_publish = AsyncMock()
     with (
-        patch("litellm.proxy.proxy_server.user_api_key_cache", recording_cache),
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", recording_cache),
         patch(
-            "litellm.proxy.common_utils.auth_cache_invalidation_pubsub.publish_auth_cache_invalidation",
+            "token_iq.gateway.proxy.common_utils.auth_cache_invalidation_pubsub.publish_auth_cache_invalidation",
             mock_publish,
         ),
     ):

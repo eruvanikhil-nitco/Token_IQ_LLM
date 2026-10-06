@@ -11,17 +11,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.constants import (
+from token_iq.gateway.constants import (
     SPEND_LOG_CLEANUP_BATCH_SIZE,
     SPEND_LOG_CLEANUP_REMAINING_COUNT_CAP,
     SPEND_LOG_CLEANUP_RUN_BUDGET_SECONDS,
 )
-from litellm.proxy.db.db_transaction_queue.spend_log_cleanup import (
+from token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup import (
     SPEND_LOG_CLEANUP_BOUND_SETTINGS,
     SpendLogCleanup,
     TableCleanupResult,
 )
-from litellm.proxy.db.db_transaction_queue.spend_log_cleanup_metrics import (
+from token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup_metrics import (
     SpendLogCleanupMetrics,
 )
 
@@ -153,7 +153,7 @@ def test_spend_log_cleanup_cron_scheduler_integration():
     retention_interval = general_settings_interval.get(
         "maximum_spend_logs_retention_interval", "1d"
     )
-    from litellm.litellm_core_utils.duration_parser import duration_in_seconds
+    from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 
     interval_seconds = duration_in_seconds(retention_interval)
 
@@ -577,7 +577,7 @@ async def test_delete_old_tool_index_rows_deletes_on_composite_key():
 async def test_delete_old_logs_continues_after_single_batch_failure(monkeypatch):
     """A single batch failure (e.g. DB timeout) must not abort the whole run —
     subsequent batches should still execute and their counts accumulate."""
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     # Zero out the failure backoff so the test doesn't take ~0.5s of real sleep.
     monkeypatch.setattr(
@@ -611,7 +611,7 @@ async def test_delete_old_logs_continues_after_single_batch_failure(monkeypatch)
 async def test_delete_old_logs_aborts_after_consecutive_failures(monkeypatch):
     """If batch failures persist for SPEND_LOG_CLEANUP_MAX_CONSECUTIVE_BATCH_FAILURES
     in a row (e.g. DB is down), the loop must abort instead of hot-looping."""
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     # Lower the threshold so the test is fast and deterministic.
     monkeypatch.setattr(
@@ -646,7 +646,7 @@ async def test_delete_old_logs_aborts_after_consecutive_failures(monkeypatch):
 async def test_delete_old_logs_resets_consecutive_failures_on_success(monkeypatch):
     """A success between failures must reset the consecutive-failure counter so
     intermittent timeouts don't trip the abort threshold."""
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     monkeypatch.setattr(
         cleanup_module, "SPEND_LOG_CLEANUP_MAX_CONSECUTIVE_BATCH_FAILURES", 3
@@ -689,7 +689,7 @@ async def test_delete_old_logs_resets_consecutive_failures_on_success(monkeypatc
 async def test_cleanup_uses_logger_exception_for_full_traceback(monkeypatch):
     """The outer error handler must call logger.exception() (not .error(str(e)))
     so Prisma/DB timeouts surface a full traceback and exception type."""
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     mock_logger = MagicMock()
     monkeypatch.setattr(cleanup_module, "verbose_proxy_logger", mock_logger)
@@ -722,7 +722,7 @@ async def test_cleanup_uses_logger_exception_for_full_traceback(monkeypatch):
 async def test_cleanup_releases_lock_after_persistent_batch_failures(monkeypatch):
     """Even when batch deletion aborts due to consecutive failures, the pod lock
     must still be released so the next scheduled run isn't permanently blocked."""
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     monkeypatch.setattr(
         cleanup_module, "SPEND_LOG_CLEANUP_MAX_CONSECUTIVE_BATCH_FAILURES", 2
@@ -758,8 +758,8 @@ def test_cleanup_batch_size_env_var(monkeypatch):
     """Ensure batch size is configurable via environment variable"""
     import importlib
 
-    import litellm.constants as constants_module
-    import litellm.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
+    import token_iq.gateway.constants as constants_module
+    import token_iq.gateway.proxy.db.db_transaction_queue.spend_log_cleanup as cleanup_module
 
     # Set env var and reload modules to pick up new value
     monkeypatch.setenv("SPEND_LOG_CLEANUP_BATCH_SIZE", "25")

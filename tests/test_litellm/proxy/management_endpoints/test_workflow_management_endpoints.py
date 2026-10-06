@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from prisma.errors import UniqueViolationError
 
 
-from litellm.proxy.management_endpoints.workflow_management_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.workflow_management_endpoints import (
     _read_scope_caller,
     _require_run,
     router,
@@ -119,7 +119,7 @@ def _make_app() -> FastAPI:
 
 
 def _override_auth() -> Any:
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(api_key="sk-test", user_id="admin")
     auth.token = "tok-test"
@@ -127,7 +127,7 @@ def _override_auth() -> Any:
 
 
 def _override_auth_admin() -> Any:
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(api_key="sk-master")
     auth.user_role = LitellmUserRoles.PROXY_ADMIN  # type: ignore[assignment]
@@ -136,7 +136,7 @@ def _override_auth_admin() -> Any:
 
 def _override_auth_user_with_token(token: str = "tok-abc") -> Any:
     """Return a non-admin caller whose hashed token equals `token`."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(api_key="sk-user", user_id="user-1")
     auth.token = token  # override the computed hash with a predictable value
@@ -145,7 +145,7 @@ def _override_auth_user_with_token(token: str = "tok-abc") -> Any:
 
 def _override_auth_admin_viewer(token: str = "tok-viewer") -> Any:
     """Viewer carries a real token, so a re-scoped read path would be observable."""
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(
         api_key="sk-viewer",
@@ -157,7 +157,7 @@ def _override_auth_admin_viewer(token: str = "tok-viewer") -> Any:
 
 
 def _override_auth_internal_user(token: str = "tok-internal") -> Any:
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(
         api_key="sk-internal",
@@ -175,14 +175,14 @@ def _override_auth_internal_user(token: str = "tok-internal") -> Any:
 
 class TestCreateWorkflowRun:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_create_returns_run(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.create = AsyncMock(return_value=_make_run())
@@ -194,7 +194,7 @@ class TestCreateWorkflowRun:
         assert resp.status_code == 200
         self._prisma.db.litellm_workflowrun.create.assert_awaited_once()
 
-    @patch("litellm.proxy.proxy_server.prisma_client", None)
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     def test_create_500_when_no_db(self):
         resp = self.client.post(
             "/v1/workflows/runs",
@@ -205,14 +205,14 @@ class TestCreateWorkflowRun:
 
 class TestListWorkflowRuns:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_returns_runs(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_many = AsyncMock(
@@ -224,7 +224,7 @@ class TestListWorkflowRuns:
         data = resp.json()
         assert data["count"] == 1
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_filters_by_status(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_many = AsyncMock(return_value=[])
@@ -234,7 +234,7 @@ class TestListWorkflowRuns:
         call_kwargs = self._prisma.db.litellm_workflowrun.find_many.call_args[1]
         assert call_kwargs["where"]["status"] == "running"
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_filters_by_multiple_statuses(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_many = AsyncMock(return_value=[])
@@ -247,14 +247,14 @@ class TestListWorkflowRuns:
 
 class TestGetWorkflowRun:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_get_existing_run(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -264,7 +264,7 @@ class TestGetWorkflowRun:
         resp = self.client.get("/v1/workflows/runs/run-1")
         assert resp.status_code == 200
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_get_missing_run_returns_404(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(return_value=None)
@@ -275,14 +275,14 @@ class TestGetWorkflowRun:
 
 class TestUpdateWorkflowRun:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_update_status(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -297,7 +297,7 @@ class TestUpdateWorkflowRun:
         assert resp.status_code == 200
         self._prisma.db.litellm_workflowrun.update.assert_awaited_once()
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_update_no_fields_returns_400(self, mock_pc):
         mock_pc.db = self._prisma.db
         resp = self.client.patch("/v1/workflows/runs/run-1", json={})
@@ -306,14 +306,14 @@ class TestUpdateWorkflowRun:
 
 class TestAppendWorkflowEvent:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_append_event_updates_run_status(self, mock_pc):
         mock_pc.db = self._prisma.db
         # _require_run check
@@ -336,7 +336,7 @@ class TestAppendWorkflowEvent:
         update_call = tx.litellm_workflowrun.update.call_args[1]
         assert update_call["data"]["status"] == "running"
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_append_event_no_status_update_for_unknown_type(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -354,7 +354,7 @@ class TestAppendWorkflowEvent:
         # no status update inside tx for unknown event_type
         tx.litellm_workflowrun.update.assert_not_awaited()
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_sequence_number_increments(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -374,7 +374,7 @@ class TestAppendWorkflowEvent:
         create_call = tx.litellm_workflowevent.create.call_args[1]
         assert create_call["data"]["sequence_number"] == 5
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_unknown_run_id_returns_404(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(return_value=None)
@@ -385,7 +385,7 @@ class TestAppendWorkflowEvent:
         )
         assert resp.status_code == 404
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_sequence_collision_retries_and_succeeds(self, mock_pc):
         """UniqueViolationError on first attempt triggers retry; second attempt succeeds."""
         mock_pc.db = self._prisma.db
@@ -417,14 +417,14 @@ class TestAppendWorkflowEvent:
 
 class TestWorkflowMessages:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_append_message(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -441,7 +441,7 @@ class TestWorkflowMessages:
         )
         assert resp.status_code == 200
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_append_message_unknown_run_returns_404(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(return_value=None)
@@ -452,7 +452,7 @@ class TestWorkflowMessages:
         )
         assert resp.status_code == 404
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_messages_ordered(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -472,7 +472,7 @@ class TestWorkflowMessages:
         call_kwargs = self._prisma.db.litellm_workflowmessage.find_many.call_args[1]
         assert call_kwargs["order"] == {"sequence_number": "asc"}
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_messages_respects_limit(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -488,14 +488,14 @@ class TestWorkflowMessages:
 
 class TestListWorkflowEvents:
     def setup_method(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = _override_auth
         self.client = TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_events_ordered(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -515,7 +515,7 @@ class TestListWorkflowEvents:
         call_kwargs = self._prisma.db.litellm_workflowevent.find_many.call_args[1]
         assert call_kwargs["order"] == {"sequence_number": "asc"}
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_events_respects_limit(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(
@@ -528,7 +528,7 @@ class TestListWorkflowEvents:
         call_kwargs = self._prisma.db.litellm_workflowevent.find_many.call_args[1]
         assert call_kwargs["take"] == 10
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_list_events_unknown_run_returns_404(self, mock_pc):
         mock_pc.db = self._prisma.db
         self._prisma.db.litellm_workflowrun.find_unique = AsyncMock(return_value=None)
@@ -541,14 +541,14 @@ class TestTenantIsolation:
     """Ownership enforcement: non-admin callers only see their own runs."""
 
     def _make_app_with_auth(self, auth_fn):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = auth_fn
         return TestClient(app, raise_server_exceptions=True)
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_create_stores_caller_token(self, mock_pc):
         token = "tok-owner"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -562,7 +562,7 @@ class TestTenantIsolation:
         create_call = self._prisma.db.litellm_workflowrun.create.call_args[1]
         assert create_call["data"]["created_by"] == token
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_non_admin_list_scoped_to_caller_token(self, mock_pc):
         token = "tok-owner"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -574,7 +574,7 @@ class TestTenantIsolation:
         call_kwargs = self._prisma.db.litellm_workflowrun.find_many.call_args[1]
         assert call_kwargs["where"].get("created_by") == token
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_list_not_scoped(self, mock_pc):
         client = self._make_app_with_auth(_override_auth_admin)
         mock_pc.db = self._prisma.db
@@ -585,7 +585,7 @@ class TestTenantIsolation:
         call_kwargs = self._prisma.db.litellm_workflowrun.find_many.call_args[1]
         assert "created_by" not in call_kwargs["where"]
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_non_admin_get_other_users_run_returns_404(self, mock_pc):
         token = "tok-caller"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -598,7 +598,7 @@ class TestTenantIsolation:
         resp = client.get("/v1/workflows/runs/run-1")
         assert resp.status_code == 404
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_non_admin_get_null_owner_run_returns_404(self, mock_pc):
         token = "tok-caller"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -610,7 +610,7 @@ class TestTenantIsolation:
         resp = client.get("/v1/workflows/runs/run-1")
         assert resp.status_code == 404
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_non_admin_update_null_owner_run_returns_404(self, mock_pc):
         token = "tok-caller"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -626,7 +626,7 @@ class TestTenantIsolation:
         assert resp.status_code == 404
         self._prisma.db.litellm_workflowrun.update.assert_not_awaited()
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_non_admin_get_own_run_succeeds(self, mock_pc):
         token = "tok-caller"
         client = self._make_app_with_auth(lambda: _override_auth_user_with_token(token))
@@ -643,7 +643,7 @@ class TestAdminViewerReadParity:
     """proxy_admin_viewer reads every run; write paths stay on the strict admin gate."""
 
     def _make_app_with_auth(self, auth_fn):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         self._prisma = _make_prisma_client()
         app = _make_app()
@@ -656,7 +656,7 @@ class TestAdminViewerReadParity:
         assert _read_scope_caller(_override_auth_admin_viewer()) is None
         assert _read_scope_caller(internal) is internal
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_viewer_list_not_scoped(self, mock_pc):
         client = self._make_app_with_auth(_override_auth_admin_viewer)
         mock_pc.db = self._prisma.db
@@ -667,7 +667,7 @@ class TestAdminViewerReadParity:
         call_kwargs = self._prisma.db.litellm_workflowrun.find_many.call_args[1]
         assert "created_by" not in call_kwargs["where"]
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_viewer_get_other_owners_run_succeeds(self, mock_pc):
         client = self._make_app_with_auth(_override_auth_admin_viewer)
         mock_pc.db = self._prisma.db
@@ -678,7 +678,7 @@ class TestAdminViewerReadParity:
         resp = client.get("/v1/workflows/runs/run-1")
         assert resp.status_code == 200
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_viewer_lists_other_owners_events(self, mock_pc):
         client = self._make_app_with_auth(_override_auth_admin_viewer)
         mock_pc.db = self._prisma.db
@@ -693,7 +693,7 @@ class TestAdminViewerReadParity:
         assert resp.status_code == 200
         assert resp.json()["count"] == 1
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_viewer_lists_other_owners_messages(self, mock_pc):
         client = self._make_app_with_auth(_override_auth_admin_viewer)
         mock_pc.db = self._prisma.db
@@ -708,7 +708,7 @@ class TestAdminViewerReadParity:
         assert resp.status_code == 200
         assert resp.json()["count"] == 1
 
-    @patch("litellm.proxy.proxy_server.prisma_client")
+    @patch("token_iq.gateway.proxy.proxy_server.prisma_client")
     def test_admin_viewer_cannot_update_other_owners_run(self, mock_pc):
         """Read parity must not become write parity: PATCH still passes the caller through."""
         client = self._make_app_with_auth(_override_auth_admin_viewer)

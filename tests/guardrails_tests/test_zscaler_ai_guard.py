@@ -13,7 +13,7 @@ Tests covering:
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from fastapi import HTTPException
-from litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard import ZscalerAIGuard
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard import ZscalerAIGuard
 import asyncio
 
 
@@ -135,7 +135,7 @@ def test_extract_blocking_info():
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_apply_guardrail_text_concatenation(mock_api_call):
@@ -155,7 +155,7 @@ async def test_apply_guardrail_text_concatenation(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_policy_id_from_request_metadata(mock_api_call):
@@ -180,7 +180,7 @@ async def test_policy_id_from_request_metadata(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_policy_id_from_user_api_key_metadata(mock_api_call):
@@ -204,7 +204,7 @@ async def test_policy_id_from_user_api_key_metadata(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_policy_id_from_team_metadata(mock_api_call):
@@ -223,7 +223,7 @@ async def test_policy_id_from_team_metadata(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_policy_id_from_init(mock_api_call):
@@ -242,7 +242,7 @@ async def test_policy_id_from_init(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_policy_id_zero_from_request_metadata(mock_api_call):
@@ -340,7 +340,7 @@ async def test_should_omit_policy_id_when_zero_or_negative():
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_apply_guardrail_block_raises_400(mock_api_call):
@@ -368,7 +368,7 @@ async def test_apply_guardrail_block_raises_400(mock_api_call):
 
 @pytest.mark.asyncio
 @patch(
-    "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
+    "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.ZscalerAIGuard.make_zscaler_ai_guard_api_call",
     new_callable=AsyncMock,
 )
 async def test_apply_guardrail_block_does_not_log_error(mock_api_call):
@@ -388,7 +388,7 @@ async def test_apply_guardrail_block_does_not_log_error(mock_api_call):
     request_data = {}
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.verbose_proxy_logger"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.verbose_proxy_logger"
     ) as mock_logger:
         with pytest.raises(HTTPException) as exc_info:
             await guardrail.apply_guardrail(inputs, request_data, "request")
@@ -408,7 +408,7 @@ async def test_send_request_uses_default_timeout_when_unconfigured():
     assert guardrail.timeout == 5.0
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.get_async_httpx_client"
     ) as mock_get_client:
         mock_client = Mock()
         mock_client.post = AsyncMock(return_value=Mock(status_code=200))
@@ -432,7 +432,7 @@ async def test_send_request_uses_configured_timeout():
     assert guardrail.timeout == 30
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.get_async_httpx_client"
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard.zscaler_ai_guard.get_async_httpx_client"
     ) as mock_get_client:
         mock_client = Mock()
         mock_client.post = AsyncMock(return_value=Mock(status_code=200))
@@ -449,10 +449,10 @@ def test_initialize_guardrail_forwards_configured_timeout():
     initialization. It reaches LitellmParams already, but the initializer used
     to drop it before it could reach the guardrail instance.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.zscaler_ai_guard import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.zscaler_ai_guard import (
         initialize_guardrail,
     )
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     litellm_params = LitellmParams(
         guardrail="zscaler_ai_guard",
@@ -499,7 +499,7 @@ def test_update_in_memory_litellm_params_keeps_timeout_resolved():
     onto the guardrail, so an unset timeout would overwrite the resolved value
     with None and silently fall back to the shared client's 600s default.
     """
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     guardrail = ZscalerAIGuard(api_key="test_key", policy_id=1, timeout=30)
     assert guardrail.timeout == 30

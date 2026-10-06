@@ -1,4 +1,4 @@
-import litellm
+from token_iq import gateway as litellm
 import pytest
 
 from token_iq.api.model_discovery import (

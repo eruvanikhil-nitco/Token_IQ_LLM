@@ -4,21 +4,21 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from litellm.constants import REDACTED_BY_LITELM_STRING
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.agent_endpoints import endpoints as agent_endpoints
-from litellm.proxy.agent_endpoints.auth.agent_permission_handler import (
+from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.agent_endpoints import endpoints as agent_endpoints
+from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
     UnrestrictedAgentAccess,
 )
-from litellm.proxy.agent_endpoints.endpoints import (
+from token_iq.gateway.proxy.agent_endpoints.endpoints import (
     _attach_keys_to_agents,
     _check_agent_management_permission,
     get_agent_daily_activity,
     router,
     user_api_key_auth,
 )
-from litellm.types.agents import AgentResponse
+from token_iq.gateway.types.agents import AgentResponse
 
 
 def _sample_agent_card_params() -> dict:
@@ -74,13 +74,13 @@ client = TestClient(app)
 
 @pytest.fixture
 def mock_prisma_client():
-    with patch("litellm.proxy.proxy_server.prisma_client") as mock:
+    with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_user_api_key_auth():
-    with patch("litellm.proxy.agent_endpoints.endpoints.user_api_key_auth") as mock:
+    with patch("token_iq.gateway.proxy.agent_endpoints.endpoints.user_api_key_auth") as mock:
         mock.return_value = UserAPIKeyAuth(
             user_id="test-user", user_role=LitellmUserRoles.PROXY_ADMIN
         )
@@ -208,7 +208,7 @@ def test_agent_error_schema_consistency(
 async def test_get_agent_daily_activity_admin_param_passing(monkeypatch):
     mock_prisma = AsyncMock()
     mock_prisma.db.litellm_agentstable.find_many = AsyncMock(return_value=[])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     mocked_response = MagicMock(name="SpendAnalyticsPaginatedResponse")
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
@@ -255,7 +255,7 @@ async def test_get_agent_daily_activity_with_agent_names(monkeypatch):
     mock_prisma.db.litellm_agentstable.find_many = AsyncMock(
         return_value=[mock_agent1, mock_agent2]
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     mocked_response = MagicMock(name="SpendAnalyticsPaginatedResponse")
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
@@ -346,7 +346,7 @@ class TestAgentByIdKeyRedaction:
         key_row.key_name = "sk-...aaa"
 
         test_client = _make_app_with_role(role)
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
                 return_value=None
             )
@@ -377,7 +377,7 @@ class TestAgentByIdKeyRedaction:
         """proxy_admin_viewer skips the per-agent object_permission gate (denied
         here) yet stays on the redacted response path."""
         with patch(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
             AsyncMock(return_value=False),
         ):
             resp = self._get_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
@@ -408,7 +408,7 @@ class TestAgentRBACInternalUser:
         self.mock_registry.get_agent_by_id = MagicMock(
             return_value=_sample_agent_response()
         )
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
                 return_value=None
             )
@@ -497,7 +497,7 @@ class TestAgentRBACProxyAdminViewOnly:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
-        from litellm.proxy.agent_endpoints import agent_registry as ar_mod
+        from token_iq.gateway.proxy.agent_endpoints import agent_registry as ar_mod
 
         self.viewer_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
         self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
@@ -519,7 +519,7 @@ class TestAgentRBACProxyAdminViewOnly:
             return_value=RestrictedAgentAccess(frozenset({"someone-elses-agent"}))
         )
         monkeypatch.setattr(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
             self.allowed_agents_spy,
         )
 
@@ -530,7 +530,7 @@ class TestAgentRBACProxyAdminViewOnly:
         key_row.key_alias = "primary"
         key_row.key_name = "sk-...aaa"
 
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_prisma.db.litellm_agentstable.find_many = AsyncMock(return_value=[])
             mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
                 return_value=[key_row]
@@ -576,7 +576,7 @@ class TestAgentRBACProxyAdmin:
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
 
     def test_should_allow_admin_to_create_agent(self, monkeypatch):
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             self.mock_registry.get_agent_by_name = MagicMock(return_value=None)
             self.mock_registry.add_agent_to_db = AsyncMock(
                 return_value=_sample_agent_response()
@@ -591,7 +591,7 @@ class TestAgentRBACProxyAdmin:
 
     def test_create_agent_applies_litellm_merge_to_stored_card(self):
         """The card stored in the DB must reflect the LiteLLM-fronting merge."""
-        with patch("litellm.proxy.proxy_server.prisma_client"):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client"):
             self.mock_registry.get_agent_by_name = MagicMock(return_value=None)
             self.mock_registry.add_agent_to_db = AsyncMock(
                 return_value=_sample_agent_response()
@@ -622,7 +622,7 @@ class TestAgentRBACProxyAdmin:
     def test_create_agent_response_never_echoes_secret(self):
         """LIT-6736: POST /v1/agents must not echo the stored secret back, even
         though it's the caller's own value and even for a proxy admin."""
-        with patch("litellm.proxy.proxy_server.prisma_client"):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client"):  # test-quality-ok: proxy_server module global is the endpoint's only injection point
             self.mock_registry.get_agent_by_name = MagicMock(return_value=None)
             self.mock_registry.add_agent_to_db = AsyncMock(
                 return_value=AgentResponse(
@@ -658,7 +658,7 @@ class TestAgentRBACProxyAdmin:
 
     def test_update_agent_response_never_echoes_secret(self):
         """LIT-6736: PUT /v1/agents/{id} must not echo the stored secret back."""
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
             mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
                 return_value={
                     "agent_id": "agent-123",
@@ -693,7 +693,7 @@ class TestAgentRBACProxyAdmin:
 
     def test_patch_agent_response_never_echoes_secret(self):
         """LIT-6736: PATCH /v1/agents/{id} must not echo the stored secret back."""
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
             mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
                 return_value={
                     "agent_id": "agent-123",
@@ -728,7 +728,7 @@ class TestAgentRBACProxyAdmin:
             "agent_name": "Existing Agent",
             "agent_card_params": _sample_agent_card_params(),
         }
-        with patch("litellm.proxy.proxy_server.prisma_client") as mock_prisma:
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
             mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
                 return_value=existing
             )
@@ -753,7 +753,7 @@ class TestAgentProtocolVersionValidation:
     def _create_agent_with_protocol_version(self, protocol_version: str):
         config = _sample_agent_config()
         config["agent_card_params"]["protocolVersion"] = protocol_version
-        with patch("litellm.proxy.proxy_server.prisma_client"):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client"):
             self.mock_registry.get_agent_by_name = MagicMock(return_value=None)
             self.mock_registry.add_agent_to_db = AsyncMock(
                 return_value=_sample_agent_response()
@@ -815,7 +815,7 @@ class TestAgentRoutesIncludesAgentIdPattern:
     """Verify that agent_routes includes the {agent_id} pattern for route access."""
 
     def test_should_include_agent_id_pattern(self):
-        from litellm.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import LiteLLMRoutes
 
         assert "/v1/agents/{agent_id}" in LiteLLMRoutes.agent_routes.value
 
@@ -825,7 +825,7 @@ class TestAgentHealthCheck:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
-        from litellm.proxy.agent_endpoints import agent_registry as ar_mod
+        from token_iq.gateway.proxy.agent_endpoints import agent_registry as ar_mod
 
         self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
         self.mock_registry = MagicMock()
@@ -833,7 +833,7 @@ class TestAgentHealthCheck:
         # Ensure prisma_client is None so the endpoint skips DB queries.
         # In CI with parallel workers, a MagicMock can leak from other test
         # scopes, causing "object MagicMock can't be used in 'await'" errors.
-        monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
+        monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     def _make_agent(self, agent_id: str, url: str | None = None) -> AgentResponse:
         card = _sample_agent_card_params()
@@ -941,7 +941,7 @@ class TestCheckAgentUrlHealth:
 
     @pytest.mark.asyncio
     async def test_should_return_healthy_when_no_url(self):
-        from litellm.proxy.agent_endpoints.endpoints import _check_agent_url_health
+        from token_iq.gateway.proxy.agent_endpoints.endpoints import _check_agent_url_health
 
         agent = AgentResponse(
             agent_id="no-url",
@@ -954,9 +954,9 @@ class TestCheckAgentUrlHealth:
         assert "error" not in result
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.agent_endpoints.endpoints.get_async_httpx_client")
+    @patch("token_iq.gateway.proxy.agent_endpoints.endpoints.get_async_httpx_client")
     async def test_should_return_healthy_for_200(self, mock_get_client):
-        from litellm.proxy.agent_endpoints.endpoints import _check_agent_url_health
+        from token_iq.gateway.proxy.agent_endpoints.endpoints import _check_agent_url_health
 
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -974,9 +974,9 @@ class TestCheckAgentUrlHealth:
         assert result["healthy"] is True
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.agent_endpoints.endpoints.get_async_httpx_client")
+    @patch("token_iq.gateway.proxy.agent_endpoints.endpoints.get_async_httpx_client")
     async def test_should_return_unhealthy_for_500(self, mock_get_client):
-        from litellm.proxy.agent_endpoints.endpoints import _check_agent_url_health
+        from token_iq.gateway.proxy.agent_endpoints.endpoints import _check_agent_url_health
 
         mock_response = MagicMock()
         mock_response.status_code = 500
@@ -995,9 +995,9 @@ class TestCheckAgentUrlHealth:
         assert "HTTP 500" in result["error"]
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.agent_endpoints.endpoints.get_async_httpx_client")
+    @patch("token_iq.gateway.proxy.agent_endpoints.endpoints.get_async_httpx_client")
     async def test_should_return_unhealthy_on_connection_error(self, mock_get_client):
-        from litellm.proxy.agent_endpoints.endpoints import _check_agent_url_health
+        from token_iq.gateway.proxy.agent_endpoints.endpoints import _check_agent_url_health
 
         mock_client = AsyncMock()
         mock_client.get = AsyncMock(side_effect=Exception("Connection refused"))
@@ -1014,10 +1014,10 @@ class TestCheckAgentUrlHealth:
         assert "Connection refused" in result["error"]
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.agent_endpoints.endpoints.get_async_httpx_client")
+    @patch("token_iq.gateway.proxy.agent_endpoints.endpoints.get_async_httpx_client")
     async def test_should_treat_404_as_healthy(self, mock_get_client):
         """A 404 means the server is reachable, just not the specific path."""
-        from litellm.proxy.agent_endpoints.endpoints import _check_agent_url_health
+        from token_iq.gateway.proxy.agent_endpoints.endpoints import _check_agent_url_health
 
         mock_response = MagicMock()
         mock_response.status_code = 404
@@ -1044,7 +1044,7 @@ def test_merged_agent_card_url_has_no_double_slash_without_proxy_base_url(
 ):
     """Without PROXY_BASE_URL, request.base_url carries a trailing slash; the merged
     card's supportedInterfaces URL must still join cleanly (no `//a2a`)."""
-    from litellm.proxy.agent_endpoints.endpoints import _build_merged_agent_card
+    from token_iq.gateway.proxy.agent_endpoints.endpoints import _build_merged_agent_card
 
     monkeypatch.delenv("PROXY_BASE_URL", raising=False)
     monkeypatch.delenv("SERVER_ROOT_PATH", raising=False)

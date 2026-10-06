@@ -6,7 +6,7 @@ as tool/function response parts; if the tool output is passed as a list of input
 we normalize it to text/image blocks or a string.
 """
 
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
 

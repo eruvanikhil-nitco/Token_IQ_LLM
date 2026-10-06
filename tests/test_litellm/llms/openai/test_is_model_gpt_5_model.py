@@ -32,8 +32,8 @@ name instead of a substring check, which correctly distinguishes the two familie
 
 import pytest
 
-from litellm.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
-from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
+from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
+from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
 
 # ---------------------------------------------------------------------------
 # Parametrized fixtures

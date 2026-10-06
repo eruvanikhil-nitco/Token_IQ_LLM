@@ -23,7 +23,7 @@ class TestFastAPIOfflineRoutes:
         FastAPIOffline instead of regular FastAPI, the /routes endpoint still
         functions properly without throwing the StaticFiles AttributeError.
         """
-        from litellm.proxy.proxy_server import router
+        from token_iq.gateway.proxy.proxy_server import router
 
         # Initialize app using FastAPIOffline instead of regular FastAPI
         app = FastAPIOffline()
@@ -85,7 +85,7 @@ class TestFastAPIOfflineRoutes:
         """
         from unittest.mock import patch
 
-        from litellm.proxy.proxy_server import router
+        from token_iq.gateway.proxy.proxy_server import router
 
         # Initialize app using FastAPIOffline
         app = FastAPIOffline()
@@ -99,7 +99,7 @@ class TestFastAPIOfflineRoutes:
 
         # Mock the authentication to bypass the auth requirement
         with patch(
-            "litellm.proxy.auth.user_api_key_auth.user_api_key_auth"
+            "token_iq.gateway.proxy.auth.user_api_key_auth.user_api_key_auth"
         ) as mock_auth:
             # Configure mock to return a successful auth response
             mock_auth.return_value = {"user_id": "test_user", "api_key": "test_key"}

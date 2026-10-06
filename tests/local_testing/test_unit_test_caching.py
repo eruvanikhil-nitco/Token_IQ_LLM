@@ -1,6 +1,6 @@
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 
@@ -11,16 +11,16 @@ import random
 
 import pytest
 
-import litellm
-from litellm import aembedding, completion, embedding
-from litellm.caching.caching import Cache
+from token_iq import gateway as litellm
+from token_iq.gateway import aembedding, completion, embedding
+from token_iq.gateway.caching.caching import Cache
 
 from unittest.mock import AsyncMock, patch, MagicMock
-from litellm.caching.caching_handler import LLMCachingHandler, CachingHandlerResponse
-from litellm.caching.caching import LiteLLMCacheType
-from litellm.types.utils import CallTypes
-from litellm.types.rerank import RerankResponse
-from litellm.types.utils import (
+from token_iq.gateway.caching.caching_handler import LLMCachingHandler, CachingHandlerResponse
+from token_iq.gateway.caching.caching import LiteLLMCacheType
+from token_iq.gateway.types.utils import CallTypes
+from token_iq.gateway.types.rerank import RerankResponse
+from token_iq.gateway.types.utils import (
     ModelResponse,
     EmbeddingResponse,
     TextCompletionResponse,
@@ -28,9 +28,9 @@ from litellm.types.utils import (
     Embedding,
 )
 from datetime import timedelta, datetime
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.litellm_core_utils.model_param_helper import ModelParamHelper
-from litellm._logging import verbose_logger
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
+from token_iq.gateway._logging import verbose_logger
 import logging
 
 

@@ -6,10 +6,10 @@ import asyncio
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching.dual_cache import DualCache
-from litellm.router_utils.pre_call_checks.io_token_rate_limit_check import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.router_utils.pre_call_checks.io_token_rate_limit_check import (
     ITPM_CACHE_KEY,
     ITPM_RESERVED_KEY,
     OTPM_CACHE_KEY,
@@ -26,10 +26,10 @@ from litellm.router_utils.pre_call_checks.io_token_rate_limit_check import (
     refund_stale_reservation_before_retry,
     set_io_token_rate_limit_request_kwargs,
 )
-from litellm.router_utils.pre_call_checks.model_rate_limit_check import (
+from token_iq.gateway.router_utils.pre_call_checks.model_rate_limit_check import (
     ModelRateLimitingCheck,
 )
-from litellm.types.utils import ModelResponse, Usage
+from token_iq.gateway.types.utils import ModelResponse, Usage
 
 
 class TestIOTokenRateLimitHelpers:
@@ -71,7 +71,7 @@ class TestIOTokenRateLimitHelpers:
 class TestModelRateLimitingCheckIOTokens:
     @pytest.mark.asyncio
     async def test_itpm_reservation_and_reconcile(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -158,7 +158,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_otpm_atomic_reservation_no_overshoot_under_concurrency(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -211,7 +211,7 @@ class TestModelRateLimitingCheckIOTokens:
         concurrent request is rejected until it completes - effectively
         serializing traffic to the deployment.
         """
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -255,7 +255,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_reservation_read_prefers_top_level_metadata_over_litellm_params(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -281,7 +281,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_reconcile_tracks_actual_usage_when_estimate_zero(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -386,7 +386,7 @@ class TestModelRateLimitingCheckIOTokens:
         assert await dual_cache.async_get_cache(key=normal_output_otpm_key) == 5
 
     def test_sync_io_pre_call_reserves_and_reconciles(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -453,7 +453,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_failure_clears_reservation_so_retry_is_not_poisoned(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -511,7 +511,7 @@ class TestModelRateLimitingCheckIOTokens:
         elevated by the reservation until its TTL expires, and the
         now-orphaned sentinels must not leak into B's accounting either.
         """
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         minute = get_utc_datetime().strftime("%H-%M")
@@ -594,7 +594,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_otpm_reservation_error_rolls_back_itpm(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         class _OtpmFailCache(DualCache):
             async def async_increment_cache(self, key, **kwargs):
@@ -827,7 +827,7 @@ class TestModelRateLimitingCheckIOTokens:
     async def test_io_and_tpm_rpm_limits_both_enforced_with_warning(self, caplog):
         import logging
 
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -871,7 +871,7 @@ class TestModelRateLimitingCheckIOTokens:
         success, otherwise the tpm_key the pre-call check reads is never written
         and the tpm_limit can never be enforced.
         """
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -903,7 +903,7 @@ class TestModelRateLimitingCheckIOTokens:
         assert await dual_cache.async_get_cache(key=tpm_key) == 7
 
     def test_io_success_still_tracks_tpm_for_mixed_deployment_sync(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)
@@ -934,7 +934,7 @@ class TestModelRateLimitingCheckIOTokens:
 
     @pytest.mark.asyncio
     async def test_failure_refunds_itpm_reservation(self):
-        from litellm.utils import get_utc_datetime
+        from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()
         check = ModelRateLimitingCheck(dual_cache=dual_cache)

@@ -1,7 +1,7 @@
 import base64
 import json
 
-from litellm.llms.bedrock.count_tokens.transformation import (
+from token_iq.gateway.llms.bedrock.count_tokens.transformation import (
     DEFAULT_ANTHROPIC_INVOKE_MODEL_MAX_TOKENS,
     BedrockCountTokensConfig,
 )

@@ -8,11 +8,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-import litellm
-from litellm.proxy.auth.auth_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.auth.auth_utils import (
     _allow_model_level_clientside_configurable_parameters,
 )
-from litellm.router import Router
+from token_iq.gateway.router import Router
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ def test_configurable_clientside_parameters(
 
 
 def test_get_end_user_id_from_request_body_always_returns_str():
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
     from fastapi import Request
     from unittest.mock import MagicMock
 
@@ -180,7 +180,7 @@ def test_get_end_user_id_from_request_body_with_user_header_name(
     headers, general_settings_config, request_body, expected_user_id
 ):
     """Test that get_end_user_id_from_request_body respects user_header_name property"""
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
     from fastapi import Request
     from unittest.mock import MagicMock, patch
 
@@ -189,7 +189,7 @@ def test_get_end_user_id_from_request_body_with_user_header_name(
     mock_request.headers = headers
 
     # Mock general_settings at the proxy_server module level
-    with patch("litellm.proxy.proxy_server.general_settings", general_settings_config):
+    with patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings_config):
         end_user_id = get_end_user_id_from_request_body(
             request_body, dict(mock_request.headers)
         )
@@ -198,7 +198,7 @@ def test_get_end_user_id_from_request_body_with_user_header_name(
 
 def test_get_end_user_id_from_request_body_no_user_found():
     """Test that function returns None when no user ID is found anywhere"""
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
     from fastapi import Request
     from unittest.mock import MagicMock, patch
 
@@ -215,7 +215,7 @@ def test_get_end_user_id_from_request_body_no_user_found():
         "messages": [{"role": "user", "content": "hello"}],
     }
 
-    with patch("litellm.proxy.proxy_server.general_settings", general_settings_config):
+    with patch("token_iq.gateway.proxy.proxy_server.general_settings", general_settings_config):
         end_user_id = get_end_user_id_from_request_body(
             request_body, dict(mock_request.headers)
         )
@@ -224,7 +224,7 @@ def test_get_end_user_id_from_request_body_no_user_found():
 
 def test_get_end_user_id_from_request_body_backwards_compatibility():
     """Test that function works with just request_body parameter (backwards compatibility)"""
-    from litellm.proxy.auth.auth_utils import get_end_user_id_from_request_body
+    from token_iq.gateway.proxy.auth.auth_utils import get_end_user_id_from_request_body
 
     # Test with just request_body - should work like before
     request_body = {"user": "test-user-123"}
@@ -263,7 +263,7 @@ def test_get_end_user_id_from_request_body_backwards_compatibility():
     ],
 )
 def test_get_model_from_request(request_data, expected_model):
-    from litellm.proxy.auth.auth_utils import get_model_from_request
+    from token_iq.gateway.proxy.auth.auth_utils import get_model_from_request
 
     request_data = {
         "target_model_names": "gpt-3.5-turbo, gpt-4o-mini-general-deployment"
@@ -274,7 +274,7 @@ def test_get_model_from_request(request_data, expected_model):
 
 
 def test_get_customer_user_header_from_mapping_returns_customer_header():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"},
@@ -285,7 +285,7 @@ def test_get_customer_user_header_from_mapping_returns_customer_header():
 
 
 def test_get_customer_user_header_from_mapping_no_customer_returns_none():
-    from litellm.proxy.auth.auth_utils import get_customer_user_header_from_mapping
+    from token_iq.gateway.proxy.auth.auth_utils import get_customer_user_header_from_mapping
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"}
@@ -303,7 +303,7 @@ def test_get_customer_user_header_from_mapping_no_customer_returns_none():
 
 
 def test_get_internal_user_header_from_mapping_returns_internal_header():
-    from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"},
@@ -315,7 +315,7 @@ def test_get_internal_user_header_from_mapping_returns_internal_header():
 
 
 def test_get_internal_user_header_from_mapping_no_internal_returns_none():
-    from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Email", "litellm_user_role": "customer"}
@@ -391,7 +391,7 @@ def test_get_model_from_request_vertex_ai_passthrough(
     request_data, route, expected_model
 ):
     """Test that get_model_from_request correctly extracts Vertex AI model from URL"""
-    from litellm.proxy.auth.auth_utils import get_model_from_request
+    from token_iq.gateway.proxy.auth.auth_utils import get_model_from_request
 
     model = get_model_from_request(request_data, route)
     assert model == expected_model

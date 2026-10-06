@@ -8,11 +8,11 @@ from unittest.mock import ANY, AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-import litellm
-from litellm.caching.caching import DualCache
-from litellm.integrations.SlackAlerting.slack_alerting import SlackAlerting
-from litellm.proxy._types import CallInfo, Litellm_EntityType
-from litellm.types.integrations.slack_alerting import AlertType, SlackAlertingCacheKeys
+from token_iq import gateway as litellm
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
+from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+from token_iq.gateway.types.integrations.slack_alerting import AlertType, SlackAlertingCacheKeys
 
 
 class TestSlackAlerting(unittest.TestCase):
@@ -164,13 +164,13 @@ class TestSlackAlerting(unittest.TestCase):
         self.slack_alerting.update_values(alerting_args={"slack_alerting": "True"})
         assert self.slack_alerting.periodic_started == True
 
-    @patch("litellm.integrations.SlackAlerting.slack_alerting.datetime")
+    @patch("token_iq.gateway.integrations.SlackAlerting.slack_alerting.datetime")
     def test_alert_type_in_formatted_message(self, mock_datetime):
         # Setup mocks
         mock_datetime.now.return_value.strftime.return_value = "12:34:56"
 
         # Import required types
-        from litellm.types.integrations.slack_alerting import AlertType
+        from token_iq.gateway.types.integrations.slack_alerting import AlertType
 
         # Create a simple test message to check formatting
         alert_type = AlertType.llm_exceptions

@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import AlertType, ProxyErrorTypes
-from litellm.proxy.utils import ProxyLogging
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import AlertType, ProxyErrorTypes
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 
 @pytest.fixture(autouse=True)
@@ -178,7 +178,7 @@ async def test_handle_logging_proxy_only_path_uses_existing_logging_obj(
         route="/chat/completions",
         original_exception=HTTPException(status_code=429, detail="rate"),
     )
-    from litellm.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
+    from token_iq.gateway.constants import LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL
 
     snapshot = {
         "input_logged": "messages" in logging_obj.model_call_details,
@@ -201,7 +201,7 @@ async def test_handle_logging_proxy_only_path_uses_existing_logging_obj(
 async def test_handle_logging_proxy_only_path_skips_for_pass_through(
     proxy_logging, make_user_api_key_auth
 ):
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.types.utils import CallTypes
 
     logging_obj = MagicMock()
     logging_obj.call_type = CallTypes.pass_through.value

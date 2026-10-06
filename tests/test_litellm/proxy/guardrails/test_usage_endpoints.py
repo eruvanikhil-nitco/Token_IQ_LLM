@@ -18,15 +18,15 @@ import pytest
 from fastapi import HTTPException
 from prisma.errors import TableNotFoundError
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_registry import InMemoryGuardrailHandler
-from litellm.proxy.guardrails.usage_endpoints import (
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_registry import InMemoryGuardrailHandler
+from token_iq.gateway.proxy.guardrails.usage_endpoints import (
     guardrails_usage_detail,
     guardrails_usage_logs,
     guardrails_usage_overview,
     policies_usage_overview,
 )
-from litellm.types.guardrails import Guardrail, LitellmParams
+from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 # Query() defaults don't resolve to None when the handler is called directly.
@@ -118,8 +118,8 @@ def _prisma(
 
 def _patches(prisma: MagicMock, handler: InMemoryGuardrailHandler):
     return (
-        patch("litellm.proxy.proxy_server.prisma_client", prisma),
-        patch("litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER", handler),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
+        patch("token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER", handler),
     )
 
 

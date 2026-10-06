@@ -27,7 +27,7 @@ TREES: Final[tuple[str, ...]] = ("litellm/", "token_iq/", "data/pricing/")
 # One file from each subpackage, because an include glob can match a directory and still bring
 # none of its contents, and because `token_iq/**` says nothing about `data/`.
 FILES: Final[tuple[str, ...]] = (
-    "litellm/__init__.py",
+    "token_iq/gateway/__init__.py",
     "token_iq/__init__.py",
     "token_iq/api/overview.py",
     "token_iq/api/types/overview.py",
@@ -73,7 +73,7 @@ IMPORTS: Final[tuple[str, ...]] = (
 #
 # The probe goes through `token_iq.pricing.history` rather than the engine's own price loader,
 # which resolves `parents[2]` the same way but cannot be imported at all under `--no-deps`:
-# reaching it means importing `litellm/__init__.py`, and that wants the whole dependency tree.
+# reaching it means importing `token_iq/gateway/__init__.py`, and that wants the whole dependency tree.
 # Both files are checked from the one path the probe does resolve.
 PRICE_DATA: Final[tuple[str, str, tuple[str, ...]]] = (
     "token_iq.pricing.history",

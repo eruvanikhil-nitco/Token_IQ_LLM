@@ -1,6 +1,6 @@
 """
 Tests for LiteLLMAnthropicToResponsesAPIAdapter
-(litellm/llms/anthropic/experimental_pass_through/responses_adapters/transformation.py)
+(token_iq/gateway/llms/anthropic/experimental_pass_through/responses_adapters/transformation.py)
 """
 
 import json
@@ -11,23 +11,23 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from litellm.constants import (
+from token_iq.gateway.constants import (
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_LOW_THINKING_BUDGET,
     DEFAULT_REASONING_EFFORT_MEDIUM_THINKING_BUDGET,
 )
-from litellm.litellm_core_utils.prompt_templates.common_utils import (
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     TOOL_RESULT_IMAGE_BOUNDARY,
     TOOL_RESULT_IMAGE_PLACEHOLDER,
 )
-from litellm.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
     LiteLLMAnthropicToResponsesAPIAdapter,
 )
-from litellm.types.llms.anthropic import (
+from token_iq.gateway.types.llms.anthropic import (
     AllAnthropicToolsValues,
     AnthropicMessagesRequest,
 )
-from litellm.types.llms.openai import ResponseAPIUsage
+from token_iq.gateway.types.llms.openai import ResponseAPIUsage
 
 
 def _make_request(**overrides) -> AnthropicMessagesRequest:
@@ -958,7 +958,7 @@ class TestTranslateThinkingToReasoning:
 
     def test_summary_added_when_auto_summary_enabled(self):
         """When reasoning_auto_summary is True, summary='detailed' is included."""
-        import litellm
+        from token_iq import gateway as litellm
 
         original = litellm.reasoning_auto_summary
         try:
@@ -970,7 +970,7 @@ class TestTranslateThinkingToReasoning:
 
     def test_summary_added_when_env_var_set(self, monkeypatch):
         """When LITELLM_REASONING_AUTO_SUMMARY env var is true, summary is included."""
-        import litellm
+        from token_iq import gateway as litellm
 
         original = litellm.reasoning_auto_summary
         try:
@@ -1343,7 +1343,7 @@ class TestTranslateResponse:
 
     def test_thinking_blocks_are_dropped_when_replayed_to_anthropic(self):
         """Replaying this turn to an Anthropic model must not send a signature it cannot verify."""
-        from litellm.litellm_core_utils.prompt_templates.factory import (
+        from token_iq.gateway.core_utils.prompt_templates.factory import (
             _drop_unsignable_thinking_blocks,
         )
 
@@ -1960,7 +1960,7 @@ class TestPromptCacheBreakpointToResponses:
         assert not _contains_key(items, "prompt_cache_breakpoint")
 
     def test_prompt_cache_options_forwarded_to_responses_kwargs(self):
-        from litellm.llms.anthropic.experimental_pass_through.responses_adapters.handler import (
+        from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.handler import (
             _build_responses_kwargs,
         )
 

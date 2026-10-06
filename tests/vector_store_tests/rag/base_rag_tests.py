@@ -11,8 +11,8 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-import litellm
-from litellm.types.rag import (
+from token_iq import gateway as litellm
+from token_iq.gateway.types.rag import (
     RAGIngestOptions,
     OpenAIVectorStoreOptions,
     BedrockVectorStoreOptions,

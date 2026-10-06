@@ -1,4 +1,4 @@
-from litellm.llms.bedrock.chat.invoke_transformations.amazon_twelvelabs_pegasus_transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_twelvelabs_pegasus_transformation import (
     AmazonTwelveLabsPegasusConfig,
 )
 

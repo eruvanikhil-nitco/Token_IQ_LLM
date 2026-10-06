@@ -3,7 +3,7 @@ from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.processors import TemplateProcessing
 
-from litellm import decode, encode
+from token_iq.gateway import decode, encode
 
 
 def _create_custom_tokenizer():

@@ -5,13 +5,13 @@ Tests for pipeline type definitions.
 import pytest
 from pydantic import ValidationError
 
-from litellm.types.proxy.policy_engine.pipeline_types import (
+from token_iq.gateway.types.proxy.policy_engine.pipeline_types import (
     GuardrailPipeline,
     PipelineExecutionResult,
     PipelineStep,
     PipelineStepResult,
 )
-from litellm.types.proxy.policy_engine.policy_types import (
+from token_iq.gateway.types.proxy.policy_engine.policy_types import (
     Policy,
     PolicyGuardrails,
 )

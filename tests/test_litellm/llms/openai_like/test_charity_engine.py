@@ -14,7 +14,7 @@ except ImportError:
 workspace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, workspace_path)
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestCharityEngineProviderConfig:
@@ -22,7 +22,7 @@ class TestCharityEngineProviderConfig:
 
     def test_charity_engine_in_provider_list(self):
         """Test that charity_engine is in the provider list"""
-        from litellm import LlmProviders
+        from token_iq.gateway import LlmProviders
 
         assert hasattr(LlmProviders, "CHARITY_ENGINE")
         assert LlmProviders.CHARITY_ENGINE.value == "charity_engine"
@@ -30,7 +30,7 @@ class TestCharityEngineProviderConfig:
 
     def test_charity_engine_json_config_exists(self):
         """Test that charity_engine is configured in providers.json"""
-        from litellm.llms.openai_like.json_loader import JSONProviderRegistry
+        from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
         assert JSONProviderRegistry.exists("charity_engine")
 
@@ -47,7 +47,7 @@ class TestCharityEngineProviderConfig:
 
     def test_charity_engine_provider_resolution(self):
         """Test that provider resolution finds charity_engine"""
-        from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+        from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
         model, provider, api_key, api_base = get_llm_provider(
             model="charity_engine/gemma3:270m",
@@ -62,7 +62,7 @@ class TestCharityEngineProviderConfig:
 
     def test_charity_engine_router_config(self):
         """Test that charity_engine can be used in Router configuration"""
-        from litellm import Router
+        from token_iq.gateway import Router
 
         router = Router(
             model_list=[

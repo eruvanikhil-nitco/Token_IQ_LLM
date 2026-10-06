@@ -7,7 +7,7 @@ Focused test suite covering core functionality and main edge cases.
 import pytest
 from unittest.mock import patch
 
-from litellm.litellm_core_utils.coroutine_checker import (
+from token_iq.gateway.core_utils.coroutine_checker import (
     CoroutineChecker,
     coroutine_checker,
 )

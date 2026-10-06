@@ -7,7 +7,7 @@ reaches a secret manager backend.
 import pytest
 
 
-from litellm.secret_managers.base_secret_manager import raise_if_unsafe_secret_name
+from token_iq.gateway.secret_managers.base_secret_manager import raise_if_unsafe_secret_name
 
 
 @pytest.mark.parametrize(

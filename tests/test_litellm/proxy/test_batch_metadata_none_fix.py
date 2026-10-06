@@ -10,9 +10,9 @@ from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 from openai import OpenAI
 
-import litellm
-from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 
@@ -96,7 +96,7 @@ def test_batch_create_with_litellm_sdk():
     This is a more direct test of the original issue.
     """
     # Mock the OpenAI batches instance to avoid actual API calls
-    with patch("litellm.batches.main.openai_batches_instance") as mock_openai_batches:
+    with patch("token_iq.gateway.batches.main.openai_batches_instance") as mock_openai_batches:
         # Mock the response
         mock_response = MagicMock()
         mock_response.id = "batch_test123"

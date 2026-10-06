@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/interactions/agents/http_handler.py
+Unit tests for token_iq/gateway/interactions/agents/http_handler.py
 
 These tests exercise both the sync and async branches of every CRUD method
 on AgentsHTTPHandler using stub httpx clients, plus the _is_async dispatch
@@ -14,20 +14,20 @@ import httpx
 import pytest
 
 
-from litellm.interactions.agents.http_handler import (
+from token_iq.gateway.interactions.agents.http_handler import (
     AgentsHTTPHandler,
     agents_http_handler,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.llms.gemini.agents.transformation import GeminiAgentsConfig
-from litellm.llms.gemini.common_utils import GeminiError
-from litellm.types.agents import (
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.gemini.agents.transformation import GeminiAgentsConfig
+from token_iq.gateway.llms.gemini.common_utils import GeminiError
+from token_iq.gateway.types.agents import (
     AgentCreateResponse,
     AgentDeleteResult,
     AgentListResponse,
     AgentVersionsResponse,
 )
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 # ---------------------------------------------------------------------------

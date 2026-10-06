@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from litellm.llms.bedrock.vector_stores.transformation import BedrockVectorStoreConfig
+from token_iq.gateway.llms.bedrock.vector_stores.transformation import BedrockVectorStoreConfig
 
 
 def test_transform_search_request():

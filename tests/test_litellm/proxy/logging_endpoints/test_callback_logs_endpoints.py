@@ -5,13 +5,13 @@ import time
 import pytest
 from fastapi import HTTPException
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.logging_endpoints.callback_logs_endpoints import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.logging_endpoints.callback_logs_endpoints import (
     CallbackLogsReplayer,
     ingest_callback_logs,
 )
-from litellm.types.proxy.callback_logs_endpoints import (
+from token_iq.gateway.types.proxy.callback_logs_endpoints import (
     CallbackLogRecord,
     CallbackLogsRequest,
 )
@@ -182,7 +182,7 @@ async def test_one_bad_record_does_not_sink_the_batch(monkeypatch):
 
 
 def test_batch_over_limit_is_rejected():
-    from litellm.constants import MAX_CALLBACK_LOG_RECORDS
+    from token_iq.gateway.constants import MAX_CALLBACK_LOG_RECORDS
     from pydantic import ValidationError
 
     # One over the cap must fail validation (422 at the API boundary), bounding

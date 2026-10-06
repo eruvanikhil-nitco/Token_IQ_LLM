@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 
 
-from litellm.proxy.db.prisma_client import PrismaWrapper, should_update_prisma_schema
+from token_iq.gateway.proxy.db.prisma_client import PrismaWrapper, should_update_prisma_schema
 
 
 @pytest.fixture(autouse=True)
@@ -196,7 +196,7 @@ async def test_recreate_prisma_client_recovers_from_disconnected_client(
 def test_db_push_applies_replica_identity_full_when_requested(monkeypatch):
     """`prisma db push` bypasses litellm-proxy-extras, so it needs its own call
     into the opt-in REPLICA IDENTITY FULL step."""
-    from litellm.proxy.db.prisma_client import PrismaManager
+    from token_iq.gateway.proxy.db.prisma_client import PrismaManager
     from litellm_proxy_extras.replica_identity import REPLICA_IDENTITY_FULL_ENV_VAR
     from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
@@ -208,7 +208,7 @@ def test_db_push_applies_replica_identity_full_when_requested(monkeypatch):
         staticmethod(lambda: applied.append(True)),
     )
 
-    with patch("litellm.proxy.db.prisma_client.subprocess.run") as mock_run:
+    with patch("token_iq.gateway.proxy.db.prisma_client.subprocess.run") as mock_run:
         assert PrismaManager.setup_database(use_migrate=False) is True
 
     assert mock_run.call_args[0][0][:3] == ["prisma", "db", "push"]
@@ -219,7 +219,7 @@ def test_db_push_is_rejected_when_spend_logs_is_partitioned(monkeypatch):
     """A doc-partitioned LiteLLM_SpendLogs makes `prisma db push` rewrite the
     primary key back to ("request_id"), which Postgres rejects; the guard must
     fail fast with guidance instead of running the push."""
-    from litellm.proxy.db.prisma_client import PrismaManager
+    from token_iq.gateway.proxy.db.prisma_client import PrismaManager
     from litellm_proxy_extras.utils import (
         PARTITIONED_SPEND_LOGS_PUSH_ERROR,
         ProxyExtrasDBManager,
@@ -229,7 +229,7 @@ def test_db_push_is_rejected_when_spend_logs_is_partitioned(monkeypatch):
         ProxyExtrasDBManager, "spend_logs_is_partitioned", staticmethod(lambda: True)
     )
     with patch(  # test-quality-ok: subprocess.run is the external prisma CLI boundary, asserted never reached
-        "litellm.proxy.db.prisma_client.subprocess.run"
+        "token_iq.gateway.proxy.db.prisma_client.subprocess.run"
     ) as mock_run:
         with pytest.raises(RuntimeError) as err:
             PrismaManager.setup_database(use_migrate=False)
@@ -239,14 +239,14 @@ def test_db_push_is_rejected_when_spend_logs_is_partitioned(monkeypatch):
 
 
 def test_db_push_proceeds_when_spend_logs_is_not_partitioned(monkeypatch):
-    from litellm.proxy.db.prisma_client import PrismaManager
+    from token_iq.gateway.proxy.db.prisma_client import PrismaManager
     from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
     monkeypatch.setattr(
         ProxyExtrasDBManager, "spend_logs_is_partitioned", staticmethod(lambda: False)
     )
     with patch(  # test-quality-ok: subprocess.run is the external prisma CLI boundary, not SDK logic
-        "litellm.proxy.db.prisma_client.subprocess.run"
+        "token_iq.gateway.proxy.db.prisma_client.subprocess.run"
     ) as mock_run:
         assert PrismaManager.setup_database(use_migrate=False) is True
 
@@ -272,7 +272,7 @@ def azure_env(monkeypatch, unset_database_url):
 
 
 def _azure_wrapper(token: str, **kwargs):
-    from litellm.proxy.db.token_auth import AzureEntraTokenAuth
+    from token_iq.gateway.proxy.db.token_auth import AzureEntraTokenAuth
 
     return PrismaWrapper(
         original_prisma=MagicMock(),

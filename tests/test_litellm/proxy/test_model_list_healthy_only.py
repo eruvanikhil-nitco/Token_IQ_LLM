@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy import proxy_server
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 HEALTHY_ONLY_SETTING = {"model_list_healthy_only": True}
 
@@ -20,7 +20,7 @@ HEALTHY_ONLY_SETTING = {"model_list_healthy_only": True}
 @pytest.fixture
 def patched_model_list(monkeypatch):
     """Stub router + utility helpers used by `model_list`."""
-    from litellm.proxy import utils as proxy_utils
+    from token_iq.gateway.proxy import utils as proxy_utils
 
     router = MagicMock()
     router.get_fully_blocked_model_names = MagicMock(return_value=set())
@@ -113,8 +113,8 @@ async def test_model_list_default_keeps_unhealthy_models(patched_model_list):
 async def test_model_list_healthy_only_applies_to_scope_expand(
     patched_model_list, monkeypatch
 ):
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.management_endpoints import common_utils
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.management_endpoints import common_utils
 
     async def _fake_admin(**kwargs):
         return True
@@ -151,8 +151,8 @@ async def test_model_list_general_setting_hides_unhealthy_models(patched_model_l
 
 @pytest.mark.asyncio
 async def test_model_list_general_setting_applies_to_scope_expand(patched_model_list, monkeypatch):
-    from litellm.proxy.auth import model_checks
-    from litellm.proxy.management_endpoints import common_utils
+    from token_iq.gateway.proxy.auth import model_checks
+    from token_iq.gateway.proxy.management_endpoints import common_utils
 
     async def _fake_admin(**kwargs):
         return True
@@ -251,7 +251,7 @@ async def test_retrieve_model_general_setting_hides_unhealthy_model(patched_mode
 @pytest.mark.asyncio
 async def test_retrieve_model_default_serves_unhealthy_model(patched_model_list, monkeypatch):
     """Without the opt-in, retrieve keeps serving unhealthy models."""
-    import litellm
+    from token_iq import gateway as litellm
 
     deployment = MagicMock()
     deployment.litellm_params.model = "anthropic/claude-sonnet"

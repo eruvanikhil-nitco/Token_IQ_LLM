@@ -18,7 +18,7 @@ from mcp.types import (
     ToolUseContent,
 )
 
-from litellm.proxy._experimental.mcp_server.sampling_handler import (
+from token_iq.gateway.proxy._experimental.mcp_server.sampling_handler import (
     _convert_mcp_content_to_openai,
     _convert_mcp_tool_choice_to_openai,
     _convert_mcp_tools_to_openai,

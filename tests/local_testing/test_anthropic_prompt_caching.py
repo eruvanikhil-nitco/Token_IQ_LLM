@@ -14,10 +14,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from litellm.litellm_core_utils.prompt_templates.factory import anthropic_messages_pt
+from token_iq import gateway as litellm
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
 from test_amazing_vertex_completion import load_vertex_ai_credentials
 
 # litellm.num_retries =3
@@ -62,7 +62,7 @@ async def test_litellm_anthropic_prompt_caching_tools():
 
     litellm.set_verbose = True
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
@@ -609,7 +609,7 @@ async def test_litellm_anthropic_prompt_caching_system():
 
     litellm.set_verbose = True
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
@@ -708,8 +708,8 @@ async def test_router_prompt_caching_model_stored(
     If a model is called with prompt caching supported, then the model id should be stored in the router cache.
     """
     import asyncio
-    from litellm.router import Router
-    from litellm.router_utils.prompt_caching_cache import PromptCachingCache
+    from token_iq.gateway.router import Router
+    from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
 
     router = Router(
         model_list=[
@@ -756,9 +756,9 @@ async def test_router_with_prompt_caching(anthropic_messages):
     if prompt caching supported model called with prompt caching valid prompt,
     then 2nd call should go to the same model.
     """
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
     import asyncio
-    from litellm.router_utils.prompt_caching_cache import PromptCachingCache
+    from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
 
     router = Router(
         model_list=[

@@ -7,7 +7,7 @@ set. `chunk_parser` previously did `choices[0]` unconditionally, raising
 `IndexError` -> `MidStreamFallbackError` and crashing the stream.
 """
 
-from litellm.llms.databricks.streaming_utils import ModelResponseIterator
+from token_iq.gateway.llms.databricks.streaming_utils import ModelResponseIterator
 
 
 def test_chunk_parser_handles_empty_choices_usage_chunk():

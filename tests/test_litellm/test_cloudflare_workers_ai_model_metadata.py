@@ -15,7 +15,7 @@ import os
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 ROOT_MAP = os.path.join(
     os.path.dirname(os.path.dirname(litellm.__file__)),

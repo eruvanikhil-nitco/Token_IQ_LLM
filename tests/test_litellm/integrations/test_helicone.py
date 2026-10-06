@@ -2,7 +2,7 @@ import sys
 import types
 
 
-from litellm.integrations.helicone import HeliconeLogger
+from token_iq.gateway.integrations.helicone import HeliconeLogger
 
 
 def _claude_mapping(messages, response_obj):

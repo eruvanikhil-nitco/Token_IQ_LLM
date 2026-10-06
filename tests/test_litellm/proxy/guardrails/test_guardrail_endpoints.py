@@ -8,8 +8,8 @@ import pytest
 
 from fastapi import HTTPException
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.guardrails.guardrail_endpoints import (
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
     CreateGuardrailRequest,
     PatchGuardrailRequest,
     RegisterGuardrailRequest,
@@ -30,11 +30,11 @@ from litellm.proxy.guardrails.guardrail_endpoints import (
 )
 
 MOCK_ADMIN_USER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
-from litellm.proxy.guardrails.guardrail_registry import (
+from token_iq.gateway.proxy.guardrails.guardrail_registry import (
     IN_MEMORY_GUARDRAIL_HANDLER,
     InMemoryGuardrailHandler,
 )
-from litellm.types.guardrails import (
+from token_iq.gateway.types.guardrails import (
     ApplyGuardrailRequest,
     BaseLitellmParams,
     Guardrail,
@@ -131,10 +131,10 @@ async def test_list_guardrails_v2_with_db_and_config(
 ):
     """Test listing guardrails from both DB and config"""
     # Mock the prisma client
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     # Mock the in-memory handler
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -182,9 +182,9 @@ async def test_list_guardrails_v2_skips_stale_db_backed_in_memory_entries(mocker
     mock_in_memory_handler.list_in_memory_guardrails.return_value = [stale_guardrail]
     mock_in_memory_handler.get_source.return_value = "db"
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -203,9 +203,9 @@ async def test_get_guardrail_info_404s_stale_db_backed_entry(
     Stale DB-backed entry (in-memory but not in DB) must 404 instead of being
     returned as if it were a config-loaded guardrail.
     """
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
     mock_prisma_client.db.litellm_guardrailstable.find_unique = AsyncMock(
@@ -248,9 +248,9 @@ async def test_list_guardrails_v2_masks_sensitive_data_in_db_guardrails(mocker):
     mock_in_memory_handler = mocker.Mock()
     mock_in_memory_handler.list_in_memory_guardrails.return_value = []
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -303,9 +303,9 @@ async def test_list_guardrails_v2_masks_sensitive_data_in_config_guardrails(mock
         config_guardrail_with_secrets
     ]
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -362,13 +362,13 @@ async def test_list_guardrails_v2_admin_viewer_sees_guardrails_of_teams_they_are
     mock_in_memory_handler = mocker.Mock()
     mock_in_memory_handler.list_in_memory_guardrails.return_value = []
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
     mock_get_user_team_ids = mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=[]),
     )
 
@@ -411,13 +411,13 @@ async def test_list_guardrails_v2_masks_sensitive_data_for_admin_viewer(mocker):
     mock_in_memory_handler = mocker.Mock()
     mock_in_memory_handler.list_in_memory_guardrails.return_value = []
 
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=[]),
     )
 
@@ -440,7 +440,7 @@ async def test_list_guardrails_v2_masks_sensitive_data_for_admin_viewer(mocker):
 @pytest.mark.asyncio
 async def test_get_guardrail_info_from_db(mocker, mock_prisma_client):
     """Test getting guardrail info from DB"""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     response = await get_guardrail_info("test-db-guardrail")
 
@@ -455,9 +455,9 @@ async def test_get_guardrail_info_from_config(
     mocker, mock_prisma_client, mock_in_memory_handler
 ):
     """Test getting guardrail info from config when not found in DB"""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -479,9 +479,9 @@ async def test_get_guardrail_info_not_found(
     mocker, mock_prisma_client, mock_in_memory_handler
 ):
     """Test getting guardrail info when not found in either DB or config"""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -506,9 +506,9 @@ async def test_list_guardrails_v2_without_prisma_returns_config_guardrails(
     A proxy without a DB must still list config-defined guardrails instead of
     raising 500 'Prisma client not initialized'.
     """
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -529,9 +529,9 @@ async def test_list_guardrails_v2_without_prisma_non_admin_sees_unrestricted_con
     A non-admin caller on a no-DB proxy must see config guardrails that carry
     no team_id restriction; the team lookup must not blow up without a DB.
     """
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -551,9 +551,9 @@ async def test_get_guardrail_info_without_prisma_returns_config_guardrail(
     The info endpoint must serve config-defined guardrails from the in-memory
     registry when no DB is attached instead of raising 500.
     """
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -568,9 +568,9 @@ async def test_get_guardrail_info_without_prisma_returns_config_guardrail(
 async def test_get_guardrail_info_without_prisma_404s_unknown_id(
     mocker, mock_in_memory_handler
 ):
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
     mock_in_memory_handler.get_guardrail_by_id.return_value = None
@@ -586,7 +586,7 @@ def test_get_guardrails_list_response_includes_guardrail_id():
     The v1 list response is the UI's fallback when v2 fails; without ids every
     row click requests /guardrails/undefined/info.
     """
-    from litellm.proxy.guardrails.guardrail_endpoints import (
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
         _get_guardrails_list_response,
     )
 
@@ -608,8 +608,8 @@ def test_get_guardrails_list_response_includes_guardrail_id():
 
 def test_get_provider_specific_params():
     """Test getting provider-specific parameters"""
-    from litellm.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
-    from litellm.proxy.guardrails.guardrail_hooks.azure import (
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.azure import (
         AzureContentSafetyTextModerationGuardrail,
     )
 
@@ -675,7 +675,7 @@ async def test_provider_specific_params_includes_hide_secrets():
     """hide-secrets lives in the enterprise package so it is not in
     guardrail_class_registry; the endpoint must still advertise it or the
     Add Guardrail UI dropdown never offers it (LIT-3548)."""
-    from litellm.proxy.guardrails.guardrail_endpoints import (
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
         get_provider_specific_params,
     )
 
@@ -692,7 +692,7 @@ async def test_provider_specific_params_includes_hide_secrets():
 async def test_add_guardrail_settings_restricts_hide_secrets_to_pre_call():
     """hide-secrets only implements async_pre_call_hook, so offering the other
     modes in the UI would create configs that boot clean and never run."""
-    from litellm.proxy.guardrails.guardrail_endpoints import (
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
         get_guardrail_ui_settings,
     )
 
@@ -707,8 +707,8 @@ def test_optional_params_not_returned_when_not_overridden():
 
     from pydantic import BaseModel, Field
 
-    from litellm.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
-    from litellm.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
     class TestGuardrailConfig(GuardrailConfigModel):
         api_key: Optional[str] = Field(
@@ -736,8 +736,8 @@ def test_optional_params_returned_when_properly_overridden():
 
     from pydantic import BaseModel, Field
 
-    from litellm.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
-    from litellm.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _get_fields_from_model
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
     # Create specific optional params model
     class SpecificOptionalParams(BaseModel):
@@ -773,7 +773,7 @@ async def test_bedrock_guardrail_prepare_request_with_api_key():
     """Test _prepare_request method uses Bearer token when api_key is provided in data"""
     from unittest.mock import Mock, patch
 
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
 
@@ -806,7 +806,7 @@ async def test_bedrock_guardrail_prepare_request_without_api_key():
     """Test _prepare_request method falls back to SigV4 when no api_key is provided"""
     from unittest.mock import Mock, patch
 
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
 
@@ -823,7 +823,7 @@ async def test_bedrock_guardrail_prepare_request_without_api_key():
 
     with (
         patch(
-            "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.get_secret_str"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.get_secret_str"
         ) as mock_get_secret,
         patch("botocore.auth.SigV4Auth") as mock_sigv4_auth,
         patch("botocore.awsrequest.AWSRequest") as mock_aws_request,
@@ -861,7 +861,7 @@ async def test_bedrock_guardrail_prepare_request_with_bearer_token_env():
     """Test _prepare_request method uses Bearer token from environment when available"""
     from unittest.mock import Mock, patch
 
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
 
@@ -878,7 +878,7 @@ async def test_bedrock_guardrail_prepare_request_with_bearer_token_env():
 
     with (
         patch(
-            "litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails.get_secret_str"
+            "token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails.get_secret_str"
         ) as mock_get_secret,
         patch("botocore.awsrequest.AWSRequest") as mock_aws_request,
     ):
@@ -907,7 +907,7 @@ async def test_bedrock_guardrail_make_api_request_passes_api_key():
     """Test make_bedrock_api_request method correctly passes api_key from request_data"""
     from unittest.mock import AsyncMock, Mock, patch
 
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
 
@@ -996,13 +996,13 @@ async def test_create_guardrail_endpoint(
     mock_logger = None
     if scenario == "success_with_sync":
         mock_prisma_client = mocker.Mock()
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1012,16 +1012,16 @@ async def test_create_guardrail_endpoint(
             "Sync failed"
         )
         mock_logger = mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1031,14 +1031,14 @@ async def test_create_guardrail_endpoint(
             "Database error"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
 
     elif scenario == "no_prisma_client":
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     # Run the test
     if expected_exception:
@@ -1107,13 +1107,13 @@ async def test_update_guardrail_endpoint(
     if scenario == "success_with_sync":
         mock_prisma_client = mocker.Mock()
         mock_in_memory_handler.sync_guardrail_from_db = mocker.Mock()
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1126,16 +1126,16 @@ async def test_update_guardrail_endpoint(
             side_effect=Exception("Sync failed")
         )
         mock_logger = mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1148,13 +1148,13 @@ async def test_update_guardrail_endpoint(
         mock_in_memory_handler.sync_guardrail_from_db = mocker.Mock(
             side_effect=TypeError("vars() argument must have __dict__ attribute")
         )
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)  # test-quality-ok: reused pattern
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)  # test-quality-ok: reused pattern
         mocker.patch(  # test-quality-ok: reused pattern
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(  # test-quality-ok: reused pattern
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1164,14 +1164,14 @@ async def test_update_guardrail_endpoint(
             "Database error"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
 
     elif scenario == "no_prisma_client":
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     # Run the test
     if expected_exception:
@@ -1254,13 +1254,13 @@ async def test_patch_guardrail_endpoint(
     if scenario == "success_with_sync":
         mock_prisma_client = mocker.Mock()
         mock_in_memory_handler.sync_guardrail_from_db = mocker.Mock()
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1273,16 +1273,16 @@ async def test_patch_guardrail_endpoint(
             side_effect=Exception("Sync failed")
         )
         mock_logger = mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1295,13 +1295,13 @@ async def test_patch_guardrail_endpoint(
         mock_in_memory_handler.sync_guardrail_from_db = mocker.Mock(
             side_effect=ValueError("on_flagged='inject_system_message' requires payload=True and breakdown=True")
         )
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)  # test-quality-ok: reused pattern
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)  # test-quality-ok: reused pattern
         mocker.patch(  # test-quality-ok: reused pattern
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(  # test-quality-ok: reused pattern
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1311,14 +1311,14 @@ async def test_patch_guardrail_endpoint(
             "Database error"
         )
 
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
 
     elif scenario == "no_prisma_client":
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", None)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     # Run the test
     if expected_exception:
@@ -1384,13 +1384,13 @@ async def test_delete_guardrail_endpoint(
     mock_logger = None
 
     if scenario == "success_with_sync":
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1399,15 +1399,15 @@ async def test_delete_guardrail_endpoint(
             "Sync failed"
         )
         mock_logger = mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.verbose_proxy_logger"
         )
-        mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
+        mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
+            "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY",
             mock_guardrail_registry,
         )
         mocker.patch(
-            "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+            "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
             mock_in_memory_handler,
         )
 
@@ -1445,21 +1445,21 @@ async def test_apply_guardrail_not_found(mocker):
     """
     Test apply_guardrail endpoint returns proper error when guardrail is not found.
     """
-    from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
     # Mock the GUARDRAIL_REGISTRY to return None (guardrail not found)
     mock_registry = mocker.Mock()
     mock_registry.get_initialized_guardrail_callback.return_value = None
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     mock_proxy_logging = mocker.Mock()
     mock_proxy_logging.post_call_failure_hook = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
-    mocker.patch("litellm.proxy.proxy_server.general_settings", {})
-    mocker.patch("litellm.proxy.proxy_server.proxy_config", mocker.Mock())
-    mocker.patch("litellm.proxy.proxy_server.version", "test")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_config", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.version", "test")
 
     # Create request
     request = ApplyGuardrailRequest(
@@ -1487,7 +1487,7 @@ async def test_apply_guardrail_execution_error(mocker):
     """
     Test apply_guardrail endpoint handles exceptions from guardrail execution properly.
     """
-    from litellm.proxy._types import ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 
     # Mock guardrail that raises an exception
     mock_guardrail = mocker.Mock()
@@ -1499,7 +1499,7 @@ async def test_apply_guardrail_execution_error(mocker):
     mock_registry = mocker.Mock()
     mock_registry.get_initialized_guardrail_callback.return_value = mock_guardrail
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     mock_logging_obj = mocker.Mock()
@@ -1510,16 +1510,16 @@ async def test_apply_guardrail_execution_error(mocker):
         return_value=({"guardrail_name": "test-guardrail"}, mock_logging_obj)
     )
     mocker.patch(
-        "litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
+        "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
         return_value=mock_processor,
     )
     mock_proxy_logging = mocker.Mock()
     mock_proxy_logging.post_call_failure_hook = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
-    mocker.patch("litellm.proxy.proxy_server.general_settings", {})
-    mocker.patch("litellm.proxy.proxy_server.proxy_config", mocker.Mock())
-    mocker.patch("litellm.proxy.proxy_server.version", "test")
-    mocker.patch("litellm.litellm_core_utils.thread_pool_executor.executor")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_config", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.version", "test")
+    mocker.patch("token_iq.gateway.core_utils.thread_pool_executor.executor")
 
     # Create request
     request = ApplyGuardrailRequest(
@@ -1549,7 +1549,7 @@ async def test_apply_guardrail_invokes_logging_pipeline(mocker):
     mock_registry = mocker.Mock()
     mock_registry.get_initialized_guardrail_callback.return_value = mock_guardrail
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     mock_logging_obj = mocker.Mock()
@@ -1560,19 +1560,19 @@ async def test_apply_guardrail_invokes_logging_pipeline(mocker):
         return_value=({"guardrail_name": "test-guardrail"}, mock_logging_obj)
     )
     mocker.patch(
-        "litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
+        "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
         return_value=mock_processor,
     )
 
     mock_proxy_logging = mocker.Mock()
     mock_proxy_logging.post_call_success_hook = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
-    mocker.patch("litellm.proxy.proxy_server.general_settings", {})
-    mocker.patch("litellm.proxy.proxy_server.proxy_config", mocker.Mock())
-    mocker.patch("litellm.proxy.proxy_server.version", "test")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_config", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.version", "test")
     mock_executor = mocker.Mock()
     mocker.patch(
-        "litellm.litellm_core_utils.thread_pool_executor.executor", mock_executor
+        "token_iq.gateway.core_utils.thread_pool_executor.executor", mock_executor
     )
 
     request = ApplyGuardrailRequest(
@@ -1602,7 +1602,7 @@ def _patch_apply_guardrail_env(mocker, guardrail_result):
     mock_registry = mocker.Mock()
     mock_registry.get_initialized_guardrail_callback.return_value = mock_guardrail
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     mock_logging_obj = mocker.Mock()
@@ -1613,17 +1613,17 @@ def _patch_apply_guardrail_env(mocker, guardrail_result):
         return_value=({"guardrail_name": "test-guardrail"}, mock_logging_obj)
     )
     mocker.patch(
-        "litellm.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
+        "token_iq.gateway.proxy.common_request_processing.ProxyBaseLLMRequestProcessing",
         return_value=mock_processor,
     )
 
     mock_proxy_logging = mocker.Mock()
     mock_proxy_logging.post_call_success_hook = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
-    mocker.patch("litellm.proxy.proxy_server.general_settings", {})
-    mocker.patch("litellm.proxy.proxy_server.proxy_config", mocker.Mock())
-    mocker.patch("litellm.proxy.proxy_server.version", "test")
-    mocker.patch("litellm.litellm_core_utils.thread_pool_executor.executor")
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    mocker.patch("token_iq.gateway.proxy.proxy_server.proxy_config", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.version", "test")
+    mocker.patch("token_iq.gateway.core_utils.thread_pool_executor.executor")
 
     return mock_guardrail
 
@@ -1730,17 +1730,17 @@ async def test_get_guardrail_info_endpoint_config_guardrail(mocker):
     """
     Test get_guardrail_info endpoint returns proper response when guardrail is found in config.
     """
-    from litellm.proxy.guardrails.guardrail_endpoints import get_guardrail_info
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import get_guardrail_info
 
     # Mock prisma_client to not be None (patch at the source where it's imported from)
     mock_prisma = mocker.Mock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     # Mock the GUARDRAIL_REGISTRY to return None from DB (so it checks config)
     mock_registry = mocker.Mock()
     mock_registry.get_guardrail_by_id_from_db = AsyncMock(return_value=None)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     # Mock IN_MEMORY_GUARDRAIL_HANDLER at its source to return config guardrail
@@ -1748,13 +1748,13 @@ async def test_get_guardrail_info_endpoint_config_guardrail(mocker):
     mock_in_memory_handler.get_guardrail_by_id.return_value = MOCK_CONFIG_GUARDRAIL
     mock_in_memory_handler.get_source.return_value = "config"
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
     # Mock _get_masked_values to return values as-is
     mocker.patch(
-        "litellm.litellm_core_utils.litellm_logging._get_masked_values",
+        "token_iq.gateway.core_utils.litellm_logging._get_masked_values",
         side_effect=lambda x, **kwargs: x,
     )
 
@@ -1773,11 +1773,11 @@ async def test_get_guardrail_info_endpoint_db_guardrail(mocker):
     """
     Test get_guardrail_info endpoint returns proper response when guardrail is found in DB.
     """
-    from litellm.proxy.guardrails.guardrail_endpoints import get_guardrail_info
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import get_guardrail_info
 
     # Mock prisma_client to not be None (patch at the source where it's imported from)
     mock_prisma = mocker.Mock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     # Mock the GUARDRAIL_REGISTRY to return a guardrail from DB
     mock_registry = mocker.Mock()
@@ -1785,14 +1785,14 @@ async def test_get_guardrail_info_endpoint_db_guardrail(mocker):
         return_value=MOCK_DB_GUARDRAIL
     )
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints.GUARDRAIL_REGISTRY", mock_registry
     )
 
     # Mock IN_MEMORY_GUARDRAIL_HANDLER to return None
     mock_in_memory_handler = mocker.Mock()
     mock_in_memory_handler.get_guardrail_by_id.return_value = None
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_in_memory_handler,
     )
 
@@ -1813,7 +1813,7 @@ class TestBuildFieldDict:
         """Test that _build_field_dict works when ui_type is a plain string (e.g. BlockCodeExecutionGuardrailConfigModel)."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.guardrails.guardrail_endpoints import _build_field_dict
+        from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _build_field_dict
 
         field = MagicMock()
         field.json_schema_extra = {
@@ -1835,8 +1835,8 @@ class TestBuildFieldDict:
         """Test that _build_field_dict works when ui_type is a GuardrailParamUITypes enum."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.guardrails.guardrail_endpoints import _build_field_dict
-        from litellm.types.guardrails import GuardrailParamUITypes
+        from token_iq.gateway.proxy.guardrails.guardrail_endpoints import _build_field_dict
+        from token_iq.gateway.types.guardrails import GuardrailParamUITypes
 
         field = MagicMock()
         field.json_schema_extra = {"ui_type": GuardrailParamUITypes.BOOL}
@@ -1877,7 +1877,7 @@ async def test_register_guardrail_success(mocker):
         submitted_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.create = AsyncMock(return_value=created_row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     user = UserAPIKeyAuth(user_id="u1", user_email="alice@co.com", team_id="team-1")
     result = await register_guardrail(MOCK_REGISTER_REQUEST, user)
@@ -1894,7 +1894,7 @@ async def test_register_guardrail_success(mocker):
 @pytest.mark.asyncio
 async def test_register_guardrail_rejects_non_generic_api(mocker):
     """Register returns 400 when litellm_params.guardrail is not generic_guardrail_api."""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.Mock())
     req = RegisterGuardrailRequest(
         guardrail_name="other-guard",
         litellm_params={
@@ -1914,7 +1914,7 @@ async def test_register_guardrail_rejects_non_generic_api(mocker):
 @pytest.mark.asyncio
 async def test_register_guardrail_requires_team_id(mocker):
     """Register returns 400 when API key has no associated team_id."""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.Mock())
     user = UserAPIKeyAuth(user_id="u1", user_email="a@b.com", team_id=None)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -1935,9 +1935,9 @@ async def test_register_guardrail_non_admin_cross_team_allowed(mocker):
         submitted_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.create = AsyncMock(return_value=created)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-alpha", "team-beta"]),
     )
     req = RegisterGuardrailRequest(
@@ -1957,9 +1957,9 @@ async def test_register_guardrail_non_admin_cross_team_allowed(mocker):
 @pytest.mark.asyncio
 async def test_register_guardrail_non_admin_cross_team_forbidden(mocker):
     """Non-admin gets 403 when registering for a team they are not a member of."""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.Mock())
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-alpha"]),
     )
     req = RegisterGuardrailRequest(
@@ -1983,7 +1983,7 @@ async def test_register_guardrail_duplicate_name(mocker):
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(
         return_value={"guardrail_name": MOCK_REGISTER_REQUEST.guardrail_name}
     )
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_id="u1", user_email="a@b.com", team_id="team-1")
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2010,9 +2010,9 @@ async def test_list_guardrail_submissions_non_admin_scoped_to_own_teams(mocker):
     )
     find_many = AsyncMock(return_value=[own_team_row])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
     user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
@@ -2035,9 +2035,9 @@ async def test_list_guardrail_submissions_non_admin_no_teams(mocker):
     mock_prisma = mocker.Mock()
     find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=[]),
     )
     user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
@@ -2052,9 +2052,9 @@ async def test_list_guardrail_submissions_non_admin_no_teams(mocker):
 @pytest.mark.asyncio
 async def test_list_guardrail_submissions_non_admin_team_filter_forbidden(mocker):
     """Non-admin caller filtering by a team they're not in gets 403."""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.Mock())
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
     user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
@@ -2088,7 +2088,7 @@ async def test_list_guardrail_submissions_success(mocker):
         updated_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.find_many = AsyncMock(return_value=[row])
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     result = await list_guardrail_submissions(user_api_key_dict=user)
@@ -2107,7 +2107,7 @@ async def test_list_guardrail_submissions_returns_only_team_guardrails(mocker):
     mock_prisma = mocker.Mock()
     find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     await list_guardrail_submissions(user_api_key_dict=user)
@@ -2148,7 +2148,7 @@ async def test_list_guardrail_submissions_team_id_filter(mocker):
     )
     find_many = AsyncMock(return_value=[row_abc, row_other])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     result = await list_guardrail_submissions(
@@ -2166,7 +2166,7 @@ async def test_get_guardrail_submission_not_found(mocker):
     """Get submission returns 404 when guardrail_id does not exist."""
     mock_prisma = mocker.Mock()
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=None)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2191,9 +2191,9 @@ async def test_get_guardrail_submission_non_admin_own_team(mocker):
         updated_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
     user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
@@ -2221,9 +2221,9 @@ async def test_get_guardrail_submission_non_admin_other_team_forbidden(mocker):
         updated_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
     user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
@@ -2250,9 +2250,9 @@ async def test_get_guardrail_submission_admin_viewer_other_team_allowed(mocker):
         updated_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mock_get_user_team_ids = mocker.patch(
-        "litellm.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
+        "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=[]),
     )
     user = UserAPIKeyAuth(
@@ -2283,11 +2283,11 @@ async def test_approve_guardrail_submission_success(mocker):
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mock_prisma.db.litellm_guardrailstable.update = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     mock_handler = mocker.Mock()
     mock_handler.initialize_guardrail = mocker.Mock()
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -2307,7 +2307,7 @@ async def test_approve_guardrail_submission_not_pending(mocker):
     mock_prisma = mocker.Mock()
     row = mocker.Mock(guardrail_id="x", guardrail_name="y", status="active")
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2322,7 +2322,7 @@ async def test_reject_guardrail_submission_success(mocker):
     row = mocker.Mock(guardrail_id="rej-1", guardrail_name="r", status="pending_review")
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mock_prisma.db.litellm_guardrailstable.update = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     result = await reject_guardrail_submission("rej-1", user)
@@ -2341,7 +2341,7 @@ async def test_reject_guardrail_submission_not_pending(mocker):
         guardrail_id="already-active", guardrail_name="g", status="active"
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2375,7 +2375,7 @@ async def test_register_guardrail_rejects_bad_api_base(
     mocker, api_base, expected_detail
 ):
     """Register returns 400 when api_base has invalid scheme or missing hostname."""
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mocker.Mock())
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mocker.Mock())
     req = RegisterGuardrailRequest(
         guardrail_name="bad-url-guard",
         litellm_params={
@@ -2404,7 +2404,7 @@ async def test_register_guardrail_accepts_valid_https_url(mocker):
         submitted_at=datetime.now(),
     )
     mock_prisma.db.litellm_guardrailstable.create = AsyncMock(return_value=created_row)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     req = RegisterGuardrailRequest(
         guardrail_name="valid-guard",
@@ -2438,14 +2438,14 @@ async def test_approve_guardrail_init_failure_returns_warning(mocker):
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mock_prisma.db.litellm_guardrailstable.update = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     mock_handler = mocker.Mock()
     mock_handler.initialize_guardrail = mocker.Mock(
         side_effect=Exception("missing dependency")
     )
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -2475,12 +2475,12 @@ async def test_approve_guardrail_no_warning_on_success(mocker):
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mock_prisma.db.litellm_guardrailstable.update = AsyncMock()
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     mock_handler = mocker.Mock()
     mock_handler.initialize_guardrail = mocker.Mock()  # no exception
     mocker.patch(
-        "litellm.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
+        "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
@@ -2497,7 +2497,7 @@ async def test_list_submissions_single_db_query(mocker):
     mock_prisma = mocker.Mock()
     find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     await list_guardrail_submissions(user_api_key_dict=user)
@@ -2535,7 +2535,7 @@ async def test_list_submissions_summary_counts_unaffected_by_filters(mocker):
     )
     all_rows = [pending_row, active_row]
     mock_prisma.db.litellm_guardrailstable.find_many = AsyncMock(return_value=all_rows)
-    mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
 
     # Filter to only pending, but summary should still show both
@@ -2577,7 +2577,7 @@ async def test_get_guardrail_ui_settings_returns_per_provider_supported_modes():
 
     # The union list stays exhaustive for legacy clients that ignore the
     # per-provider map; it must cover every declared GuardrailEventHooks value.
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     assert set(result.supported_modes) == {m.value for m in GuardrailEventHooks}
 
@@ -2590,7 +2590,7 @@ async def test_ui_settings_map_matches_runtime_supported_event_hooks():
     at save time, otherwise the bug in LIT-4226 comes back one classname at a
     time as future guardrails drift.
     """
-    from litellm.proxy.guardrails.guardrail_registry import guardrail_class_registry
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import guardrail_class_registry
 
     result = await get_guardrail_ui_settings()
 
@@ -2618,10 +2618,10 @@ def test_content_filter_runtime_rejects_unsupported_mcp_hook():
     vice versa), the two-lists-must-agree test above catches the drift and this
     test catches the specific bug the ticket reported.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     with pytest.raises(ValueError, match="not in the supported event hooks"):
         ContentFilterGuardrail(
@@ -2638,7 +2638,7 @@ def test_model_armor_runtime_supported_event_hooks_match_classmethod():
     runtime validator accepted any hook (including nonsense like logging_only)
     while the UI hid them. Ensures the two sides agree at instantiation time.
     """
-    from litellm.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor.model_armor import (
         ModelArmorGuardrail,
     )
 
@@ -2659,10 +2659,10 @@ def test_strict_guardrail_modes_flag_controls_raise_vs_warn(monkeypatch, caplog)
     """
     import logging
 
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     monkeypatch.delenv("LITELLM_STRICT_GUARDRAIL_MODES", raising=False)
     with pytest.raises(ValueError, match="not in the supported event hooks"):
@@ -2682,7 +2682,7 @@ def test_strict_guardrail_modes_flag_controls_raise_vs_warn(monkeypatch, caplog)
 
 
 def test_field_type_inference_handles_pep604_unions():
-    from litellm.proxy.guardrails.guardrail_endpoints import (
+    from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
         _get_field_type_from_annotation,
         _unwrap_optional_type,
     )

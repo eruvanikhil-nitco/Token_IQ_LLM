@@ -9,11 +9,11 @@ TranscriptionVerbose/Diarized type.
 
 from unittest.mock import patch
 
-from litellm.cost_calculator import completion_cost
-from litellm.litellm_core_utils.llm_response_utils.convert_dict_to_response import (
+from token_iq.gateway.cost_calculator import completion_cost
+from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     convert_to_model_response_object,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     TranscriptionResponse,
     TranscriptionUsageDurationObject,
 )
@@ -126,7 +126,7 @@ class TestTranscriptionDurationNotInResponseBody:
 class TestCostCalculatorReadsDurationFromHiddenParams:
     """The cost calculator should read duration from _hidden_params via completion_cost()."""
 
-    @patch("litellm.cost_calculator.openai_cost_per_second")
+    @patch("token_iq.gateway.cost_calculator.openai_cost_per_second")
     def test_completion_cost_uses_hidden_params_duration(self, mock_cost_fn):
         """
         completion_cost() should pass the duration from _hidden_params to
@@ -151,7 +151,7 @@ class TestCostCalculatorReadsDurationFromHiddenParams:
         _, kwargs = mock_cost_fn.call_args
         assert kwargs["duration"] == 17.5
 
-    @patch("litellm.cost_calculator.openai_cost_per_second")
+    @patch("token_iq.gateway.cost_calculator.openai_cost_per_second")
     def test_completion_cost_falls_back_to_response_duration(self, mock_cost_fn):
         """
         When _hidden_params doesn't have duration (e.g. verbose_json response
@@ -176,7 +176,7 @@ class TestCostCalculatorReadsDurationFromHiddenParams:
         _, kwargs = mock_cost_fn.call_args
         assert kwargs["duration"] == 42.7
 
-    @patch("litellm.cost_calculator.openai_cost_per_second")
+    @patch("token_iq.gateway.cost_calculator.openai_cost_per_second")
     def test_completion_cost_defaults_to_zero_duration(self, mock_cost_fn):
         """When neither hidden params nor response has duration, use 0.0."""
         mock_cost_fn.return_value = (0.0, 0.0)

@@ -3,12 +3,12 @@ Tests for handling malformed or invalid 'file' content blocks (missing or null
 `file` sub-field, HTTP file_id URLs for Google AI Studio).
 
 Regression tests for:
-- litellm/llms/vertex_ai/gemini/transformation.py
-- litellm/llms/gemini/chat/transformation.py
-- litellm/litellm_core_utils/prompt_templates/common_utils.py
+- token_iq/gateway/llms/vertex_ai/gemini/transformation.py
+- token_iq/gateway/llms/gemini/chat/transformation.py
+- token_iq/gateway/core_utils/prompt_templates/common_utils.py
   (migrate_file_to_image_url raises on missing `file`; file-id helpers skip non-OpenAI shapes)
-- litellm/litellm_core_utils/prompt_templates/factory.py (Bedrock + Anthropic)
-- litellm/llms/openai/chat/gpt_transformation.py
+- token_iq/gateway/core_utils/prompt_templates/factory.py (Bedrock + Anthropic)
+- token_iq/gateway/llms/openai/chat/gpt_transformation.py
 """
 
 import asyncio
@@ -17,22 +17,22 @@ from typing import List, cast
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.prompt_templates.common_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     get_file_ids_from_messages,
     migrate_file_to_image_url,
     update_messages_with_model_file_ids,
 )
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     BedrockConverseMessagesProcessor,
     anthropic_process_openai_file_message,
 )
-from litellm.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
-from litellm.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
-from litellm.llms.vertex_ai.gemini.transformation import (
+from token_iq.gateway.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
+from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
+from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
     ChatCompletionFileObject,
     OpenAIMessageContentListBlock,
@@ -154,7 +154,7 @@ def test_google_ai_studio_transform_messages_http_file_id_converts_to_base64(mon
         return fake_file_data
 
     monkeypatch.setattr(
-        "litellm.llms.gemini.chat.transformation.convert_url_to_base64",
+        "token_iq.gateway.llms.gemini.chat.transformation.convert_url_to_base64",
         _fake_convert_url_to_base64,
     )
     messages = cast(
@@ -197,7 +197,7 @@ def test_google_ai_studio_transform_messages_http_file_id_convert_failure_leaves
         raise litellm.ImageFetchError("simulated fetch failure")
 
     monkeypatch.setattr(
-        "litellm.llms.gemini.chat.transformation.convert_url_to_base64",
+        "token_iq.gateway.llms.gemini.chat.transformation.convert_url_to_base64",
         _raise,
     )
     messages = cast(

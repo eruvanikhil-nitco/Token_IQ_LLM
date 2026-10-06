@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 
 import importlib
 
-import litellm
-from litellm import constants
+from token_iq import gateway as litellm
+from token_iq.gateway import constants
 
 
 def _build_constant_env_var_map() -> dict[str, str]:

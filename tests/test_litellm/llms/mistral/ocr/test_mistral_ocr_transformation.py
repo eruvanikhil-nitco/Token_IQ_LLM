@@ -8,7 +8,7 @@ No real API calls are made — all tests are fully mocked/local.
 import httpx
 import pytest
 
-from litellm.llms.mistral.ocr.transformation import MistralOCRConfig
+from token_iq.gateway.llms.mistral.ocr.transformation import MistralOCRConfig
 
 
 @pytest.fixture

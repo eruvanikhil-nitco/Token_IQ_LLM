@@ -120,7 +120,7 @@ def test_the_providers_are_reported_with_their_own_figures() -> None:
 async def test_a_non_admin_cannot_read_the_overview() -> None:
     from fastapi import HTTPException
 
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
     from token_iq.api.overview import _admin_or_403
 
     with pytest.raises(HTTPException) as refusal:

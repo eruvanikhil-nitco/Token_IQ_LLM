@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.vertex_ai.vertex_model_garden.main import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.vertex_model_garden.main import (
     _vertex_model_garden_model_id_in_json_body,
     create_vertex_url,
 )
@@ -52,7 +52,7 @@ def test_model_id_in_json_body_heuristic() -> None:
 
 @pytest.fixture
 def _reset_litellm_http_client_cache():
-    from litellm import in_memory_llm_clients_cache
+    from token_iq.gateway import in_memory_llm_clients_cache
 
     in_memory_llm_clients_cache.flush_cache()
     yield
@@ -118,10 +118,10 @@ async def _invoke_model_garden_completion(
 
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler"
         ) as mock_http_handler,
         patch(
-            "litellm.llms.vertex_ai.vertex_model_garden.main.VertexAIModelGardenModels._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.vertex_model_garden.main.VertexAIModelGardenModels._ensure_access_token",
             return_value=("fake-token", "test-project"),
         ),
         patch.dict(

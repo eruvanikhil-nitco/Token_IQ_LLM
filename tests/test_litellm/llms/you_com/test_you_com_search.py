@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestYouComSearch:
@@ -57,7 +57,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -110,7 +110,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -158,7 +158,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -203,7 +203,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -225,7 +225,7 @@ class TestYouComSearch:
         base like `https://x.example/v1/search/` does not become
         `https://x.example/v1/search/v1/search`.
         """
-        from litellm.llms.you_com.search.transformation import YouComSearchConfig
+        from token_iq.gateway.llms.you_com.search.transformation import YouComSearchConfig
 
         config = YouComSearchConfig()
         assert (
@@ -271,7 +271,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -309,7 +309,7 @@ class TestYouComSearch:
         }
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = mock_response
@@ -332,7 +332,7 @@ class TestYouComSearch:
         """
         monkeypatch.delenv("YOUCOM_API_KEY", raising=False)
 
-        from litellm.llms.you_com.search.transformation import YouComSearchConfig
+        from token_iq.gateway.llms.you_com.search.transformation import YouComSearchConfig
 
         config = YouComSearchConfig()
         assert (
@@ -353,7 +353,7 @@ class TestYouComSearch:
         """
         monkeypatch.delenv("YOUCOM_API_KEY", raising=False)
 
-        from litellm.llms.you_com.search.transformation import YouComSearchConfig
+        from token_iq.gateway.llms.you_com.search.transformation import YouComSearchConfig
 
         config = YouComSearchConfig()
         headers = config.validate_environment(headers={}, api_key=None)
@@ -368,7 +368,7 @@ class TestYouComSearch:
         """
         monkeypatch.delenv("YOUCOM_API_KEY", raising=False)
 
-        from litellm.llms.you_com.search.transformation import YouComSearchConfig
+        from token_iq.gateway.llms.you_com.search.transformation import YouComSearchConfig
 
         config = YouComSearchConfig()
         headers = config.validate_environment(headers={}, api_key=None)

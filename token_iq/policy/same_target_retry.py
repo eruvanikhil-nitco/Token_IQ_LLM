@@ -18,7 +18,7 @@ from typing import Final
 
 import httpx
 
-from litellm._logging import verbose_proxy_logger
+from token_iq.gateway._logging import verbose_proxy_logger
 
 # Statuses where the provider is telling us it did not do the work: a rate limit,
 # or a gateway that never reached the origin. A 500 is deliberately absent, since
@@ -140,7 +140,7 @@ def passthrough_retry_policy() -> SameTargetRetryPolicy:
     The setting counts retries, so 2 means up to three attempts. Setting it to 0
     turns retrying off and makes the gateway a single-shot forwarder.
     """
-    from litellm.proxy.proxy_server import general_settings
+    from token_iq.gateway.proxy.proxy_server import general_settings
 
     configured: Final = general_settings.get("passthrough_num_retries", DEFAULT_PASSTHROUGH_NUM_RETRIES)
     try:

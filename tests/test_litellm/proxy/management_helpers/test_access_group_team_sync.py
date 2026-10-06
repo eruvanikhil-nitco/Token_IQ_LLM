@@ -2,7 +2,7 @@
 import pytest
 
 
-from litellm.proxy.management_helpers.access_group_team_sync import (
+from token_iq.gateway.proxy.management_helpers.access_group_team_sync import (
     invalidate_access_group_caches,
 )
 
@@ -26,7 +26,7 @@ async def test_one_unreachable_cache_does_not_skip_the_other_groups(monkeypatch)
             raise ConnectionError("redis unreachable")
 
     monkeypatch.setattr(
-        "litellm.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
+        "token_iq.gateway.proxy.management_helpers.access_group_team_sync.invalidate_access_group_cache",
         _invalidate,
     )
 

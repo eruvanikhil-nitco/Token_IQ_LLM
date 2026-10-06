@@ -1,7 +1,7 @@
 """The MCP ``mcp-session-id`` is captured for tool-call logging so the otel span
 can carry ``mcp.session.id``. Guards the header read against casing and absence."""
 
-from litellm.proxy._experimental.mcp_server.server import _mcp_session_id_from_headers
+from token_iq.gateway.proxy._experimental.mcp_server.server import _mcp_session_id_from_headers
 
 
 def test_reads_session_id_case_insensitively():

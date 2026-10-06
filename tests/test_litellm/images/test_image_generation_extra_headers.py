@@ -11,14 +11,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.images.main import image_generation
+from token_iq import gateway as litellm
+from token_iq.gateway.images.main import image_generation
 
 
 class TestImageGenerationExtraHeaders:
     """Test that extra_headers are forwarded on the OpenAI code path."""
 
-    @patch("litellm.images.main.openai_chat_completions")
+    @patch("token_iq.gateway.images.main.openai_chat_completions")
     def test_extra_headers_forwarded_to_openai_image_generation(
         self, mock_openai_chat_completions
     ):
@@ -49,7 +49,7 @@ class TestImageGenerationExtraHeaders:
         assert "extra_headers" in optional_params
         assert optional_params["extra_headers"] == extra_headers
 
-    @patch("litellm.images.main.openai_chat_completions")
+    @patch("token_iq.gateway.images.main.openai_chat_completions")
     def test_no_extra_headers_when_not_provided(self, mock_openai_chat_completions):
         """
         When extra_headers is not passed, optional_params should not

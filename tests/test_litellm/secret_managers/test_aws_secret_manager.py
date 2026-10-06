@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.secret_managers.aws_secret_manager import AWSKeyManagementService_V2
+from token_iq.gateway.secret_managers.aws_secret_manager import AWSKeyManagementService_V2
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def _service_without_aws_client() -> AWSKeyManagementService_V2:
 
 
 def test_aws_kms_v2_is_usable_on_a_token_iq_plan_without_a_litellm_licence(monkeypatch, kms_environment):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(proxy_server, "premium_user", True)
 
@@ -23,7 +23,7 @@ def test_aws_kms_v2_is_usable_on_a_token_iq_plan_without_a_litellm_licence(monke
 
 
 def test_aws_kms_v2_off_plan_is_refused_with_the_token_iq_plan_named(monkeypatch, kms_environment):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(proxy_server, "premium_user", False)
 

@@ -11,9 +11,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.policy_engine.policy_endpoints as policy_endpoints
-from litellm.proxy.policy_engine.attachment_registry import AttachmentRegistry
-from litellm.proxy.policy_engine.policy_registry import PolicyRegistry
+import token_iq.gateway.proxy.policy_engine.policy_endpoints as policy_endpoints
+from token_iq.gateway.proxy.policy_engine.attachment_registry import AttachmentRegistry
+from token_iq.gateway.proxy.policy_engine.policy_registry import PolicyRegistry
 
 
 def _make_policy_row(
@@ -75,7 +75,7 @@ def attachment_registry(monkeypatch):
 
 
 def _set_prisma(monkeypatch, prisma):
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma)
 
 
 class TestListPoliciesIncludesConfig:

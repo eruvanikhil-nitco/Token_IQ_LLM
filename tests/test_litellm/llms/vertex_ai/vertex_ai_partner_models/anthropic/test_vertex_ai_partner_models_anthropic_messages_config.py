@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation import (
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.experimental_pass_through.transformation import (
     VertexAIPartnerModelsAnthropicMessagesConfig,
 )
-from litellm.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 def test_validate_environment_uses_vertex_ai_location():
@@ -419,8 +419,8 @@ def test_provider_config_manager_reuses_vertex_anthropic_messages_config_instanc
     Regression test: repeated provider config lookups for the same Vertex Claude model
     should return the same config instance (which preserves auth cache state).
     """
-    import litellm
-    from litellm.utils import ProviderConfigManager
+    from token_iq import gateway as litellm
+    from token_iq.gateway.utils import ProviderConfigManager
 
     ProviderConfigManager._get_provider_anthropic_messages_config_cached.cache_clear()
     try:
@@ -490,7 +490,7 @@ def test_vertex_claude_completion_does_not_mutate_shared_extra_headers():
             handler, "get_complete_vertex_url", return_value="https://mock-url"
         ),
         patch(
-            "litellm.llms.anthropic.chat.AnthropicChatCompletion.completion",
+            "token_iq.gateway.llms.anthropic.chat.AnthropicChatCompletion.completion",
             return_value=mock_response,
         ),
     ):
@@ -521,7 +521,7 @@ def test_messages_thinking_shape_follows_exact_vertex_entry_flag(local_model_cos
     ``vertex_ai/claude-opus-4-8`` entry beats the unmodified ``anthropic`` entry.
     With the inherited ``"anthropic"`` provider default the flip was ignored and
     the transform kept emitting ``thinking.type='adaptive'``."""
-    import litellm
+    from token_iq import gateway as litellm
 
     config = VertexAIPartnerModelsAnthropicMessagesConfig()
 
@@ -658,7 +658,7 @@ def test_vertex_claude_4_8_plus_cost_map_entries_carry_mid_conversation_system_f
     cache. Every mapped vertex_ai entry the rule matches must carry the flag."""
     import re
 
-    import litellm
+    from token_iq import gateway as litellm
 
     cost_map_path = os.path.join(
         os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json"

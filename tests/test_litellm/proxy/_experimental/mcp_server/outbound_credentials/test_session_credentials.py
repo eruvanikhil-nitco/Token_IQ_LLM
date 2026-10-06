@@ -7,10 +7,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretStr
 
-from litellm.proxy._experimental.mcp_server.outbound_credentials.bridge_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.bridge_credentials import (
     envelope_keys_from_master_key,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.session_credentials import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_credentials import (
     NotSessionBearer,
     SessionBearerAdmitted,
     SessionBearerInvalid,
@@ -23,7 +23,7 @@ from litellm.proxy._experimental.mcp_server.outbound_credentials.session_credent
     resolve_session_signing_keys,
     session_keys_from_master_key,
 )
-from litellm.proxy._experimental.mcp_server.outbound_credentials.session_token import (
+from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.session_token import (
     SESSION_TTL_SECONDS,
     AsymmetricSessionKeys,
     MintedSessionToken,

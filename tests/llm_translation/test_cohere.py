@@ -9,10 +9,10 @@ import json
 
 import pytest
 
-import litellm
-from litellm import RateLimitError, Timeout, completion, completion_cost, embedding
+from token_iq import gateway as litellm
+from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 from unittest.mock import AsyncMock, patch
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 litellm.num_retries = 3
 
@@ -238,7 +238,7 @@ async def test_cohere_request_body_with_allowed_params():
 
     # Mock the AsyncHTTPHandler.post method at the module level
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         try:
@@ -806,7 +806,7 @@ async def test_cohere_documents_options_in_request_body():
 
     # Mock the AsyncHTTPHandler.post method
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         try:

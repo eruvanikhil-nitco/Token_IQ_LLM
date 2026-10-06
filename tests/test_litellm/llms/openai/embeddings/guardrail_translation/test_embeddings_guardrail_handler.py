@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.llms.openai.embeddings.guardrail_translation.handler import (
+from token_iq.gateway.llms.openai.embeddings.guardrail_translation.handler import (
     OpenAIEmbeddingsHandler,
 )
-from litellm.types.utils import CallTypes
+from token_iq.gateway.types.utils import CallTypes
 
 
 @pytest.mark.asyncio
@@ -72,7 +72,7 @@ async def test_embeddings_handler_list_of_strings_input():
 
 def test_embeddings_guardrail_translation_mappings():
     """Test that embeddings handler is registered for correct call types"""
-    from litellm.llms.openai.embeddings.guardrail_translation import (
+    from token_iq.gateway.llms.openai.embeddings.guardrail_translation import (
         guardrail_translation_mappings,
     )
 

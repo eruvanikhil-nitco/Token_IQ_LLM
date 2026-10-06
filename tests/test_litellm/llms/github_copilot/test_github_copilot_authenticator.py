@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from litellm.llms.github_copilot.authenticator import Authenticator
-from litellm.llms.github_copilot.common_utils import (
+from token_iq.gateway.llms.github_copilot.authenticator import Authenticator
+from token_iq.gateway.llms.github_copilot.common_utils import (
     APIKeyExpiredError,
     GetAccessTokenError,
     GetAPIKeyError,
@@ -143,7 +143,7 @@ class TestGitHubCopilotAuthenticator:
         with (
             patch.object(authenticator, "get_access_token", return_value=mock_token),
             patch(
-                "litellm.llms.github_copilot.authenticator._get_httpx_client",
+                "token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(mock_response, "json", return_value=mock_api_key_data),
@@ -161,7 +161,7 @@ class TestGitHubCopilotAuthenticator:
         with (
             patch.object(authenticator, "get_access_token", return_value=mock_token),
             patch(
-                "litellm.llms.github_copilot.authenticator._get_httpx_client",
+                "token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(mock_response, "json", return_value={}),
@@ -181,7 +181,7 @@ class TestGitHubCopilotAuthenticator:
 
         with (
             patch(
-                "litellm.llms.github_copilot.authenticator._get_httpx_client",
+                "token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(mock_response, "json", return_value=mock_device_code_data),
@@ -197,7 +197,7 @@ class TestGitHubCopilotAuthenticator:
 
         with (
             patch(
-                "litellm.llms.github_copilot.authenticator._get_httpx_client",
+                "token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client",
                 return_value=mock_client,
             ),
             patch.object(mock_response, "json", return_value=mock_token_data),
@@ -256,7 +256,7 @@ class TestGitHubCopilotAuthenticator:
             "verification_uri": "https://example.com",
         }
         with patch.dict(os.environ, {"GITHUB_COPILOT_DEVICE_CODE_URL": custom_url}), \
-             patch("litellm.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client):
+             patch("token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client):
             authenticator._get_device_code()
             assert mock_client.post.call_args[0][0] == custom_url
 
@@ -270,7 +270,7 @@ class TestGitHubCopilotAuthenticator:
             "verification_uri": "https://example.com",
         }
         with patch.dict(os.environ, {"GITHUB_COPILOT_CLIENT_ID": custom_id}), \
-             patch("litellm.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client):
+             patch("token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client):
             authenticator._get_device_code()
             assert mock_client.post.call_args[1]["json"]["client_id"] == custom_id
 
@@ -280,7 +280,7 @@ class TestGitHubCopilotAuthenticator:
         custom_url = "https://custom.example.com/token"
         mock_response.json.return_value = {"access_token": "tok"}
         with patch.dict(os.environ, {"GITHUB_COPILOT_ACCESS_TOKEN_URL": custom_url}), \
-             patch("litellm.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
+             patch("token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
              patch("time.sleep"):
             authenticator._poll_for_access_token("dc")
             assert mock_client.post.call_args[0][0] == custom_url
@@ -291,7 +291,7 @@ class TestGitHubCopilotAuthenticator:
         custom_id = "custom_client_id"
         mock_response.json.return_value = {"access_token": "tok"}
         with patch.dict(os.environ, {"GITHUB_COPILOT_CLIENT_ID": custom_id}), \
-             patch("litellm.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
+             patch("token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
              patch("time.sleep"):
             authenticator._poll_for_access_token("dc")
             assert mock_client.post.call_args[1]["json"]["client_id"] == custom_id
@@ -302,7 +302,7 @@ class TestGitHubCopilotAuthenticator:
         custom_url = "https://custom.example.com/api-key"
         mock_response.json.return_value = {"token": "api-tok", "expires_at": 9999999999}
         with patch.dict(os.environ, {"GITHUB_COPILOT_API_KEY_URL": custom_url}), \
-             patch("litellm.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
+             patch("token_iq.gateway.llms.github_copilot.authenticator._get_httpx_client", return_value=mock_client), \
              patch.object(authenticator, "get_access_token", return_value="access-tok"):
             authenticator._refresh_api_key()
             assert mock_client.get.call_args[0][0] == custom_url

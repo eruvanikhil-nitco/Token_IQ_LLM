@@ -19,11 +19,12 @@ class TestBedrockEmbeddingPricing:
         # into sibling tests. monkeypatch restores the environment on teardown.
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
-        import litellm.litellm_core_utils.get_model_cost_map
-        import litellm
+        import token_iq.gateway.core_utils.get_model_cost_map
+        from token_iq import gateway as litellm
+        from token_iq import gateway as litellm
 
         # Reload so the cost map is re-read from the local file with the flag set.
-        importlib.reload(litellm.litellm_core_utils.get_model_cost_map)
+        importlib.reload(litellm.core_utils.get_model_cost_map)
         importlib.reload(litellm)
 
         model = litellm.model_cost["amazon.titan-embed-text-v2:0"]

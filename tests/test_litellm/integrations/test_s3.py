@@ -1,9 +1,9 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES, MAX_S3_OBJECT_KEY_BYTES
-from litellm.integrations.s3 import S3Logger
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES, MAX_S3_OBJECT_KEY_BYTES
+from token_iq.gateway.integrations.s3 import S3Logger
 
 TEST_KMS_KEY_ARN = "arn:aws:kms:us-east-1:111122223333:key/test-key-id"
 

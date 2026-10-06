@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from litellm.proxy.guardrails.usage_tracking import (
+from token_iq.gateway.proxy.guardrails.usage_tracking import (
     _MAX_PENDING_ROWS,
     PendingRollups,
     _capped,

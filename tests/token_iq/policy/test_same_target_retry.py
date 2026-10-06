@@ -179,7 +179,7 @@ async def test_retrying_is_off_when_the_policy_allows_one_attempt() -> None:
 
 
 def test_the_policy_reads_passthrough_num_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "general_settings", {"passthrough_num_retries": 4}, raising=False)
     assert passthrough_retry_policy().max_attempts == 5
@@ -192,7 +192,7 @@ def test_the_policy_reads_passthrough_num_retries(monkeypatch: pytest.MonkeyPatc
 
 
 def test_a_nonsense_retry_setting_falls_back_to_the_default(monkeypatch: pytest.MonkeyPatch) -> None:
-    import litellm.proxy.proxy_server as proxy_server
+    import token_iq.gateway.proxy.proxy_server as proxy_server
 
     monkeypatch.setattr(proxy_server, "general_settings", {"passthrough_num_retries": "lots"}, raising=False)
     assert passthrough_retry_policy().max_attempts == 3

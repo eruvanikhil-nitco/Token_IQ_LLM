@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.proxy.spend_tracking.spend_tracking_utils import (
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
     get_spend_by_team,
     get_spend_by_team_and_customer,
 )
@@ -80,8 +80,8 @@ async def test_global_activity_wraps_params_in_at_time_zone_utc(monkeypatch):
     so the date window and `date_trunc` bucketing do not depend on the DB
     session timezone. Regression guard for Issue 1.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         get_global_activity,
     )
 
@@ -89,7 +89,7 @@ async def test_global_activity_wraps_params_in_at_time_zone_utc(monkeypatch):
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(return_value=[])
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
 
@@ -127,8 +127,8 @@ async def test_global_activity_internal_user_wraps_params_in_at_time_zone_utc(
     helper (`get_global_activity_internal_user`) and has its own SQL string.
     Both branches must carry the fix. Regression guard for Issue 1.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         get_global_activity,
     )
 
@@ -136,7 +136,7 @@ async def test_global_activity_internal_user_wraps_params_in_at_time_zone_utc(
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(return_value=[])
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="internal_user_1")
 
@@ -161,8 +161,8 @@ async def test_spend_logs_ui_wraps_params_in_at_time_zone_utc(monkeypatch):
     log filter window doesn't drift with the DB session TZ. Regression
     guard for GH #22529.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         ui_view_spend_logs,
     )
 
@@ -172,7 +172,7 @@ async def test_spend_logs_ui_wraps_params_in_at_time_zone_utc(monkeypatch):
     mock_prisma.db.litellm_spendlogs = MagicMock()
     mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
 
@@ -225,8 +225,8 @@ async def test_spend_logs_ui_uses_bounded_count_not_full_scan(monkeypatch):
     LIT-4119). It must also avoid the unbounded prisma `.count()` /
     `COUNT(*) OVER ()` full-window count that reads every matching row.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         SPEND_LOGS_PAGINATION_COUNT_CAP,
         ui_view_spend_logs,
     )
@@ -236,7 +236,7 @@ async def test_spend_logs_ui_uses_bounded_count_not_full_scan(monkeypatch):
         {"request_id": "req-2", "metadata": "{}", "session_id": None},
     ]
     mock_prisma = _make_ui_spend_logs_mock(count_total=137, page_rows=page_rows)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()
@@ -293,8 +293,8 @@ async def test_spend_logs_ui_caps_total_for_large_result_sets(monkeypatch):
     `total_is_capped` so the UI can render `<cap>+` instead of an exact total
     that would require scanning the whole window (LIT-4119).
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         SPEND_LOGS_PAGINATION_COUNT_CAP,
         ui_view_spend_logs,
     )
@@ -303,7 +303,7 @@ async def test_spend_logs_ui_caps_total_for_large_result_sets(monkeypatch):
     mock_prisma = _make_ui_spend_logs_mock(
         count_total=SPEND_LOGS_PAGINATION_COUNT_CAP + 1, page_rows=page_rows
     )
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()
@@ -335,8 +335,8 @@ async def test_spend_logs_ui_empty_page_reports_zero_total(monkeypatch):
     zero count (real `COUNT(*)` always returns one row) and the page query
     returns no rows, so the total is zero without an unbounded prisma `.count()`.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         ui_view_spend_logs,
     )
 
@@ -348,7 +348,7 @@ async def test_spend_logs_ui_empty_page_reports_zero_total(monkeypatch):
     mock_prisma.db.litellm_spendlogs = MagicMock()
     mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()
@@ -382,8 +382,8 @@ async def test_spend_logs_ui_out_of_range_page_keeps_total(monkeypatch):
     total must not collapse to zero and no unbounded prisma `.count()` is
     needed. total/total_pages stay accurate off the hot path too.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         ui_view_spend_logs,
     )
 
@@ -395,7 +395,7 @@ async def test_spend_logs_ui_out_of_range_page_keeps_total(monkeypatch):
     mock_prisma.db.litellm_spendlogs = MagicMock()
     mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()
@@ -476,7 +476,7 @@ async def test_global_spend_report_team_group_forwards_team_id(monkeypatch):
     team_id (team_id was only honored when a customer_id was also supplied).
     This asserts the endpoint forwards team_id into the DB query.
     """
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         get_global_spend_report,
     )
 
@@ -484,8 +484,8 @@ async def test_global_spend_report_team_group_forwards_team_id(monkeypatch):
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(return_value=[])
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
-    monkeypatch.setattr("litellm.proxy.proxy_server.premium_user", True)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
 
     await get_global_spend_report(
         start_date="2026-07-01",
@@ -514,8 +514,8 @@ async def test_spend_logs_ui_group_by_session_paginates_sessions(monkeypatch):
     server page of N calls into fewer visible rows while the footer still
     claims N (issue #38060).
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import (
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import (
         SPEND_LOGS_PAGINATION_COUNT_CAP,
         ui_view_spend_logs,
     )
@@ -525,7 +525,7 @@ async def test_spend_logs_ui_group_by_session_paginates_sessions(monkeypatch):
         {"request_id": "req-2", "metadata": "{}", "session_id": None},
     ]
     mock_prisma = _make_ui_spend_logs_mock(count_total=12, page_rows=page_rows)
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()
@@ -574,12 +574,12 @@ async def test_spend_logs_ui_request_id_lookup_with_grouping_returns_exact_row(m
     exact requested row: the filter runs before grouping, so the row is its
     own group's representative and deep links keep working.
     """
-    from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.spend_tracking.spend_management_endpoints import ui_view_spend_logs
+    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import ui_view_spend_logs
 
     target_row = {"request_id": "req-deep-link", "metadata": "{}", "session_id": None}
     mock_prisma = _make_ui_spend_logs_mock(count_total=1, page_rows=[target_row])
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", mock_prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
     mock_request = MagicMock()

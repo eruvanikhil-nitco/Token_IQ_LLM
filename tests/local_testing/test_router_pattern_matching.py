@@ -9,10 +9,10 @@ import json
 import traceback, asyncio
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 load_dotenv()
 
-from litellm.router_utils.pattern_match_deployments import PatternMatchRouter
+from token_iq.gateway.router_utils.pattern_match_deployments import PatternMatchRouter
 
 
 def test_pattern_match_router_initialization():
@@ -162,7 +162,7 @@ async def test_route_with_no_matching_pattern():
     """
     Tests that the router returns None when there is no matching pattern
     """
-    from litellm.types.router import RouterErrors
+    from token_iq.gateway.types.router import RouterErrors
 
     router = Router(
         model_list=[
@@ -210,7 +210,7 @@ def test_router_pattern_match_e2e():
     """
     Tests the end to end flow of the router
     """
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     router = Router(
@@ -296,7 +296,7 @@ def test_sorted_patterns():
     """
     Tests that the pattern specificity is calculated correctly
     """
-    from litellm.router_utils.pattern_match_deployments import PatternUtils
+    from token_iq.gateway.router_utils.pattern_match_deployments import PatternUtils
 
     sorted_patterns = PatternUtils.sorted_patterns(
         {
@@ -308,7 +308,7 @@ def test_sorted_patterns():
 
 
 def test_calculate_pattern_specificity():
-    from litellm.router_utils.pattern_match_deployments import PatternUtils
+    from token_iq.gateway.router_utils.pattern_match_deployments import PatternUtils
 
     assert PatternUtils.calculate_pattern_specificity("llmengine/*") == (11, 1)
     assert PatternUtils.calculate_pattern_specificity("*") == (1, 1)

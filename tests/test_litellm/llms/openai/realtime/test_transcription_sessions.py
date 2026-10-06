@@ -11,11 +11,11 @@ import httpx
 import pytest
 
 
-from litellm.llms.azure.realtime.http_transformation import AzureRealtimeHTTPConfig
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.llms.openai.realtime.http_transformation import OpenAIRealtimeHTTPConfig
-from litellm.types.realtime import RealtimeTranscriptionSessionRequest
+from token_iq.gateway.llms.azure.realtime.http_transformation import AzureRealtimeHTTPConfig
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.llms.openai.realtime.http_transformation import OpenAIRealtimeHTTPConfig
+from token_iq.gateway.types.realtime import RealtimeTranscriptionSessionRequest
 
 
 def test_openai_transcription_session_url():
@@ -147,7 +147,7 @@ async def test_sdk_fn_routes_openai_transcription_session(monkeypatch):
     litellm.acreate_realtime_transcription_session resolves the OpenAI provider
     from the transcription model and POSTs to the OpenAI transcription_sessions URL.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-unit-test")
 
@@ -175,7 +175,7 @@ async def test_sdk_fn_routes_openai_transcription_session(monkeypatch):
 
 
 def test_append_query_params_skips_existing_keys():
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     url = "wss://example.com/v1/realtime?model=gpt-4o"
     result = BaseLLMHTTPHandler._append_query_params(
@@ -186,7 +186,7 @@ def test_append_query_params_skips_existing_keys():
 
 
 def test_append_query_params_no_params_returns_unchanged():
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     url = "wss://example.com/v1/realtime?model=gpt-4o"
     assert BaseLLMHTTPHandler._append_query_params(url, None) == url
@@ -194,7 +194,7 @@ def test_append_query_params_no_params_returns_unchanged():
 
 
 def test_append_query_params_encodes_special_chars():
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     url = "wss://example.com/v1/realtime"
     result = BaseLLMHTTPHandler._append_query_params(url, {"intent": "a&b=c"})
@@ -204,7 +204,7 @@ def test_append_query_params_encodes_special_chars():
 
 def test_azure_construct_url_encodes_model_and_api_version():
     """model and api-version must be URL-encoded to prevent query-string injection."""
-    from litellm.llms.azure.realtime.handler import AzureOpenAIRealtime
+    from token_iq.gateway.llms.azure.realtime.handler import AzureOpenAIRealtime
 
     h = AzureOpenAIRealtime()
     url = h._construct_url(

@@ -13,7 +13,7 @@ layer prevents that.
 import pytest
 
 
-from litellm.llms.bedrock.batches.transformation import BedrockBatchesConfig
+from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
 
 
 class TestGetOpenaiCompatibleBatchMetadata:
@@ -93,7 +93,7 @@ class TestGetOpenaiCompatibleBatchMetadata:
         """Verify sanitized metadata can construct a LiteLLMBatch without error."""
         import time
 
-        from litellm.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import LiteLLMBatch
 
         metadata = {
             "_model_armor_response": {"blocked": True},

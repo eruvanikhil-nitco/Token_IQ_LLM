@@ -12,13 +12,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
-from litellm.proxy.pass_through_endpoints.success_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from litellm.proxy.pass_through_endpoints.streaming_handler import (
+from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
 )
 
@@ -64,7 +64,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_enabled():
         url_route = "v1/projects/test-project/locations/us-east5/publishers/anthropic/models/claude-sonnet-4@20250514:streamRawPredict"
 
         # Mock completion_cost to return a test cost value
-        with patch("litellm.completion_cost", return_value=0.00015):
+        with patch("token_iq.gateway.completion_cost", return_value=0.00015):
             received_chunks = []
             async for chunk in PassThroughStreamingHandler.chunk_processor(
                 response=response,
@@ -260,7 +260,7 @@ async def test_vertex_ai_anthropic_streaming_model_extraction():
 
         url_route = "v1/projects/test-project/locations/us-east5/publishers/anthropic/models/claude-sonnet-4@20250514:streamRawPredict"
 
-        with patch("litellm.completion_cost") as mock_cost:
+        with patch("token_iq.gateway.completion_cost") as mock_cost:
             mock_cost.return_value = 0.0001
             received_chunks = []
             async for chunk in PassThroughStreamingHandler.chunk_processor(

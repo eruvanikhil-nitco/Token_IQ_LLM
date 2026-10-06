@@ -7,16 +7,16 @@ load_dotenv()
 import copy
 
 import pytest
-from litellm import Router
-from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
-from litellm.types.router import (
+from token_iq.gateway import Router
+from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
+from token_iq.gateway.types.router import (
     RoutingStrategy,
 )
-from litellm.types.utils import GenericBudgetConfigType, BudgetConfig
-from litellm.caching.caching import DualCache, RedisCache
+from token_iq.gateway.types.utils import GenericBudgetConfigType, BudgetConfig
+from token_iq.gateway.caching.caching import DualCache, RedisCache
 import logging
-from litellm._logging import verbose_router_logger
-import litellm
+from token_iq.gateway._logging import verbose_router_logger
+from token_iq import gateway as litellm
 from datetime import timezone, timedelta
 
 verbose_router_logger.setLevel(logging.DEBUG)

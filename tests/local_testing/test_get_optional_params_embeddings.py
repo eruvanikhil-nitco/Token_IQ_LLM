@@ -8,9 +8,9 @@ load_dotenv()
 import io
 
 import pytest
-import litellm
-from litellm import embedding
-from litellm.utils import get_optional_params_embeddings, get_llm_provider
+from token_iq import gateway as litellm
+from token_iq.gateway import embedding
+from token_iq.gateway.utils import get_optional_params_embeddings, get_llm_provider
 
 
 def test_vertex_projects():
@@ -92,7 +92,7 @@ def test_openai_non_text_embedding_3_without_allowed_openai_params_raises():
     Test that passing `dimensions` to a non-text-embedding-3 OpenAI model
     without `allowed_openai_params` still raises UnsupportedParamsError.
     """
-    from litellm.exceptions import UnsupportedParamsError
+    from token_iq.gateway.exceptions import UnsupportedParamsError
 
     # ensure global drop_params is off (other tests in this file flip it on)
     prev_drop_params = litellm.drop_params

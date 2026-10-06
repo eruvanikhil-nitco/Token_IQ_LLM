@@ -2,9 +2,9 @@
 import pytest
 
 
-from litellm.proxy.client import ChatClient, Client, ModelsManagementClient
-from litellm.proxy.client.http_client import HTTPClient
-from litellm.proxy.client.keys import KeysManagementClient
+from token_iq.gateway.proxy.client import ChatClient, Client, ModelsManagementClient
+from token_iq.gateway.proxy.client.http_client import HTTPClient
+from token_iq.gateway.proxy.client.keys import KeysManagementClient
 
 
 @pytest.fixture

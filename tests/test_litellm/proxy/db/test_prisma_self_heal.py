@@ -9,7 +9,7 @@ import httpx
 import pytest
 
 
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
 
 @pytest.fixture(autouse=True)
@@ -121,7 +121,7 @@ async def test_attempt_db_reconnect_should_not_leak_lock_on_timeout_race(
         await asyncio.sleep(0)
         return set(), set(tasks)
 
-    with patch("litellm.proxy.utils.asyncio.wait", side_effect=_fake_wait):
+    with patch("token_iq.gateway.proxy.utils.asyncio.wait", side_effect=_fake_wait):
         result = await client.attempt_db_reconnect(
             reason="unit_test_reconnect_lock_timeout_race",
             force=True,
@@ -154,7 +154,7 @@ async def test_attempt_db_reconnect_should_set_cooldown_after_attempt(
     fake_clock = iter(range(100, 10000))
     with (
         patch(
-            "litellm.proxy.utils.time.time",
+            "token_iq.gateway.proxy.utils.time.time",
             side_effect=lambda: float(next(fake_clock)),
         ),
         patch.dict(os.environ, {"DATABASE_URL": "postgresql://test"}),
@@ -283,11 +283,11 @@ async def test_db_health_watchdog_should_trigger_reconnect_on_db_error(
 
     with (
         patch(
-            "litellm.proxy.utils.asyncio.sleep",
+            "token_iq.gateway.proxy.utils.asyncio.sleep",
             AsyncMock(side_effect=[None, asyncio.CancelledError()]),
         ),
         patch(
-            "litellm.proxy.db.exception_handler.PrismaDBExceptionHandler.is_database_infrastructure_error",
+            "token_iq.gateway.proxy.db.exception_handler.PrismaDBExceptionHandler.is_database_infrastructure_error",
             return_value=True,
         ),
     ):
@@ -314,11 +314,11 @@ async def test_db_health_watchdog_should_trigger_reconnect_on_probe_timeout(
 
     with (
         patch(
-            "litellm.proxy.utils.asyncio.sleep",
+            "token_iq.gateway.proxy.utils.asyncio.sleep",
             AsyncMock(side_effect=[None, asyncio.CancelledError()]),
         ),
         patch(
-            "litellm.proxy.db.exception_handler.PrismaDBExceptionHandler.is_database_infrastructure_error",
+            "token_iq.gateway.proxy.db.exception_handler.PrismaDBExceptionHandler.is_database_infrastructure_error",
             return_value=False,
         ),
     ):
@@ -348,7 +348,7 @@ async def test_db_health_watchdog_start_stop_lifecycle(mock_proxy_logging):
         return dummy_task
 
     with patch(
-        "litellm.proxy.utils.asyncio.create_task", side_effect=_fake_create_task
+        "token_iq.gateway.proxy.utils.asyncio.create_task", side_effect=_fake_create_task
     ):
         await client.start_db_health_watchdog_task()
         assert client._db_health_watchdog_task is dummy_task
@@ -376,8 +376,8 @@ async def test_recreate_prisma_client_kills_old_engine_without_disconnect(
 
     with (
         patch.object(client.db, "_get_engine_pid", return_value=9999),
-        patch("litellm.proxy.db.prisma_client.os.kill") as mock_kill,
-        patch("litellm.proxy.db.prisma_client.asyncio.sleep", new_callable=AsyncMock),
+        patch("token_iq.gateway.proxy.db.prisma_client.os.kill") as mock_kill,
+        patch("token_iq.gateway.proxy.db.prisma_client.asyncio.sleep", new_callable=AsyncMock),
     ):
         # Return a Prisma instance whose connect() is awaitable.
         fake_new_prisma = MagicMock()
@@ -556,7 +556,7 @@ async def test_db_health_watchdog_should_reconnect_degraded_writer(
     """LIT-3792: when the proxy booted during a primary outage (reads served
     by the replica, writer never connected), a healthy reader probe must not
     mask the degraded writer — the watchdog drives the writer reconnect."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     client = PrismaClient(
         database_url="mock://test", proxy_logging_obj=mock_proxy_logging
@@ -573,7 +573,7 @@ async def test_db_health_watchdog_should_reconnect_degraded_writer(
     client._db_health_watchdog_probe_timeout_seconds = 0.2
 
     with patch(
-        "litellm.proxy.utils.asyncio.sleep",
+        "token_iq.gateway.proxy.utils.asyncio.sleep",
         AsyncMock(side_effect=[None, asyncio.CancelledError()]),
     ):
         await client._db_health_watchdog_loop()
@@ -589,7 +589,7 @@ async def test_db_health_watchdog_should_not_reconnect_healthy_writer(
     mock_proxy_logging,
 ):
     """A healthy probe with no degraded writer must not trigger reconnects."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     client = PrismaClient(
         database_url="mock://test", proxy_logging_obj=mock_proxy_logging
@@ -604,7 +604,7 @@ async def test_db_health_watchdog_should_not_reconnect_healthy_writer(
     client._db_health_watchdog_probe_timeout_seconds = 0.2
 
     with patch(
-        "litellm.proxy.utils.asyncio.sleep",
+        "token_iq.gateway.proxy.utils.asyncio.sleep",
         AsyncMock(side_effect=[None, asyncio.CancelledError()]),
     ):
         await client._db_health_watchdog_loop()
@@ -620,7 +620,7 @@ async def test_direct_reconnect_probe_success_clears_writer_unavailable(
     reconnected by another path, e.g. an IAM token refresh), the early return
     skips recreate_prisma_client — the degraded-writer flag must still be
     cleared there or the watchdog fires reconnect attempts forever."""
-    from litellm.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
+    from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     client = PrismaClient(
         database_url="mock://test", proxy_logging_obj=mock_proxy_logging

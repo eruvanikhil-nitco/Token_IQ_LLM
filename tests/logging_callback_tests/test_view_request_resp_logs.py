@@ -5,20 +5,20 @@ import asyncio
 import json
 import logging
 import tempfile
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.integrations.gcs_bucket.gcs_bucket import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.integrations.gcs_bucket.gcs_bucket import (
     GCSBucketLogger,
     StandardLoggingPayload,
 )
-from litellm.types.utils import StandardCallbackDynamicParams
+from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 
 # This is the response payload that GCS would return.

@@ -9,8 +9,10 @@ import traceback
 import openai
 import pytest
 
-import litellm.types
-import litellm.types.router
+import token_iq.gateway.types
+from token_iq import gateway as litellm
+import token_iq.gateway.types.router
+from token_iq import gateway as litellm
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -19,15 +21,15 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-import litellm
-from litellm import Router
-from litellm.router import Deployment, LiteLLM_Params
-from litellm.types.router import ModelInfo
-from litellm.router_utils.cooldown_handlers import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.router import Deployment, LiteLLM_Params
+from token_iq.gateway.types.router import ModelInfo
+from token_iq.gateway.router_utils.cooldown_handlers import (
     _async_get_cooldown_deployments,
     _get_cooldown_deployments,
 )
-from litellm.types.router import DeploymentTypedDict
+from token_iq.gateway.types.router import DeploymentTypedDict
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 
@@ -1545,7 +1547,7 @@ def test_router_timeout():
     litellm.set_verbose = True
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     verbose_logger.setLevel(logging.DEBUG)
     model_list = [
@@ -1910,7 +1912,7 @@ def test_router_context_window_pre_call_check(model, base_model, llm_provider):
 
 
 def test_router_cooldown_api_connection_error():
-    from litellm.router_utils.cooldown_handlers import _is_cooldown_required
+    from token_iq.gateway.router_utils.cooldown_handlers import _is_cooldown_required
 
     with pytest.raises(litellm.APIConnectionError) as exc_info:
         _ = litellm.completion(

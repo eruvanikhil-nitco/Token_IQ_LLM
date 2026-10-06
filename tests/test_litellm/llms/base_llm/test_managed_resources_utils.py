@@ -12,7 +12,7 @@ field-boundary anchor that prevents that.
 
 import pytest
 
-from litellm.llms.base_llm.managed_resources.utils import (
+from token_iq.gateway.llms.base_llm.managed_resources.utils import (
     encode_unified_id,
     extract_model_id_from_unified_id,
 )

@@ -11,21 +11,23 @@ import io
 
 
 
-import litellm.types
-import litellm.types.utils
-from litellm.router import Router
+import token_iq.gateway.types
+from token_iq import gateway as litellm
+import token_iq.gateway.types.utils
+from token_iq import gateway as litellm
+from token_iq.gateway.router import Router
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from typing import Callable, Any
 
 import gc
 from typing import Type
 from pydantic import BaseModel
 
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 
 async def get_memory_usage() -> float:

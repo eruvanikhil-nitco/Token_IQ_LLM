@@ -6,7 +6,7 @@ Ensures backward compatibility after sparse kwargs extraction optimization.
 
 import pytest
 
-from litellm.litellm_core_utils.get_litellm_params import (
+from token_iq.gateway.core_utils.get_litellm_params import (
     _OPTIONAL_KWARGS_KEYS,
     _get_base_model_from_litellm_call_metadata,
     get_litellm_params,
@@ -229,7 +229,7 @@ class TestRustOptIn:
         assert "rust" in _OPTIONAL_KWARGS_KEYS
 
     def test_rust_is_forwarded_from_completion_kwargs(self):
-        from litellm.litellm_core_utils.get_litellm_params import FORWARDED_KWARGS_KEYS
+        from token_iq.gateway.core_utils.get_litellm_params import FORWARDED_KWARGS_KEYS
 
         assert "rust" in FORWARDED_KWARGS_KEYS
 
@@ -241,6 +241,6 @@ class TestRustOptIn:
         assert "rust" not in get_litellm_params()
 
     def test_rust_stays_out_of_the_provider_body(self):
-        from litellm.types.utils import all_litellm_params
+        from token_iq.gateway.types.utils import all_litellm_params
 
         assert "rust" in all_litellm_params

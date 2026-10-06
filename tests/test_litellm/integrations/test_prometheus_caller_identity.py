@@ -10,10 +10,10 @@ import yaml
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.parser import text_string_to_metric_families
 
-import litellm
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.integrations.prometheus import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.integrations.prometheus import (
     DEFINED_PROMETHEUS_METRICS,
     PROMETHEUS_DEPLOYMENT_AND_LATENCY_CALLER_IDENTITY_METRICS,
     LabelValidationError,
@@ -23,7 +23,7 @@ from litellm.types.integrations.prometheus import (
     validate_caller_identity_settings,
     validate_prometheus_deployment_and_latency_caller_identity,
 )
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 TARGET_METRICS: Final[tuple[DEFINED_PROMETHEUS_METRICS, ...]] = cast(
     tuple[DEFINED_PROMETHEUS_METRICS, ...],
@@ -380,7 +380,7 @@ def test_deployment_failure_email_fallbacks_reach_both_real_counters(
 
 @pytest.mark.asyncio
 async def test_proxy_config_loads_caller_identity_before_initializing_callbacks(tmp_path: Path):
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     config_path = _write_proxy_config(
         tmp_path,
@@ -395,7 +395,7 @@ async def test_proxy_config_loads_caller_identity_before_initializing_callbacks(
         observed_modes.append(litellm.prometheus_deployment_and_latency_caller_identity)
 
     with patch(  # test-quality-ok: callback interception verifies schema selection before construction
-        "litellm.proxy.proxy_server.initialize_callbacks_on_proxy", side_effect=capture_mode
+        "token_iq.gateway.proxy.proxy_server.initialize_callbacks_on_proxy", side_effect=capture_mode
     ):
         await ProxyConfig().load_config(router=None, config_file_path=str(config_path))
 
@@ -422,7 +422,7 @@ def test_validate_mode_returns_each_accepted_value_and_defaults_to_api_key_alias
 
 
 def test_accepted_values_constant_matches_parametrized_modes():
-    from litellm.types.integrations.prometheus import (
+    from token_iq.gateway.types.integrations.prometheus import (
         PROMETHEUS_DEPLOYMENT_AND_LATENCY_CALLER_IDENTITY_VALUES,
     )
 
@@ -620,15 +620,15 @@ async def test_proxy_config_fails_boot_before_callbacks_on_invalid_caller_identi
     monkeypatch: pytest.MonkeyPatch,
     litellm_settings: dict[str, object],
 ):
-    from litellm.proxy.proxy_server import ProxyConfig
+    from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", None)
-    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", False)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
     config_path = _write_proxy_config(tmp_path, litellm_settings)
 
     with patch(  # test-quality-ok: asserts boot fails before any callback initialization
-        "litellm.proxy.proxy_server.initialize_callbacks_on_proxy"
+        "token_iq.gateway.proxy.proxy_server.initialize_callbacks_on_proxy"
     ) as callback_init:
         with pytest.raises(ValueError, match="prometheus_deployment_and_latency_caller_identity"):
             await ProxyConfig().load_config(router=None, config_file_path=str(config_path))

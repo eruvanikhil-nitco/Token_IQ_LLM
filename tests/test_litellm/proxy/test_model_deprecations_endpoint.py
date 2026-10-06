@@ -4,11 +4,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-import litellm
-from litellm.proxy import proxy_server
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.proxy_server import app
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy import proxy_server
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.proxy_server import app
 
 client = TestClient(app)
 

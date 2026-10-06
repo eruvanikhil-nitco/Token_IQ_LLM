@@ -6,18 +6,18 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from mcp.types import CallToolResult, TextContent
 
-import litellm  # noqa: F401 - ensures litellm.responses.main is registered in sys.modules
-from litellm.responses.mcp.mcp_streaming_iterator import (
+from token_iq import gateway as litellm  # noqa: F401 - ensures litellm.responses.main is registered in sys.modules
+from token_iq.gateway.responses.mcp.mcp_streaming_iterator import (
     MAX_MCP_TOOL_CALL_ROUNDS,
     MCPEnhancedStreamingIterator,
 )
-from litellm.types.llms.openai import ResponsesAPIResponse, ResponsesAPIStreamEvents
+from token_iq.gateway.types.llms.openai import ResponsesAPIResponse, ResponsesAPIStreamEvents
 
 # `litellm.__init__` re-exports a function named `responses`, which shadows the
 # `litellm.responses` subpackage as an attribute — `import litellm.responses.main`
 # can resolve to the unrelated third-party `responses` package instead. Look the
 # real submodule up in sys.modules directly to sidestep the shadowing.
-responses_main_module = sys.modules["litellm.responses.main"]
+responses_main_module = sys.modules["token_iq.gateway.responses.main"]
 
 
 class _FakeAsyncStream:
@@ -75,12 +75,12 @@ def _mock_mcp_environment(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
         get_mcp_server_by_name=MagicMock(return_value=None),
     )
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
         fake_manager,
     )
     monkeypatch.setitem(
         sys.modules,
-        "litellm.proxy.proxy_server",
+        "token_iq.gateway.proxy.proxy_server",
         types.SimpleNamespace(proxy_logging_obj=MagicMock()),
     )
     return call_tool

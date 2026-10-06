@@ -9,11 +9,11 @@ from unittest.mock import patch
 import pytest
 
 
-import litellm
-from litellm.google_genai.adapters.handler import GenerateContentToCompletionHandler
-from litellm.google_genai.adapters.transformation import GoogleGenAIAdapter
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
+from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import ModelResponse
 
 
 def test_system_instruction_handling():
@@ -79,10 +79,10 @@ def test_parameters_json_schema_transformation():
 
 def test_streaming_tool_call_with_empty_args():
     """Test that streaming tool calls with empty arguments are handled correctly"""
-    from litellm.google_genai.adapters.transformation import (
+    from token_iq.gateway.google_genai.adapters.transformation import (
         GoogleGenAIStreamWrapper,
     )
-    from litellm.types.utils import (
+    from token_iq.gateway.types.utils import (
         ChatCompletionDeltaToolCall,
         Delta,
         Function,
@@ -196,7 +196,7 @@ def test_tool_config_transformation():
 
 def test_stream_transformation_error_handling():
     """Test that stream transformation errors are properly handled"""
-    from litellm.google_genai.adapters.transformation import (
+    from token_iq.gateway.google_genai.adapters.transformation import (
         GoogleGenAIStreamWrapper,
     )
 
@@ -225,7 +225,7 @@ def test_stream_transformation_error_handling():
 
 def test_non_stream_response_when_stream_requested():
     """Test handling of non-stream responses when streaming was requested"""
-    from litellm.types.utils import Choices
+    from token_iq.gateway.types.utils import Choices
 
     # Mock a non-stream response (ModelResponse with valid choices)
     mock_response = ModelResponse(

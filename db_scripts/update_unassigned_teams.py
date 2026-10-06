@@ -1,5 +1,5 @@
 from prisma import Prisma
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 
 
 async def apply_db_fixes(db: Prisma):

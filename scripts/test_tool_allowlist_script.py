@@ -21,7 +21,7 @@ if str(repo_root) not in sys.path:
 
 def test_extraction():
     """Test extract_request_tool_names for each API shape."""
-    from litellm.proxy.guardrails.tool_name_extraction import extract_request_tool_names
+    from token_iq.gateway.proxy.guardrails.tool_name_extraction import extract_request_tool_names
 
     cases = [
         (
@@ -70,8 +70,8 @@ def test_extraction():
 
 async def test_check_tools_allowlist():
     """Test check_tools_allowlist with mock tokens."""
-    from litellm.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
-    from litellm.proxy.auth.auth_checks import check_tools_allowlist
+    from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy.auth.auth_checks import check_tools_allowlist
 
     def token(metadata=None, team_metadata=None):
         return UserAPIKeyAuth(

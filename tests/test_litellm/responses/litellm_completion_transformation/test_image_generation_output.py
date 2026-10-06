@@ -10,11 +10,11 @@ from /chat/completions format to /responses API format.
 
 import pytest
 from unittest.mock import Mock
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.responses.main import OutputImageGenerationCall
-from litellm.types.utils import ModelResponse, Choices, Message
+from token_iq.gateway.types.responses.main import OutputImageGenerationCall
+from token_iq.gateway.types.utils import ModelResponse, Choices, Message
 
 
 class TestExtractBase64FromDataUrl:
@@ -167,7 +167,7 @@ class TestExtractMessageOutputItemsIntegration:
 
     def test_creates_regular_message_when_no_images(self):
         """Should create regular GenericResponseOutputItem when no images"""
-        from litellm.types.responses.main import GenericResponseOutputItem
+        from token_iq.gateway.types.responses.main import GenericResponseOutputItem
 
         mock_response = Mock(spec=ModelResponse)
         mock_response.id = "no_images_123"

@@ -133,7 +133,7 @@ def test_anthropic_with_responses_api():
 def test_cancel_response():
     try:
         client = get_test_client()
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         response = client.responses.create(
             model="gpt-5.5", input="just respond with the word 'ping'", background=True
@@ -156,7 +156,7 @@ def test_cancel_response():
 def test_cancel_streaming_response():
     try:
         client = get_test_client()
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         stream = client.responses.create(
             model="gpt-5.5",

@@ -4,7 +4,7 @@ import json
 import pytest
 
 
-from litellm.integrations.gitlab.gitlab_client import GitLabClient
+from token_iq.gateway.integrations.gitlab.gitlab_client import GitLabClient
 
 
 # -----------------------------

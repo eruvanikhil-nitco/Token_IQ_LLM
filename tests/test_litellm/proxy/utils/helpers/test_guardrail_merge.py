@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.utils import (
     _check_and_merge_model_level_guardrails,
     _merge_guardrails_with_existing,
 )

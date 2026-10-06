@@ -16,8 +16,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 def _make_mock_http_response(response_dict: dict):
@@ -58,7 +58,7 @@ async def test_metadata_passed_to_custom_callback_codex_models():
     which passes litellm_metadata. The fix ensures this is preserved as
     litellm_params.metadata for callback compatibility.
     """
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     mock_response = ResponsesAPIResponse.model_construct(
         id="resp-test",
@@ -89,7 +89,7 @@ async def test_metadata_passed_to_custom_callback_codex_models():
 
     try:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _make_mock_http_response(
@@ -124,7 +124,7 @@ async def test_metadata_passed_via_litellm_metadata_responses_api():
 
     Uses HTTP mock since mock_response returns early before update_environment_variables.
     """
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     mock_response = ResponsesAPIResponse.model_construct(
         id="resp-test-2",
@@ -155,7 +155,7 @@ async def test_metadata_passed_via_litellm_metadata_responses_api():
 
     try:
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new_callable=AsyncMock,
         ) as mock_post:
             mock_post.return_value = _make_mock_http_response(

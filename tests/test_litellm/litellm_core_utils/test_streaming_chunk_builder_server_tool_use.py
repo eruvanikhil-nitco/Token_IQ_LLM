@@ -21,8 +21,8 @@ response and assert:
 import pytest
 
 
-from litellm import completion_cost, stream_chunk_builder
-from litellm.types.utils import (
+from token_iq.gateway import completion_cost, stream_chunk_builder
+from token_iq.gateway.types.utils import (
     Delta,
     ModelResponseStream,
     ServerToolUse,

@@ -16,8 +16,8 @@ import pytest
 
 pytest.importorskip("mcp")
 
-UTILS_MODULE = "litellm.proxy._experimental.mcp_server.utils"
-MGMT_MODULE = "litellm.proxy.management_endpoints.mcp_management_endpoints"
+UTILS_MODULE = "token_iq.gateway.proxy._experimental.mcp_server.utils"
+MGMT_MODULE = "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints"
 
 
 @contextlib.contextmanager

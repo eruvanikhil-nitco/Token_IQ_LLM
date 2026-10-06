@@ -4,22 +4,24 @@ import asyncio
 import inspect
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 from datetime import datetime
 
 import pytest
 from pydantic import BaseModel
 
-import litellm.litellm_core_utils
-import litellm.litellm_core_utils.litellm_logging
+import token_iq.gateway.core_utils
+from token_iq import gateway as litellm
+import token_iq.gateway.core_utils.litellm_logging
+from token_iq import gateway as litellm
 
 from typing import Any, List, Literal, Optional, Tuple, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Cache, completion, embedding
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import LiteLLMCommonStrings
+from token_iq import gateway as litellm
+from token_iq.gateway import Cache, completion, embedding
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import LiteLLMCommonStrings
 
 
 class CustomLoggingIntegration(CustomLogger):
@@ -72,8 +74,8 @@ def test_guardrail_masking_logging_only():
 
 
 def test_guardrail_list_of_event_hooks():
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     cg = CustomGuardrail(
         guardrail_name="custom-guard", event_hook=["pre_call", "post_call"]
@@ -90,7 +92,7 @@ def test_guardrail_list_of_event_hooks():
 
 
 def test_guardrail_info_response():
-    from litellm.types.guardrails import (
+    from token_iq.gateway.types.guardrails import (
         GuardrailInfoResponse,
         LitellmParams,
     )

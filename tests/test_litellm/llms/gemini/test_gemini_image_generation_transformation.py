@@ -1,8 +1,8 @@
 import httpx
 
-from litellm.litellm_core_utils.litellm_logging import StandardLoggingPayloadSetup
-from litellm.llms.gemini.image_generation.transformation import GoogleImageGenConfig
-from litellm.types.utils import ImageResponse
+from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
+from token_iq.gateway.llms.gemini.image_generation.transformation import GoogleImageGenConfig
+from token_iq.gateway.types.utils import ImageResponse
 
 
 def test_gemini_image_generation_request_uses_shared_generation_config():

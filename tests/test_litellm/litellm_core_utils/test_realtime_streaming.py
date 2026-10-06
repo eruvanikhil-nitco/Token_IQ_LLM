@@ -4,17 +4,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from websockets.exceptions import ConnectionClosed
 
-import litellm
+from token_iq import gateway as litellm
 
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.litellm_core_utils.realtime_streaming import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.core_utils.realtime_streaming import (
     RealTimeStreaming,
     client_sent_openai_beta_realtime_header,
 )
-from litellm.llms.xai.realtime.transformation import XAIRealtimeNormalizer
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.llms.openai import (
+from token_iq.gateway.llms.xai.realtime.transformation import XAIRealtimeNormalizer
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.llms.openai import (
     OpenAIRealtimeStreamResponseBaseObject,
     OpenAIRealtimeStreamSessionEvents,
 )
@@ -806,7 +806,7 @@ async def test_transcription_captured_in_backend_to_client():
     Test that conversation.item.input_audio_transcription.completed events
     from the backend are captured as user input during the WebSocket session.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     client_ws = MagicMock()
     client_ws.send_text = AsyncMock()
@@ -1094,7 +1094,7 @@ def test_capture_transcription_usage_deduplicates_when_already_stored():
     When the event is already in messages (logged via store_message), it must not
     be appended a second time by _capture_transcription_usage.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     streaming = RealTimeStreaming(MagicMock(), MagicMock(), MagicMock())
     # Add the event type to the default logged list so _should_store_message returns True.
@@ -1330,9 +1330,9 @@ async def test_realtime_guardrail_blocks_prompt_injection(monkeypatch: pytest.Mo
     and voicing the guardrail violation message via response.cancel +
     conversation.item.create + response.create.
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     # Simple guardrail that blocks anything with "system update"
     class PromptInjectionGuardrail(CustomGuardrail):
@@ -1410,9 +1410,9 @@ async def test_realtime_guardrail_allows_clean_transcript(monkeypatch: pytest.Mo
     Test that a clean transcript passes through the guardrail and triggers
     response.create to the backend.
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class PromptInjectionGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1470,9 +1470,9 @@ async def test_realtime_text_input_guardrail_blocks_and_returns_error(monkeypatc
     """
     from fastapi import HTTPException
 
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class BlockingGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1564,9 +1564,9 @@ async def test_realtime_function_call_output_guardrail_blocks_and_returns_error(
     """
     from fastapi import HTTPException
 
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class BlockingGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1650,9 +1650,9 @@ async def test_realtime_function_call_output_guardrail_allows_clean_output(monke
     Test that a clean function_call_output passes through and reaches the backend
     when guardrails are configured.
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class BlockingGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1715,9 +1715,9 @@ async def test_realtime_text_input_guardrail_uses_pre_call_mode(monkeypatch: pyt
     Test that _has_realtime_guardrails returns True for a guardrail configured with
     pre_call mode (not just realtime_input_transcription).
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class DummyGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1753,9 +1753,9 @@ async def test_realtime_session_created_injects_session_update_for_audio_guardra
     AFTER forwarding session.created to the client.  This prevents the LLM from
     auto-responding before the guardrail can run on the transcript.
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class AudioGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1810,9 +1810,9 @@ async def test_realtime_session_created_does_not_inject_session_update_for_pre_c
     pre_call-only guardrails must not inject create_response:false on realtime
     sessions — that breaks server_vad for audio-only voice agents (e.g. Model Armor).
     """
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class PreCallGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -1850,9 +1850,9 @@ async def test_realtime_session_created_does_not_inject_session_update_for_pre_c
 @pytest.mark.asyncio
 async def test_pre_call_and_post_call_guardrails_do_not_disable_server_vad(monkeypatch: pytest.MonkeyPatch):
     """Model Armor-style pre_call + post_call must not gate audio VAD."""
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class ModelArmorStyleGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -2381,7 +2381,7 @@ async def test_follow_up_setup_updates_cached_session_configuration_request():
 async def test_deferred_setup_buffers_audio_until_backend_setup_complete(monkeypatch):
     """Pipecat may send audio before session.update when setup is deferred."""
     monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     client_ws = MagicMock()
     audio_msg = json.dumps({"type": "input_audio_buffer.append", "audio": "AA=="})
@@ -2414,7 +2414,7 @@ async def test_deferred_setup_buffers_audio_until_backend_setup_complete(monkeyp
 @pytest.mark.asyncio
 async def test_deferred_setup_sends_session_update_before_buffered_audio(monkeypatch):
     monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     client_ws = MagicMock()
     audio_msg = json.dumps({"type": "input_audio_buffer.append", "audio": "AA=="})
@@ -2544,7 +2544,7 @@ async def test_deferred_setup_flush_retains_unsent_messages_after_send_failure()
 async def test_deferred_setup_flushes_audio_on_backend_session_created(monkeypatch):
     """Buffered audio is released when Gemini setupComplete becomes session.created."""
     monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     client_ws = MagicMock()
     client_ws.send_text = AsyncMock()
@@ -2583,7 +2583,7 @@ async def test_deferred_setup_caps_non_audio_buffered_messages(monkeypatch):
     """A client that withholds session.update cannot grow the pre-setup buffer
     without bound by streaming non-audio frames after the first audio frame."""
     monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     cap = RealTimeStreaming._MAX_BUFFERED_MESSAGES
     audio_msg = json.dumps({"type": "input_audio_buffer.append", "audio": "AA=="})
@@ -2617,7 +2617,7 @@ async def test_deferred_setup_caps_non_audio_buffered_messages(monkeypatch):
 async def test_deferred_setup_caps_non_audio_buffered_bytes(monkeypatch):
     """Non-audio frames appended after the first audio frame honor the byte budget."""
     monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     audio_msg = json.dumps({"type": "input_audio_buffer.append", "audio": "AA=="})
     big_non_audio = json.dumps({"type": "foo", "data": "x" * (RealTimeStreaming._MAX_BUFFERED_BYTES + 1)})
@@ -2790,7 +2790,7 @@ def test_store_message_skips_pydantic_for_unlogged_audio_delta():
     """Audio deltas are not in DefaultLoggedRealTimeEventTypes; store_message must
     skip the Pydantic build entirely (no append, no validation)."""
     streaming = _streaming_with(_ga_client_ws())
-    with patch("litellm.litellm_core_utils.realtime_streaming.OpenAIRealtimeStreamResponseBaseObject") as base_obj:
+    with patch("token_iq.gateway.core_utils.realtime_streaming.OpenAIRealtimeStreamResponseBaseObject") as base_obj:
         streaming.store_message({"type": "response.output_audio.delta", "delta": "x"})
     base_obj.assert_not_called()
     assert streaming.messages == []
@@ -2815,7 +2815,7 @@ async def test_audio_delta_frame_parsed_at_most_once():
         return real_loads(*args, **kwargs)
 
     with patch(
-        "litellm.litellm_core_utils.realtime_streaming.json.loads",
+        "token_iq.gateway.core_utils.realtime_streaming.json.loads",
         side_effect=counting_loads,
     ):
         await streaming.backend_to_client_send_messages()
@@ -2876,8 +2876,8 @@ async def test_deferred_setup_clear_drops_appends_when_buffered():
 
 def _transcription_guardrail():
     """A minimal real CustomGuardrail registered for the realtime transcript hook."""
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     class _TranscriptionGuardrail(CustomGuardrail):
         async def apply_guardrail(self, inputs, request_data, input_type, logging_obj=None):
@@ -2894,7 +2894,7 @@ def test_setup_folds_in_auto_response_disable_when_transcription_guardrail_activ
     """Gemini rejects a second setup, so a transcription guardrail's auto-response
     disable must be folded into the one-and-only setup; otherwise the model
     auto-responds and the guardrail is bypassed."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callbacks", [_transcription_guardrail()])
     streaming = RealTimeStreaming(MagicMock(), MagicMock(), MagicMock())
@@ -2913,7 +2913,7 @@ def test_setup_folds_in_auto_response_disable_when_transcription_guardrail_activ
 
 
 def test_setup_unchanged_without_transcription_guardrail(monkeypatch: pytest.MonkeyPatch):
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callbacks", [])
     streaming = RealTimeStreaming(MagicMock(), MagicMock(), MagicMock())
@@ -2925,7 +2925,7 @@ def test_setup_unchanged_without_transcription_guardrail(monkeypatch: pytest.Mon
 def test_non_bidi_setup_left_untouched_for_followup_capable_providers(monkeypatch: pytest.MonkeyPatch):
     """OpenAI realtime accepts a follow-up session.update, so a non-bidi message
     (no top-level 'setup' key) must be left untouched even with a guardrail on."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "callbacks", [_transcription_guardrail()])
     streaming = RealTimeStreaming(MagicMock(), MagicMock(), MagicMock())
@@ -2945,8 +2945,8 @@ async def test_log_messages_routes_async_logging_through_bounded_worker():
     streaming.messages = [{"type": "session.created"}]
 
     with (
-        patch("litellm.litellm_core_utils.realtime_streaming.GLOBAL_LOGGING_WORKER") as mock_worker,
-        patch("litellm.litellm_core_utils.realtime_streaming.asyncio.create_task") as mock_create_task,
+        patch("token_iq.gateway.core_utils.realtime_streaming.GLOBAL_LOGGING_WORKER") as mock_worker,
+        patch("token_iq.gateway.core_utils.realtime_streaming.asyncio.create_task") as mock_create_task,
     ):
         await streaming.log_messages()
 
@@ -2965,7 +2965,7 @@ async def test_provider_config_path_captures_transcription_usage():
     land in the logged messages so realtime cost calculation can bill it."""
     from typing import Final
 
-    from litellm.types.realtime import RealtimeInputAudioTranscriptionUsage, RealtimeResponseTypedDict
+    from token_iq.gateway.types.realtime import RealtimeInputAudioTranscriptionUsage, RealtimeResponseTypedDict
 
     client_ws: Final = MagicMock()
     client_ws.send_text = AsyncMock()
@@ -3028,7 +3028,7 @@ async def test_session_close_flushes_unbilled_transcription_usage():
     messages before log_messages runs, and never forwarded to the client."""
     from typing import Final
 
-    from litellm.types.realtime import RealtimeInputAudioTranscriptionUsage
+    from token_iq.gateway.types.realtime import RealtimeInputAudioTranscriptionUsage
 
     client_ws: Final = MagicMock()
     client_ws.send_text = AsyncMock()

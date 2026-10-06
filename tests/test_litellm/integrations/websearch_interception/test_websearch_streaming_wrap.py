@@ -11,12 +11,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from litellm.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
     FakeAnthropicMessagesStreamIterator,
 )
-from litellm.types.integrations.custom_logger import AgenticLoopPlan
+from token_iq.gateway.types.integrations.custom_logger import AgenticLoopPlan
 
 
 def _anthropic_response() -> dict:

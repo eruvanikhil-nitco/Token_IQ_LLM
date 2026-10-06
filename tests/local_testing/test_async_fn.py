@@ -7,8 +7,8 @@ import traceback
 
 import pytest
 
-import litellm
-from litellm import acompletion, acreate, completion
+from token_iq import gateway as litellm
+from token_iq.gateway import acompletion, acreate, completion
 
 litellm.num_retries = 3
 

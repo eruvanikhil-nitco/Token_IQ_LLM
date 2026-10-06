@@ -2,7 +2,7 @@ import json
 import time
 from unittest.mock import patch
 
-from litellm.litellm_core_utils.json_fragment_accumulator import JSONFragmentAccumulator
+from token_iq.gateway.core_utils.json_fragment_accumulator import JSONFragmentAccumulator
 
 
 def test_initial_state_is_empty():

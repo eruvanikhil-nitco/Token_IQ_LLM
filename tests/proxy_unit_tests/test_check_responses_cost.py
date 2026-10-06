@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from litellm.constants import MAX_OBJECTS_PER_POLL_CYCLE
-from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
+from token_iq.gateway.constants import MAX_OBJECTS_PER_POLL_CYCLE
+from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
 
 class TestCheckResponsesCost:
@@ -90,7 +90,7 @@ class TestCheckResponsesCost:
         self, check_responses_cost_instance, mock_prisma_client
     ):
         """Stale rows are expired via _expire_stale_rows before polling."""
-        from litellm.constants import STALE_OBJECT_CLEANUP_BATCH_SIZE
+        from token_iq.gateway.constants import STALE_OBJECT_CLEANUP_BATCH_SIZE
 
         check_responses_cost_instance._expire_stale_rows = AsyncMock(return_value=5)
         mock_prisma_client.db.litellm_managedobjecttable.find_many = AsyncMock(
@@ -139,7 +139,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check with mocked litellm.aget_responses
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
 
             await check_responses_cost_instance.check_responses_cost()
@@ -184,7 +184,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
 
             await check_responses_cost_instance.check_responses_cost()
@@ -227,7 +227,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
 
             await check_responses_cost_instance.check_responses_cost()
@@ -270,7 +270,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
 
             await check_responses_cost_instance.check_responses_cost()
@@ -314,7 +314,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
 
             await check_responses_cost_instance.check_responses_cost()
@@ -349,7 +349,7 @@ class TestCheckResponsesCost:
 
         # Run the check with mocked exception
         with patch(
-            "litellm.aget_responses",
+            "token_iq.gateway.aget_responses",
             new_callable=AsyncMock,
             side_effect=Exception("Provider error"),
         ):
@@ -433,7 +433,7 @@ class TestCheckResponsesCost:
         )
 
         # Run the check
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.side_effect = [mock_response1, mock_response2, mock_response3]
 
             await check_responses_cost_instance.check_responses_cost()
@@ -462,7 +462,7 @@ class TestCheckResponsesCost:
         litellm.aget_responses directly only sees provider env vars, fails, and
         leaves the row in "queued" forever.
         """
-        from litellm.responses.utils import ResponsesAPIRequestUtils
+        from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
         encoded_response_id = ResponsesAPIRequestUtils._build_responses_api_response_id(
             custom_llm_provider="azure",
@@ -497,7 +497,7 @@ class TestCheckResponsesCost:
         )
 
         with patch(
-            "litellm.aget_responses",
+            "token_iq.gateway.aget_responses",
             new_callable=AsyncMock,
             side_effect=AssertionError(
                 "must not bypass the router for a deployment-scoped response id"
@@ -527,9 +527,9 @@ class TestCheckResponsesCost:
         After decryption the id still carries the deployment model_id, so the
         fetch must go through the router (issue #35131).
         """
-        from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
-        from litellm.responses.utils import ResponsesAPIRequestUtils
-        from litellm.types.utils import SpecialEnums
+        from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
+        from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
+        from token_iq.gateway.types.utils import SpecialEnums
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "sk-test-salt-key-for-response-ids")
 
@@ -571,7 +571,7 @@ class TestCheckResponsesCost:
         )
 
         with patch(
-            "litellm.aget_responses",
+            "token_iq.gateway.aget_responses",
             new_callable=AsyncMock,
             side_effect=AssertionError(
                 "must not bypass the router for a deployment-scoped response id"
@@ -620,7 +620,7 @@ class TestCheckResponsesCost:
             usage=None,
         )
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_sdk_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_sdk_aget:
             mock_sdk_aget.return_value = mock_response
             await check_responses_cost_instance.check_responses_cost()
 
@@ -636,7 +636,7 @@ class TestCheckResponsesCost:
         to the SDK so provider env credentials can still retrieve it, instead of
         failing every poll cycle until stale expiration.
         """
-        from litellm.responses.utils import ResponsesAPIRequestUtils
+        from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
         encoded_response_id = ResponsesAPIRequestUtils._build_responses_api_response_id(
             custom_llm_provider="openai",
@@ -670,7 +670,7 @@ class TestCheckResponsesCost:
             usage=None,
         )
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_sdk_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_sdk_aget:
             mock_sdk_aget.return_value = mock_response
             await check_responses_cost_instance.check_responses_cost()
 
@@ -713,7 +713,7 @@ class TestCheckResponsesCost:
             usage=None,
         )
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
             await check_responses_cost_instance.check_responses_cost()
 
@@ -745,7 +745,7 @@ class TestCheckResponsesCost:
         mock_response = MagicMock()
         mock_response.status = "completed"
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
             await check_responses_cost_instance.check_responses_cost()
 
@@ -761,8 +761,8 @@ class TestCheckResponsesCost:
         """A background create returns queued with no usage, so this poll's retrieval is the only
         place the job's spend is ever seen. Without the origin stamp it is priced at zero like a
         user-facing read (LIT-5602) and the job is never billed."""
-        from litellm.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
-        from litellm.litellm_core_utils.internal_call_metadata import (
+        from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
+        from token_iq.gateway.core_utils.internal_call_metadata import (
             is_unbilled_non_inference_call,
         )
 
@@ -782,7 +782,7 @@ class TestCheckResponsesCost:
         mock_response = MagicMock()
         mock_response.status = "completed"
 
-        with patch("litellm.aget_responses", new_callable=AsyncMock) as mock_aget:
+        with patch("token_iq.gateway.aget_responses", new_callable=AsyncMock) as mock_aget:
             mock_aget.return_value = mock_response
             await check_responses_cost_instance.check_responses_cost()
 

@@ -7,10 +7,10 @@ Tests the complete policy with various EU PII patterns
 import pytest
 
 
-from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
     ContentFilterGuardrail,
 )
-from litellm.types.guardrails import (
+from token_iq.gateway.types.guardrails import (
     ContentFilterAction,
     ContentFilterPattern,
 )

@@ -8,13 +8,13 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
-from litellm.constants import LITELLM_WEB_SEARCH_TOOL_NAME
-from litellm.integrations.websearch_interception.handler import (
+from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
+from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
-from litellm.llms.base_llm.search.transformation import SearchResponse
-from litellm.proxy._types import LiteLLM_ObjectPermissionTable, LiteLLM_TeamTable, ProxyException, UserAPIKeyAuth
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse
+from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, LiteLLM_TeamTable, ProxyException, UserAPIKeyAuth
+from token_iq.gateway.types.utils import LlmProviders
 
 
 def test_initialize_from_proxy_config():
@@ -184,8 +184,8 @@ async def test_internal_flags_filtered_from_followup_kwargs():
 
 @pytest.mark.asyncio
 async def test_execute_search_passes_selected_search_tool_litellm_params(monkeypatch):
-    import litellm
-    from litellm.proxy import proxy_server
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
         enabled_providers=["bedrock"],
@@ -237,9 +237,9 @@ async def test_execute_search_attributes_spend_to_the_calling_key(monkeypatch):
     Without the forwarded attribution metadata the proxy's spend hook skips the search
     entirely, so its provider cost never reaches SpendLogs or any budget.
     """
-    import litellm
-    from litellm.proxy import proxy_server
-    from litellm.proxy.hooks.proxy_track_cost_callback import _should_track_cost_callback
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _should_track_cost_callback
 
     logger = WebSearchInterceptionLogger(
         enabled_providers=["bedrock"],
@@ -290,8 +290,8 @@ async def test_execute_search_attributes_spend_to_the_calling_key(monkeypatch):
 @pytest.mark.asyncio
 async def test_execute_search_without_proxy_auth_context_stays_sdk_only(monkeypatch):
     """SDK callers have no key to attribute the search to, so no proxy metadata is invented."""
-    import litellm
-    from litellm.proxy import proxy_server
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
         enabled_providers=["bedrock"],
@@ -316,8 +316,8 @@ async def test_execute_search_without_proxy_auth_context_stays_sdk_only(monkeypa
 
 @pytest.mark.asyncio
 async def test_execute_search_enforces_key_search_tool_permission(monkeypatch):
-    import litellm
-    from litellm.proxy import proxy_server
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
         enabled_providers=["bedrock"],
@@ -355,8 +355,8 @@ async def test_execute_search_enforces_key_search_tool_permission(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_search_enforces_team_search_tool_permission(monkeypatch):
-    import litellm
-    from litellm.proxy import proxy_server
+    from token_iq import gateway as litellm
+    from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
         enabled_providers=["bedrock"],
@@ -385,7 +385,7 @@ async def test_execute_search_enforces_team_search_tool_permission(monkeypatch):
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
     monkeypatch.setattr(litellm, "asearch", mock_asearch)
-    monkeypatch.setattr("litellm.proxy.auth.auth_checks.get_team_object", mock_get_team_object)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_team_object", mock_get_team_object)
 
     with pytest.raises(ProxyException):
         await logger._execute_search(

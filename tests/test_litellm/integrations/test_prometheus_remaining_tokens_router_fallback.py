@@ -26,8 +26,8 @@ import pytest
 from prometheus_client import REGISTRY
 
 
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
 
 @pytest.fixture(scope="function")
@@ -98,7 +98,7 @@ class TestRouterFallbackEmitsForBedrock:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=enum_values,
@@ -139,7 +139,7 @@ class TestRouterFallbackEmitsForVertex:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=enum_values,
@@ -174,7 +174,7 @@ class TestExistingHeadersShortCircuit:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=_enum_values(),
@@ -205,7 +205,7 @@ class TestExistingHeadersShortCircuit:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=_enum_values(),
@@ -225,7 +225,7 @@ class TestRouterFallbackDefensivePaths:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", None, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", None, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=_enum_values(),
@@ -245,7 +245,7 @@ class TestRouterFallbackDefensivePaths:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=_enum_values(),
@@ -264,7 +264,7 @@ class TestRouterFallbackDefensivePaths:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,
                 enum_values=_enum_values(),
@@ -285,7 +285,7 @@ class TestRouterFallbackDefensivePaths:
         prometheus_logger.litellm_remaining_tokens_metric = MagicMock()
         prometheus_logger.litellm_remaining_requests_metric = MagicMock()
 
-        with patch("litellm.proxy.proxy_server.llm_router", fake_router, create=True):
+        with patch("token_iq.gateway.proxy.proxy_server.llm_router", fake_router, create=True):
             # Must not raise.
             await prometheus_logger._async_set_router_remaining_metrics(
                 standard_logging_payload=payload,

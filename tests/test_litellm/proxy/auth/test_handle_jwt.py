@@ -9,7 +9,7 @@ from fastapi import HTTPException
 import httpx
 import pytest
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     DEFAULT_JWKS_STALE_TTL,
     JWTLiteLLMRoleMap,
     LiteLLM_JWTAuth,
@@ -21,8 +21,8 @@ from litellm.proxy._types import (
     ProxyErrorTypes,
     ProxyException,
 )
-from litellm.caching.dual_cache import DualCache
-from litellm.proxy.auth.handle_jwt import (
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.proxy.auth.handle_jwt import (
     JWKS_FETCH_ATTEMPTS,
     STALE_CACHE_KEY_PREFIX,
     STALE_WRITTEN_AT_CACHE_KEY_PREFIX,
@@ -45,7 +45,7 @@ async def test_map_user_to_teams_user_already_in_team():
 
     # Mock team_member_add to ensure it's not called
     with patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=AsyncMock,
     ) as mock_add:
         await JWTAuthManager.map_user_to_teams(user_object=user, team_object=team)
@@ -61,7 +61,7 @@ async def test_map_user_to_teams_add_new_user():
 
     # Mock team_member_add
     with patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=AsyncMock,
     ) as mock_add:
         await JWTAuthManager.map_user_to_teams(user_object=user, team_object=team)
@@ -90,11 +90,11 @@ async def test_map_user_to_teams_handles_already_in_team_exception():
 
     # Mock team_member_add to raise the exception
     with patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=AsyncMock,
         side_effect=already_in_team_exception,
     ) as mock_add:
-        with patch("litellm.proxy.auth.handle_jwt.verbose_proxy_logger") as mock_logger:
+        with patch("token_iq.gateway.proxy.auth.handle_jwt.verbose_proxy_logger") as mock_logger:
             # This should not raise an exception
             result = await JWTAuthManager.map_user_to_teams(
                 user_object=user, team_object=team
@@ -122,7 +122,7 @@ async def test_map_user_to_teams_reraises_other_proxy_exceptions():
 
     # Mock team_member_add to raise the exception
     with patch(
-        "litellm.proxy.management_endpoints.team_endpoints.team_member_add",
+        "token_iq.gateway.proxy.management_endpoints.team_endpoints.team_member_add",
         new_callable=AsyncMock,
         side_effect=other_exception,
     ) as mock_add:
@@ -160,25 +160,25 @@ async def test_find_team_with_model_access_reports_passthrough_allowlist_denial(
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.can_team_access_model",
+            "token_iq.gateway.proxy.auth.handle_jwt.can_team_access_model",
             new_callable=AsyncMock,
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.allowed_routes_check",
+            "token_iq.gateway.proxy.auth.handle_jwt.allowed_routes_check",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ) as mock_is_auth_enforced_pass_through_route,
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
             return_value=False,
         ) as mock_passthrough_check,
     ):
@@ -235,20 +235,20 @@ async def test_find_team_with_model_access_uses_request_method_for_passthrough_a
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.allowed_routes_check",
+            "token_iq.gateway.proxy.auth.handle_jwt.allowed_routes_check",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints._registered_pass_through_routes",
             mock_registered_routes,
         ),
         patch(
-            "litellm.proxy.utils.get_server_root_path",
+            "token_iq.gateway.proxy.utils.get_server_root_path",
             return_value="/",
         ),
     ):
@@ -619,7 +619,7 @@ async def test_sync_user_role_and_teams():
     prisma.db.litellm_usertable.update = AsyncMock()
 
     with patch(
-        "litellm.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
         new_callable=AsyncMock,
     ) as mock_patch:
         await JWTAuthManager.sync_user_role_and_teams(jwt_handler, token, user, prisma)
@@ -705,7 +705,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_team_change():
     prisma.db.litellm_usertable.update = AsyncMock()
 
     with patch(
-        "litellm.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
         new_callable=AsyncMock,
     ):
         await JWTAuthManager.sync_user_role_and_teams(
@@ -965,8 +965,8 @@ async def test_nested_jwt_field_access():
     2. Backward compatibility is maintained for flat field names
     3. Missing nested paths return appropriate defaults
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     # Create JWT handler
     jwt_handler = JWTHandler()
@@ -1027,7 +1027,7 @@ async def test_nested_jwt_field_access():
     assert jwt_handler.get_org_id(flat_token, None) == "org456"
 
     # Test 5: object_id_jwt_field with nested access (requires role_mappings)
-    from litellm.proxy._types import LitellmUserRoles, RoleMapping
+    from token_iq.gateway.proxy._types import LitellmUserRoles, RoleMapping
 
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
         object_id_jwt_field="profile.object_id",
@@ -1088,8 +1088,8 @@ async def test_nested_jwt_field_missing_paths():
     2. Partial paths that exist but don't have the final key return defaults
     3. team_id_default fallback works with nested fields
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     # Create JWT handler
     jwt_handler = JWTHandler()
@@ -1127,7 +1127,7 @@ async def test_nested_jwt_field_missing_paths():
     assert jwt_handler.get_org_id(incomplete_token, "default_org") == "default_org"
 
     # Test 5: Missing profile.object_id should return default (requires role_mappings)
-    from litellm.proxy._types import LitellmUserRoles, RoleMapping
+    from token_iq.gateway.proxy._types import LitellmUserRoles, RoleMapping
 
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
         object_id_jwt_field="profile.object_id",
@@ -1177,8 +1177,8 @@ async def test_metadata_prefix_handling_in_nested_fields():
 
     The get_nested_value function should remove metadata. prefix before traversing
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     # Create JWT handler
     jwt_handler = JWTHandler()
@@ -1205,9 +1205,9 @@ async def test_metadata_prefix_handling_in_nested_fields():
 
 @pytest.mark.asyncio
 async def test_find_team_with_model_access_model_group(monkeypatch):
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     router = Router(
         model_list=[
@@ -1223,7 +1223,7 @@ async def test_find_team_with_model_access_model_group(monkeypatch):
 
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     team = LiteLLM_TeamTable(team_id="team-1", models=["test-group"])
 
@@ -1231,7 +1231,7 @@ async def test_find_team_with_model_access_model_group(monkeypatch):
         return team
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
 
     jwt_handler = JWTHandler()
@@ -1264,9 +1264,9 @@ async def test_find_team_with_model_access_v1_messages_default_routes(monkeypatc
     it just like /chat/completions and /v1/responses; otherwise the internal route
     check fails and surfaces a misleading "No team has access to the requested
     model" 403."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.router import Router
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.router import Router
 
     router = Router(
         model_list=[
@@ -1282,7 +1282,7 @@ async def test_find_team_with_model_access_v1_messages_default_routes(monkeypatc
 
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     team = LiteLLM_TeamTable(team_id="coding-team", models=["coding_only_models"])
 
@@ -1290,7 +1290,7 @@ async def test_find_team_with_model_access_v1_messages_default_routes(monkeypatc
         return team
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
 
     jwt_handler = JWTHandler()
@@ -1324,7 +1324,7 @@ async def test_find_team_with_model_access_v1_messages_default_routes(monkeypatc
     ],
 )
 def test_default_team_allowed_routes_cover_messages_but_not_skills(route, expected):
-    from litellm.proxy.auth.auth_checks import allowed_routes_check
+    from token_iq.gateway.proxy.auth.auth_checks import allowed_routes_check
 
     assert (
         allowed_routes_check(
@@ -1350,7 +1350,7 @@ async def test_auth_builder_returns_team_membership_object():
     _user_id = "test_user_1"
 
     # Create mock objects
-    from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_TeamMembership
+    from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_TeamMembership
 
     mock_team_membership = LiteLLM_TeamMembership(
         user_id=_user_id,
@@ -1478,8 +1478,8 @@ async def test_auth_builder_with_oidc_userinfo_enabled():
     """Test that auth_builder uses OIDC UserInfo endpoint when enabled"""
     from unittest.mock import MagicMock
 
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Setup test data
     api_key = "test_access_token"
@@ -1605,8 +1605,8 @@ async def test_auth_builder_with_oidc_userinfo_disabled():
     """Test that auth_builder uses JWT validation when OIDC UserInfo is disabled"""
     from unittest.mock import MagicMock
 
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Setup test data
     api_key = "test_jwt_token"
@@ -1734,8 +1734,8 @@ async def test_auth_builder_oidc_enabled_falls_back_to_jwt_auth_for_jwt_tokens()
     get_oidc_userinfo.  Sending a standard JWT to the OIDC UserInfo endpoint
     is incorrect — the endpoint expects an opaque access token.
     """
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     # Three-part token: recognised as a JWT by is_jwt()
     api_key = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0ZXN0X3VzZXIifQ.some_signature"
@@ -1864,8 +1864,8 @@ def test_get_team_id_from_header():
 @pytest.mark.asyncio
 async def test_auth_builder_uses_team_from_header_e2e():
     """Test auth_builder e2e flow: selects team from x-litellm-team-id header."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -1893,7 +1893,7 @@ async def test_auth_builder_uses_team_from_header_e2e():
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team,
         patch.object(
             JWTAuthManager,
@@ -1933,8 +1933,8 @@ async def test_auth_builder_uses_team_from_header_e2e():
 @pytest.mark.asyncio
 async def test_auth_builder_header_team_denies_auth_passthrough_without_allowlist():
     """Header-selected JWT teams must enforce team allowed_passthrough_routes."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -1959,7 +1959,7 @@ async def test_auth_builder_header_team_denies_auth_passthrough_without_allowlis
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team_object,
         ),
@@ -1969,11 +1969,11 @@ async def test_auth_builder_header_team_denies_auth_passthrough_without_allowlis
             new_callable=AsyncMock,
         ) as mock_get_objects,
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
             return_value=False,
         ) as mock_passthrough_check,
     ):
@@ -2008,8 +2008,8 @@ async def test_auth_builder_header_team_denies_auth_passthrough_without_allowlis
 @pytest.mark.asyncio
 async def test_auth_builder_specific_team_denies_auth_passthrough_without_allowlist():
     """JWT-field-selected teams must enforce team allowed_passthrough_routes."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2034,7 +2034,7 @@ async def test_auth_builder_specific_team_denies_auth_passthrough_without_allowl
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team_object,
         ),
@@ -2044,11 +2044,11 @@ async def test_auth_builder_specific_team_denies_auth_passthrough_without_allowl
             new_callable=AsyncMock,
         ) as mock_get_objects,
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
             return_value=False,
         ) as mock_passthrough_check,
     ):
@@ -2082,8 +2082,8 @@ async def test_auth_builder_specific_team_denies_auth_passthrough_without_allowl
 @pytest.mark.asyncio
 async def test_auth_builder_rbac_team_loads_team_for_passthrough_allowlist():
     """RBAC role-claim teams (team_object unset) must load team metadata before gating."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2110,7 +2110,7 @@ async def test_auth_builder_rbac_team_loads_team_for_passthrough_allowlist():
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team_object,
         ) as mock_get_team,
@@ -2125,11 +2125,11 @@ async def test_auth_builder_rbac_team_loads_team_for_passthrough_allowlist():
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
             return_value=True,
         ) as mock_passthrough_check,
     ):
@@ -2160,8 +2160,8 @@ async def test_auth_builder_rbac_team_loads_team_for_passthrough_allowlist():
 @pytest.mark.asyncio
 async def test_auth_builder_rbac_team_denies_passthrough_without_allowlist():
     """RBAC role-claim teams without an allowlist are still denied for passthrough."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2185,16 +2185,16 @@ async def test_auth_builder_rbac_team_denies_passthrough_without_allowlist():
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             return_value=team_object,
         ) as mock_get_team,
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.check_passthrough_route_access",
             return_value=False,
         ),
     ):
@@ -2223,8 +2223,8 @@ async def test_auth_builder_rbac_team_denies_passthrough_without_allowlist():
 async def test_auth_builder_admin_on_llm_route_honors_team_header():
     """JWT proxy_admin + x-litellm-team-id on an LLM API route -> team context is
     attached to the admin result so team TPM/RPM limits and attribution apply."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2249,7 +2249,7 @@ async def test_auth_builder_admin_on_llm_route_honors_team_header():
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
         patch.object(jwt_handler, "is_admin", return_value=True),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team,
     ):
         mock_auth_jwt.return_value = {
@@ -2283,8 +2283,8 @@ async def test_auth_builder_admin_on_mgmt_route_ignores_team_header():
     """JWT proxy_admin + x-litellm-team-id on an admin management route -> header
     is ignored; no team fetch. Preserves pre-existing bypass behavior and avoids
     phantom team creation when team_id_upsert is enabled."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2303,7 +2303,7 @@ async def test_auth_builder_admin_on_mgmt_route_ignores_team_header():
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
         patch.object(jwt_handler, "is_admin", return_value=True),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team,
     ):
         mock_auth_jwt.return_value = {
@@ -2335,8 +2335,8 @@ async def test_auth_builder_admin_on_mgmt_route_ignores_team_header():
 async def test_auth_builder_admin_on_llm_route_without_header_unchanged():
     """JWT proxy_admin on an LLM API route without x-litellm-team-id -> no team
     context (team limits not applied, admin keeps unrestricted access)."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2359,7 +2359,7 @@ async def test_auth_builder_admin_on_llm_route_without_header_unchanged():
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
         patch.object(jwt_handler, "is_admin", return_value=True),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_team,
     ):
         mock_auth_jwt.return_value = {
@@ -2392,8 +2392,8 @@ async def test_get_team_alias_with_nested_fields():
     """
     Test get_team_alias() method with nested JWT fields
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     jwt_handler = JWTHandler()
 
@@ -2429,8 +2429,8 @@ async def test_is_required_team_id_with_team_alias_field():
     """
     Test that is_required_team_id() returns True when team_alias_jwt_field is set
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     jwt_handler = JWTHandler()
 
@@ -2460,10 +2460,10 @@ async def test_find_and_validate_specific_team_id_with_team_alias():
     """
     from unittest.mock import MagicMock
 
-    from litellm.caching import DualCache
-    from litellm.proxy._types import LiteLLM_JWTAuth, LiteLLM_TeamTable
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth, LiteLLM_TeamTable
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2482,7 +2482,7 @@ async def test_find_and_validate_specific_team_id_with_team_alias():
     team_object = LiteLLM_TeamTable(team_id="resolved-team-id", team_alias="my-team")
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_team_object_by_alias", new_callable=AsyncMock
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object_by_alias", new_callable=AsyncMock
     ) as mock_get_by_alias:
         mock_get_by_alias.return_value = team_object
 
@@ -2514,10 +2514,10 @@ async def test_find_and_validate_team_id_takes_precedence_over_name():
     """
     from unittest.mock import MagicMock
 
-    from litellm.caching import DualCache
-    from litellm.proxy._types import LiteLLM_JWTAuth, LiteLLM_TeamTable
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth, LiteLLM_TeamTable
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2539,10 +2539,10 @@ async def test_find_and_validate_team_id_takes_precedence_over_name():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_by_id,
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object_by_alias",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object_by_alias",
             new_callable=AsyncMock,
         ) as mock_get_by_alias,
     ):
@@ -2569,10 +2569,10 @@ async def test_find_and_validate_raises_when_required_team_not_found():
     """
     Test that an exception is raised when team is required but neither team_id nor team_name is found
     """
-    from litellm.caching import DualCache
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2608,8 +2608,8 @@ async def test_get_org_alias_with_nested_fields():
     """
     Test get_org_alias() method with nested JWT fields
     """
-    from litellm.proxy._types import LiteLLM_JWTAuth
-    from litellm.proxy.auth.handle_jwt import JWTHandler
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     jwt_handler = JWTHandler()
 
@@ -2645,10 +2645,10 @@ async def test_get_objects_resolves_org_by_name():
     """
     Test that get_objects resolves organization by name when org_id is not provided
     """
-    from litellm.caching import DualCache
-    from litellm.proxy._types import LiteLLM_JWTAuth, LiteLLM_OrganizationTable
-    from litellm.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy._types import LiteLLM_JWTAuth, LiteLLM_OrganizationTable
+    from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager, JWTHandler
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -2671,7 +2671,7 @@ async def test_get_objects_resolves_org_by_name():
     )
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_org_object_by_alias", new_callable=AsyncMock
+        "token_iq.gateway.proxy.auth.handle_jwt.get_org_object_by_alias", new_callable=AsyncMock
     ) as mock_get_by_alias:
         mock_get_by_alias.return_value = org_object
 
@@ -2719,7 +2719,7 @@ async def test_resolve_jwks_url_passthrough_for_direct_jwks_url():
     """Non-discovery URLs are returned unchanged."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = JWTHandler()
     handler.update_environment(
@@ -2740,7 +2740,7 @@ async def test_resolve_jwks_url_resolves_oidc_discovery_document():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = JWTHandler()
     cache = DualCache()
@@ -2773,7 +2773,7 @@ async def test_resolve_jwks_url_caches_resolved_jwks_uri():
     """Resolved jwks_uri is cached — second call does not hit the network."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = JWTHandler()
     cache = DualCache()
@@ -2809,7 +2809,7 @@ async def test_resolve_jwks_url_raises_if_no_jwks_uri_in_discovery_doc():
     """Raise a helpful error if the discovery document has no jwks_uri."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = JWTHandler()
     handler.update_environment(
@@ -2835,7 +2835,7 @@ async def test_resolve_jwks_url_raises_if_no_jwks_uri_in_discovery_doc():
 
 
 def _make_jwt_handler(team_id_jwt_field: str) -> JWTHandler:
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = JWTHandler()
     handler.update_environment(
@@ -2910,7 +2910,7 @@ async def test_find_and_validate_specific_team_id_hints_bracket_notation():
     """
     from unittest.mock import MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = _make_jwt_handler("roles.0")
     # token has roles as a list — dot-notation won't find anything
@@ -2942,7 +2942,7 @@ async def test_find_and_validate_specific_team_id_hints_bracket_index_notation()
     """
     from unittest.mock import MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = _make_jwt_handler("roles[0]")
     token = {"roles": ["team1"]}
@@ -2972,7 +2972,7 @@ async def test_find_and_validate_specific_team_id_no_hint_for_valid_field():
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     handler = _make_jwt_handler("appid")
     token = {}  # no appid — triggers the "no team found" path
@@ -3136,11 +3136,11 @@ async def test_auth_builder_single_team_db_fallback_when_jwt_has_no_team(
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
         ) as mock_get_team,
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
         ) as mock_get_membership,
     ):
@@ -3254,11 +3254,11 @@ async def test_auth_builder_single_team_fallback_membership_error_skips_no_raise
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
         ) as mock_get_team,
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
         ) as mock_get_membership,
     ):
@@ -3422,7 +3422,7 @@ async def test_find_and_validate_specific_team_id_unresolved_claim_returns_none(
     token = {"sub": "user-1", "team_id": "claim-team-not-in-db"}
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_team_object",
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
         new_callable=AsyncMock,
     ) as mock_get_team:
         mock_get_team.side_effect = HTTPException(status_code=404, detail="missing")
@@ -3452,7 +3452,7 @@ async def test_find_team_with_model_access_unresolved_group_claim_returns_none(
 
     from fastapi import HTTPException
 
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     router = Router(
         model_list=[
@@ -3461,12 +3461,12 @@ async def test_find_team_with_model_access_unresolved_group_claim_returns_none(
     )
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     async def raise_404(*_args, **_kwargs):
         raise HTTPException(status_code=404, detail="missing")
 
-    monkeypatch.setattr("litellm.proxy.auth.handle_jwt.get_team_object", raise_404)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.handle_jwt.get_team_object", raise_404)
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(team_claim_fallback=True)
@@ -3497,7 +3497,7 @@ async def test_find_and_validate_specific_team_id_non_http_exception_still_propa
     token = {"sub": "user-1", "team_id": "some-claim-team"}
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_team_object",
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
         new_callable=AsyncMock,
     ) as mock_get_team:
         mock_get_team.side_effect = RuntimeError("simulated infrastructure error")
@@ -3527,7 +3527,7 @@ async def test_find_and_validate_specific_team_id_non_404_http_exception_propaga
 
     for status_code in (400, 403, 500):
         with patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
         ) as mock_get_team:
             mock_get_team.side_effect = HTTPException(
@@ -3585,7 +3585,7 @@ async def test_find_team_with_model_access_resolved_team_without_model_still_rai
 
     from fastapi import HTTPException
 
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     router = Router(
         model_list=[
@@ -3598,7 +3598,7 @@ async def test_find_team_with_model_access_resolved_team_without_model_still_rai
     )
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     team = LiteLLM_TeamTable(team_id="real-team", models=["gpt-3.5-turbo"])
 
@@ -3606,7 +3606,7 @@ async def test_find_team_with_model_access_resolved_team_without_model_still_rai
         return team
 
     monkeypatch.setattr(
-        "litellm.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", mock_get_team_object
     )
 
     jwt_handler = JWTHandler()
@@ -3640,7 +3640,7 @@ async def test_find_and_validate_specific_team_id_unresolved_claim_default_raise
     token = {"sub": "user-1", "team_id": "claim-team-not-in-db"}
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_team_object",
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
         new_callable=AsyncMock,
     ) as mock_get_team:
         mock_get_team.side_effect = HTTPException(status_code=404, detail="missing")
@@ -3670,7 +3670,7 @@ async def test_find_team_with_model_access_unresolved_group_claim_default_raises
 
     from fastapi import HTTPException
 
-    from litellm.router import Router
+    from token_iq.gateway.router import Router
 
     router = Router(
         model_list=[
@@ -3679,12 +3679,12 @@ async def test_find_team_with_model_access_unresolved_group_claim_default_raises
     )
     proxy_server_module = types.ModuleType("proxy_server")
     proxy_server_module.llm_router = router
-    monkeypatch.setitem(sys.modules, "litellm.proxy.proxy_server", proxy_server_module)
+    monkeypatch.setitem(sys.modules, "token_iq.gateway.proxy.proxy_server", proxy_server_module)
 
     async def raise_404(*_args, **_kwargs):
         raise HTTPException(status_code=404, detail="missing")
 
-    monkeypatch.setattr("litellm.proxy.auth.handle_jwt.get_team_object", raise_404)
+    monkeypatch.setattr("token_iq.gateway.proxy.auth.handle_jwt.get_team_object", raise_404)
 
     jwt_handler = JWTHandler()
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth()
@@ -3780,15 +3780,15 @@ async def test_auth_jwt_expired_token_raises_401_jwk_path():
             jwt_handler, "get_public_key", new_callable=AsyncMock
         ) as mock_get_public_key,
         patch(
-            "litellm.proxy.auth.handle_jwt.jwt.get_unverified_header",
+            "token_iq.gateway.proxy.auth.handle_jwt.jwt.get_unverified_header",
             return_value={"kid": "test-kid"},
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.PyJWK.from_dict",
+            "token_iq.gateway.proxy.auth.handle_jwt.PyJWK.from_dict",
             return_value=MagicMock(key="fake-key"),
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.jwt.decode",
+            "token_iq.gateway.proxy.auth.handle_jwt.jwt.decode",
             side_effect=jwt_lib.ExpiredSignatureError("Signature has expired"),
         ),
     ):
@@ -3818,15 +3818,15 @@ async def test_auth_jwt_expired_token_raises_401_pem_cert_path():
             jwt_handler, "get_public_key", new_callable=AsyncMock
         ) as mock_get_public_key,
         patch(
-            "litellm.proxy.auth.handle_jwt.jwt.get_unverified_header",
+            "token_iq.gateway.proxy.auth.handle_jwt.jwt.get_unverified_header",
             return_value={"kid": "test-kid"},
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.x509.load_pem_x509_certificate",
+            "token_iq.gateway.proxy.auth.handle_jwt.x509.load_pem_x509_certificate",
             return_value=mock_cert,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.jwt.decode",
+            "token_iq.gateway.proxy.auth.handle_jwt.jwt.decode",
             side_effect=jwt_lib.ExpiredSignatureError("Signature has expired"),
         ),
     ):
@@ -3902,7 +3902,7 @@ def _encode_rsa_jwt(
 
 
 def _get_jwt_handler_with_issuer_keys(issuers: list, keys_by_url: dict) -> JWTHandler:
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     cache = DualCache()
     for jwks_url, keys in keys_by_url.items():
@@ -3924,7 +3924,7 @@ def _get_jwt_handler_with_issuer_keys(issuers: list, keys_by_url: dict) -> JWTHa
 async def test_get_public_key_fetches_and_caches_jwks_response():
     from unittest.mock import AsyncMock, MagicMock
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwt_handler = JWTHandler()
     cache = DualCache()
@@ -4010,7 +4010,7 @@ def _get_jwt_handler_with_scripted_endpoint(
 @pytest.mark.asyncio
 async def test_get_public_key_retries_transient_jwks_fetch_failure():
     """A single connect timeout to the IdP must be retried, not surfaced to the caller."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     _, jwk = _get_rsa_key_and_jwk(kid="retried-key")
     endpoint = _ScriptedJWKSEndpoint((httpx.ConnectTimeout("connect timed out"), {"keys": [jwk]}))
@@ -4028,7 +4028,7 @@ async def test_get_public_key_retries_transient_jwks_fetch_failure():
 @pytest.mark.asyncio
 async def test_get_public_key_serves_stale_keys_when_jwks_refresh_fails():
     """Once the TTL lapses, an unreachable IdP must not invalidate a still-valid signing key."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="stale-key")
@@ -4053,7 +4053,7 @@ async def test_stale_jwks_window_is_the_configured_grace_past_a_long_public_key_
     Deriving the window from `public_key_ttl` instead would collapse it to nothing on the long TTLs that
     make the fallback worth having.
     """
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://long-ttl-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="long-ttl-key")
@@ -4078,7 +4078,7 @@ async def test_stale_jwks_window_is_the_configured_grace_past_a_long_public_key_
 @pytest.mark.asyncio
 async def test_long_public_key_ttl_still_serves_stale_keys_when_the_idp_is_unreachable():
     """A long `public_key_ttl` must not leave the stale fallback inert once that TTL finally lapses."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://long-ttl-fallback.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="long-ttl-fallback-key")
@@ -4097,7 +4097,7 @@ async def test_long_public_key_ttl_still_serves_stale_keys_when_the_idp_is_unrea
 @pytest.mark.asyncio
 async def test_removed_signing_key_stops_being_trusted_once_the_stale_window_expires(monkeypatch):
     """The stale fallback is bounded: past its window a key the IdP dropped is no longer served."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://revoking-issuer.example.com/keys"
     monkeypatch.setenv("JWT_PUBLIC_KEY_URL", jwks_url)
@@ -4127,7 +4127,7 @@ async def test_removed_signing_key_stops_being_trusted_once_the_stale_window_exp
 @pytest.mark.asyncio
 async def test_key_removed_from_a_reachable_jwks_is_rejected_without_consulting_the_stale_copy():
     """A reachable IdP always wins: dropping a key revokes it immediately, stale copy included."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://rotating-issuer.example.com/keys"
     _, retired_jwk = _get_rsa_key_and_jwk(kid="retired-key")
@@ -4151,7 +4151,7 @@ async def test_key_removed_from_a_reachable_jwks_is_rejected_without_consulting_
 @pytest.mark.asyncio
 async def test_zero_public_key_stale_ttl_fails_closed_instead_of_serving_stale_keys():
     """`public_key_stale_ttl=0` is the escape hatch for deployments that cannot trust an unrefreshed key."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://fail-closed-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="fail-closed-key")
@@ -4177,7 +4177,7 @@ async def test_lowering_public_key_stale_ttl_stops_serving_a_copy_cached_under_t
     The stale entry keeps whatever expiry it was written with, so enforcing the bound only at write time would
     leave a copy taken under the old, longer setting servable until it aged out on its own.
     """
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://relaxed-then-tightened.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="tightened-key")
@@ -4213,7 +4213,7 @@ async def test_zero_public_key_stale_ttl_fails_closed_even_for_a_freshly_written
     The active entry can disappear before it expires, through cache eviction or a flush, which leaves a stale
     copy younger than `public_key_ttl`. Bounding only on age would still serve it.
     """
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://evicted-active-entry.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="fresh-copy-key")
@@ -4238,7 +4238,7 @@ async def test_zero_public_key_stale_ttl_fails_closed_even_for_a_freshly_written
 @pytest.mark.asyncio
 async def test_stale_copy_with_no_recorded_write_time_is_not_served():
     """The bound is enforced from the recorded write time, so losing it must fail closed, never open."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://undated-copy.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="undated-key")
@@ -4261,7 +4261,7 @@ async def test_stale_copy_with_no_recorded_write_time_is_not_served():
 @pytest.mark.asyncio
 async def test_increasing_public_key_stale_ttl_only_extends_within_the_new_bound():
     """Raising the window re-measures from the copy's refresh time; it does not bless whatever is cached."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://widened-window.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="widened-key")
@@ -4294,7 +4294,7 @@ async def test_stale_copy_written_at_survives_a_whole_number_epoch():
     Rejecting it would fail closed on a copy that is well inside the window, in the shared-cache deployment
     the stale fallback exists to serve.
     """
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://int-epoch.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="int-epoch-key")
@@ -4319,7 +4319,7 @@ async def test_stale_copy_written_at_survives_a_whole_number_epoch():
 @pytest.mark.asyncio
 async def test_stale_copy_with_a_malformed_write_time_is_not_served():
     """An unreadable refresh timestamp is indistinguishable from an unbounded one, so it fails closed."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://malformed-timestamp.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="malformed-key")
@@ -4353,7 +4353,7 @@ async def test_stale_fallback_warns_with_the_kid_and_how_stale_the_jwks_copy_is(
     """Serving an unrefreshed signing key is a security-relevant event, so it must be legible in the logs."""
     import logging
 
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://warned-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="warned-key")
@@ -4391,7 +4391,7 @@ async def test_stale_fallback_warns_with_the_kid_and_how_stale_the_jwks_copy_is(
 @pytest.mark.asyncio
 async def test_unparseable_jwks_response_does_not_fall_back_to_the_stale_copy():
     """Only an unreachable IdP unlocks the stale copy. A reachable one that answers badly must surface the error."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://garbled-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="garbled-key")
@@ -4415,7 +4415,7 @@ async def test_unparseable_jwks_response_does_not_fall_back_to_the_stale_copy():
 @pytest.mark.asyncio
 async def test_jwks_error_response_is_not_cached_over_the_last_known_good_keys():
     """An IdP error body must never be stored as the key set, least of all as the stale copy."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://erroring-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="erroring-key")
@@ -4443,7 +4443,7 @@ async def test_jwks_error_response_is_not_cached_over_the_last_known_good_keys()
 @pytest.mark.asyncio
 async def test_sustained_jwks_outage_refetches_once_per_backoff_window_not_once_per_request():
     """Without a backoff, every request during an outage pays three timeouts serialised behind the refresh lock."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     jwks_url = "https://flooded-issuer.example.com/keys"
     _, jwk = _get_rsa_key_and_jwk(kid="flooded-key")
@@ -4468,7 +4468,7 @@ async def test_sustained_jwks_outage_refetches_once_per_backoff_window_not_once_
 @pytest.mark.asyncio
 async def test_get_public_key_raises_503_when_jwks_unreachable_and_no_cached_keys(monkeypatch):
     """An unreachable IdP is an infra failure: 503, never a 401 that clients read as bad credentials."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     monkeypatch.setenv("JWT_PUBLIC_KEY_URL", "https://issuer.example.com/keys")
     endpoint = _ScriptedJWKSEndpoint((httpx.ConnectTimeout("connect timed out"),))
@@ -4486,7 +4486,7 @@ async def test_get_public_key_raises_503_when_jwks_unreachable_and_no_cached_key
 @pytest.mark.asyncio
 async def test_get_public_key_coalesces_concurrent_jwks_refreshes():
     """Concurrent requests in the TTL-expiry window share one JWKS fetch."""
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     _, jwk = _get_rsa_key_and_jwk(kid="coalesced-key")
     endpoint = _ScriptedJWKSEndpoint(({"keys": [jwk]},), delay=0.05)
@@ -4508,7 +4508,7 @@ async def test_get_public_key_coalesces_concurrent_jwks_refreshes():
 
 @pytest.mark.asyncio
 async def test_get_public_key_tries_next_jwks_url_when_kid_missing(monkeypatch):
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     first_jwks_url = "https://first.example.com/keys"
     second_jwks_url = "https://second.example.com/keys"
@@ -4551,7 +4551,7 @@ def test_get_jwks_url_for_issuer_falls_back_to_discovery_document():
 @pytest.mark.asyncio
 async def test_get_objects_team_membership_uses_rebound_user_id():
     """team_membership lookup uses resolved DB user_id, not JWT email claim."""
-    from litellm.caching.caching import DualCache
+    from token_iq.gateway.caching.caching import DualCache
 
     legacy_uuid = "bb8ab11f-09aa-47ae-b063-6e80506ac3bc"
     jwt_email = "matt@example.com"
@@ -4575,11 +4575,11 @@ async def test_get_objects_team_membership_uses_rebound_user_id():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_user_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_user_object",
             side_effect=fake_get_user_object,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             side_effect=fake_get_team_membership,
         ),
     ):
@@ -4972,7 +4972,7 @@ def test_multi_issuer_jwt_rejects_audience_with_disable_audience_validation():
 
 @pytest.mark.asyncio
 async def test_global_jwt_ignores_user_supplied_internal_claims(monkeypatch):
-    from litellm.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.dual_cache import DualCache
 
     monkeypatch.delenv("JWT_AUDIENCE", raising=False)
     monkeypatch.delenv("JWT_ISSUER", raising=False)
@@ -5238,7 +5238,7 @@ async def test_resolve_db_team_fallback_skips_unresolvable_membership():
         return resolved
 
     with patch(
-        "litellm.proxy.auth.handle_jwt.get_team_object",
+        "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
         new_callable=AsyncMock,
         side_effect=fake_get_team,
     ):
@@ -5399,12 +5399,12 @@ async def test_auth_builder_db_team_fallback_when_jwt_has_no_team(
                 JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
             ),
             patch(
-                "litellm.proxy.auth.handle_jwt.get_team_object",
+                "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=fake_get_team,
             ),
             patch(
-                "litellm.proxy.auth.handle_jwt.get_team_membership",
+                "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
                 new_callable=AsyncMock,
                 return_value=LiteLLM_TeamMembership(
                     user_id=user_id,
@@ -5473,7 +5473,7 @@ async def test_sync_user_role_and_teams_no_claim_team_preservation(
     prisma = AsyncMock()
 
     with patch(
-        "litellm.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
         new_callable=AsyncMock,
     ) as mock_patch:
         await JWTAuthManager.sync_user_role_and_teams(jwt_handler, token, user, prisma)
@@ -5522,12 +5522,12 @@ async def test_resolve_db_team_fallback_skips_team_without_model_access():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.can_team_access_model",
+            "token_iq.gateway.proxy.auth.handle_jwt.can_team_access_model",
             new_callable=AsyncMock,
             side_effect=fake_can_access,
         ),
@@ -5592,12 +5592,12 @@ async def test_resolve_db_team_fallback_enforces_team_allowed_routes():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.can_team_access_model",
+            "token_iq.gateway.proxy.auth.handle_jwt.can_team_access_model",
             new_callable=AsyncMock,
             side_effect=fake_can_access,
         ),
@@ -5681,7 +5681,7 @@ async def _run_auth_builder_with_header_team(
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
@@ -5799,12 +5799,12 @@ async def test_resolve_db_team_fallback_loads_team_membership():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
             side_effect=fake_get_membership,
         ),
@@ -5853,12 +5853,12 @@ async def test_resolve_db_team_fallback_survives_membership_lookup_error():
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
             side_effect=none_on_db_error_membership,
         ),
@@ -5943,7 +5943,7 @@ async def test_auth_builder_db_fallback_does_not_validate_rbac_team_against_db_m
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
@@ -5995,12 +5995,12 @@ async def test_resolve_db_team_fallback_distinguishes_no_membership_vs_model_den
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.can_team_access_model",
+            "token_iq.gateway.proxy.auth.handle_jwt.can_team_access_model",
             new_callable=AsyncMock,
             side_effect=fake_can_access,
         ),
@@ -6097,12 +6097,12 @@ async def test_auth_builder_db_fallback_runs_when_only_team_id_default_set():
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
             return_value=None,
         ),
@@ -6181,17 +6181,17 @@ async def test_auth_builder_alias_only_token_resolves_alias_not_db_fallback():
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object_by_alias",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object_by_alias",
             new_callable=AsyncMock,
             side_effect=fake_get_team_by_alias,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
             return_value=None,
         ),
@@ -6220,8 +6220,8 @@ async def test_find_and_validate_specific_team_id_alias_wins_over_team_id_defaul
     silently substitutes team_id_default for a missing claim, which would
     otherwise mask the alias-resolved team and mis-attribute spend/access
     to the configured default team."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -6242,10 +6242,10 @@ async def test_find_and_validate_specific_team_id_alias_wins_over_team_id_defaul
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_by_id,
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object_by_alias",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object_by_alias",
             new_callable=AsyncMock,
         ) as mock_get_by_alias,
     ):
@@ -6271,8 +6271,8 @@ async def test_find_and_validate_specific_team_id_team_id_default_used_without_a
     """When the token carries neither a team_id nor an alias claim and
     team_id_default is configured, the default still resolves the team. The
     alias-precedence fix must not regress this baseline fallback behavior."""
-    from litellm.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     jwt_handler = JWTHandler()
     user_api_key_cache = DualCache()
@@ -6291,10 +6291,10 @@ async def test_find_and_validate_specific_team_id_team_id_default_used_without_a
 
     with (
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object", new_callable=AsyncMock
         ) as mock_get_by_id,
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object_by_alias",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object_by_alias",
             new_callable=AsyncMock,
         ) as mock_get_by_alias,
     ):
@@ -6365,17 +6365,17 @@ async def test_auth_builder_db_fallback_enforces_passthrough_route_access():
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_membership",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_membership",
             new_callable=AsyncMock,
             return_value=None,
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
+            "token_iq.gateway.proxy.auth.handle_jwt.RouteChecks.is_auth_enforced_pass_through_route",
             return_value=True,
         ),
         patch.object(
@@ -6430,7 +6430,7 @@ async def test_sync_user_role_and_teams_singular_claim_reconciles_memberships():
     )
 
     with patch(
-        "litellm.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
         new_callable=AsyncMock,
     ) as mock_patch:
         await JWTAuthManager.sync_user_role_and_teams(
@@ -6507,7 +6507,7 @@ async def test_auth_builder_provisional_header_team_is_not_upserted():
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=spy_get_team,
         ),
@@ -6584,7 +6584,7 @@ async def test_auth_builder_header_cannot_override_rbac_team_under_db_fallback()
             JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
         ),
         patch(
-            "litellm.proxy.auth.handle_jwt.get_team_object",
+            "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
             new_callable=AsyncMock,
             side_effect=fake_get_team,
         ),
@@ -6666,7 +6666,7 @@ async def test_auth_builder_header_team_enforces_team_allowed_routes_under_db_fa
                 JWTAuthManager, "sync_user_role_and_teams", new_callable=AsyncMock
             ),
             patch(
-                "litellm.proxy.auth.handle_jwt.get_team_object",
+                "token_iq.gateway.proxy.auth.handle_jwt.get_team_object",
                 new_callable=AsyncMock,
                 side_effect=fake_get_team,
             ),
@@ -6721,7 +6721,7 @@ async def test_sync_user_role_and_teams_singular_claim_only_recognized_under_fla
     )
 
     with patch(
-        "litellm.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
         new_callable=AsyncMock,
     ) as mock_patch:
         await JWTAuthManager.sync_user_role_and_teams(

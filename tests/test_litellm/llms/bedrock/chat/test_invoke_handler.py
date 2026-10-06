@@ -4,15 +4,15 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-from litellm.llms.bedrock.chat.invoke_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+from token_iq.gateway.llms.bedrock.chat.invoke_handler import (
     AWSEventStreamDecoder,
     make_call,
     make_sync_call,
 )
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 def test_transform_thinking_blocks_with_redacted_content():

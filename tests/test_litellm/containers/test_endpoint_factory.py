@@ -1,7 +1,7 @@
 import pytest
 
-from litellm.containers import endpoint_factory
-from litellm.containers.endpoint_factory import (
+from token_iq.gateway.containers import endpoint_factory
+from token_iq.gateway.containers.endpoint_factory import (
     RESPONSE_TYPES,
     _load_endpoints_config,
     create_sync_endpoint_function,
@@ -9,7 +9,7 @@ from litellm.containers.endpoint_factory import (
     get_all_endpoint_names,
     get_async_endpoint_names,
 )
-from litellm.types.containers.main import (
+from token_iq.gateway.types.containers.main import (
     ContainerFileListResponse,
     ContainerFileObject,
     DeleteContainerFileResponse,

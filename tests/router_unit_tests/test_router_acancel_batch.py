@@ -8,9 +8,9 @@ This ensures the router's batch cancellation method has test coverage.
 
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
-from litellm import Router
-import litellm
-from litellm.types.utils import CredentialItem
+from token_iq.gateway import Router
+from token_iq import gateway as litellm
+from token_iq.gateway.types.utils import CredentialItem
 
 
 @pytest.fixture

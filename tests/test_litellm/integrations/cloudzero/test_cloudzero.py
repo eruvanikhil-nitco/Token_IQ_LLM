@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import polars as pl
 import pytest
 
-from litellm.integrations.cloudzero.cloudzero import CloudZeroLogger
-from litellm.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
-from litellm.integrations.cloudzero.database import LiteLLMDatabase
+from token_iq.gateway.integrations.cloudzero.cloudzero import CloudZeroLogger
+from token_iq.gateway.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
+from token_iq.gateway.integrations.cloudzero.database import LiteLLMDatabase
 
 
 class TestCloudZeroHourlyExport:
@@ -68,7 +68,7 @@ class TestCloudZeroHourlyExport:
                 LiteLLMDatabase, "_ensure_prisma_client"
             ) as mock_prisma_client_getter,
             patch.object(CloudZeroStreamer, "send_batched") as send_batched_mock,
-            patch("litellm.integrations.cloudzero.cloudzero.datetime") as mock_datetime,
+            patch("token_iq.gateway.integrations.cloudzero.cloudzero.datetime") as mock_datetime,
         ):
             fake_client = MagicMock()
             fake_db = MagicMock()

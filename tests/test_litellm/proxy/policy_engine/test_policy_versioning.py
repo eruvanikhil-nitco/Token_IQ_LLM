@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.policy_engine.policy_registry import (
+from token_iq.gateway.proxy.policy_engine.policy_registry import (
     PolicyRegistry,
     _row_to_policy_db_response,
     get_policy_registry,
 )
-from litellm.types.proxy.policy_engine import (
+from token_iq.gateway.types.proxy.policy_engine import (
     Policy,
     PolicyCreateRequest,
     PolicyDBResponse,
@@ -518,7 +518,7 @@ class TestConfigPoliciesPreservedAcrossDbSync:
 
     @pytest.mark.asyncio
     async def test_config_policy_resolves_guardrails_after_sync(self):
-        from litellm.proxy.policy_engine.policy_resolver import PolicyResolver
+        from token_iq.gateway.proxy.policy_engine.policy_resolver import PolicyResolver
 
         registry = PolicyRegistry()
         registry.load_policies({"config-policy": {"guardrails": {"add": ["tooling"]}}})

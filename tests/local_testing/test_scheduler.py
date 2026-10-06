@@ -6,9 +6,9 @@ import traceback, asyncio
 import pytest
 from typing import List
 
-from litellm import Router
-from litellm.scheduler import FlowItem, Scheduler, SchedulerCacheKeys
-from litellm import ModelResponse
+from token_iq.gateway import Router
+from token_iq.gateway.scheduler import FlowItem, Scheduler, SchedulerCacheKeys
+from token_iq.gateway import ModelResponse
 
 
 @pytest.mark.asyncio

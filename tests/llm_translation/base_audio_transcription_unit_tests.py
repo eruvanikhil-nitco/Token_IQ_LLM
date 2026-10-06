@@ -4,17 +4,17 @@ import pytest
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
-import litellm
-from litellm import transcription
-from litellm.litellm_core_utils.get_supported_openai_params import (
+from token_iq import gateway as litellm
+from token_iq.gateway import transcription
+from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
 )
-from litellm.llms.base_llm.audio_transcription.transformation import (
+from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     BaseAudioTranscriptionConfig,
 )
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.utils import ProviderConfigManager
 from abc import ABC, abstractmethod
 
 pwd = os.path.dirname(os.path.realpath(__file__))

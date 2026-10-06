@@ -1,7 +1,7 @@
 """
 Test appending A2A agents to model lists.
 
-Maps to: litellm/proxy/agent_endpoints/model_list_helpers.py
+Maps to: token_iq/gateway/proxy/agent_endpoints/model_list_helpers.py
 """
 
 
@@ -10,16 +10,16 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from litellm.proxy.agent_endpoints.auth.agent_permission_handler import (
+from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
 )
-from litellm.proxy.agent_endpoints.model_list_helpers import (
+from token_iq.gateway.proxy.agent_endpoints.model_list_helpers import (
     append_agents_to_model_group,
     append_agents_to_model_info,
 )
-from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
-from litellm.types.agents import AgentResponse
-from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
+from token_iq.gateway.types.agents import AgentResponse
+from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
     ModelGroupInfoProxy,
 )
 
@@ -44,11 +44,11 @@ async def test_append_agents_to_model_group():
     mock_registry.get_agent_by_id = Mock(return_value=mock_agent)
 
     with patch(
-        "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
+        "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
         mock_get_allowed_agents,
     ):
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ):
             model_groups = []
@@ -87,11 +87,11 @@ async def test_append_agents_to_model_info():
     mock_registry.get_agent_by_id = Mock(return_value=mock_agent)
 
     with patch(
-        "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
+        "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
         mock_get_allowed_agents,
     ):
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ):
             models = []

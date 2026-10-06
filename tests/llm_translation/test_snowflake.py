@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm import completion, acompletion, responses
-from litellm.exceptions import APIConnectionError
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq.gateway import completion, acompletion, responses
+from token_iq.gateway.exceptions import APIConnectionError
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 
 @pytest.mark.skip(reason="Requires Snowflake credentials - run manually when needed")
@@ -18,7 +18,7 @@ def test_snowflake_tool_calling_responses_api():
     Test Snowflake tool calling with Responses API.
     Requires SNOWFLAKE_JWT and SNOWFLAKE_ACCOUNT_ID environment variables.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     # Skip if credentials not available
     if not os.getenv("SNOWFLAKE_JWT") or not os.getenv("SNOWFLAKE_ACCOUNT_ID"):

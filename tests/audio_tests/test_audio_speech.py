@@ -6,7 +6,7 @@ import os
 import random
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 
@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import openai
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 async def _run_audio_speech_litellm(sync_mode, model, api_base, api_key):
@@ -40,7 +40,7 @@ async def _run_audio_speech_litellm(sync_mode, model, api_base, api_key):
             optional_params={},
         )
 
-        from litellm.types.llms.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
         assert isinstance(response, HttpxBinaryResponseContent)
     else:
@@ -58,7 +58,7 @@ async def _run_audio_speech_litellm(sync_mode, model, api_base, api_key):
             optional_params={},
         )
 
-        from litellm.llms.openai.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.llms.openai.openai import HttpxBinaryResponseContent
 
         assert isinstance(response, HttpxBinaryResponseContent)
 
@@ -114,7 +114,7 @@ async def test_audio_speech_litellm_vertex(sync_mode):
 
         from types import SimpleNamespace
 
-        from litellm.llms.openai.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.llms.openai.openai import HttpxBinaryResponseContent
 
         response.stream_to_file(speech_file_path)
 
@@ -135,7 +135,7 @@ async def test_speech_litellm_vertex_async():
 
     # Set up the mock for asynchronous calls
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_async_post:
         mock_async_post.return_value = mock_response
@@ -182,7 +182,7 @@ async def test_speech_litellm_vertex_async_with_voice():
 
     # Set up the mock for asynchronous calls
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_async_post:
         mock_async_post.return_value = mock_response
@@ -244,7 +244,7 @@ async def test_speech_litellm_vertex_async_with_voice_ssml():
 
     # Set up the mock for asynchronous calls
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_async_post:
         mock_async_post.return_value = mock_response
@@ -286,7 +286,7 @@ async def test_speech_litellm_vertex_async_with_voice_ssml():
 
 @pytest.mark.skip(reason="causes openai rate limit errors")
 def test_audio_speech_cost_calc():
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     model = "azure/tts"
     api_base = os.getenv("AZURE_TTS_API_BASE")
@@ -354,7 +354,7 @@ async def test_azure_ava_tts_async():
         )
 
         # Assert the response is HttpxBinaryResponseContent
-        from litellm.types.llms.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
         assert isinstance(response, HttpxBinaryResponseContent)
 
@@ -408,7 +408,7 @@ async def test_runwayml_tts_async():
         )
 
         # Assert the response is HttpxBinaryResponseContent
-        from litellm.types.llms.openai import HttpxBinaryResponseContent
+        from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
         assert isinstance(response, HttpxBinaryResponseContent)
 
@@ -458,7 +458,7 @@ async def test_azure_ava_tts_with_custom_voice():
     mock_httpx_response.headers = {"content-type": "audio/mpeg"}
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = mock_httpx_response
 
@@ -503,7 +503,7 @@ async def test_azure_ava_tts_fable_voice_mapping():
     mock_httpx_response.headers = {"content-type": "audio/mpeg"}
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = mock_httpx_response
 
@@ -550,7 +550,7 @@ async def test_aws_polly_tts_with_native_voice():
     mock_httpx_response.headers = {"content-type": "audio/mpeg"}
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = mock_httpx_response
 
@@ -597,7 +597,7 @@ async def test_aws_polly_tts_with_openai_voice_mapping():
     mock_httpx_response.headers = {"content-type": "audio/mpeg"}
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = mock_httpx_response
 
@@ -641,7 +641,7 @@ async def test_aws_polly_tts_with_ssml():
     ssml_input = '<speak>Hello, <break time="500ms"/> this is SSML.</speak>'
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
         mock_post.return_value = mock_httpx_response
 
@@ -682,7 +682,7 @@ async def test_aws_polly_tts_real_api():
         aws_region_name="us-east-1",
     )
 
-    from litellm.types.llms.openai import HttpxBinaryResponseContent
+    from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
     assert isinstance(response, HttpxBinaryResponseContent)
 

@@ -12,15 +12,15 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
-from litellm.llms.openai.cost_calculation import video_generation_cost
-from litellm.llms.vertex_ai.videos.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
+from token_iq.gateway.llms.openai.cost_calculation import video_generation_cost
+from token_iq.gateway.llms.vertex_ai.videos.transformation import (
     VertexAIVideoConfig,
     _convert_image_to_vertex_format,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.videos.main import VideoObject
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.videos.main import VideoObject
 
 VEO_31_LITE_VERTEX_MODEL = "vertex_ai/veo-3.1-lite-generate-001"
 ROOT_MODEL_COST_PATH = (
@@ -248,7 +248,7 @@ class TestVertexAIVideoConfig:
         mock_image.seek = Mock()
 
         with patch(
-            "litellm.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
+            "token_iq.gateway.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
             return_value="image/jpeg",
         ):
             data, files, url = self.config.transform_video_create_request(
@@ -767,7 +767,7 @@ class TestVertexAIVideoConfig:
         )
 
         # Should return VertexAIError
-        from litellm.llms.vertex_ai.common_utils import VertexAIError
+        from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
 
         assert isinstance(error, VertexAIError)
         assert error.status_code == 500
@@ -785,7 +785,7 @@ class TestConvertImageToVertexFormat:
         mock_image.seek = Mock()
 
         with patch(
-            "litellm.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
+            "token_iq.gateway.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
             return_value="image/jpeg",
         ):
             result = _convert_image_to_vertex_format(mock_image)
@@ -806,7 +806,7 @@ class TestConvertImageToVertexFormat:
         mock_image.seek = Mock()
 
         with patch(
-            "litellm.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
+            "token_iq.gateway.llms.vertex_ai.videos.transformation.ImageEditRequestUtils.get_image_content_type",
             return_value="image/png",
         ):
             result = _convert_image_to_vertex_format(mock_image)

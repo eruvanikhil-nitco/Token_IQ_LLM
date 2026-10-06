@@ -16,9 +16,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm.proxy.utils as utils_mod
-from litellm.proxy.db.spend_log_batching import spend_log_row_bytes
-from litellm.proxy.utils import PrismaClient, ProxyUpdateSpend, enqueue_spend_logs
+import token_iq.gateway.proxy.utils as utils_mod
+from token_iq.gateway.proxy.db.spend_log_batching import spend_log_row_bytes
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyUpdateSpend, enqueue_spend_logs
 
 
 @pytest.fixture(autouse=True)
@@ -87,7 +87,7 @@ async def test_update_end_user_spend_retries_on_connect_error(
     original exception bubbles up via ``_raise_failed_update_spend_exception``.
     """
     import httpx
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     sleeps: list[float] = []
 
@@ -351,7 +351,7 @@ async def test_update_spend_logs_failure_raises_after_retries(
     via ``_raise_failed_update_spend_exception``.
     """
     import httpx
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     async def _fake_sleep(_: float) -> None:
         return None
@@ -580,7 +580,7 @@ async def test_update_spend_logs_caps_isolation_attempts_under_poison_flood(
     the DB work stays bounded and well below the input row count, and the helper
     still completes without raising.
     """
-    import litellm.proxy.utils as utils_mod
+    import token_iq.gateway.proxy.utils as utils_mod
 
     attempt_cap = utils_mod.MAX_SPEND_LOG_ISOLATION_FAILURES_PER_BATCH
     # single create_many batch (< BATCH_SIZE) whose row count exceeds the attempt
@@ -746,7 +746,7 @@ def test_disable_spend_updates_reflects_general_settings(
     """The static method delegates to ``general_settings['disable_spend_updates']``;
     flipping that value toggles the helper's return.
     """
-    import litellm.proxy.proxy_server as proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as proxy_server_mod
 
     monkeypatch.setattr(proxy_server_mod, "general_settings", {"disable_spend_updates": True})
     pinned = {
@@ -764,7 +764,7 @@ def test_disable_spend_updates_reflects_general_settings(
 def test_disable_spend_updates_default_false_without_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import litellm.proxy.proxy_server as proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as proxy_server_mod
 
     monkeypatch.setattr(proxy_server_mod, "general_settings", {})
     assert ProxyUpdateSpend.disable_spend_updates() is False
@@ -773,7 +773,7 @@ def test_disable_spend_updates_default_false_without_flag(
 def test_disable_spend_updates_error_when_general_settings_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import litellm.proxy.proxy_server as proxy_server_mod
+    import token_iq.gateway.proxy.proxy_server as proxy_server_mod
 
     monkeypatch.delattr(proxy_server_mod, "general_settings", raising=False)
     with pytest.raises(ImportError):

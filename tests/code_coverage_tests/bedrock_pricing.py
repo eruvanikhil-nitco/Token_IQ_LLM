@@ -1,6 +1,6 @@
 import os
 
-import litellm
+from token_iq import gateway as litellm
 import requests
 from bs4 import BeautifulSoup
 

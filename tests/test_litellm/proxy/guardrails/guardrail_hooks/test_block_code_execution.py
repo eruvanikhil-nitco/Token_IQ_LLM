@@ -3,16 +3,16 @@
 import pytest
 from fastapi import HTTPException
 
-from litellm.integrations.custom_guardrail import ModifyResponseException
-from litellm.proxy.guardrails.guardrail_hooks.block_code_execution import (
+from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.block_code_execution import (
     DEFAULT_EVENT_HOOKS,
     BlockCodeExecutionGuardrail,
     initialize_guardrail,
 )
-from litellm.proxy.guardrails.guardrail_hooks.block_code_execution.block_code_execution import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.block_code_execution.block_code_execution import (
     _normalize_escaped_newlines,
 )
-from litellm.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 
 class TestBlockCodeExecutionGuardrail:

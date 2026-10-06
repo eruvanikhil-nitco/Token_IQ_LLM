@@ -10,14 +10,14 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
 
-import litellm
-from litellm.proxy.proxy_server import app
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.proxy_server import app
 
 
 class TestResponsesAPIEndpoints(unittest.TestCase):
     @pytest.mark.asyncio
-    @patch("litellm.proxy.proxy_server.llm_router")
-    @patch("litellm.proxy.proxy_server.user_api_key_auth")
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router")
+    @patch("token_iq.gateway.proxy.proxy_server.user_api_key_auth")
     async def test_openai_v1_responses_route(self, mock_auth, mock_router):
         """
         Test that /openai/v1/responses endpoint is correctly registered and accessible.
@@ -56,8 +56,8 @@ class TestResponsesAPIEndpoints(unittest.TestCase):
         assert response.status_code in [200, 401, 500]
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.proxy_server.llm_router")
-    @patch("litellm.proxy.proxy_server.user_api_key_auth")
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router")
+    @patch("token_iq.gateway.proxy.proxy_server.user_api_key_auth")
     async def test_cursor_chat_completions_route(self, mock_auth, mock_router):
         """
         Test that /cursor/chat/completions endpoint:
@@ -65,8 +65,8 @@ class TestResponsesAPIEndpoints(unittest.TestCase):
         2. Returns chat completions format response
         3. Transforms streaming responses correctly
         """
-        from litellm.types.llms.openai import ResponsesAPIResponse
-        from litellm.types.utils import ResponseOutputMessage, ResponseOutputText
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.utils import ResponseOutputMessage, ResponseOutputText
 
         mock_auth.return_value = MagicMock(
             token="test_token",
@@ -117,8 +117,8 @@ class TestResponsesAPIEndpoints(unittest.TestCase):
             assert "output" not in response_data or "status" not in response_data
 
     @pytest.mark.asyncio
-    @patch("litellm.proxy.proxy_server.llm_router")
-    @patch("litellm.proxy.proxy_server.user_api_key_auth")
+    @patch("token_iq.gateway.proxy.proxy_server.llm_router")
+    @patch("token_iq.gateway.proxy.proxy_server.user_api_key_auth")
     async def test_responses_api_key_spend_header_includes_response_cost(self, mock_auth, mock_router):
         """
         Test that x-litellm-key-spend header includes the current request's response_cost
@@ -127,8 +127,8 @@ class TestResponsesAPIEndpoints(unittest.TestCase):
         This ensures the spend header reflects updated spend including the current request,
         even though spend tracking updates happen asynchronously after the response.
         """
-        from litellm.types.llms.openai import ResponsesAPIResponse
-        from litellm.types.utils import ResponseOutputMessage, ResponseOutputText
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.utils import ResponseOutputMessage, ResponseOutputText
 
         # Create mock user API key with initial spend
         mock_user_api_key_dict = MagicMock()
@@ -204,7 +204,7 @@ class TestManagedResponsesWSFirstMessage:
         entering its receive loop. Regression for clients that connect without
         ?model= (e.g. Codex) and send model inside the first response.create event.
         """
-        from litellm.responses.streaming_iterator import ManagedResponsesWebSocketHandler
+        from token_iq.gateway.responses.streaming_iterator import ManagedResponsesWebSocketHandler
 
         first = json.dumps(
             {
@@ -245,7 +245,7 @@ class TestManagedResponsesWSFirstMessage:
     @pytest.mark.asyncio
     async def test_no_first_message_falls_through_to_loop(self):
         """When first_message is None, run() goes straight to receive_text()."""
-        from litellm.responses.streaming_iterator import ManagedResponsesWebSocketHandler
+        from token_iq.gateway.responses.streaming_iterator import ManagedResponsesWebSocketHandler
 
         subsequent = json.dumps({"type": "response.create", "model": "gpt-4o-mini"})
 
@@ -278,7 +278,7 @@ class TestResponsesWSStreamingFirstMessage:
         ResponsesWebSocketStreaming.client_to_backend must send first_message to
         the backend before entering the receive loop.
         """
-        from litellm.responses.streaming_iterator import ResponsesWebSocketStreaming
+        from token_iq.gateway.responses.streaming_iterator import ResponsesWebSocketStreaming
 
         first = json.dumps({"type": "response.create", "model": "gpt-4o-mini", "input": []})
 
@@ -309,7 +309,7 @@ class TestWSSessionCostTracking:
         Per-turn costs are tracked by individual aresponses calls inside the session;
         the outer session wrapper fires with result=None.
         """
-        from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
+        from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 
         limiter = RouterBudgetLimiting.__new__(RouterBudgetLimiting)
         kwargs = {
@@ -327,7 +327,7 @@ class TestWSSessionCostTracking:
     @pytest.mark.asyncio
     async def test_router_budget_limiter_skips_arealtime_call_type(self):
         """Same guard applies to _arealtime WS session wrappers."""
-        from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
+        from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 
         limiter = RouterBudgetLimiting.__new__(RouterBudgetLimiting)
         kwargs = {
@@ -347,7 +347,7 @@ class TestWSModelExtraction:
     """Test _extract_model_from_first_ws_event for flat and nested frame formats."""
 
     def test_flat_format_extracts_model(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _extract_model_from_first_ws_event,
         )
 
@@ -355,7 +355,7 @@ class TestWSModelExtraction:
         assert _extract_model_from_first_ws_event(event) == "gpt-4o"
 
     def test_nested_format_extracts_model(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _extract_model_from_first_ws_event,
         )
 
@@ -363,7 +363,7 @@ class TestWSModelExtraction:
         assert _extract_model_from_first_ws_event(event) == "gpt-4o"
 
     def test_nested_format_takes_precedence_over_flat(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _extract_model_from_first_ws_event,
         )
 
@@ -375,7 +375,7 @@ class TestWSModelExtraction:
         assert _extract_model_from_first_ws_event(event) == "nested-model"
 
     def test_no_model_returns_none(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _extract_model_from_first_ws_event,
         )
 
@@ -383,7 +383,7 @@ class TestWSModelExtraction:
         assert _extract_model_from_first_ws_event(event) is None
 
     def test_non_object_returns_none(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _extract_model_from_first_ws_event,
         )
 
@@ -393,7 +393,7 @@ class TestWSModelExtraction:
 class TestResponsesWSFirstFrameValidation:
     @pytest.mark.asyncio
     async def test_rejects_non_response_create_first_frame(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -412,7 +412,7 @@ class TestResponsesWSFirstFrameValidation:
 
     @pytest.mark.asyncio
     async def test_rejects_non_object_json_first_frame(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -431,7 +431,7 @@ class TestResponsesWSFirstFrameValidation:
     async def test_client_disconnect_first_frame_does_not_close(self):
         from fastapi import WebSocketDisconnect
 
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -448,7 +448,7 @@ class TestResponsesWSFirstFrameValidation:
 
     @pytest.mark.asyncio
     async def test_server_error_first_frame_closes_with_internal_error(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -466,7 +466,7 @@ class TestResponsesWSFirstFrameValidation:
 class TestResponsesWSFirstFrameModelAuth:
     @pytest.mark.asyncio
     async def test_endpoint_enforces_auth_after_model_from_first_frame(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             responses_websocket_endpoint,
         )
 
@@ -489,15 +489,15 @@ class TestResponsesWSFirstFrameModelAuth:
 
         with (
             patch(
-                "litellm.proxy.response_api_endpoints.endpoints._enforce_responses_ws_first_frame_model_auth",
+                "token_iq.gateway.proxy.response_api_endpoints.endpoints._enforce_responses_ws_first_frame_model_auth",
                 new_callable=AsyncMock,
             ) as mock_model_auth,
             patch(
-                "litellm.proxy.response_api_endpoints.endpoints.ProxyBaseLLMRequestProcessing",
+                "token_iq.gateway.proxy.response_api_endpoints.endpoints.ProxyBaseLLMRequestProcessing",
                 return_value=processor,
             ),
             patch(
-                "litellm.proxy.route_llm_request.route_request",
+                "token_iq.gateway.proxy.route_llm_request.route_request",
                 new_callable=AsyncMock,
                 return_value=fake_llm_call(),
             ),
@@ -514,7 +514,7 @@ class TestResponsesWSFirstFrameModelAuth:
     async def test_reruns_model_auth_for_first_frame_model(self):
         from starlette.requests import Request
 
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _enforce_responses_ws_first_frame_model_auth,
         )
 
@@ -524,20 +524,20 @@ class TestResponsesWSFirstFrameModelAuth:
 
         with (
             patch(
-                "litellm.proxy.auth.user_api_key_auth._enforce_key_and_fallback_model_access",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._enforce_key_and_fallback_model_access",
                 new_callable=AsyncMock,
             ) as mock_key_check,
             patch(
-                "litellm.proxy.auth.user_api_key_auth._run_centralized_common_checks",
+                "token_iq.gateway.proxy.auth.user_api_key_auth._run_centralized_common_checks",
                 new_callable=AsyncMock,
             ) as mock_common_checks,
             patch(
-                "litellm.proxy.proxy_server.llm_model_list",
+                "token_iq.gateway.proxy.proxy_server.llm_model_list",
                 [],
             ),
-            patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-            patch("litellm.proxy.proxy_server.user_custom_auth", None),
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+            patch("token_iq.gateway.proxy.proxy_server.user_custom_auth", None),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         ):
             await _enforce_responses_ws_first_frame_model_auth(
                 request=request,
@@ -567,7 +567,7 @@ class TestReadWSModelFromFirstFrameErrors:
     async def test_timeout_closes_without_error_frame(self):
         import asyncio
 
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -584,7 +584,7 @@ class TestReadWSModelFromFirstFrameErrors:
 
     @pytest.mark.asyncio
     async def test_invalid_json_sends_error_and_closes(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -602,7 +602,7 @@ class TestReadWSModelFromFirstFrameErrors:
 
     @pytest.mark.asyncio
     async def test_missing_model_sends_error_and_closes(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -620,7 +620,7 @@ class TestReadWSModelFromFirstFrameErrors:
 
     @pytest.mark.asyncio
     async def test_valid_first_frame_returns_model_and_raw(self):
-        from litellm.proxy.response_api_endpoints.endpoints import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import (
             _read_ws_model_from_first_frame,
         )
 
@@ -639,7 +639,7 @@ class TestReadWSModelFromFirstFrameErrors:
 
 class TestManagedResponsesSameProvider:
     def _handler(self, model, custom_llm_provider=None):
-        from litellm.responses.streaming_iterator import (
+        from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
         )
 
@@ -689,7 +689,7 @@ class TestManagedResponsesSameProvider:
 
 
 def _auth_override():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     return UserAPIKeyAuth(api_key="sk-test-cursor", user_id="cursor-user")
 
@@ -702,9 +702,9 @@ def test_cursor_chat_completions_messages_body_uses_chat_pipeline():
     ``messages`` to ``input`` (the pre-fix behavior) produced items the Responses API
     rejects. Asserts acompletion is called with the exact messages and aresponses is
     never touched."""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     messages = [
         {"role": "user", "content": "read a file"},
@@ -787,13 +787,13 @@ def test_cursor_chat_completions_input_body_uses_responses_pipeline_and_strips_s
 
     from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-    from litellm.proxy.common_utils.http_parsing_utils import (
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
         _read_request_body as real_read_request_body,
     )
-    from litellm.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     captured_requests = []
 
@@ -826,7 +826,7 @@ def test_cursor_chat_completions_input_body_uses_responses_pipeline_and_strips_s
         with (
             patch.object(ps, "llm_router", mock_router),
             patch(
-                "litellm.proxy.response_api_endpoints.endpoints._read_request_body",
+                "token_iq.gateway.proxy.response_api_endpoints.endpoints._read_request_body",
                 side_effect=capturing_read_request_body,
             ),
         ):
@@ -866,9 +866,9 @@ def test_cursor_models_route_delegates_to_model_list():
     for lack of a Cursor API key, so BYOK verification fails before any chat request
     is sent. Both /cursor/models and /cursor/v1/models must serve the standard model
     list instead."""
-    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+    from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
-    import litellm.proxy.proxy_server as ps
+    import token_iq.gateway.proxy.proxy_server as ps
 
     model_payload = {"data": [{"id": "gpt-5.6", "object": "model"}], "object": "list"}
 
@@ -887,7 +887,7 @@ def test_cursor_models_route_delegates_to_model_list():
 
 class TestNestFlatChatTools:
     def test_flat_custom_tool_is_nested(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         result = _convert_tool_envelope(
             {"type": "custom", "name": "ApplyPatch", "description": "V4A patch", "format": {"type": "text"}},
@@ -899,7 +899,7 @@ class TestNestFlatChatTools:
         }
 
     def test_flat_function_tool_is_nested(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         result = _convert_tool_envelope(
             {"type": "function", "name": "read_file", "description": "d", "parameters": {"type": "object"}},
@@ -911,7 +911,7 @@ class TestNestFlatChatTools:
         }
 
     def test_already_nested_and_unrecognized_tools_pass_through_unchanged(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         tools = [
             {"type": "custom", "custom": {"name": "already_nested"}},
@@ -930,20 +930,20 @@ class TestNestFlatChatTools:
 class TestCursorMessagesArmToolNormalization:
     @pytest.mark.asyncio
     async def test_flat_custom_tool_nested_before_chat_completion_delegation(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         seen = {}
 
         async def fake_chat_completion(request, fastapi_response, model, user_api_key_dict):
-            from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
+            from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
 
             seen["body"] = await _read_request_body(request=request)
             return {"id": "chatcmpl-fake", "object": "chat.completion", "choices": []}
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
-            with patch("litellm.proxy.proxy_server.chat_completion", new=fake_chat_completion):
+            with patch("token_iq.gateway.proxy.proxy_server.chat_completion", new=fake_chat_completion):
                 client = TestClient(app)
                 response = client.post(
                     "/cursor/chat/completions",
@@ -993,13 +993,13 @@ class TestCursorMessagesArmToolNormalization:
 
     @pytest.mark.asyncio
     async def test_messages_body_without_flat_tools_leaves_parsed_body_cache_untouched(self):
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         seen = {}
 
         async def fake_chat_completion(request, fastapi_response, model, user_api_key_dict):
-            from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
+            from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
 
             seen["body"] = await _read_request_body(request=request)
             return {"id": "chatcmpl-fake", "object": "chat.completion", "choices": []}
@@ -1011,7 +1011,7 @@ class TestCursorMessagesArmToolNormalization:
         }
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
-            with patch("litellm.proxy.proxy_server.chat_completion", new=fake_chat_completion):
+            with patch("token_iq.gateway.proxy.proxy_server.chat_completion", new=fake_chat_completion):
                 client = TestClient(app)
                 response = client.post(
                     "/cursor/chat/completions",
@@ -1042,7 +1042,7 @@ class TestToolEnvelopeConversionMatrix:
     @pytest.mark.parametrize("envelope", ["flat", "nested"])
     @pytest.mark.parametrize("format_shape", ["absent", "text", "flat_grammar", "nested_grammar"])
     def test_every_direction_envelope_and_format_lands_canonical(self, to_chat, envelope, format_shape):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         format_value = {
             "absent": None,
@@ -1067,7 +1067,7 @@ class TestToolEnvelopeConversionMatrix:
         assert _convert_tool_envelope(tool, to_chat=to_chat) == expected
 
     def test_nested_envelope_with_flat_grammar_matches_live_cursor_capture(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         cursor_tool = {"type": "custom", "custom": {"name": "ApplyPatch", "format": self.FLAT_GRAMMAR}}
         assert _convert_tool_envelope(cursor_tool, to_chat=True) == {
@@ -1077,13 +1077,13 @@ class TestToolEnvelopeConversionMatrix:
 
     @pytest.mark.parametrize("to_chat", [True, False])
     def test_conversion_is_idempotent(self, to_chat):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         once = _convert_tool_envelope({"type": "custom", "name": "A", "format": self.FLAT_GRAMMAR}, to_chat=to_chat)
         assert _convert_tool_envelope(once, to_chat=to_chat) == once
 
     def test_nested_function_tool_flattens_and_flat_passes_through(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         nested = {"type": "function", "function": {"name": "read_file", "parameters": {"type": "object"}}}
         flat = {"type": "function", "name": "read_file", "parameters": {"type": "object"}}
@@ -1092,7 +1092,7 @@ class TestToolEnvelopeConversionMatrix:
 
     @pytest.mark.parametrize("to_chat", [True, False])
     def test_unrecognized_entries_pass_through(self, to_chat):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         entries = [{"type": "web_search"}, {"type": "custom"}, "junk", None, {}, 42, {"type": "auto"}]
         assert [_convert_tool_envelope(entry, to_chat=to_chat) for entry in entries] == entries
@@ -1101,7 +1101,7 @@ class TestToolEnvelopeConversionMatrix:
     def test_empty_nested_envelope_falls_back_to_top_level_payload(self, to_chat):
         """An empty nested envelope must not shadow payload fields that sit at the top
         level; treating the empty dict as the sole payload source dropped the name."""
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         hybrid = {"type": "custom", "custom": {}, "name": "ApplyPatch", "format": self.TEXT}
         expected_payload = {"name": "ApplyPatch", "format": self.TEXT}
@@ -1109,14 +1109,14 @@ class TestToolEnvelopeConversionMatrix:
         assert _convert_tool_envelope(hybrid, to_chat=to_chat) == expected
 
     def test_nested_payload_wins_over_stray_top_level_fields(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         tool = {"type": "custom", "custom": {"name": "NestedName"}, "name": "TopName"}
         assert _convert_tool_envelope(tool, to_chat=False) == {"type": "custom", "name": "NestedName"}
 
     @pytest.mark.parametrize("to_chat", [True, False])
     def test_nameless_envelope_passes_through_unchanged(self, to_chat):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         nameless = {"type": "custom", "custom": {}, "description": "no name anywhere"}
         assert _convert_tool_envelope(nameless, to_chat=to_chat) == nameless
@@ -1132,7 +1132,7 @@ class TestToolChoiceSharesTheToolEnvelopeRule:
 
     @pytest.mark.parametrize("choice_type", ["custom", "function"])
     def test_flat_tool_choice_is_nested_for_chat(self, choice_type):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         assert _convert_tool_envelope({"type": choice_type, "name": "ApplyPatch"}, to_chat=True) == {
             "type": choice_type,
@@ -1141,7 +1141,7 @@ class TestToolChoiceSharesTheToolEnvelopeRule:
 
     @pytest.mark.parametrize("choice_type", ["custom", "function"])
     def test_nested_tool_choice_is_flattened_for_responses(self, choice_type):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         assert _convert_tool_envelope({"type": choice_type, choice_type: {"name": "ApplyPatch"}}, to_chat=False) == {
             "type": choice_type,
@@ -1150,7 +1150,7 @@ class TestToolChoiceSharesTheToolEnvelopeRule:
 
     @pytest.mark.parametrize("to_chat", [True, False])
     def test_sentinel_and_malformed_tool_choice_pass_through(self, to_chat):
-        from litellm.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _convert_tool_envelope
 
         for unchanged in ("auto", "required", "none", None, {"type": "auto"}, 42):
             assert _convert_tool_envelope(unchanged, to_chat=to_chat) == unchanged
@@ -1165,7 +1165,7 @@ class TestNormalizeToolDialectCoversBothFields:
 
     @pytest.mark.parametrize("to_chat", [True, False])
     def test_tools_and_tool_choice_convert_together(self, to_chat):
-        from litellm.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
 
         flat = {"type": "custom", "name": "ApplyPatch"}
         nested = {"type": "custom", "custom": {"name": "ApplyPatch"}}
@@ -1177,13 +1177,13 @@ class TestNormalizeToolDialectCoversBothFields:
         assert out["tool_choice"] == expected
 
     def test_body_needing_no_conversion_is_returned_by_identity(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
 
         data = {"messages": [], "tools": [{"type": "function", "function": {"name": "f"}}], "tool_choice": "auto"}
         assert _normalize_tool_dialect(data, to_chat=True) is data
 
     def test_absent_tool_fields_are_not_invented(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _normalize_tool_dialect
 
         data = {"messages": [{"role": "user", "content": "hi"}]}
         result = _normalize_tool_dialect(data, to_chat=True)
@@ -1194,11 +1194,11 @@ class TestNormalizeToolDialectCoversBothFields:
 class TestCursorInputArmFlattening:
     @pytest.mark.asyncio
     async def test_nested_chat_shapes_in_input_body_reach_aresponses_flattened(self):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         mock_response = ResponsesAPIResponse(
             id="resp_flat123",
@@ -1218,7 +1218,7 @@ class TestCursorInputArmFlattening:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
-            with patch("litellm.proxy.proxy_server.llm_router") as mock_router:
+            with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:
                 mock_router.aresponses = AsyncMock(return_value=mock_response)
                 client = TestClient(app)
                 response = client.post(
@@ -1261,7 +1261,7 @@ class TestCursorInputArmFlattening:
 
 class TestChatCompletionsBodyDetection:
     def test_routing_matrix(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _is_chat_completions_body
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _is_chat_completions_body
 
         assert _is_chat_completions_body({"messages": [{"role": "user", "content": "hi"}]}) is True
         assert _is_chat_completions_body({"messages": [{"role": "user", "content": "hi"}], "input": []}) is True
@@ -1276,9 +1276,9 @@ class TestChatCompletionsBodyDetection:
     async def test_null_messages_stub_with_input_reaches_responses_arm(self):
         from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         mock_response = ResponsesAPIResponse(
             id="resp_stub1",
@@ -1298,7 +1298,7 @@ class TestChatCompletionsBodyDetection:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
-            with patch("litellm.proxy.proxy_server.llm_router") as mock_router:
+            with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:
                 mock_router.aresponses = AsyncMock(return_value=mock_response)
                 client = TestClient(app)
                 response = client.post(
@@ -1334,7 +1334,7 @@ class TestParseCursorModelVariant:
         ],
     )
     def test_parse_matrix(self, model, expected_base, expected_effort):
-        from litellm.proxy.response_api_endpoints.endpoints import _parse_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _parse_cursor_model_variant
 
         variant = _parse_cursor_model_variant(model)
         assert variant.base_model == expected_base
@@ -1344,7 +1344,7 @@ class TestParseCursorModelVariant:
 class TestResolveCursorModelVariant:
     @pytest.fixture(scope="class")
     def wildcard_router(self):
-        from litellm import Router
+        from token_iq.gateway import Router
 
         return Router(
             model_list=[
@@ -1358,7 +1358,7 @@ class TestResolveCursorModelVariant:
         )
 
     def test_chat_body_suffix_stripped_into_reasoning_effort(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {
             "model": "claude-opus-5-thinking-xhigh-fast",
@@ -1371,7 +1371,7 @@ class TestResolveCursorModelVariant:
         assert body["model"] == "claude-opus-5-thinking-xhigh-fast"
 
     def test_responses_body_suffix_stripped_into_reasoning_dict(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "claude-opus-5-thinking-high", "input": [{"role": "user", "content": "hi"}]}
         resolved = _resolve_cursor_model_variant(body, wildcard_router)
@@ -1379,7 +1379,7 @@ class TestResolveCursorModelVariant:
         assert resolved["reasoning"] == {"effort": "high"}
 
     def test_responses_body_merges_effort_into_existing_reasoning(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {
             "model": "claude-opus-5-thinking-high",
@@ -1391,7 +1391,7 @@ class TestResolveCursorModelVariant:
         assert resolved["reasoning"] == {"summary": "auto", "effort": "high"}
 
     def test_existing_reasoning_effort_wins_but_model_still_rewritten(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         chat_body = {
             "model": "claude-opus-5-thinking-high",
@@ -1412,7 +1412,7 @@ class TestResolveCursorModelVariant:
         assert resolved_responses["reasoning"] == {"effort": "low"}
 
     def test_fast_only_suffix_strips_without_reasoning(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "claude-opus-5-fast", "messages": [{"role": "user", "content": "hi"}]}
         resolved = _resolve_cursor_model_variant(body, wildcard_router)
@@ -1420,31 +1420,31 @@ class TestResolveCursorModelVariant:
         assert "reasoning_effort" not in resolved
 
     def test_explicitly_configured_suffixed_name_untouched(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "explicit-alias-thinking-high", "messages": [{"role": "user", "content": "hi"}]}
         assert _resolve_cursor_model_variant(body, wildcard_router) is body
 
     def test_provider_inferable_bare_name_untouched(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hi"}]}
         assert _resolve_cursor_model_variant(body, wildcard_router) is body
 
     def test_unservable_base_untouched(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "totally-unknown-thinking-high", "messages": [{"role": "user", "content": "hi"}]}
         assert _resolve_cursor_model_variant(body, wildcard_router) is body
 
     def test_no_router_untouched(self):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         body = {"model": "claude-opus-5-thinking-high", "messages": [{"role": "user", "content": "hi"}]}
         assert _resolve_cursor_model_variant(body, None) is body
 
     def test_missing_or_non_string_model_untouched(self, wildcard_router):
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         no_model = {"messages": [{"role": "user", "content": "hi"}]}
         assert _resolve_cursor_model_variant(no_model, wildcard_router) is no_model
@@ -1472,13 +1472,13 @@ def _router_serving_only(base_model: str) -> MagicMock:
 class TestCursorModelSuffixResolutionEndToEnd:
     @pytest.mark.asyncio
     async def test_chat_arm_rewrites_suffixed_model_before_delegation(self):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         seen = {}
 
         async def fake_chat_completion(request, fastapi_response, model, user_api_key_dict):
-            from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
+            from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
 
             seen["body"] = await _read_request_body(request=request)
             return {"id": "chatcmpl-fake", "object": "chat.completion", "choices": []}
@@ -1486,8 +1486,8 @@ class TestCursorModelSuffixResolutionEndToEnd:
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
             with (
-                patch("litellm.proxy.proxy_server.llm_router", new=_router_serving_only("claude-opus-5")),
-                patch("litellm.proxy.proxy_server.chat_completion", new=fake_chat_completion),
+                patch("token_iq.gateway.proxy.proxy_server.llm_router", new=_router_serving_only("claude-opus-5")),
+                patch("token_iq.gateway.proxy.proxy_server.chat_completion", new=fake_chat_completion),
             ):
                 client = TestClient(app)
                 response = client.post(
@@ -1510,9 +1510,9 @@ class TestCursorModelSuffixResolutionEndToEnd:
     async def test_responses_arm_rewrites_suffixed_model_before_routing(self):
         from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         mock_response = ResponsesAPIResponse(
             id="resp_suffix1",
@@ -1535,7 +1535,7 @@ class TestCursorModelSuffixResolutionEndToEnd:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(api_key="sk-1234")
         try:
-            with patch("litellm.proxy.proxy_server.llm_router", new=mock_router):
+            with patch("token_iq.gateway.proxy.proxy_server.llm_router", new=mock_router):
                 client = TestClient(app)
                 response = client.post(
                     "/cursor/chat/completions",
@@ -1555,10 +1555,10 @@ class TestCursorModelSuffixResolutionEndToEnd:
 
 
 def _cursor_budget_auth_env(base_model: str, spend: float):
-    from litellm import Router
-    from litellm.caching.dual_cache import DualCache
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.hooks.model_max_budget_limiter import (
+    from token_iq.gateway import Router
+    from token_iq.gateway.caching.dual_cache import DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
         VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
         _PROXY_VirtualKeyModelMaxBudgetLimiter,
     )
@@ -1599,9 +1599,9 @@ def _cursor_budget_auth_env(base_model: str, spend: float):
 
 def _post_cursor_with_real_auth(valid_token, proxy_server_attrs, request_model: str):
     with (
-        patch.multiple("litellm.proxy.proxy_server", **proxy_server_attrs),
+        patch.multiple("token_iq.gateway.proxy.proxy_server", **proxy_server_attrs),
         patch(
-            "litellm.proxy.auth.resolvers.store.IdentityStore._resolve_key",
+            "token_iq.gateway.proxy.auth.resolvers.store.IdentityStore._resolve_key",
             new_callable=AsyncMock,
             return_value=valid_token,
         ),
@@ -1654,9 +1654,9 @@ class TestCursorVariantResolvedBeforeAuth:
     router already serves must reach auth untouched."""
 
     def _run_with_recording_auth(self, mock_router, request_model: str):
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy.common_utils.http_parsing_utils import _read_request_body
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.common_utils.http_parsing_utils import _read_request_body
 
         from fastapi import Request
 
@@ -1672,8 +1672,8 @@ class TestCursorVariantResolvedBeforeAuth:
         app.dependency_overrides[user_api_key_auth] = recording_auth
         try:
             with (
-                patch("litellm.proxy.proxy_server.llm_router", new=mock_router),
-                patch("litellm.proxy.proxy_server.chat_completion", new=fake_chat_completion),
+                patch("token_iq.gateway.proxy.proxy_server.llm_router", new=mock_router),
+                patch("token_iq.gateway.proxy.proxy_server.chat_completion", new=fake_chat_completion),
             ):
                 client = TestClient(app)
                 response = client.post(
@@ -1710,8 +1710,8 @@ class TestCursorVariantResolvedBeforeAuth:
 
 class TestCursorGateRecognizesRoutingGroups:
     def test_group_name_variant_is_not_mangled(self):
-        from litellm import Router
-        from litellm.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
+        from token_iq.gateway import Router
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _resolve_cursor_model_variant
 
         router = Router(
             model_list=[{"model_name": "member-fast", "litellm_params": {"model": "openai/gpt-4o", "api_key": "fake"}}],
@@ -1734,9 +1734,9 @@ class TestGuardrailBlockedResponsesUsage:
     e.original_response, exactly like /v1/chat/completions already does."""
 
     def _post_blocked_responses(self, original_response):
-        from litellm.integrations.custom_guardrail import ModifyResponseException
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         exc = ModifyResponseException(
             message="Content flagged by policy, response withheld",
@@ -1753,10 +1753,10 @@ class TestGuardrailBlockedResponsesUsage:
         try:
             with (
                 patch(
-                    "litellm.proxy.response_api_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+                    "token_iq.gateway.proxy.response_api_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
                     new=AsyncMock(side_effect=exc),
                 ),
-                patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
+                patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
             ):
                 client = TestClient(app)
                 return client.post(
@@ -1768,7 +1768,7 @@ class TestGuardrailBlockedResponsesUsage:
             app.dependency_overrides.pop(user_api_key_auth, None)
 
     def test_post_call_block_reports_real_upstream_usage(self):
-        from litellm.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
         original = ResponsesAPIResponse(
             id="resp_upstream",
@@ -1824,10 +1824,10 @@ class TestResponsesInputTokens:
         path: str = "/v1/responses/input_tokens",
         counter: AsyncMock | None = None,
     ) -> tuple[Response, AsyncMock]:
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-        from litellm.proxy.response_api_endpoints.endpoints import _proxy_token_counter
-        from litellm.types.utils import TokenCountResponse
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import _proxy_token_counter
+        from token_iq.gateway.types.utils import TokenCountResponse
 
         token_counter_mock = (
             counter
@@ -1945,7 +1945,7 @@ class TestResponsesInputTokens:
         counter.assert_not_awaited()
 
     def test_provider_error_maps_status_code(self):
-        from litellm.proxy._types import ProxyException
+        from token_iq.gateway.proxy._types import ProxyException
 
         failing_counter = AsyncMock(
             side_effect=ProxyException(

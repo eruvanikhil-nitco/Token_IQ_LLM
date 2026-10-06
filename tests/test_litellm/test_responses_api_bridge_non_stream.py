@@ -4,18 +4,18 @@ from unittest.mock import Mock
 import pytest
 
 
-from litellm.completion_extras.litellm_responses_transformation.handler import (
+from token_iq.gateway.completion_extras.litellm_responses_transformation.handler import (
     ResponsesToCompletionBridgeHandler,
 )
-from litellm.responses.litellm_completion_transformation.transformation import (
+from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     InputTokensDetails,
     OutputTokensDetails,
     ResponsesAPIResponse,
 )
-from litellm.types.utils import Choices, Message, ModelResponse, Usage
+from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
 """
 Test that all providers can transform completion responses to Responses API format
@@ -89,7 +89,7 @@ def create_mock_completion_response(
 
     # Add prompt_tokens_details if we have cached_tokens or text_tokens
     if cached_tokens is not None or text_tokens is not None:
-        from litellm.types.utils import PromptTokensDetails
+        from token_iq.gateway.types.utils import PromptTokensDetails
 
         usage.prompt_tokens_details = PromptTokensDetails(
             cached_tokens=cached_tokens,
@@ -98,7 +98,7 @@ def create_mock_completion_response(
 
     # Add completion_tokens_details if we have reasoning_tokens or text_tokens
     if reasoning_tokens is not None or text_tokens is not None:
-        from litellm.types.utils import CompletionTokensDetails
+        from token_iq.gateway.types.utils import CompletionTokensDetails
 
         usage.completion_tokens_details = CompletionTokensDetails(
             reasoning_tokens=reasoning_tokens,
@@ -329,7 +329,7 @@ def test_transform_usage_unknown_reasoning_split_keeps_output_tokens_details():
         OutputTokensDetails as OpenAISDKOutputTokensDetails,
     )
 
-    from litellm.types.utils import CompletionTokensDetailsWrapper
+    from token_iq.gateway.types.utils import CompletionTokensDetailsWrapper
 
     usage = Usage(
         prompt_tokens=100,

@@ -1,8 +1,8 @@
 import uuid
 
-import litellm
+from token_iq import gateway as litellm
 
-from litellm.utils import _invalidate_model_cost_lowercase_map
+from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
 
 def test_reducto_provider_registration():

@@ -1,6 +1,6 @@
 
 
-from litellm.proxy.common_utils.html_forms.ui_login import build_ui_login_form
+from token_iq.gateway.proxy.common_utils.html_forms.ui_login import build_ui_login_form
 
 DISCLOSURE_MARKERS = ("Default Credentials", "MASTER_KEY")
 FORM_MARKERS = ('name="username"', 'name="password"')

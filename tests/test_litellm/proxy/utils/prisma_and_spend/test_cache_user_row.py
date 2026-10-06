@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.utils import _cache_user_row
+from token_iq.gateway.proxy.utils import _cache_user_row
 
 
 @pytest.mark.asyncio

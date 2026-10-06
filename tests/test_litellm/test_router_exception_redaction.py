@@ -21,7 +21,7 @@ flag OFF the proxy's internal wiring is redacted, and that a raw
 provider credential never appears in the message regardless of the
 flag.
 
-Five leak sites are gated in `litellm/router.py`:
+Five leak sites are gated in `token_iq/gateway/router.py`:
 
 1. Deployment timeout debug after `litellm.Timeout`
 2. ContextWindowExceededError fallback hint
@@ -39,8 +39,8 @@ from __future__ import annotations
 
 import pytest
 
-import litellm
-from litellm import Router
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
 
 _RECEIVED_MODEL_GROUP_PHRASE = "Received Model Group="
 _AVAILABLE_FALLBACKS_PHRASE = "Available Model Group Fallbacks="

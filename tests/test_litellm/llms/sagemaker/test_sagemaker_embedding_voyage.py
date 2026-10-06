@@ -13,13 +13,13 @@ import httpx
 import pytest
 
 
-from litellm import embedding
-from litellm.llms.sagemaker.embedding.cohere_transformation import (
+from token_iq.gateway import embedding
+from token_iq.gateway.llms.sagemaker.embedding.cohere_transformation import (
     SagemakerCohereEmbeddingConfig,
 )
-from litellm.llms.sagemaker.embedding.transformation import SagemakerEmbeddingConfig
-from litellm.llms.voyage.embedding.transformation import VoyageEmbeddingConfig
-from litellm.types.utils import EmbeddingResponse, Usage
+from token_iq.gateway.llms.sagemaker.embedding.transformation import SagemakerEmbeddingConfig
+from token_iq.gateway.llms.voyage.embedding.transformation import VoyageEmbeddingConfig
+from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
 
 class TestSagemakerEmbeddingFactory:
@@ -126,7 +126,7 @@ class TestSagemakerCohereEmbeddingConfig:
 
     def test_get_optional_params_embeddings_preserves_input_type(self):
         """Exercises get_optional_params_embeddings, not transform in isolation."""
-        from litellm.utils import get_optional_params_embeddings
+        from token_iq.gateway.utils import get_optional_params_embeddings
 
         optional_params = get_optional_params_embeddings(
             model=self.MODEL,
@@ -146,7 +146,7 @@ class TestSagemakerCohereEmbeddingConfig:
 
     def test_get_optional_params_embeddings_maps_dimensions_without_duplicate(self):
         """dimensions must map to output_dimension only, not also stay as dimensions."""
-        from litellm.utils import get_optional_params_embeddings
+        from token_iq.gateway.utils import get_optional_params_embeddings
 
         optional_params = get_optional_params_embeddings(
             model=self.MODEL,
@@ -392,7 +392,7 @@ class TestSagemakerEmbeddingIntegration:
     def test_voyage_embedding_request_format(self):
         """Test that Voyage models use correct request format"""
         with patch(
-            "litellm.llms.sagemaker.completion.handler.SagemakerLLM.embedding"
+            "token_iq.gateway.llms.sagemaker.completion.handler.SagemakerLLM.embedding"
         ) as mock_embedding:
             # Mock the actual SageMaker call to avoid AWS credentials
             mock_embedding.return_value = EmbeddingResponse(
@@ -428,7 +428,7 @@ class TestSagemakerEmbeddingIntegration:
     def test_hf_embedding_request_format(self):
         """Test that HF models use correct request format"""
         with patch(
-            "litellm.llms.sagemaker.completion.handler.SagemakerLLM.embedding"
+            "token_iq.gateway.llms.sagemaker.completion.handler.SagemakerLLM.embedding"
         ) as mock_embedding:
             # Mock the actual SageMaker call to avoid AWS credentials
             mock_embedding.return_value = EmbeddingResponse(

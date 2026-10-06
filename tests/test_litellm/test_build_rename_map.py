@@ -66,12 +66,12 @@ def test_a_name_without_the_old_name_in_it_is_left_alone() -> None:
     [
         # Phase 6 renames code. Everything a running installation reads by name waits for its own
         # phase, because renaming it in phase 6 breaks that installation on upgrade.
-        ("LITELLM_MASTER_KEY", ("litellm/proxy/proxy_server.py",), "env var"),
-        ("litellm_settings", ("litellm/proxy/proxy_server.py",), "config key"),
-        ("x-litellm-model-id", ("litellm/proxy/common_utils/http_parsing_utils.py",), "request header"),
+        ("LITELLM_MASTER_KEY", ("token_iq/gateway/proxy/proxy_server.py",), "env var"),
+        ("litellm_settings", ("token_iq/gateway/proxy/proxy_server.py",), "config key"),
+        ("x-litellm-model-id", ("token_iq/gateway/proxy/common_utils/http_parsing_utils.py",), "request header"),
         ("LiteLLM_TeamTable", ("schema.prisma",), "database model"),
-        ("litellm_requests_metric", ("litellm/integrations/prometheus.py",), "metric name"),
-        ("LiteLLMRoutes", ("litellm/proxy/_types.py",), "identifier"),
+        ("litellm_requests_metric", ("token_iq/gateway/integrations/prometheus.py",), "metric name"),
+        ("LiteLLMRoutes", ("token_iq/gateway/proxy/_types.py",), "identifier"),
     ],
 )
 def test_the_phase_that_owns_a_name_is_read_from_where_it_is_written(
@@ -89,8 +89,8 @@ def test_a_table_named_in_python_still_belongs_to_the_database_phase() -> None:
 
 def test_an_env_var_is_not_mistaken_for_a_class_that_merely_shouts() -> None:
     """A screaming identifier that is not an environment variable still belongs to phase 6."""
-    assert classify("LITELLM_MASTER_KEY", ("litellm/proxy/proxy_server.py",)) == "env var"
-    assert classify("LiteLLM", ("litellm/__init__.py",)) == "identifier"
+    assert classify("LITELLM_MASTER_KEY", ("token_iq/gateway/proxy/proxy_server.py",)) == "env var"
+    assert classify("LiteLLM", ("token_iq/gateway/__init__.py",)) == "identifier"
 
 
 def test_the_census_fixture_is_not_renamed_because_it_is_what_a_gate_greps_for() -> None:
@@ -101,7 +101,7 @@ def test_the_census_fixture_is_not_renamed_because_it_is_what_a_gate_greps_for()
 
 
 def test_a_name_in_two_places_is_not_claimed_by_the_census_fixture() -> None:
-    where = ("tests/code_coverage_tests/test_inventory_census.py", "litellm/__init__.py")
+    where = ("tests/code_coverage_tests/test_inventory_census.py", "token_iq/gateway/__init__.py")
     assert classify("LiteLLM", where) == "identifier"
 
 
@@ -119,6 +119,6 @@ def test_the_historical_record_is_never_counted(path: str) -> None:
     assert excluded(path) is True
 
 
-@pytest.mark.parametrize("path", ["litellm/__init__.py", "schema.prisma", "docs/status.md"])
+@pytest.mark.parametrize("path", ["token_iq/gateway/__init__.py", "schema.prisma", "docs/status.md"])
 def test_everything_else_is_counted(path: str) -> None:
     assert excluded(path) is False

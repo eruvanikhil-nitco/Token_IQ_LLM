@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from litellm.llms.jina_ai.embedding.transformation import JinaAIEmbeddingConfig
+from token_iq.gateway.llms.jina_ai.embedding.transformation import JinaAIEmbeddingConfig
 
 JINA_KEY_ENV_NAMES = ("JINA_AI_API_KEY", "JINA_API_KEY", "JINA_AI_TOKEN")
 

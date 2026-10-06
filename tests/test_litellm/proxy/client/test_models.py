@@ -7,8 +7,8 @@ import requests
 
 import responses
 
-from litellm.proxy.client import Client, ModelsManagementClient
-from litellm.proxy.client.exceptions import NotFoundError, UnauthorizedError
+from token_iq.gateway.proxy.client import Client, ModelsManagementClient
+from token_iq.gateway.proxy.client.exceptions import NotFoundError, UnauthorizedError
 
 
 @pytest.fixture

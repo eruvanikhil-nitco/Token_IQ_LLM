@@ -2,8 +2,8 @@ import uuid
 
 import pytest
 
-from litellm.proxy._types import KeyManagementRoutes
-from litellm.proxy.utils import hash_token
+from token_iq.gateway.proxy._types import KeyManagementRoutes
+from token_iq.gateway.proxy.utils import hash_token
 
 from .actors import Actor
 from .conftest import create_scratch_key, create_scratch_team

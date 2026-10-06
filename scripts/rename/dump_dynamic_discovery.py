@@ -2,7 +2,7 @@
 
 This is the one failure class that phase 6 can cause and nothing else can see. The codemod rewrites
 `import` statements, which libcst understands. It does not understand
-`f"litellm.proxy.guardrails.guardrail_hooks.{item}"`, and `litellm/llms/__init__.py` goes further
+`f"token_iq.gateway.proxy.guardrails.guardrail_hooks.{item}"`, and `token_iq/gateway/llms/__init__.py` goes further
 and builds its path from a filesystem walk prefixed with the literal `"litellm."`. A move that
 leaves those strings alone still compiles, still lints, still type-checks, and the registry they
 feed comes back empty: every guardrail silently stops being available.
@@ -61,12 +61,12 @@ def names_of(found: object) -> tuple[str, ...]:
 
 def discoveries() -> tuple[tuple[str, Callable[[], object]], ...]:
     """Every registry the engine fills by importing a module path it built as a string."""
-    from litellm.llms import discover_guardrail_translation_mappings
-    from litellm.proxy.guardrails.guardrail_registry import (
+    from token_iq.gateway.llms import discover_guardrail_translation_mappings
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import (
         get_guardrail_class_from_hooks,
         get_guardrail_initializer_from_hooks,
     )
-    from litellm.proxy.prompts.prompt_registry import get_prompt_initializer_from_integrations
+    from token_iq.gateway.proxy.prompts.prompt_registry import get_prompt_initializer_from_integrations
 
     return (
         ("guardrail initializers", get_guardrail_initializer_from_hooks),

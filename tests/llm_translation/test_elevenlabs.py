@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import httpx
 
-import litellm
+from token_iq import gateway as litellm
 from base_audio_transcription_unit_tests import BaseLLMAudioTranscriptionTest
 
 os.environ.setdefault("ELEVENLABS_API_KEY", "test-elevenlabs-key")
@@ -60,7 +60,7 @@ class TestElevenLabsAudioTranscription(BaseLLMAudioTranscriptionTest):
             return mock_response
 
         # Mock the HTTPHandler.post method which is what actually makes the request
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         with patch.object(HTTPHandler, "post", side_effect=mock_post):
             try:
@@ -134,7 +134,7 @@ class TestElevenLabsAudioTranscription(BaseLLMAudioTranscriptionTest):
 class TestElevenLabsTextToSpeechTransformation:
     @pytest.fixture(scope="class")
     def config(self):
-        from litellm.llms.elevenlabs.text_to_speech.transformation import (
+        from token_iq.gateway.llms.elevenlabs.text_to_speech.transformation import (
             ElevenLabsTextToSpeechConfig,
         )
 

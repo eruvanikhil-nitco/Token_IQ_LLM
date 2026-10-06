@@ -2,9 +2,9 @@ import socket
 
 import pytest
 
-import litellm
-from litellm.litellm_core_utils import url_utils
-from litellm.litellm_core_utils.url_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils import url_utils
+from token_iq.gateway.core_utils.url_utils import (
     SSRFError,
     _is_blocked_ip,
     assert_same_origin,

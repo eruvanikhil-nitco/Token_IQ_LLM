@@ -1,5 +1,5 @@
 import pytest
-from litellm.llms.oci.chat.transformation import adapt_messages_to_generic_oci_standard
+from token_iq.gateway.llms.oci.chat.transformation import adapt_messages_to_generic_oci_standard
 
 
 def test_adapt_messages_with_empty_content_and_tool_calls():

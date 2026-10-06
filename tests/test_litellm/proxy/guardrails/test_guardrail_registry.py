@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.proxy.guardrails.guardrail_registry import (
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.proxy.guardrails.guardrail_registry import (
     get_guardrail_initializer_from_hooks,
     GuardrailRegistry,
     InMemoryGuardrailHandler,
 )
-from litellm.types.guardrails import GuardrailEventHooks, Guardrail, LitellmParams
+from token_iq.gateway.types.guardrails import GuardrailEventHooks, Guardrail, LitellmParams
 
 
 def test_get_guardrail_initializer_from_hooks():
@@ -18,16 +18,16 @@ def test_get_guardrail_initializer_from_hooks():
 
 
 def test_guardrail_class_registry():
-    from litellm.proxy.guardrails.guardrail_registry import guardrail_class_registry
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import guardrail_class_registry
 
     assert "aim" in guardrail_class_registry
     assert "aporia" in guardrail_class_registry
 
 
 def test_noma_registry_resolution():
-    from litellm.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
-    from litellm.proxy.guardrails.guardrail_hooks.noma.noma_v2 import NomaV2Guardrail
-    from litellm.proxy.guardrails.guardrail_registry import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma_v2 import NomaV2Guardrail
+    from token_iq.gateway.proxy.guardrails.guardrail_registry import (
         guardrail_class_registry,
         guardrail_initializer_registry,
     )
@@ -49,7 +49,7 @@ def test_initialize_guardrail_run_in_parallel_preserves_constructor_default(conf
     previous code wrote bool(None)==False on every instance, silently disabling the
     opt-in for such guardrails.
     """
-    from litellm.proxy.guardrails import guardrail_registry as registry_module
+    from token_iq.gateway.proxy.guardrails import guardrail_registry as registry_module
 
     def _initializer(litellm_params, guardrail):
         return CustomGuardrail(
@@ -77,7 +77,7 @@ def test_initialize_guardrail_run_in_parallel_preserves_constructor_default(conf
 
 
 def _register_noop_initializer(guardrail_type: str):
-    from litellm.proxy.guardrails import guardrail_registry as registry_module
+    from token_iq.gateway.proxy.guardrails import guardrail_registry as registry_module
 
     def _initializer(litellm_params, guardrail):
         return CustomGuardrail(
@@ -399,7 +399,7 @@ def test_unnormalizable_db_params_register_as_changed_without_raising():
 
 
 def _all_callback_lists():
-    import litellm
+    from token_iq import gateway as litellm
 
     return [
         litellm.callbacks,
@@ -451,7 +451,7 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
     the stale instance lingers in the success/failure lists and the distinct count
     climbs above one.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     handler = InMemoryGuardrailHandler()
     gid = "44444444-4444-4444-4444-444444444444"
@@ -527,7 +527,7 @@ def test_presidio_siblings_are_tracked_and_deleted_together():
     the post_call unmask and mask-output siblings. Deleting the guardrail must remove
     all three from every callback list, not just the primary.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
@@ -558,7 +558,7 @@ def test_presidio_siblings_are_tracked_and_deleted_together():
 
 
 def test_update_in_memory_guardrail_reaches_presidio_siblings_and_keeps_their_stage():
-    import litellm
+    from token_iq import gateway as litellm
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
@@ -608,7 +608,7 @@ def test_repeated_db_sync_replaces_presidio_siblings_instead_of_leaking_stale_on
     keeps serving the previous entity config. After every DB re-sync, each callback
     list must hold exactly the three current instances, all on the latest config.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
@@ -651,7 +651,7 @@ def test_db_synced_judge_guardrail_uses_lazy_router_provider():
     Router was captured at construction; a guardrail created before the Router
     existed captured None and never recovered). Asserting the default provider is
     wired guarantees the instance reads the live global rather than a stale value."""
-    from litellm.proxy.guardrails.guardrail_hooks.llm_as_a_judge import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge import (
         LLMAsAJudgeGuardrail,
         _default_router_provider,
     )
@@ -672,7 +672,7 @@ def test_db_synced_judge_guardrail_uses_lazy_router_provider():
 
 
 def test_reinitialized_judge_guardrail_uses_lazy_router_provider():
-    from litellm.proxy.guardrails.guardrail_hooks.llm_as_a_judge import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge import (
         LLMAsAJudgeGuardrail,
         _default_router_provider,
     )
@@ -875,7 +875,7 @@ def test_reinitialize_guardrail_restores_previous_on_failure():
     """A reinitialization whose new params make the guardrail constructor raise must
     restore the previous instance instead of leaving the guardrail silently removed:
     an enforcing guardrail must never fail open because an update was bad."""
-    from litellm.proxy.guardrails import guardrail_registry as registry_module
+    from token_iq.gateway.proxy.guardrails import guardrail_registry as registry_module
 
     def _initializer(litellm_params, guardrail):
         if litellm_params.api_key == "boom":
@@ -922,7 +922,7 @@ def test_reinitialize_guardrail_raises_value_error_for_non_value_error_init_fail
     catch is exhaustive instead of warn-and-200 persisting a broken config."""
     import re
 
-    from litellm.proxy.guardrails import guardrail_registry as registry_module
+    from token_iq.gateway.proxy.guardrails import guardrail_registry as registry_module
 
     def _initializer(litellm_params, guardrail):
         if litellm_params.api_key == "bad-regex":
@@ -972,7 +972,7 @@ def test_sync_guardrail_from_db_applies_db_dict_params_to_live_instance():
     from mode (the base-class setattr path wrote self.mode while dispatch reads
     self.event_hook, so only a full re-init applies a mode change).
     """
-    from litellm.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
         ContentFilterGuardrail,
     )
 

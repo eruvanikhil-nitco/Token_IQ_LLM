@@ -4,9 +4,9 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.constants import MAX_SIZE_IN_MEMORY_QUEUE
-from litellm.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
-from litellm.proxy.db.db_transaction_queue.spend_update_queue import SpendUpdateQueue
+from token_iq.gateway.constants import MAX_SIZE_IN_MEMORY_QUEUE
+from token_iq.gateway.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
+from token_iq.gateway.proxy.db.db_transaction_queue.spend_update_queue import SpendUpdateQueue
 
 
 

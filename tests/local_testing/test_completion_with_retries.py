@@ -6,11 +6,11 @@ load_dotenv()
 
 import pytest
 import openai
-import litellm
-from litellm import completion_with_retries, completion, acompletion_with_retries
-from litellm import responses_with_retries, aresponses_with_retries
-from litellm.responses.main import responses, aresponses
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import completion_with_retries, completion, acompletion_with_retries
+from token_iq.gateway import responses_with_retries, aresponses_with_retries
+from token_iq.gateway.responses.main import responses, aresponses
+from token_iq.gateway import (
     AuthenticationError,
     BadRequestError,
     RateLimitError,
@@ -52,7 +52,7 @@ def test_completion_with_0_num_retries():
 @pytest.mark.parametrize("sync_mode", [True, False])
 async def test_completion_with_retry_policy(sync_mode):
     from unittest.mock import patch, MagicMock, AsyncMock
-    from litellm.types.router import RetryPolicy
+    from token_iq.gateway.types.router import RetryPolicy
 
     retry_number = 1
     retry_policy = RetryPolicy(
@@ -92,7 +92,7 @@ async def test_completion_with_retry_policy_no_error(sync_mode):
     Test that the completion function does not throw an error when the retry policy is set
     """
     from unittest.mock import patch, MagicMock, AsyncMock
-    from litellm.types.router import RetryPolicy
+    from token_iq.gateway.types.router import RetryPolicy
 
     retry_number = 1
     retry_policy = RetryPolicy(
@@ -169,9 +169,9 @@ async def test_responses_with_retries(sync_mode):
 
     # Mock the responses/aresponses function
     with patch(
-        "litellm.responses.main.responses"
+        "token_iq.gateway.responses.main.responses"
         if sync_mode
-        else "litellm.responses.main.aresponses"
+        else "token_iq.gateway.responses.main.aresponses"
     ) as mock_responses:
         if sync_mode:
             mock_responses.return_value = MagicMock()

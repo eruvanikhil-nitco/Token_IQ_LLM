@@ -8,8 +8,8 @@ live proxy.
 import pytest
 from click.testing import CliRunner
 
-from litellm.proxy.client.cli import main as cli_main
-from litellm.proxy.client.cli.commands import encryption as enc_cli
+from token_iq.gateway.proxy.client.cli import main as cli_main
+from token_iq.gateway.proxy.client.cli.commands import encryption as enc_cli
 
 
 class _FakeHTTPClient:

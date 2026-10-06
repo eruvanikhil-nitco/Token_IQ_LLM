@@ -4,15 +4,15 @@ from dotenv import load_dotenv
 from fastapi import Request
 from datetime import datetime
 
-from litellm import Router
+from token_iq.gateway import Router
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import patch, MagicMock, AsyncMock
 from create_mock_standard_logging_payload import create_standard_logging_payload
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.utils import StandardLoggingPayload
 import unittest
 from pydantic import BaseModel
-from litellm.router_utils.prompt_caching_cache import PromptCachingCache
+from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache
 
 
 class ExampleModel(BaseModel):
@@ -74,7 +74,7 @@ async def test_router_prompt_caching_same_cacheable_prefix_routes_to_same_deploy
     user messages should route to the same deployment, but previously didn't because
     the cache key included the entire messages array instead of just the cacheable prefix.
     """
-    from litellm.types.llms.openai import AllMessageValues
+    from token_iq.gateway.types.llms.openai import AllMessageValues
 
     def create_messages(user_content: str) -> list[AllMessageValues]:
         """

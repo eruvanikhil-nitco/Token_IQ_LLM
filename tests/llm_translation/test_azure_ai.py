@@ -7,12 +7,14 @@ import traceback
 
 from dotenv import load_dotenv
 
-import litellm.types
-import litellm.types.utils
-from litellm.llms.anthropic.chat import ModelResponseIterator
+import token_iq.gateway.types
+from token_iq import gateway as litellm
+import token_iq.gateway.types.utils
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 import httpx
 import json
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 # from base_rerank_unit_tests import BaseLLMRerankTest
 
@@ -24,10 +26,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 AZURE_AI_API_BASE = os.getenv("AZURE_AI_API_BASE")
 
@@ -40,7 +42,7 @@ AZURE_AI_API_BASE = os.getenv("AZURE_AI_API_BASE")
     ],
 )
 def test_map_azure_model_group(model_group_header, expected_model):
-    from litellm.llms.azure_ai.embed.cohere_transformation import AzureAICohereConfig
+    from token_iq.gateway.llms.azure_ai.embed.cohere_transformation import AzureAICohereConfig
 
     config = AzureAICohereConfig()
     assert config._map_azure_model_group(model_group_header) == expected_model
@@ -53,7 +55,7 @@ async def test_azure_ai_with_image_url():
 
     Test that Azure AI studio can handle image_url passed when content is a list containing both text and image_url
     """
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     litellm.set_verbose = True
 
@@ -133,7 +135,7 @@ async def test_azure_ai_with_image_url():
     ],
 )
 def test_azure_ai_services_handler(api_base, expected_url):
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     litellm.set_verbose = True
 
@@ -160,7 +162,7 @@ def test_azure_ai_services_handler(api_base, expected_url):
 
 
 def test_azure_ai_services_with_api_version():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
     client = HTTPHandler()
 
@@ -287,7 +289,7 @@ async def test_azure_gpt5_reasoning(model):
 
 def test_completion_azure():
     try:
-        from litellm import completion_cost
+        from token_iq.gateway import completion_cost
 
         litellm.set_verbose = False
         ## Test azure call
@@ -348,7 +350,7 @@ async def test_azure_ai_model_router():
     Where deployment-name is the Azure deployment (e.g., "azure-model-router").
     The model_router prefix is stripped before sending to Azure API.
     """
-    from litellm.llms.azure_ai.cost_calculator import (
+    from token_iq.gateway.llms.azure_ai.cost_calculator import (
         calculate_azure_model_router_flat_cost,
     )
 

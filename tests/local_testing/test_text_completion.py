@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import (
+from token_iq import gateway as litellm
+from token_iq.gateway import (
     RateLimitError,
     TextCompletionResponse,
     atext_completion,
@@ -4196,7 +4196,7 @@ def test_text_completion_with_echo(stream):
 
 
 def test_text_completion_ollama():
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 

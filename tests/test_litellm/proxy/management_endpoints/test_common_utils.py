@@ -1,5 +1,5 @@
 """
-Tests for litellm/proxy/management_endpoints/common_utils.py
+Tests for token_iq/gateway/proxy/management_endpoints/common_utils.py
 
 Covers the fix for GitHub issue #20304:
 Empty guardrails/policies arrays sent by the UI should NOT trigger the
@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     Member,
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
@@ -20,7 +20,7 @@ from litellm.proxy._types import (
     LitellmUserRoles,
     UserAPIKeyAuth,
 )
-from litellm.proxy.management_endpoints.common_utils import (
+from token_iq.gateway.proxy.management_endpoints.common_utils import (
     _is_user_team_admin,
     _org_admin_can_invite_user,
     _set_object_metadata_field,
@@ -30,7 +30,7 @@ from litellm.proxy.management_endpoints.common_utils import (
     _user_has_admin_view,
     admin_can_invite_user,
 )
-from litellm.proxy.management_endpoints.common_utils import _has_non_empty_value
+from token_iq.gateway.proxy.management_endpoints.common_utils import _has_non_empty_value
 
 
 class TestUpdateMetadataFieldsEmptyCollections:
@@ -48,7 +48,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
     guardrails by sending `guardrails: []`).
     """
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_empty_list_does_not_trigger_premium_check(self, mock_premium_check):
         """Empty lists for premium fields must not trigger the premium check."""
         updated_kv = {
@@ -60,7 +60,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_not_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_empty_list_still_updates_metadata(self, mock_premium_check):
         """
         Empty lists must still be moved into metadata so users can clear
@@ -80,7 +80,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         assert updated_kv["metadata"]["guardrails"] == []
         assert updated_kv["metadata"]["policies"] == []
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_empty_dict_does_not_trigger_premium_check(self, mock_premium_check):
         """Empty dicts for premium fields must not trigger the premium check."""
         updated_kv = {
@@ -90,7 +90,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_not_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_empty_dict_still_updates_metadata(self, mock_premium_check):
         """
         Empty dicts must still be moved into metadata so users can clear
@@ -106,7 +106,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         ), "secret_manager_settings should be popped from top-level"
         assert updated_kv["metadata"]["secret_manager_settings"] == {}
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_none_value_does_not_trigger_premium_check(self, mock_premium_check):
         """None values for premium fields should be silently ignored."""
         updated_kv = {
@@ -117,7 +117,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_not_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_absent_fields_do_not_trigger_premium_check(self, mock_premium_check):
         """Fields not present in the dict should not trigger premium check."""
         updated_kv = {
@@ -127,7 +127,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_not_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_non_empty_list_triggers_premium_check(self, mock_premium_check):
         """Non-empty lists for premium fields should trigger the premium check."""
         updated_kv = {
@@ -137,7 +137,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_non_empty_value_triggers_premium_check(self, mock_premium_check):
         """Non-empty string values for premium fields should trigger the premium check."""
         updated_kv = {
@@ -147,7 +147,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_non_empty_list_updates_metadata(self, mock_premium_check):
         """Non-empty lists should be moved into metadata."""
         updated_kv = {
@@ -158,7 +158,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         assert "guardrails" not in updated_kv
         assert updated_kv["metadata"]["guardrails"] == ["my-guardrail"]
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_false_boolean_does_not_trigger_premium_check(self, mock_premium_check):
         """
         Regression #30285: /team/update sends disable_global_guardrails=False
@@ -169,7 +169,7 @@ class TestUpdateMetadataFieldsEmptyCollections:
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_not_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_false_boolean_still_updates_metadata(self, mock_premium_check):
         """A falsy boolean must still be moved into metadata so it persists."""
         updated_kv = {"team_id": "test-team", "disable_global_guardrails": False}
@@ -177,14 +177,14 @@ class TestUpdateMetadataFieldsEmptyCollections:
         assert "disable_global_guardrails" not in updated_kv
         assert updated_kv["metadata"]["disable_global_guardrails"] is False
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_true_boolean_triggers_premium_check(self, mock_premium_check):
         """Control: enabling the premium feature (True) still requires a license."""
         updated_kv = {"team_id": "test-team", "disable_global_guardrails": True}
         _update_metadata_fields(updated_kv=updated_kv)
         mock_premium_check.assert_called()
 
-    @patch("litellm.proxy.management_endpoints.common_utils._premium_user_check")
+    @patch("token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check")
     def test_ui_typical_payload_does_not_trigger_premium_check(
         self, mock_premium_check
     ):
@@ -491,7 +491,7 @@ class TestSetObjectMetadataField:
         """Parametrized test: premium fields trigger _premium_user_check."""
         team = LiteLLM_TeamTable(team_id="t1", metadata={})
         with patch(
-            "litellm.proxy.management_endpoints.common_utils._premium_user_check"
+            "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check"
         ) as mock_premium:
             _set_object_metadata_field(team, field_name, value)
             if should_call_premium:
@@ -504,7 +504,7 @@ class TestSetObjectMetadataField:
         """Test initializes metadata dict when object has None."""
         team = LiteLLM_TeamTable(team_id="t1", metadata=None)
         with patch(
-            "litellm.proxy.management_endpoints.common_utils._premium_user_check"
+            "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check"
         ):
             _set_object_metadata_field(team, "model_rpm_limit", {"x": 1})
         assert team.metadata == {"model_rpm_limit": {"x": 1}}
@@ -517,7 +517,7 @@ class TestSetObjectMetadataField:
         metadata; this regression guards that mcp_rpm_limit is in that list and
         round-trips through the same loop the endpoints use.
         """
-        from litellm.proxy._types import LiteLLM_ManagementEndpoint_MetadataFields
+        from token_iq.gateway.proxy._types import LiteLLM_ManagementEndpoint_MetadataFields
 
         assert "mcp_rpm_limit" in LiteLLM_ManagementEndpoint_MetadataFields
 
@@ -528,7 +528,7 @@ class TestSetObjectMetadataField:
         data = SimpleNamespace(mcp_rpm_limit=mcp_rpm_limit)
 
         with patch(
-            "litellm.proxy.management_endpoints.common_utils._premium_user_check"
+            "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check"
         ):
             for field in LiteLLM_ManagementEndpoint_MetadataFields:
                 if getattr(data, field, None) is not None:
@@ -544,7 +544,7 @@ class TestRequireCallerUserIdForNonAdmin:
     """
 
     def test_returns_user_id_when_present(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             require_caller_user_id_for_non_admin,
         )
 
@@ -557,7 +557,7 @@ class TestRequireCallerUserIdForNonAdmin:
     def test_raises_403_when_user_id_is_none(self):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             require_caller_user_id_for_non_admin,
         )
 
@@ -578,14 +578,14 @@ class TestValidateFiniteSpend:
     bypass `spend >= max_budget` enforcement (NaN/-inf compare false)."""
 
     def test_none_is_allowed(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_finite_spend,
         )
 
         assert validate_finite_spend(None) is None
 
     def test_finite_value_is_allowed(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_finite_spend,
         )
 
@@ -602,7 +602,7 @@ class TestValidateFiniteSpend:
     def test_non_finite_is_rejected(self, bad):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_finite_spend,
         )
 
@@ -617,7 +617,7 @@ class TestValidateFiniteSpendErrorDetail:
     def test_rejection_detail_is_exact(self):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_finite_spend,
         )
 
@@ -640,7 +640,7 @@ class TestValidateBudgetDuration:
     """
 
     def test_none_is_allowed(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_budget_duration,
         )
 
@@ -648,7 +648,7 @@ class TestValidateBudgetDuration:
 
     @pytest.mark.parametrize("duration", ["30s", "5m", "1h", "1d", "7d", "30d", "1mo"])
     def test_positive_durations_are_allowed(self, duration):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_budget_duration,
         )
 
@@ -658,7 +658,7 @@ class TestValidateBudgetDuration:
     def test_non_advancing_durations_are_rejected(self, duration):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_budget_duration,
         )
 
@@ -669,7 +669,7 @@ class TestValidateBudgetDuration:
     def test_rejection_detail_is_exact(self):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             validate_budget_duration,
         )
 
@@ -687,7 +687,7 @@ class TestRequireCallerUserIdErrorDetail:
     def test_rejection_detail_is_exact(self):
         from fastapi import HTTPException
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             require_caller_user_id_for_non_admin,
         )
 
@@ -716,7 +716,7 @@ class TestCheckPassthroughRoutesCallerPermission:
         from fastapi import HTTPException
         from pydantic import BaseModel
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _check_passthrough_routes_caller_permission,
         )
 
@@ -737,7 +737,7 @@ class TestCheckPassthroughRoutesCallerPermission:
         from fastapi import HTTPException
         from pydantic import BaseModel
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _check_passthrough_routes_caller_permission,
         )
 
@@ -756,7 +756,7 @@ class TestCheckPassthroughRoutesCallerPermission:
     def test_tolerates_data_missing_passthrough_and_metadata_fields(self):
         from pydantic import BaseModel
 
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _check_passthrough_routes_caller_permission,
         )
 
@@ -775,7 +775,7 @@ class TestIsUserOrgAdminForTeam:
 
     @pytest.mark.asyncio
     async def test_get_user_object_called_with_caller_identity(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _is_user_org_admin_for_team,
         )
 
@@ -789,13 +789,13 @@ class TestIsUserOrgAdminForTeam:
         mock_get_user = AsyncMock(return_value=None)
 
         with patch(
-            "litellm.proxy.proxy_server.prisma_client", fake_prisma
+            "token_iq.gateway.proxy.proxy_server.prisma_client", fake_prisma
         ), patch(
-            "litellm.proxy.proxy_server.user_api_key_cache", fake_cache
+            "token_iq.gateway.proxy.proxy_server.user_api_key_cache", fake_cache
         ), patch(
-            "litellm.proxy.proxy_server.proxy_logging_obj", fake_logging
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", fake_logging
         ), patch(
-            "litellm.proxy.auth.auth_checks.get_user_object", mock_get_user
+            "token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user
         ):
             result = await _is_user_org_admin_for_team(key, team)
 
@@ -811,7 +811,7 @@ class TestIsUserOrgAdminForTeam:
 
 class TestTeamMemberHasPermission:
     def test_requires_caller_to_be_a_team_member(self):
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _team_member_has_permission,
         )
 
@@ -834,7 +834,7 @@ class TestUserHasAdminPrivilegesGuard:
             user_id="user1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
         )
         mock_get_user = AsyncMock(return_value=None)
-        with patch("litellm.proxy.auth.auth_checks.get_user_object", mock_get_user):
+        with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
             result = await _user_has_admin_privileges(
                 user_api_key_dict=auth, prisma_client=None
             )
@@ -861,7 +861,7 @@ class TestUserHasAdminPrivilegesGuard:
             ],
         )
         mock_get_user = AsyncMock(return_value=user_obj)
-        with patch("litellm.proxy.auth.auth_checks.get_user_object", mock_get_user):
+        with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
             result = await _user_has_admin_privileges(
                 user_api_key_dict=auth, prisma_client=MagicMock()
             )
@@ -875,7 +875,7 @@ class TestAdminCanInviteUserGuard:
             user_id="admin1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
         )
         mock_get_user = AsyncMock(return_value=None)
-        with patch("litellm.proxy.auth.auth_checks.get_user_object", mock_get_user):
+        with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
             result = await admin_can_invite_user(
                 target_user_id="target1",
                 user_api_key_dict=auth,
@@ -909,7 +909,7 @@ class TestAdminCanInviteUserGuard:
             organization_memberships=[membership(LitellmUserRoles.INTERNAL_USER.value)],
         )
         mock_get_user = AsyncMock(side_effect=[admin_obj, target_obj])
-        with patch("litellm.proxy.auth.auth_checks.get_user_object", mock_get_user):
+        with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
             result = await admin_can_invite_user(
                 target_user_id="target1",
                 user_api_key_dict=auth,
@@ -953,7 +953,7 @@ class TestSetObjectMetadataFieldPremiumArg:
     def test_premium_check_receives_the_field_name(self):
         team = LiteLLM_TeamTable(team_id="t1", metadata={})
         with patch(
-            "litellm.proxy.management_endpoints.common_utils._premium_user_check"
+            "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check"
         ) as mock_premium:
             _set_object_metadata_field(team, "guardrails", ["g1"])
             mock_premium.assert_called_once_with("guardrails")
@@ -962,7 +962,7 @@ class TestSetObjectMetadataFieldPremiumArg:
 class TestUpdateMetadataFieldMove:
     def test_none_valued_field_is_not_moved_into_metadata(self):
         """A None value must leave the field untouched (guard requires non-None)."""
-        from litellm.proxy.management_endpoints.common_utils import (
+        from token_iq.gateway.proxy.management_endpoints.common_utils import (
             _update_metadata_field,
         )
 
@@ -973,7 +973,7 @@ class TestUpdateMetadataFieldMove:
     def test_set_premium_field_is_moved_into_metadata(self):
         updated_kv = {"guardrails": ["g1"]}
         with patch(
-            "litellm.proxy.management_endpoints.common_utils._premium_user_check"
+            "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check"
         ):
             _update_metadata_fields(updated_kv)
         assert "guardrails" not in updated_kv
@@ -1020,7 +1020,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
     """
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
         side_effect=Exception("Should not be called"),
     )
     def test_empty_policies_skips_premium_check(self, mock_check):
@@ -1034,7 +1034,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_not_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
         side_effect=Exception("Should not be called"),
     )
     def test_empty_guardrails_skips_premium_check(self, mock_check):
@@ -1047,7 +1047,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_not_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
         side_effect=Exception("Should not be called"),
     )
     def test_empty_string_team_member_key_duration_skips_premium_check(
@@ -1062,7 +1062,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_not_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
         side_effect=Exception("Should not be called"),
     )
     def test_full_ui_payload_with_empty_premium_fields_skips_premium_check(
@@ -1084,7 +1084,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_not_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
     )
     def test_non_empty_policies_triggers_premium_check(self, mock_check):
         """policies: ['real-policy'] SHOULD trigger premium user check."""
@@ -1096,7 +1096,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
     )
     def test_non_empty_guardrails_triggers_premium_check(self, mock_check):
         """guardrails: ['my-guardrail'] SHOULD trigger premium user check."""
@@ -1108,7 +1108,7 @@ class TestUpdateMetadataFieldsPremiumCheck:
         mock_check.assert_called()
 
     @patch(
-        "litellm.proxy.management_endpoints.common_utils._premium_user_check",
+        "token_iq.gateway.proxy.management_endpoints.common_utils._premium_user_check",
     )
     def test_non_empty_team_member_key_duration_triggers_premium_check(
         self, mock_check

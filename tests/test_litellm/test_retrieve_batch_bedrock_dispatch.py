@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-import litellm  # noqa: E402
+from token_iq import gateway as litellm  # noqa: E402
 import openai
 
 ASYNC_INVOKE_ARN = "arn:aws:bedrock:us-west-2:123456789012:async-invoke/abc123def456"
@@ -37,11 +37,11 @@ def mock_handlers():
     fake_batch = MagicMock(name="LiteLLMBatch")
     with (
         patch(
-            "litellm.batches.main.BedrockBatchesHandler._handle_async_invoke_status",
+            "token_iq.gateway.batches.main.BedrockBatchesHandler._handle_async_invoke_status",
             return_value=fake_batch,
         ) as async_invoke,
         patch(
-            "litellm.batches.main.BedrockBatchesHandler._handle_model_invocation_job_status",
+            "token_iq.gateway.batches.main.BedrockBatchesHandler._handle_model_invocation_job_status",
             return_value=fake_batch,
         ) as mij,
     ):

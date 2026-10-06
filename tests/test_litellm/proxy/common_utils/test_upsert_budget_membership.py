@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.management_endpoints.common_utils import (
+from token_iq.gateway.proxy.management_endpoints.common_utils import (
     _upsert_budget_and_membership,
 )
 

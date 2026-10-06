@@ -13,13 +13,13 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from litellm.integrations.custom_guardrail import (
+from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     ModifyResponseException,
 )
-from litellm.proxy._types import ProxyException
+from token_iq.gateway.proxy._types import ProxyException
 
-_PT_MOD = "litellm.proxy.pass_through_endpoints.pass_through_endpoints"
+_PT_MOD = "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints"
 _COLLECT = "litellm.proxy.pass_through_endpoints.passthrough_guardrails.PassthroughGuardrailHandler.collect_guardrails"
 
 _GEMINI_RESPONSE = {
@@ -65,7 +65,7 @@ def _make_mock_request():
     return mock_request
 
 
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     pass_through_request,
 )
 
@@ -86,7 +86,7 @@ def _common_patches(mock_proxy_logging, mock_response):
             return_value=mock_response,
         ),
         patch(f"{_PT_MOD}._is_streaming_response", return_value=False),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging),
         patch(f"{_PT_MOD}.pass_through_endpoint_logging", mock_pt_logging),
         patch(f"{_PT_MOD}.get_async_httpx_client", return_value=mock_async_client_obj),
         patch(f"{_PT_MOD}._read_request_body", new_callable=AsyncMock, return_value={}),
@@ -257,7 +257,7 @@ class TestUnifiedGuardrailCallTypeResolution:
 
     async def test_pass_through_call_type_resolved_from_logging_obj(self):
         """Unified guardrail should resolve call_type from logging_obj for pass-through."""
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
             UnifiedLLMGuardrails,
         )
 
@@ -285,10 +285,10 @@ class TestUnifiedGuardrailCallTypeResolution:
         )
         mock_handler_class = MagicMock(return_value=mock_handler_instance)
 
-        from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail import (
             unified_guardrail as unified_guardrail_module,
         )
-        from litellm.types.utils import CallTypes
+        from token_iq.gateway.types.utils import CallTypes
 
         with patch.object(
             unified_guardrail_module,
@@ -306,8 +306,8 @@ class TestUnifiedGuardrailCallTypeResolution:
 
 def test_modify_response_exception_importable_from_both_paths():
     """ModifyResponseException re-export from custom_guardrail must stay in sync."""
-    from litellm.exceptions import ModifyResponseException as FromExceptions
-    from litellm.integrations.custom_guardrail import (
+    from token_iq.gateway.exceptions import ModifyResponseException as FromExceptions
+    from token_iq.gateway.integrations.custom_guardrail import (
         ModifyResponseException as FromGuardrail,
     )
 

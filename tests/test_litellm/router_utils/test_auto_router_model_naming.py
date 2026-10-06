@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.router_utils.auto_router_model_naming import (
+from token_iq.gateway.router_utils.auto_router_model_naming import (
     carries_complexity_router_settings,
     classify_strategy_router_model,
     strategy_router_dependencies,
@@ -345,7 +345,7 @@ def test_placement_accepts_the_documented_nesting():
 def test_placement_guards_every_setting_the_config_owns():
     """Derived from the model rather than listed here, so a field added to ComplexityRouterConfig
     later is covered without editing this gate. Pinned so a rename cannot silently shrink it."""
-    from litellm.router_strategy.complexity_router.config import (
+    from token_iq.gateway.router_strategy.complexity_router.config import (
         COMPLEXITY_ROUTER_CONFIG_KEYS,
         ComplexityRouterConfig,
     )

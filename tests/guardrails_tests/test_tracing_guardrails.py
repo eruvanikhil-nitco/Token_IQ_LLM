@@ -3,22 +3,22 @@ import io, asyncio
 import json
 import pytest
 import time
-from litellm import mock_completion
+from token_iq.gateway import mock_completion
 from unittest.mock import MagicMock, AsyncMock, patch
 
-import litellm
-from litellm.proxy.guardrails.guardrail_hooks.presidio import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
     PresidioPerRequestConfig,
 )
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import (
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     StandardLoggingGuardrailInformation,
 )
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 from typing import Optional
 
 
@@ -192,7 +192,7 @@ async def test_langfuse_trace_includes_guardrail_information():
     """
     import httpx
     from unittest.mock import AsyncMock, patch
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -305,10 +305,10 @@ async def test_bedrock_guardrail_status_blocked():
     2. The status_fields.guardrail_status is set to "guardrail_intervened"
     3. The status_fields.llm_api_status remains "success" (mock LLM call succeeds)
     """
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
 
     litellm._turn_on_debug()
@@ -401,10 +401,10 @@ async def test_bedrock_guardrail_status_success():
     2. The status_fields.guardrail_status is set to "success"
     3. The status_fields.llm_api_status is "success"
     """
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
@@ -489,10 +489,10 @@ async def test_bedrock_guardrail_status_failure():
     2. The status_fields.guardrail_status is set to "guardrail_failed_to_respond"
     3. The exception is still raised (maintaining existing behavior)
     """
-    from litellm.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockGuardrail,
     )
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
     import httpx
 
@@ -578,8 +578,8 @@ async def test_noma_guardrail_status_blocked():
     2. The status_fields.guardrail_status is set to "guardrail_intervened"
     3. The status_fields.llm_api_status remains "success"
     """
-    from litellm.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
@@ -668,8 +668,8 @@ async def test_noma_guardrail_status_success():
     2. The status_fields.guardrail_status is set to "success"
     3. The status_fields.llm_api_status is "success"
     """
-    from litellm.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma.noma import NomaGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
@@ -754,7 +754,7 @@ def test_guardrail_status_fields_computation():
     - guardrail_status="guardrail_failed_to_respond" -> status_fields.guardrail_status="guardrail_failed_to_respond"
     - no guardrail -> status_fields.guardrail_status="not_run"
     """
-    from litellm.litellm_core_utils.litellm_logging import _get_status_fields
+    from token_iq.gateway.core_utils.litellm_logging import _get_status_fields
 
     # Test guardrail_intervened status (content was blocked by guardrail)
     # guardrail_information is now a list

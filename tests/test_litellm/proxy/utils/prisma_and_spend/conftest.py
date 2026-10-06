@@ -188,7 +188,7 @@ def patched_prisma_import(monkeypatch: pytest.MonkeyPatch) -> Iterator[MagicMock
     directly and restore in teardown.
     """
     import prisma as _prisma_pkg
-    import litellm.proxy.utils as _utils_mod
+    import token_iq.gateway.proxy.utils as _utils_mod
 
     fake_prisma = MagicMock(name="FakePrisma")
     fake_prisma.is_connected = MagicMock(return_value=False)
@@ -237,7 +237,7 @@ def prisma_client(
     """
     monkeypatch.delenv("DATABASE_URL_READ_REPLICA", raising=False)
     monkeypatch.delenv("IAM_TOKEN_DB_AUTH", raising=False)
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
     proxy_logging_obj = MagicMock(name="MockProxyLogging")
     proxy_logging_obj.failure_handler = AsyncMock()

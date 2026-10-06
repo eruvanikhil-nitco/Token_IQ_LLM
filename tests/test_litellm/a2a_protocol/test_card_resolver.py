@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.a2a_protocol.card_resolver import (
+from token_iq.gateway.a2a_protocol.card_resolver import (
     LiteLLMA2ACardResolver,
     fix_agent_card_url,
     is_localhost_or_internal_url,

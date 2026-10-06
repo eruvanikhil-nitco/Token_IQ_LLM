@@ -8,12 +8,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.caching.dual_cache import DualCache
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.router_utils.cooldown_cache import CooldownCache, CooldownCacheValue
-from litellm.router_utils.cooldown_handlers import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.caching.dual_cache import DualCache
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.router_utils.cooldown_cache import CooldownCache, CooldownCacheValue
+from token_iq.gateway.router_utils.cooldown_handlers import (
     _get_deployment_cooldown_policy,
     _has_explicit_allowed_fails_policy_for_exception,
     _resolve_allowed_fails_from_policy,
@@ -21,8 +21,8 @@ from litellm.router_utils.cooldown_handlers import (
     mark_advisor_orchestration_failure,
     should_cooldown_based_on_allowed_fails_policy,
 )
-from litellm.router_utils.fallback_event_handlers import _trigger_cooldown_for_failed_deployment
-from litellm.types.router import AllowedFailsPolicy
+from token_iq.gateway.router_utils.fallback_event_handlers import _trigger_cooldown_for_failed_deployment
+from token_iq.gateway.types.router import AllowedFailsPolicy
 
 
 def _make_router(model_list: list, **kwargs) -> Router:
@@ -339,7 +339,7 @@ class TestFallbackDeploymentCooldown:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -358,7 +358,7 @@ class TestFallbackDeploymentCooldown:
         """
         mock_router = MagicMock()
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -386,7 +386,7 @@ class TestFallbackDeploymentCooldown:
             }
         }
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs=kwargs,
@@ -409,9 +409,9 @@ class TestFallbackDeploymentCooldown:
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
-            patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
+            patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown,
             patch(
-                "litellm.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
+                "token_iq.gateway.router_utils.fallback_event_handlers.increment_deployment_failures_for_current_minute"
             ) as mock_increment,
         ):
             _trigger_cooldown_for_failed_deployment(litellm_router=mock_router, kwargs={}, exception=exc)
@@ -433,7 +433,7 @@ class TestFallbackDeploymentCooldown:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -459,7 +459,7 @@ class TestFallbackDeploymentCooldown:
         exc.failed_deployment_id = "fallback-deployment"
         mark_advisor_orchestration_failure(exc)
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -482,7 +482,7 @@ class TestFallbackDeploymentCooldown:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -505,7 +505,7 @@ class TestFallbackDeploymentCooldown:
         exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
-        with patch("litellm.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
             _trigger_cooldown_for_failed_deployment(
                 litellm_router=mock_router,
                 kwargs={},
@@ -645,7 +645,7 @@ class TestDeploymentCallbackOnFailureCooldownTimePrecedence:
             },
         }
 
-        with patch("litellm.router._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router._set_cooldown_deployments") as mock_set_cooldown:
             router.deployment_callback_on_failure(
                 kwargs=kwargs,
                 completion_response=None,
@@ -681,7 +681,7 @@ class TestDeploymentCallbackOnFailureCooldownTimePrecedence:
             },
         }
 
-        with patch("litellm.router._set_cooldown_deployments") as mock_set_cooldown:
+        with patch("token_iq.gateway.router._set_cooldown_deployments") as mock_set_cooldown:
             router.deployment_callback_on_failure(
                 kwargs=kwargs,
                 completion_response=None,

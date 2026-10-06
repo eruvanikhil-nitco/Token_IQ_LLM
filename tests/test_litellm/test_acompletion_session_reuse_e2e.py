@@ -17,7 +17,7 @@ import inspect
 import pytest
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 # ============================================================================
@@ -105,7 +105,7 @@ def test_acompletion_passes_session_to_completion():
 
 def test_handler_completion_accepts_shared_session():
     """Verify BaseLLMHTTPHandler.completion() accepts shared_session"""
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     sig = inspect.signature(BaseLLMHTTPHandler.completion)
 
@@ -116,7 +116,7 @@ def test_handler_completion_accepts_shared_session():
 
 def test_handler_async_completion_accepts_shared_session():
     """Verify BaseLLMHTTPHandler.async_completion() accepts shared_session"""
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     sig = inspect.signature(BaseLLMHTTPHandler.async_completion)
 
@@ -139,7 +139,7 @@ def test_handler_passes_session_to_async_completion():
 
     If this test fails, session reuse is BROKEN.
     """
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     source = inspect.getsource(BaseLLMHTTPHandler.completion)
 

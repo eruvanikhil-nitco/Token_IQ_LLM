@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.proxy.health_check_utils.shared_health_check_manager import (
+from token_iq.gateway.proxy.health_check_utils.shared_health_check_manager import (
     SharedHealthCheckManager,
 )
 
@@ -268,7 +268,7 @@ class TestSharedHealthCheckManager:
         ]
 
         with patch(
-            "litellm.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
+            "token_iq.gateway.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
         ) as mock_perform:
             healthy, unhealthy, _ = (
                 await shared_health_manager.perform_shared_health_check(
@@ -298,7 +298,7 @@ class TestSharedHealthCheckManager:
         expected_unhealthy = []
 
         with patch(
-            "litellm.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
+            "token_iq.gateway.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
         ) as mock_perform:
             mock_perform.return_value = (expected_healthy, expected_unhealthy, {})
 
@@ -388,7 +388,7 @@ class TestSharedHealthCheckManager:
         with (
             patch("asyncio.sleep") as mock_sleep,
             patch(
-                "litellm.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
+                "token_iq.gateway.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
             ) as mock_perform,
         ):
             mock_perform.return_value = (expected_healthy, expected_unhealthy, {})
@@ -431,7 +431,7 @@ class TestSharedHealthCheckManager:
         with (
             patch("asyncio.sleep") as mock_sleep,
             patch(
-                "litellm.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
+                "token_iq.gateway.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
             ) as mock_perform,
         ):
             mock_perform.return_value = (expected_healthy, expected_unhealthy, {})
@@ -506,7 +506,7 @@ class TestSharedHealthCheckManager:
         with (
             patch("asyncio.sleep") as mock_sleep,
             patch(
-                "litellm.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
+                "token_iq.gateway.proxy.health_check_utils.shared_health_check_manager.perform_health_check"
             ) as mock_perform,
         ):
             mock_perform.return_value = (expected_healthy, expected_unhealthy, {})

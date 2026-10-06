@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.proxy.management_endpoints.policy_endpoints import apply_policies
-from litellm.types.utils import GenericGuardrailAPIInputs
+from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+from token_iq.gateway.proxy.management_endpoints.policy_endpoints import apply_policies
+from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 
 class _FakeGuardrailWithApply(CustomGuardrail):
@@ -98,7 +98,7 @@ class TestApplyPoliciesEarlyReturn:
         mock_registry.is_initialized.return_value = False
 
         with patch(
-            "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+            "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
             return_value=mock_registry,
         ):
             result = await apply_policies(
@@ -117,7 +117,7 @@ class TestApplyPoliciesEarlyReturn:
     async def test_returns_inputs_unchanged_when_resolved_guardrails_empty(
         self, sample_inputs, request_data, proxy_logging_obj
     ):
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -125,11 +125,11 @@ class TestApplyPoliciesEarlyReturn:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p", guardrails=[], inheritance_chain=[]
                 ),
@@ -154,7 +154,7 @@ class TestApplyPoliciesWithGuardrails:
     async def test_applies_single_guardrail_and_returns_modified_inputs(
         self, sample_inputs, request_data, proxy_logging_obj
     ):
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -173,11 +173,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["my_guardrail"],
@@ -185,7 +185,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -204,7 +204,7 @@ class TestApplyPoliciesWithGuardrails:
     async def test_applies_multiple_guardrails_in_order(
         self, sample_inputs, request_data, proxy_logging_obj
     ):
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -232,11 +232,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["guardrail_a", "guardrail_b"],
@@ -244,7 +244,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -263,7 +263,7 @@ class TestApplyPoliciesWithGuardrails:
     async def test_skips_missing_guardrail_callback(
         self, sample_inputs, request_data, proxy_logging_obj
     ):
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -274,11 +274,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["missing_guardrail"],
@@ -286,7 +286,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -306,7 +306,7 @@ class TestApplyPoliciesWithGuardrails:
         self, sample_inputs, request_data, proxy_logging_obj
     ):
         """When a guardrail's apply_guardrail raises, error is recorded and inputs still returned."""
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -326,11 +326,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["failing_guardrail"],
@@ -338,7 +338,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -363,7 +363,7 @@ class TestApplyPoliciesWithGuardrails:
         self, sample_inputs, request_data, proxy_logging_obj
     ):
         """Guardrails that do not define apply_guardrail on their class are skipped."""
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         class GuardrailWithoutApply(CustomGuardrail):
             """Subclass that does not override apply_guardrail (not in type(x).__dict__)."""
@@ -384,11 +384,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["no_apply_guardrail"],
@@ -396,7 +396,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -416,7 +416,7 @@ class TestApplyPoliciesWithGuardrails:
         self, sample_inputs, request_data, proxy_logging_obj
     ):
         """When multiple guardrails raise, all failures are collected and inputs still returned."""
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -450,11 +450,11 @@ class TestApplyPoliciesWithGuardrails:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["guardrail_a", "guardrail_b"],
@@ -462,7 +462,7 @@ class TestApplyPoliciesWithGuardrails:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -490,7 +490,7 @@ class TestApplyPoliciesMultiplePolicies:
     async def test_resolves_guardrails_from_multiple_policies(
         self, sample_inputs, request_data, proxy_logging_obj
     ):
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -520,15 +520,15 @@ class TestApplyPoliciesMultiplePolicies:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 side_effect=resolve_returns,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -564,7 +564,7 @@ class TestApplyPoliciesDirectGuardrailNames:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+            "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
             return_value=mock_guardrail_registry,
         ):
             result = await apply_policies(
@@ -587,7 +587,7 @@ class TestApplyPoliciesDirectGuardrailNames:
         self, sample_inputs, request_data, proxy_logging_obj
     ):
         """Guardrails from policy_names and guardrail_names are merged and applied."""
-        from litellm.types.proxy.policy_engine import ResolvedPolicy
+        from token_iq.gateway.types.proxy.policy_engine import ResolvedPolicy
 
         mock_registry = MagicMock()
         mock_registry.is_initialized.return_value = True
@@ -614,11 +614,11 @@ class TestApplyPoliciesDirectGuardrailNames:
 
         with (
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.get_policy_registry",
                 return_value=mock_registry,
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.PolicyResolver.resolve_policy_guardrails",
                 return_value=ResolvedPolicy(
                     policy_name="p",
                     guardrails=["from_policy"],
@@ -626,7 +626,7 @@ class TestApplyPoliciesDirectGuardrailNames:
                 ),
             ),
             patch(
-                "litellm.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
+                "token_iq.gateway.proxy.management_endpoints.policy_endpoints.endpoints.GuardrailRegistry",
                 return_value=mock_guardrail_registry,
             ),
         ):
@@ -647,7 +647,7 @@ class TestApplyPoliciesDirectGuardrailNames:
 # ---------------------------------------------------------------------------
 # Tests for competitor enrichment helper functions
 # ---------------------------------------------------------------------------
-from litellm.proxy.management_endpoints.policy_endpoints import (
+from token_iq.gateway.proxy.management_endpoints.policy_endpoints import (
     _build_all_names_per_competitor,
     _build_comparison_blocked_words,
     _build_competitor_guardrail_definitions,

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-import litellm  # noqa: E402,F401
+from token_iq import gateway as litellm  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -120,7 +120,7 @@ def _reset_litellm_callbacks() -> None:
 
 
 def _clear_logging_queue(loop=None) -> None:
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     if loop is not None and not loop.is_closed() and not loop.is_running():
         loop.run_until_complete(GLOBAL_LOGGING_WORKER.clear_queue())

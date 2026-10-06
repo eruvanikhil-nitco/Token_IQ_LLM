@@ -3,8 +3,8 @@ import os
 
 
 import asyncio
-import litellm
-from litellm._logging import verbose_logger
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
 import logging
 import time
 import pytest

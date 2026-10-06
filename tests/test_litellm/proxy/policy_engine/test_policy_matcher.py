@@ -8,9 +8,9 @@ Tests:
 
 import pytest
 
-from litellm.proxy.policy_engine.attachment_registry import AttachmentRegistry
-from litellm.proxy.policy_engine.policy_matcher import PolicyMatcher
-from litellm.types.proxy.policy_engine import (
+from token_iq.gateway.proxy.policy_engine.attachment_registry import AttachmentRegistry
+from token_iq.gateway.proxy.policy_engine.policy_matcher import PolicyMatcher
+from token_iq.gateway.types.proxy.policy_engine import (
     PolicyMatchContext,
     PolicyScope,
 )

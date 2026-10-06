@@ -7,7 +7,7 @@ import os
 
 
 import asyncio
-import litellm
+from token_iq import gateway as litellm
 import pytest
 import time
 from statistics import mean, median

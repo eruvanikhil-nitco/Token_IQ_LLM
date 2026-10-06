@@ -5,9 +5,9 @@ Verifies the fix for issue #19532.
 
 
 
-import litellm
-from litellm import get_model_info
-from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
+from token_iq import gateway as litellm
+from token_iq.gateway import get_model_info
+from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 import pytest
 
 

@@ -5,13 +5,13 @@ from datetime import datetime
 from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.logging_callback_manager import LoggingCallbackManager
-from litellm.integrations.langfuse.langfuse_prompt_management import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.logging_callback_manager import LoggingCallbackManager
+from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
 )
-from litellm.integrations.opentelemetry import OpenTelemetry
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
 
 # Test fixtures
@@ -236,14 +236,14 @@ async def test_slack_alerting_callback_registration(callback_manager):
     Test that litellm callbacks are correctly registered for slack alerting
     when outage_alerts or region_outage_alerts are enabled
     """
-    from litellm.caching.caching import DualCache
-    from litellm.proxy.utils import ProxyLogging
-    from litellm.integrations.SlackAlerting.slack_alerting import SlackAlerting
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy.utils import ProxyLogging
+    from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
     from unittest.mock import patch
 
     # Mock the async HTTP handler
     with patch(
-        "litellm.integrations.SlackAlerting.slack_alerting.get_async_httpx_client"
+        "token_iq.gateway.integrations.SlackAlerting.slack_alerting.get_async_httpx_client"
     ) as mock_http:
         mock_http.return_value = AsyncMock()
 
@@ -298,7 +298,7 @@ async def test_generic_api_compatible_callbacks_json():
     Test that callbacks defined in generic_api_compatible_callbacks.json
     are properly loaded and initialized by _add_custom_callback_generic_api_str
     """
-    from litellm.integrations.generic_api.generic_api_callback import GenericAPILogger
+    from token_iq.gateway.integrations.generic_api.generic_api_callback import GenericAPILogger
 
     # Mock environment variable for SumoLogic webhook URL
     test_sumologic_url = "https://collectors.sumologic.com/receiver/v1/http/test123"
@@ -335,7 +335,7 @@ async def test_generic_api_compatible_callbacks_json_rubrik():
     Test the rubrik callback from generic_api_compatible_callbacks.json
     which requires both API key and webhook URL
     """
-    from litellm.integrations.generic_api.generic_api_callback import GenericAPILogger
+    from token_iq.gateway.integrations.generic_api.generic_api_callback import GenericAPILogger
 
     # Mock environment variables for Rubrik
     test_rubrik_url = "https://webhook.site/test-rubrik"
@@ -392,8 +392,8 @@ async def test_generic_api_callback_settings_retry_config():
     """
     Test that generic_api callback_settings are passed to GenericAPILogger.
     """
-    from litellm.integrations.generic_api.generic_api_callback import GenericAPILogger
-    from litellm.litellm_core_utils.logging_callback_manager import (
+    from token_iq.gateway.integrations.generic_api.generic_api_callback import GenericAPILogger
+    from token_iq.gateway.core_utils.logging_callback_manager import (
         _generic_api_logger_cache,
     )
 

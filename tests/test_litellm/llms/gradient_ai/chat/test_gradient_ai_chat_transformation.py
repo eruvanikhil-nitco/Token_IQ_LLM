@@ -1,7 +1,7 @@
 import pytest
 
 
-from litellm.llms.gradient_ai.chat.transformation import (
+from token_iq.gateway.llms.gradient_ai.chat.transformation import (
     GradientAIConfig,
     GRADIENT_AI_SERVERLESS_ENDPOINT,
 )

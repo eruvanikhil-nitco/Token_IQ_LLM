@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy.analytics_endpoints.analytics_endpoints import get_global_activity
-from litellm.proxy.analytics_endpoints.cache_activity import (
+from token_iq.gateway.proxy.analytics_endpoints.analytics_endpoints import get_global_activity
+from token_iq.gateway.proxy.analytics_endpoints.cache_activity import (
     ERROR_BREAKDOWN_SQL,
     GROUPS_SQL,
     CacheActivityGroup,
@@ -69,7 +69,7 @@ def dispatching_query_raw() -> AsyncMock:
 @pytest.fixture
 def mock_prisma(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     prisma = build_prisma(dispatching_query_raw())
-    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", prisma)
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma)
     return prisma
 
 

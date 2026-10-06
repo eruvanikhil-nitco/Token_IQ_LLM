@@ -8,13 +8,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.langfuse import langfuse as langfuse_module
-from litellm.integrations.langfuse.langfuse import LangFuseLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.langfuse import langfuse as langfuse_module
+from token_iq.gateway.integrations.langfuse.langfuse import LangFuseLogger
 
 
 # Import LangfuseUsageDetails directly from the module where it's defined
-from litellm.types.integrations.langfuse import *
+from token_iq.gateway.types.integrations.langfuse import *
 
 
 class TestLangfuseUsageDetails(unittest.TestCase):
@@ -284,7 +284,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
 
         with (
             patch(
-                "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+                "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
                 side_effect=lambda generation_params, **kwargs: generation_params,
                 create=True,
             ) as mock_add_prompt_params,
@@ -416,7 +416,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -443,7 +443,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -477,7 +477,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -503,7 +503,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
 
     def _canary_request_metadata(self):
         """Raw request metadata shaped like the proxy builds it, credentials included."""
-        from litellm.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         team_logging = [
             {
@@ -547,7 +547,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.mock_langfuse_trace.span.reset_mock()
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kw: generation_params,
             create=True,
         ):
@@ -645,7 +645,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.mock_langfuse_trace.generation.reset_mock()
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kw: generation_params,
             create=True,
         ):
@@ -693,7 +693,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         kwargs = {**self._build_langfuse_kwargs(payload), "cache_hit": None}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kw: generation_params,
             create=True,
         ):
@@ -756,7 +756,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.mock_langfuse_trace.generation.reset_mock()
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -799,7 +799,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -834,7 +834,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -870,7 +870,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         self.last_trace_kwargs = {}
 
         with patch(
-            "litellm.integrations.langfuse.langfuse._add_prompt_to_generation_params",
+            "token_iq.gateway.integrations.langfuse.langfuse._add_prompt_to_generation_params",
             side_effect=lambda generation_params, **kwargs: generation_params,
             create=True,
         ):
@@ -909,8 +909,8 @@ def test_failure_handler_langfuse_kwargs_excludes_original_response():
     'original_response' to the Langfuse logger. Exercises the real code path
     rather than simulating the filtering logic.
     """
-    import litellm
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     # Create a Logging instance
     logging_obj = Logging(
@@ -949,7 +949,7 @@ def test_failure_handler_langfuse_kwargs_excludes_original_response():
     try:
         # Mock LangFuseHandler to return our capturing mock logger
         with patch(
-            "litellm.litellm_core_utils.litellm_logging.LangFuseHandler"
+            "token_iq.gateway.core_utils.litellm_logging.LangFuseHandler"
         ) as mock_handler_class:
             mock_handler_class.get_langfuse_logger_for_request.return_value = (
                 mock_langfuse_logger
@@ -996,7 +996,7 @@ async def test_async_log_failure_event_logs_to_langfuse():
     log_event_on_langfuse with level=ERROR even when standard_logging_object
     is present. This is the code path the proxy uses for failed LLM calls.
     """
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -1024,7 +1024,7 @@ async def test_async_log_failure_event_logs_to_langfuse():
         }
 
         with patch(
-            "litellm.integrations.langfuse.langfuse_prompt_management.LangFuseHandler"
+            "token_iq.gateway.integrations.langfuse.langfuse_prompt_management.LangFuseHandler"
         ) as mock_handler:
             mock_handler.get_langfuse_logger_for_request.return_value = mock_logger
 
@@ -1066,7 +1066,7 @@ async def test_async_log_failure_event_works_without_standard_logging_object():
     standard_logging_object is None (e.g. when get_standard_logging_object_payload
     threw an exception). This is the critical fix — before, it silently returned.
     """
-    from litellm.integrations.langfuse.langfuse_prompt_management import (
+    from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
         LangfusePromptManagement,
     )
 
@@ -1093,7 +1093,7 @@ async def test_async_log_failure_event_works_without_standard_logging_object():
         }
 
         with patch(
-            "litellm.integrations.langfuse.langfuse_prompt_management.LangFuseHandler"
+            "token_iq.gateway.integrations.langfuse.langfuse_prompt_management.LangFuseHandler"
         ) as mock_handler:
             mock_handler.get_langfuse_logger_for_request.return_value = mock_logger
 
@@ -1246,8 +1246,8 @@ def test_langfuse_environment_omitted_for_old_sdk_versions(monkeypatch):
 
 
 def test_dynamic_langfuse_environment_triggers_dynamic_logger():
-    from litellm.integrations.langfuse.langfuse_handler import LangFuseHandler
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.integrations.langfuse.langfuse_handler import LangFuseHandler
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     params = StandardCallbackDynamicParams(langfuse_environment="team-a-env")
 
@@ -1263,9 +1263,9 @@ def test_langfuse_sdk_client_survives_httpx_cache_eviction(monkeypatch):
     import gc
     import weakref
 
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
-    from litellm.llms.custom_httpx.http_handler import _get_httpx_client
+    from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 
     monkeypatch.setattr(litellm, "in_memory_llm_clients_cache", LLMClientCache())
     logger = _build_langfuse_logger(monkeypatch)
@@ -1289,7 +1289,7 @@ def test_langfuse_sdk_client_survives_httpx_cache_eviction(monkeypatch):
 def test_langfuse_logger_reuses_the_shared_cached_client(monkeypatch):
     import gc
 
-    from litellm.caching.llm_caching_handler import LLMClientCache
+    from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     monkeypatch.setattr(litellm, "in_memory_llm_clients_cache", LLMClientCache())
 
@@ -1497,8 +1497,8 @@ def test_langfuse_environment_is_coerced_and_validated(monkeypatch):
 
 
 def test_langfuse_empty_environment_falls_back_and_is_not_dynamic(monkeypatch):
-    from litellm.integrations.langfuse.langfuse_handler import LangFuseHandler
-    from litellm.types.utils import StandardCallbackDynamicParams
+    from token_iq.gateway.integrations.langfuse.langfuse_handler import LangFuseHandler
+    from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
     monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", "production")
 

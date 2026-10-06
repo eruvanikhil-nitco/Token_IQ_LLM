@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.proxy.utils import (
+from token_iq.gateway.proxy.utils import (
     _get_docs_url,
     _get_openapi_url,
     _get_redoc_url,

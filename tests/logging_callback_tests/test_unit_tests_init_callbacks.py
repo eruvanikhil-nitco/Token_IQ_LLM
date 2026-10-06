@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock
 from typing import Literal
 
 import pytest
-import litellm
+from token_iq import gateway as litellm
 import asyncio
 import logging
-from litellm._logging import verbose_logger
+from token_iq.gateway._logging import verbose_logger
 from prometheus_client import REGISTRY, CollectorRegistry
 from unittest.mock import patch
-from litellm.litellm_core_utils.custom_logger_registry import (
+from token_iq.gateway.core_utils.custom_logger_registry import (
     CustomLoggerRegistry,
 )
 
@@ -206,9 +206,9 @@ async def use_callback_in_llm_call(
 
 
 def test_dynamic_logging_global_callback():
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.types.utils import ModelResponse, Choices, Message, Usage
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.types.utils import ModelResponse, Choices, Message, Usage
 
     cl = CustomLogger()
 
@@ -270,7 +270,7 @@ def test_dynamic_logging_global_callback():
 
 
 def test_get_combined_callback_list():
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
     _logging = LiteLLMLoggingObj(
         model="claude-opus-4-7",
@@ -291,7 +291,7 @@ def test_get_combined_callback_list():
 
 
 def test_get_combined_callback_list_returns_copy_when_dynamic_is_none():
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
     _logging = LiteLLMLoggingObj(
         model="claude-opus-4-7",

@@ -19,9 +19,9 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.management_endpoints.gateway_request_endpoints import (
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.management_endpoints.gateway_request_endpoints import (
     _AggregateRow,
     _default_range,
     _fold_by_date,
@@ -49,7 +49,7 @@ _FROZEN_RANGE = ("2023-02-13", "2023-03-15")
 
 @pytest.fixture
 def frozen_clock():
-    with patch("litellm.proxy.management_endpoints.gateway_request_endpoints.datetime") as clock:
+    with patch("token_iq.gateway.proxy.management_endpoints.gateway_request_endpoints.datetime") as clock:
         clock.now.return_value = _FROZEN_NOW
         yield
 
@@ -165,7 +165,7 @@ class TestGatewayDailyActivityEndpoint:
         ],
     )
     async def test_refuses_every_non_admin_role(self, role):
-        with patch("litellm.proxy.proxy_server.prisma_client", _prisma_returning([])):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_returning([])):
             with pytest.raises(HTTPException) as exc:
                 await get_gateway_daily_activity(
                     user_api_key_dict=UserAPIKeyAuth(api_key="sk-test", user_role=role),
@@ -178,7 +178,7 @@ class TestGatewayDailyActivityEndpoint:
         [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
     )
     async def test_serves_both_admin_roles(self, role):
-        with patch("litellm.proxy.proxy_server.prisma_client", _prisma_returning([])):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_returning([])):
             response = await get_gateway_daily_activity(
                 user_api_key_dict=UserAPIKeyAuth(api_key="sk-test", user_role=role),
             )
@@ -186,7 +186,7 @@ class TestGatewayDailyActivityEndpoint:
 
     @pytest.mark.asyncio
     async def test_reports_db_not_connected_rather_than_crashing(self):
-        with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
             with pytest.raises(HTTPException) as exc:
                 await get_gateway_daily_activity(user_api_key_dict=_admin())
         assert exc.value.status_code == 500
@@ -216,7 +216,7 @@ class TestGatewayDailyActivityEndpoint:
                 "failed_requests": 0,
             },
         ]
-        with patch("litellm.proxy.proxy_server.prisma_client", _prisma_returning(rows)):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_returning(rows)):
             response = await get_gateway_daily_activity(user_api_key_dict=_admin())
 
         assert response.total_successful_requests == 16
@@ -229,7 +229,7 @@ class TestGatewayDailyActivityEndpoint:
     @pytest.mark.asyncio
     async def test_a_null_result_set_is_not_an_error(self):
         client = _prisma_returning(None)
-        with patch("litellm.proxy.proxy_server.prisma_client", client):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client):
             response = await get_gateway_daily_activity(user_api_key_dict=_admin())
         assert response.total_successful_requests == 0
         assert response.by_date == ()
@@ -250,7 +250,7 @@ class TestGatewayDailyActivityRoute:
         app = FastAPI()
         app.include_router(router)
         app.dependency_overrides[user_api_key_auth] = _admin
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             response = TestClient(app).get(
                 "/gateway/daily/activity",
                 params={"start_date": "2026-01-01", "end_date": "2026-01-31"},
@@ -264,7 +264,7 @@ class TestGatewayDailyActivityRoute:
         app = FastAPI()
         app.include_router(router)
         app.dependency_overrides[user_api_key_auth] = _admin
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             response = TestClient(app).get("/gateway/daily/activity")
         assert response.status_code == 200
         _, start, end = prisma.db.query_raw.call_args.args
@@ -285,7 +285,7 @@ class TestGatewayDailyActivityRoute:
         app = FastAPI()
         app.include_router(router)
         app.dependency_overrides[user_api_key_auth] = _admin
-        with patch("litellm.proxy.proxy_server.prisma_client", prisma):
+        with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             body = TestClient(app).get("/gateway/daily/activity").json()
 
         assert body == {

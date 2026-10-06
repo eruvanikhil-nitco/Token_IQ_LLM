@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from litellm.proxy_auth import (
+from token_iq.gateway.proxy_auth import (
     AccessToken,
     AzureADCredential,
     GenericOAuth2Credential,
@@ -184,14 +184,14 @@ class TestLiteLLMIntegration:
 
     def test_proxy_auth_variable_exists(self):
         """Test that litellm.proxy_auth variable exists."""
-        import litellm
+        from token_iq import gateway as litellm
 
         # Should be None by default
         assert hasattr(litellm, "proxy_auth")
 
     def test_proxy_auth_can_be_set(self):
         """Test that litellm.proxy_auth can be set to a ProxyAuthHandler."""
-        import litellm
+        from token_iq import gateway as litellm
 
         original_value = litellm.proxy_auth
         try:

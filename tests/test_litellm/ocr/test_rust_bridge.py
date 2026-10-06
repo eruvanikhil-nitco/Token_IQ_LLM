@@ -8,16 +8,16 @@ from typing import Any
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.base_llm.ocr.transformation import OCRResponse
-from litellm.rust_bridge import configuration
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.base_llm.ocr.transformation import OCRResponse
+from token_iq.gateway.rust_bridge import configuration
 
-# `litellm/__init__.py` does `from .ocr.main import *`, which binds the `ocr`
+# `token_iq/gateway/__init__.py` does `from .ocr.main import *`, which binds the `ocr`
 # function onto `litellm.ocr` and shadows the submodule, so import the modules
 # explicitly via importlib rather than attribute traversal.
-ocr_main = importlib.import_module("litellm.ocr.main")
-rust_bridge = importlib.import_module("litellm.rust_bridge.ocr")
-rust_bridge_loader = importlib.import_module("litellm.rust_bridge.loader")
+ocr_main = importlib.import_module("token_iq.gateway.ocr.main")
+rust_bridge = importlib.import_module("token_iq.gateway.rust_bridge.ocr")
+rust_bridge_loader = importlib.import_module("token_iq.gateway.rust_bridge.loader")
 
 MODEL = "mistral/mistral-ocr-latest"
 DOCUMENT: dict[str, object] = {
@@ -298,7 +298,7 @@ def test_native_bridge_loader_caches_absent_extension(monkeypatch):
 
 
 def test_native_bridge_available_reflects_loader(monkeypatch):
-    fake_module = types.ModuleType("litellm.rust_bridge._native")
+    fake_module = types.ModuleType("token_iq.gateway.rust_bridge._native")
     monkeypatch.setattr(rust_bridge_loader, "get_native_bridge", lambda: fake_module)
 
     assert rust_bridge_loader.native_bridge_available() is True
@@ -331,7 +331,7 @@ def test_toggle_without_ocr_arg_preserves_injected_impl():
 
 def test_explicit_ocr_none_clears_injected_impl(monkeypatch):
     monkeypatch.setattr(
-        importlib.import_module("litellm.rust_bridge"),
+        importlib.import_module("token_iq.gateway.rust_bridge"),
         "get_native_bridge",
         lambda: None,
     )
@@ -348,7 +348,7 @@ def test_load_rust_ocr_none_when_extension_absent(monkeypatch):
     """With no injected impl and no compiled wheel, the loader returns None so the
     caller degrades to the Python path instead of raising ImportError."""
     monkeypatch.setattr(
-        importlib.import_module("litellm.rust_bridge"),
+        importlib.import_module("token_iq.gateway.rust_bridge"),
         "get_native_bridge",
         lambda: None,
     )
@@ -361,11 +361,11 @@ def test_load_rust_ocr_uses_compiled_extension(monkeypatch):
     """With no injected impl but a packaged ``litellm.rust_bridge._native`` importable,
     the loader returns the extension's ``ocr`` callable. The native wheel isn't
     built in CI, so stand in a fake module via the bridge loader."""
-    fake_module = types.ModuleType("litellm.rust_bridge._native")
+    fake_module = types.ModuleType("token_iq.gateway.rust_bridge._native")
     fake_module.ocr = lambda **kwargs: dict(FAKE_OCR_RESPONSE)  # type: ignore[attr-defined]
     fake_module.aocr = lambda **kwargs: dict(FAKE_OCR_RESPONSE)  # type: ignore[attr-defined]
     monkeypatch.setattr(
-        importlib.import_module("litellm.rust_bridge"),
+        importlib.import_module("token_iq.gateway.rust_bridge"),
         "get_native_bridge",
         lambda: fake_module,
     )
@@ -768,7 +768,7 @@ def test_ocr_forwards_timeout_to_rust(fake_bridge):
 def test_ocr_passes_default_request_timeout_to_rust(fake_bridge):
     litellm.ocr(model=MODEL, document=DOCUMENT, api_key="sk-test")
 
-    from litellm.constants import request_timeout
+    from token_iq.gateway.constants import request_timeout
 
     assert fake_bridge.calls[0]["timeout_seconds"] == float(request_timeout)
 
@@ -805,16 +805,16 @@ def test_ocr_falls_back_to_python_when_bridge_unavailable(monkeypatch):
 
 
 def test_ocr_provider_configs_expose_api_key_env_vars():
-    from litellm.llms.azure_ai.ocr.document_intelligence.transformation import (
+    from token_iq.gateway.llms.azure_ai.ocr.document_intelligence.transformation import (
         AzureDocumentIntelligenceOCRConfig,
     )
-    from litellm.llms.azure_ai.ocr.transformation import AzureAIOCRConfig
-    from litellm.llms.base_llm.ocr.transformation import BaseOCRConfig
-    from litellm.llms.mistral.ocr.transformation import MistralOCRConfig
-    from litellm.llms.vertex_ai.ocr.deepseek_transformation import (
+    from token_iq.gateway.llms.azure_ai.ocr.transformation import AzureAIOCRConfig
+    from token_iq.gateway.llms.base_llm.ocr.transformation import BaseOCRConfig
+    from token_iq.gateway.llms.mistral.ocr.transformation import MistralOCRConfig
+    from token_iq.gateway.llms.vertex_ai.ocr.deepseek_transformation import (
         VertexAIDeepSeekOCRConfig,
     )
-    from litellm.llms.vertex_ai.ocr.transformation import VertexAIOCRConfig
+    from token_iq.gateway.llms.vertex_ai.ocr.transformation import VertexAIOCRConfig
 
     assert BaseOCRConfig().get_api_key_env_var() is None
     assert MistralOCRConfig().get_api_key_env_var() == "MISTRAL_API_KEY"

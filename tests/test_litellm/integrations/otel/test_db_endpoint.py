@@ -1,4 +1,4 @@
-"""Tests for litellm/integrations/otel/model/db_endpoint.py
+"""Tests for token_iq/gateway/integrations/otel/model/db_endpoint.py
 
 Prisma talks to PostgreSQL through a loopback query engine, so a DB span with no
 ``server.address`` gets attributed to ``localhost`` by the backend. These cover
@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litellm.integrations.otel.model.db_endpoint import (
+from token_iq.gateway.integrations.otel.model.db_endpoint import (
     DatabaseEndpoint,
     db_span_attributes,
     parse_database_endpoint,

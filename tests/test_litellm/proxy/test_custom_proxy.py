@@ -11,8 +11,8 @@ load_dotenv()
 # Set the SERVER_ROOT_PATH environment variable to match the custom mount path
 os.environ["SERVER_ROOT_PATH"] = "/my-custom-path"
 
-from litellm.proxy.proxy_server import app as litellm_app
-from litellm.proxy.proxy_server import proxy_startup_event
+from token_iq.gateway.proxy.proxy_server import app as litellm_app
+from token_iq.gateway.proxy.proxy_server import proxy_startup_event
 
 # Create main FastAPI app
 app = FastAPI(title="Custom LiteLLM Server", lifespan=proxy_startup_event)

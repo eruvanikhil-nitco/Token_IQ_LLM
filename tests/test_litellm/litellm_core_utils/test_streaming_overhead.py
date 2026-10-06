@@ -10,13 +10,13 @@ import time
 from typing import List, Optional
 from unittest.mock import MagicMock, patch
 
-import litellm
-from litellm.litellm_core_utils.streaming_handler import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.streaming_handler import (
     CustomStreamWrapper,
     _GCHUNK_FIELDS,
     generic_chunk_has_all_required_fields,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     Delta,
     GenericStreamingChunk as GChunk,
     ModelResponseStream,
@@ -401,7 +401,7 @@ def test_post_streaming_hooks_filters_correctly():
     pass the hasattr() check regardless of whether they override the method.
     The filter therefore keeps any CustomLogger instance and drops anything else.
     """
-    from litellm.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MyLogger(CustomLogger):
         pass

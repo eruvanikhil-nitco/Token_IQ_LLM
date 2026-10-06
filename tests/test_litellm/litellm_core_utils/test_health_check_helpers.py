@@ -6,15 +6,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.constants import LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
-from litellm.litellm_core_utils.health_check_helpers import (
+from token_iq import gateway as litellm
+from token_iq.gateway.constants import LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
+from token_iq.gateway.core_utils.health_check_helpers import (
     IMAGE_EDIT_HEALTH_CHECK_PROMPT,
     HealthCheckHelpers,
 )
-from litellm.main import ahealth_check
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.types.utils import LIST_BATCHES_SUPPORTED_PROVIDERS
+from token_iq.gateway.main import ahealth_check
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.types.utils import LIST_BATCHES_SUPPORTED_PROVIDERS
 
 
 def _png_chunks(png: bytes, offset: int = 8) -> tuple[tuple[bytes, bytes], ...]:
@@ -46,7 +46,7 @@ async def test_image_edit_health_check_handler_uses_descriptive_prompt_and_multi
     assert "image_edit" in mode_handlers
 
     with patch(  # test-quality-ok: the public health-check path has no dependency injection seam
-        "litellm.aimage_edit", new_callable=AsyncMock, return_value={}
+        "token_iq.gateway.aimage_edit", new_callable=AsyncMock, return_value={}
     ) as mock_aimage_edit:
         await mode_handlers["image_edit"]()
         await HealthCheckHelpers.get_mode_handlers(
@@ -76,7 +76,7 @@ async def test_ahealth_check_image_edit_treats_content_policy_violation_as_healt
         llm_provider="openai",
     )
     with patch(  # test-quality-ok: the public health-check path has no dependency injection seam
-        "litellm.aimage_edit", new_callable=AsyncMock, side_effect=moderation_error
+        "token_iq.gateway.aimage_edit", new_callable=AsyncMock, side_effect=moderation_error
     ):
         result = await ahealth_check(
             {"model": "gpt-image-1", "api_key": "sk-test"},
@@ -97,7 +97,7 @@ async def test_ahealth_check_image_edit_treats_moderation_blocked_code_as_health
         llm_provider="openai",
     )
     with patch(  # test-quality-ok: the public health-check path has no dependency injection seam
-        "litellm.aimage_edit", new_callable=AsyncMock, side_effect=moderation_blocked
+        "token_iq.gateway.aimage_edit", new_callable=AsyncMock, side_effect=moderation_blocked
     ):
         result = await ahealth_check(
             {"model": "gpt-image-1", "api_key": "sk-test"},
@@ -115,7 +115,7 @@ async def test_ahealth_check_image_edit_still_fails_on_non_moderation_errors():
         model="gpt-image-1",
     )
     with patch(  # test-quality-ok: the public health-check path has no dependency injection seam
-        "litellm.aimage_edit", new_callable=AsyncMock, side_effect=auth_error
+        "token_iq.gateway.aimage_edit", new_callable=AsyncMock, side_effect=auth_error
     ):
         result = await ahealth_check(
             {"model": "gpt-image-1", "api_key": "sk-bad"},
@@ -128,7 +128,7 @@ async def test_ahealth_check_image_edit_still_fails_on_non_moderation_errors():
 @pytest.mark.asyncio
 async def test_ahealth_check_supports_image_edit_mode():
     with patch(  # test-quality-ok: the public health-check path has no dependency injection seam
-        "litellm.aimage_edit", new_callable=AsyncMock, return_value={}
+        "token_iq.gateway.aimage_edit", new_callable=AsyncMock, return_value={}
     ):
         result = await ahealth_check(
             {"model": "gpt-image-1", "api_key": "sk-test"},
@@ -144,13 +144,13 @@ def test_update_model_params_with_health_check_tracking_information():
     initial_model_params = {"model": "gpt-3.5-turbo", "api_key": "test_key"}
 
     with patch(
-        "litellm.proxy._types.UserAPIKeyAuth.get_litellm_internal_health_check_user_api_key_auth"
+        "token_iq.gateway.proxy._types.UserAPIKeyAuth.get_litellm_internal_health_check_user_api_key_auth"
     ) as mock_get_auth:
         mock_auth = MagicMock()
         mock_get_auth.return_value = mock_auth
 
         with patch(
-            "litellm.proxy.litellm_pre_call_utils.LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata"
+            "token_iq.gateway.proxy.litellm_pre_call_utils.LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata"
         ) as mock_add_auth:
             mock_add_auth.return_value = {
                 **initial_model_params,
@@ -279,7 +279,7 @@ async def test_batch_health_check_bridges_metadata_into_logging_obj():
         "litellm_metadata": litellm_metadata,
     }
 
-    with patch("litellm.alist_batches", new_callable=AsyncMock, return_value={}):
+    with patch("token_iq.gateway.alist_batches", new_callable=AsyncMock, return_value={}):
         await HealthCheckHelpers._batch_health_check(
             custom_llm_provider="openai",
             model_params={"model": "openai/gpt-4"},
@@ -308,7 +308,7 @@ async def test_batch_health_check_omits_api_base_when_absent():
         "litellm_metadata": litellm_metadata,
     }
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value={}):
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock, return_value={}):
         await HealthCheckHelpers._batch_health_check(
             custom_llm_provider="bedrock",
             model_params={"model": "bedrock/anthropic.claude-v2"},
@@ -329,7 +329,7 @@ async def test_batch_health_check_skips_bridge_when_no_logging_obj():
         "litellm_metadata": litellm_metadata,
     }
 
-    with patch("litellm.alist_batches", new_callable=AsyncMock, return_value={}) as mock_alist:
+    with patch("token_iq.gateway.alist_batches", new_callable=AsyncMock, return_value={}) as mock_alist:
         await HealthCheckHelpers._batch_health_check(
             custom_llm_provider="openai",
             model_params={"model": "openai/gpt-4"},
@@ -353,7 +353,7 @@ async def test_batch_health_check_uses_alist_batches_for_supported_providers():
             "litellm_metadata": litellm_metadata,
         }
 
-        with patch("litellm.alist_batches", new_callable=AsyncMock, return_value={}) as mock_alist:
+        with patch("token_iq.gateway.alist_batches", new_callable=AsyncMock, return_value={}) as mock_alist:
             await HealthCheckHelpers._batch_health_check(
                 custom_llm_provider=provider,
                 model_params={"model": f"{provider}/some-model"},
@@ -379,8 +379,8 @@ async def test_batch_health_check_falls_back_to_acompletion_for_unsupported():
     model_params = {"model": "bedrock/anthropic.claude-v2", "messages": []}
 
     with (
-        patch("litellm.alist_batches", new_callable=AsyncMock) as mock_alist,
-        patch("litellm.acompletion", new_callable=AsyncMock, return_value={}) as mock_acompletion,
+        patch("token_iq.gateway.alist_batches", new_callable=AsyncMock) as mock_alist,
+        patch("token_iq.gateway.acompletion", new_callable=AsyncMock, return_value={}) as mock_acompletion,
     ):
         await HealthCheckHelpers._batch_health_check(
             custom_llm_provider="bedrock",
@@ -407,8 +407,8 @@ async def test_realtime_health_check_uses_model_level_vertex_params():
     """Regression test: realtime health checks must resolve vertex_credentials,
     vertex_project, and vertex_location from the model row's params instead of
     falling back to process-global VERTEXAI_* settings."""
-    import litellm
-    from litellm.realtime_api import main as realtime_main
+    from token_iq import gateway as litellm
+    from token_iq.gateway.realtime_api import main as realtime_main
 
     fake_vertex_base = MagicMock()
     fake_vertex_base.get_vertex_region = MagicMock(return_value="us-central1")

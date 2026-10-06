@@ -5,17 +5,17 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-import litellm
-from litellm.exceptions import Timeout
-from litellm.litellm_core_utils.core_helpers import get_or_create_metadata_bucket
-from litellm.proxy.guardrails.guardrail_hooks.crowdstrike_aidr import initialize_guardrail
-from litellm.proxy.guardrails.guardrail_hooks.crowdstrike_aidr.crowdstrike_aidr import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import Timeout
+from token_iq.gateway.core_utils.core_helpers import get_or_create_metadata_bucket
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.crowdstrike_aidr import initialize_guardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.crowdstrike_aidr.crowdstrike_aidr import (
     CrowdStrikeAIDRGuardrailMissingSecrets,
     CrowdStrikeAIDRHandler,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.guardrails import Guardrail, GuardrailEventHooks, LitellmParams
-from litellm.types.utils import Delta, GenericGuardrailAPIInputs, ModelResponse, ModelResponseStream
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.guardrails import Guardrail, GuardrailEventHooks, LitellmParams
+from token_iq.gateway.types.utils import Delta, GenericGuardrailAPIInputs, ModelResponse, ModelResponseStream
 
 
 @pytest.fixture
@@ -151,7 +151,7 @@ async def test_apply_guardrail_request_blocked(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": True, "transformed": False}},
@@ -192,7 +192,7 @@ async def test_apply_guardrail_request_transformed(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -242,7 +242,7 @@ async def test_apply_guardrail_request_ok(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -293,7 +293,7 @@ async def test_apply_guardrail_response_blocked(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -342,7 +342,7 @@ async def test_apply_guardrail_response_transformed(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -408,7 +408,7 @@ async def test_apply_guardrail_response_ok(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -462,7 +462,7 @@ async def test_apply_guardrail_sends_user_id_model_and_extra_info(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -501,7 +501,7 @@ async def test_apply_guardrail_empty_extra_info_when_no_email(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -532,7 +532,7 @@ async def test_apply_guardrail_no_metadata_skips_user_fields(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -610,7 +610,7 @@ async def test_apply_guardrail_reads_identity_from_either_metadata_bag(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -651,7 +651,7 @@ async def test_apply_guardrail_request_skipped_messages_stay_aligned(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -717,7 +717,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -753,7 +753,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -787,7 +787,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -824,7 +824,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -862,7 +862,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -896,7 +896,7 @@ class TestMessageFiltering:
         guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             return_value=httpx.Response(
                 status_code=200,
                 json={"result": {"blocked": False, "transformed": False}},
@@ -933,7 +933,7 @@ async def test_apply_guardrail_request_sends_only_new_messages(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -970,7 +970,7 @@ async def test_apply_guardrail_request_last_is_assistant_sends_only_that(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -1008,7 +1008,7 @@ async def test_apply_guardrail_request_stitches_transformed_texts(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1064,7 +1064,7 @@ async def test_apply_guardrail_response_drops_history(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -1096,7 +1096,7 @@ async def test_apply_guardrail_response_one_message_per_output_text(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={"result": {"blocked": False, "transformed": False}},
@@ -1126,7 +1126,7 @@ async def test_apply_guardrail_response_transform_extracts_assistant_only(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1159,7 +1159,7 @@ async def test_apply_guardrail_response_transform_extracts_assistant_only(
 async def test_request_transform_with_textless_history_message_redacts_without_index_error(
     crowdstrike_aidr_guardrail: CrowdStrikeAIDRHandler,
 ) -> None:
-    from litellm.llms.openai.chat.guardrail_translation.handler import (
+    from token_iq.gateway.llms.openai.chat.guardrail_translation.handler import (
         OpenAIChatCompletionsHandler,
     )
 
@@ -1184,7 +1184,7 @@ async def test_request_transform_with_textless_history_message_redacts_without_i
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1218,7 +1218,7 @@ async def test_request_transform_with_textless_history_message_redacts_without_i
 async def test_request_transform_preserves_skipped_system_message(
     crowdstrike_aidr_guardrail: CrowdStrikeAIDRHandler,
 ) -> None:
-    from litellm.llms.openai.chat.guardrail_translation.handler import (
+    from token_iq.gateway.llms.openai.chat.guardrail_translation.handler import (
         OpenAIChatCompletionsHandler,
     )
 
@@ -1232,7 +1232,7 @@ async def test_request_transform_preserves_skipped_system_message(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1283,7 +1283,7 @@ async def test_apply_guardrail_request_keeps_original_messages_when_skip_filters
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1316,7 +1316,7 @@ async def test_anthropic_tool_calling_transform_redacts_without_index_error(
 ) -> None:
     import json
 
-    from litellm.llms.anthropic.chat.guardrail_translation.handler import (
+    from token_iq.gateway.llms.anthropic.chat.guardrail_translation.handler import (
         AnthropicMessagesHandler,
     )
 
@@ -1336,7 +1336,7 @@ async def test_anthropic_tool_calling_transform_redacts_without_index_error(
     guardrail_endpoint = f"{crowdstrike_aidr_guardrail.api_base}/v1/guard_chat_completions"
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=httpx.Response(
             status_code=200,
             json={
@@ -1666,8 +1666,8 @@ def _stream_chunk(content: str, finish_reason: str | None) -> ModelResponseStrea
 
 
 async def _guard_calls_for_stream(handler: CrowdStrikeAIDRHandler, chunk_texts: list[str]) -> int:
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import UnifiedLLMGuardrails
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import UnifiedLLMGuardrails
 
     async def stream():
         for i, content in enumerate(chunk_texts):

@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.constants import DEFAULT_CRON_JOB_LOCK_TTL_SECONDS
-from litellm.proxy.db.db_transaction_queue.pod_lock_manager import PodLockManager
+from token_iq.gateway.constants import DEFAULT_CRON_JOB_LOCK_TTL_SECONDS
+from token_iq.gateway.proxy.db.db_transaction_queue.pod_lock_manager import PodLockManager
 
 
 class MockRedisCache:

@@ -4,8 +4,8 @@ import io, asyncio
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
-from litellm import completion
-import litellm
+from token_iq.gateway import completion
+from token_iq import gateway as litellm
 
 litellm.num_retries = 3
 litellm.success_callback = ["wandb"]
@@ -18,7 +18,7 @@ def test_wandb_logging_async():
         litellm.set_verbose = False
 
         async def _test_langfuse():
-            from litellm import Router
+            from token_iq.gateway import Router
 
             model_list = [
                 {  # list of model deployments

@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from litellm.proxy.utils import send_email
+from token_iq.gateway.proxy.utils import send_email
 
 
 @pytest.fixture(autouse=True)

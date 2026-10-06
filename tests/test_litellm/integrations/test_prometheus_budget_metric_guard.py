@@ -12,9 +12,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from prometheus_client import REGISTRY
 
-import litellm
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.types.integrations.prometheus import NoOpMetric
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.types.integrations.prometheus import NoOpMetric
 
 _BUDGET_EXCLUDED_CONFIG = [
     {

@@ -3,9 +3,9 @@ import re
 
 import pytest
 
-from litellm.caching.caching import Cache
-from litellm.types.caching import LiteLLMCacheType
-from litellm.types.utils import Embedding, EmbeddingResponse, Usage
+from token_iq.gateway.caching.caching import Cache
+from token_iq.gateway.types.caching import LiteLLMCacheType
+from token_iq.gateway.types.utils import Embedding, EmbeddingResponse, Usage
 
 
 def test_cache_key_debug_log_does_not_include_prompt_material(caplog):

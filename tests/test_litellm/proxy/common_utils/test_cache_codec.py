@@ -5,8 +5,8 @@ from unittest.mock import patch
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from litellm.models.managed_files import LiteLLM_ManagedVectorStoresTable
-from litellm.proxy.common_utils.cache_pydantic_utils import CacheCodec
+from token_iq.gateway.models.managed_files import LiteLLM_ManagedVectorStoresTable
+from token_iq.gateway.proxy.common_utils.cache_pydantic_utils import CacheCodec
 
 
 class _SampleModel(BaseModel):

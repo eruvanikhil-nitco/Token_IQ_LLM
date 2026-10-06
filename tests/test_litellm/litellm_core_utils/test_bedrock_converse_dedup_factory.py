@@ -1,7 +1,7 @@
 import pytest
 
 
-from litellm.litellm_core_utils.prompt_templates.factory import (
+from token_iq.gateway.core_utils.prompt_templates.factory import (
     _bedrock_converse_messages_pt,
     _deduplicate_bedrock_content_blocks,
     _deduplicate_bedrock_tool_content,

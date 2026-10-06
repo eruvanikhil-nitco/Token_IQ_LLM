@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 def _make_send_message_request(request_id: str, user_text: str = "Hello"):
@@ -126,7 +126,7 @@ async def test_asend_message_uses_cost_per_query():
     """
     Test that asend_message uses cost_per_query param for response_cost.
     """
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -142,7 +142,7 @@ async def test_asend_message_uses_cost_per_query():
 
     # Call asend_message with cost_per_query
     with patch(
-        "litellm.a2a_protocol.main._execute_a2a_send_with_retry",
+        "token_iq.gateway.a2a_protocol.main._execute_a2a_send_with_retry",
         new=_mock_execute_a2a_send,
     ):
         await asend_message(
@@ -162,7 +162,7 @@ async def test_asend_message_uses_cost_per_query_from_litellm_params_dict():
     Proxy passes agent pricing as the litellm_params dict param (not top-level
     kwargs). Regression for cost_per_query landing at $0 on the native path.
     """
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     litellm.logging_callback_manager._reset_all_callbacks()
     cost_logger = CostLogger()
@@ -175,7 +175,7 @@ async def test_asend_message_uses_cost_per_query_from_litellm_params_dict():
     mock_request = _make_send_message_request("test-123")
 
     with patch(
-        "litellm.a2a_protocol.main._execute_a2a_send_with_retry",
+        "token_iq.gateway.a2a_protocol.main._execute_a2a_send_with_retry",
         new=_mock_execute_a2a_send,
     ):
         await asend_message(
@@ -222,7 +222,7 @@ async def test_asend_message_uses_input_output_cost_per_token():
     Test that asend_message calculates cost using input_cost_per_token and output_cost_per_token.
     Validates exact cost calculation: cost = (prompt_tokens * input_cost) + (completion_tokens * output_cost)
     """
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -241,7 +241,7 @@ async def test_asend_message_uses_input_output_cost_per_token():
     output_cost_per_token = 0.00002  # $0.02 per 1000 tokens
 
     with patch(
-        "litellm.a2a_protocol.main._execute_a2a_send_with_retry",
+        "token_iq.gateway.a2a_protocol.main._execute_a2a_send_with_retry",
         new=_mock_execute_a2a_send_with_assistant_reply,
     ):
         await asend_message(
@@ -296,7 +296,7 @@ async def test_asend_message_passes_agent_id_to_callback():
     """
     Test that asend_message passes agent_id to callbacks via kwargs.
     """
-    from litellm.a2a_protocol import asend_message
+    from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -314,7 +314,7 @@ async def test_asend_message_passes_agent_id_to_callback():
 
     # Call asend_message with agent_id
     with patch(
-        "litellm.a2a_protocol.main._execute_a2a_send_with_retry",
+        "token_iq.gateway.a2a_protocol.main._execute_a2a_send_with_retry",
         new=_mock_execute_a2a_send,
     ):
         await asend_message(
@@ -356,7 +356,7 @@ async def test_asend_message_streaming_propagates_metadata():
     Test that asend_message_streaming propagates metadata to logging object.
     This ensures user_api_key, user_id, team_id are available for SpendLogs.
     """
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Setup logger
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -380,7 +380,7 @@ async def test_asend_message_streaming_propagates_metadata():
     # Consume streaming response with metadata
     chunks = []
     with patch(
-        "litellm.a2a_protocol.main._stream_messages",
+        "token_iq.gateway.a2a_protocol.main._stream_messages",
         new=_mock_stream_messages,
     ):
         async for chunk in asend_message_streaming(
@@ -403,7 +403,7 @@ async def test_asend_message_streaming_triggers_callbacks():
     """
     Test that asend_message_streaming triggers callbacks after stream completes.
     """
-    from litellm.a2a_protocol import asend_message_streaming
+    from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Setup logger - must use logging_callback_manager to properly register
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -423,7 +423,7 @@ async def test_asend_message_streaming_triggers_callbacks():
     # Consume streaming response
     chunks = []
     with patch(
-        "litellm.a2a_protocol.main._stream_messages",
+        "token_iq.gateway.a2a_protocol.main._stream_messages",
         new=_mock_stream_messages,
     ):
         async for chunk in asend_message_streaming(

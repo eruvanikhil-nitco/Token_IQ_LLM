@@ -15,8 +15,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import websockets.exceptions  # registers websockets.exceptions on the websockets namespace
 
-import litellm
-from litellm.llms.vertex_ai.realtime.transformation import VertexAIRealtimeConfig
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.vertex_ai.realtime.transformation import VertexAIRealtimeConfig
 
 # ---------------------------------------------------------------------------
 # Config unit tests
@@ -242,7 +242,7 @@ async def test_vertex_realtime_text_in_text_out():
     Simulate a full text-in / text-out session through RealTimeStreaming using
     VertexAIRealtimeConfig for message translation.  All I/O is mocked.
     """
-    from litellm.litellm_core_utils.realtime_streaming import RealTimeStreaming
+    from token_iq.gateway.core_utils.realtime_streaming import RealTimeStreaming
 
     cfg = VertexAIRealtimeConfig(
         access_token="fake-token",
@@ -398,7 +398,7 @@ async def test_async_realtime_does_not_forward_client_query_params_to_vertex_bac
     """
     import websockets
 
-    from litellm.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 
     cfg = VertexAIRealtimeConfig(
         access_token="tok", project="my-proj", location="us-central1"
@@ -493,7 +493,7 @@ def test_vertex_native_audio_keeps_requested_voice(patch_native_audio_cost_map_e
 
 def test_google_ai_studio_native_audio_keeps_requested_voice(patch_native_audio_cost_map_entry):
     """Regression: AI Studio native-audio Live accepts speechConfig too, so the voice survives on both providers."""
-    from litellm.llms.gemini.realtime.transformation import GeminiRealtimeConfig
+    from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 
     messages = GeminiRealtimeConfig().transform_realtime_request(
         json.dumps(

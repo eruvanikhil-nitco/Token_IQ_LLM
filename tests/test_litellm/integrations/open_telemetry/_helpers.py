@@ -14,7 +14,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 )
 from opentelemetry.trace import StatusCode
 
-from litellm.integrations.opentelemetry import (
+from token_iq.gateway.integrations.opentelemetry import (
     HTTP_RESPONSE_STATUS_CODE_ATTRIBUTE,
     HTTP_ROUTE_ATTRIBUTE,
     LITELLM_PROXY_REQUEST_SPAN_NAME,

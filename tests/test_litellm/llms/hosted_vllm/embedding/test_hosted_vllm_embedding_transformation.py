@@ -11,8 +11,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-import litellm
-from litellm.llms.hosted_vllm.embedding.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.hosted_vllm.embedding.transformation import (
     HostedVLLMEmbeddingConfig,
 )
 
@@ -235,7 +235,7 @@ class TestHostedVLLMEmbeddingTransformation:
         Patches HTTPHandler.post at the class level so the mock is used when
         base_llm_http_handler calls sync_httpx_client.post() with the passed client.
         """
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
 
@@ -292,7 +292,7 @@ class TestHostedVLLMEmbeddingTransformation:
         ],
     )
     def test_provider_params_are_sent_at_the_top_level_of_the_request(self, provider_params: dict[str, object]) -> None:
-        from litellm.llms.custom_httpx.http_handler import HTTPHandler
+        from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
         client = HTTPHandler()
 

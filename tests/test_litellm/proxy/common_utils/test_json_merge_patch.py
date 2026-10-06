@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from litellm.proxy.common_utils.json_merge_patch import _MAX_MERGE_DEPTH, apply_json_merge_patch
+from token_iq.gateway.proxy.common_utils.json_merge_patch import _MAX_MERGE_DEPTH, apply_json_merge_patch
 
 # RFC 7386 Appendix A — the normative test suite for JSON Merge Patch.
 # https://www.rfc-editor.org/rfc/rfc7386#appendix-A

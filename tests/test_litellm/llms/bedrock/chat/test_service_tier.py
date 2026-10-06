@@ -7,8 +7,8 @@ import json
 import pytest
 
 
-from litellm.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
-from litellm.types.llms.bedrock import ServiceTierBlock
+from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
+from token_iq.gateway.types.llms.bedrock import ServiceTierBlock
 
 
 def test_service_tier_block_type():
@@ -228,7 +228,7 @@ def test_transform_response_with_service_tier():
 
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonConverseConfig()
 
@@ -279,7 +279,7 @@ def test_transform_response_with_service_tier_default():
 
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonConverseConfig()
 
@@ -328,7 +328,7 @@ def test_transform_response_with_service_tier_flex():
 
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonConverseConfig()
 
@@ -377,7 +377,7 @@ def test_transform_response_without_service_tier():
 
     import httpx
 
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     config = AmazonConverseConfig()
 

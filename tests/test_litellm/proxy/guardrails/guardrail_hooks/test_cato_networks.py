@@ -8,16 +8,16 @@ from fastapi.exceptions import HTTPException
 from httpx import Request, Response
 from websockets.exceptions import ConnectionClosed
 
-from litellm import DualCache
-from litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks import (
+from token_iq.gateway import DualCache
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks import (
     CatoNetworksGuardrail,
     CatoNetworksGuardrailMissingSecrets,
 )
-from litellm.proxy.proxy_server import UserAPIKeyAuth
-from litellm.types.utils import ModelResponse, ResponsesAPIResponse
+from token_iq.gateway.proxy.proxy_server import UserAPIKeyAuth
+from token_iq.gateway.types.utils import ModelResponse, ResponsesAPIResponse
 
-import litellm
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_cato_guard_config():
@@ -87,7 +87,7 @@ async def test_block_callback(mode: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=Response(
             json={
                 "analysis_result": {
@@ -153,7 +153,7 @@ async def test_anonymize_callback__it_returns_redacted_content(mode: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response_with_detections,
     ):
         if mode == "pre_call":
@@ -201,7 +201,7 @@ async def test_post_call__with_anonymized_entities__it_doesnt_deanonymize_output
     }
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
 
         def mock_post_detect_side_effect(url, *args, **kwargs):
@@ -404,10 +404,10 @@ def test_base_url_from_env(monkeypatch):
 def test_initialize_guardrail_forwards_ssl_verify(monkeypatch):
     """The config-driven initializer must forward ssl_verify so a custom Cato instance
     behind TLS can disable verification for both HTTP and WebSocket calls."""
-    from litellm.proxy.guardrails.guardrail_hooks.cato_networks import (
+    from token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks import (
         initialize_guardrail,
     )
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     monkeypatch.setenv("CATO_API_KEY", "test-key")
     litellm_params = LitellmParams(
@@ -474,7 +474,7 @@ async def test_call_cato_guardrail_monitor_action_returns_data_unchanged():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -515,7 +515,7 @@ async def test_anonymize_action_preserves_non_text_message_fields():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -544,7 +544,7 @@ async def test_call_cato_guardrail_no_required_action_returns_data_unchanged():
         {"analysis_result": {"policy_drill_down": {}}, "required_action": None}
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -562,7 +562,7 @@ async def test_call_cato_guardrail_unknown_action_returns_data_unchanged():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -581,7 +581,7 @@ async def test_anonymize_action_without_redacted_chat_returns_data_unchanged():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -610,7 +610,7 @@ async def test_anonymize_action_fewer_redacted_messages_preserves_remaining():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -643,7 +643,7 @@ async def test_anonymize_action_missing_content_key_preserves_original_message()
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -673,7 +673,7 @@ async def test_call_cato_guardrail_inspects_responses_api_input():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -720,7 +720,7 @@ async def test_call_cato_guardrail_flattens_multimodal_content():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -760,7 +760,7 @@ async def test_call_cato_guardrail_on_output_flattens_multimodal_context():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         await guard.call_cato_guardrail_on_output(
@@ -789,7 +789,7 @@ async def test_anonymize_action_redacts_responses_api_input():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -820,7 +820,7 @@ async def test_call_cato_guardrail_inspects_input_when_messages_also_present():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -852,7 +852,7 @@ async def test_anonymize_action_redacts_input_when_messages_also_present():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -882,7 +882,7 @@ async def test_call_cato_guardrail_inspects_text_completion_prompt():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -913,7 +913,7 @@ async def test_call_cato_guardrail_inspects_responses_api_instructions():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -940,7 +940,7 @@ async def test_anonymize_action_redacts_text_completion_prompt():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -971,7 +971,7 @@ async def test_anonymize_action_redacts_instructions_with_messages_and_input():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -1013,7 +1013,7 @@ async def test_call_cato_guardrail_inspects_tool_function_description():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -1055,7 +1055,7 @@ async def test_anonymize_action_redacts_tool_function_description():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -1106,7 +1106,7 @@ async def test_call_cato_guardrail_inspects_nested_parameter_descriptions():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -1145,7 +1145,7 @@ async def test_call_cato_guardrail_inspects_legacy_functions():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -1199,7 +1199,7 @@ async def test_anonymize_action_redacts_nested_and_legacy_schema_descriptions():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -1251,7 +1251,7 @@ async def test_call_cato_guardrail_inspects_response_format_schema_descriptions(
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -1299,7 +1299,7 @@ async def test_anonymize_action_redacts_response_format_schema_descriptions():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -1355,7 +1355,7 @@ async def test_call_cato_guardrail_inspects_response_format_schema_string_values
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -1415,7 +1415,7 @@ async def test_anonymize_action_redacts_response_format_schema_string_values():
         }
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ):
         result = await guard.call_cato_guardrail(data, hook="pre_call", key_alias=None)
@@ -1443,7 +1443,7 @@ async def test_call_cato_guardrail_on_output_includes_responses_api_input():
         )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         await guard.call_cato_guardrail_on_output(
@@ -1465,7 +1465,7 @@ async def test_call_cato_guardrail_forwards_user_email_from_auth():
         {"analysis_result": {"policy_drill_down": {}}, "required_action": None}
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ) as mock_post:
         await guard.async_pre_call_hook(
@@ -1494,7 +1494,7 @@ async def test_call_cato_guardrail_ignores_spoofable_metadata_user_email():
         {"analysis_result": {"policy_drill_down": {}}, "required_action": None}
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ) as mock_post:
         await guard.async_pre_call_hook(
@@ -1532,7 +1532,7 @@ async def test_call_cato_guardrail_omits_user_email_for_spoofable_end_user_id():
         {"analysis_result": {"policy_drill_down": {}}, "required_action": None}
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response,
     ) as mock_post:
         await guard.async_pre_call_hook(
@@ -1577,7 +1577,7 @@ async def test_post_call_success_hook_block_action_raises():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=block_response,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -1618,7 +1618,7 @@ async def test_post_call_success_hook_block_action_raises_without_detection_mess
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=block_response,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -1657,7 +1657,7 @@ async def test_post_call_success_hook_anonymize_action_redacts_content():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=anonymize_response,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1695,7 +1695,7 @@ async def test_post_call_success_hook_anonymize_action_applies_empty_redacted_ou
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=anonymize_response,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1728,7 +1728,7 @@ async def test_post_call_success_hook_anonymize_action_empty_redacted_messages_k
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=anonymize_response,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1766,7 +1766,7 @@ async def test_post_call_success_hook_anonymize_action_missing_content_key_keeps
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=anonymize_response,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1809,7 +1809,7 @@ async def test_post_call_success_hook_anonymize_action_partial_redacted_keeps_ou
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=anonymize_response,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1835,7 +1835,7 @@ async def test_post_call_success_hook_no_action_keeps_content():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=response_without_detections,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1883,7 +1883,7 @@ async def test_post_call_success_hook_block_action_raises_on_later_choice():
         return block_response
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=mock_post_side_effect,
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -1939,7 +1939,7 @@ async def test_post_call_success_hook_anonymize_action_redacts_all_choices():
         return anonymize_response_for(assistant_content)
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=mock_post_side_effect,
     ):
         result = await guard.async_post_call_success_hook(
@@ -1958,7 +1958,7 @@ async def test_post_call_success_hook_skips_non_model_response():
     request_data = {"messages": [{"role": "user", "content": "hi"}]}
     not_a_model_response = {"unexpected": "shape"}
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         result = await guard.async_post_call_success_hook(
@@ -2015,7 +2015,7 @@ async def test_post_call_success_hook_redacts_tool_call_arguments_keeps_none_con
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = anonymize_response
@@ -2072,7 +2072,7 @@ async def test_post_call_success_hook_blocks_on_tool_call_arguments():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=block_response,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -2134,7 +2134,7 @@ async def test_post_call_success_hook_redacts_both_content_and_tool_arguments():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=side_effect,
     ):
         result = await guard.async_post_call_success_hook(
@@ -2182,7 +2182,7 @@ async def test_post_call_success_hook_redacts_responses_api_output_text():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = anonymize_response
@@ -2228,7 +2228,7 @@ async def test_post_call_success_hook_redacts_responses_api_function_call_argume
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = anonymize_response
@@ -2270,7 +2270,7 @@ async def test_post_call_success_hook_blocks_responses_api_output():
         ]
     )
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=block_response,
     ):
         with pytest.raises(HTTPException) as exc:
@@ -2290,7 +2290,7 @@ async def test_post_call_success_hook_blocks_responses_api_output():
 
 
 def test_get_config_model_returns_pydantic_class():
-    from litellm.types.proxy.guardrails.guardrail_hooks.cato_networks import (
+    from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.cato_networks import (
         CatoNetworksGuardrailConfigModel,
     )
 
@@ -2336,7 +2336,7 @@ async def test_streaming_iterator_yields_verified_chunks_and_cancels_sender():
             return None
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=MockWebSocket(),
     ):
         chunks = [
@@ -2367,7 +2367,7 @@ class _DoneWebSocket:
 
 async def _run_streaming_hook(guard):
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=_DoneWebSocket(),
     ) as mock_connect:
         async for _ in guard.async_post_call_streaming_iterator_hook(
@@ -2421,7 +2421,7 @@ def test_build_ws_ssl_kwargs_skips_insecure_ws_scheme():
 @pytest.mark.asyncio
 async def test_streaming_iterator_raises_on_connection_closed():
     guard = _make_guardrail()
-    from litellm.proxy.proxy_server import StreamingCallbackError
+    from token_iq.gateway.proxy.proxy_server import StreamingCallbackError
 
     class ClosedWebSocket:
         async def recv(self):
@@ -2437,7 +2437,7 @@ async def test_streaming_iterator_raises_on_connection_closed():
             return None
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=ClosedWebSocket(),
     ):
         with pytest.raises(
@@ -2454,7 +2454,7 @@ async def test_streaming_iterator_raises_on_connection_closed():
 @pytest.mark.asyncio
 async def test_streaming_iterator_raises_on_blocking_message():
     guard = _make_guardrail()
-    from litellm.proxy.proxy_server import StreamingCallbackError
+    from token_iq.gateway.proxy.proxy_server import StreamingCallbackError
 
     class BlockingWebSocket:
         async def recv(self):
@@ -2470,7 +2470,7 @@ async def test_streaming_iterator_raises_on_blocking_message():
             return None
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=BlockingWebSocket(),
     ):
         with pytest.raises(StreamingCallbackError, match="blocked by policy"):
@@ -2486,7 +2486,7 @@ async def test_streaming_iterator_raises_on_blocking_message():
 async def test_streaming_iterator_block_survives_sender_connection_closed():
     """A blocking signal must propagate even if the sender raises ConnectionClosed on teardown."""
     guard = _make_guardrail()
-    from litellm.proxy.proxy_server import StreamingCallbackError
+    from token_iq.gateway.proxy.proxy_server import StreamingCallbackError
 
     class FlakyWebSocket:
         async def recv(self):
@@ -2510,7 +2510,7 @@ async def test_streaming_iterator_block_survives_sender_connection_closed():
         await asyncio.sleep(3600)
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=FlakyWebSocket(),
     ):
         with pytest.raises(StreamingCallbackError, match="blocked by policy"):
@@ -2526,7 +2526,7 @@ async def test_streaming_iterator_block_survives_sender_connection_closed():
 async def test_streaming_iterator_surfaces_sender_stream_error():
     """A mid-stream LLM failure must surface immediately, not block on recv() until Cato times out."""
     guard = _make_guardrail()
-    from litellm.proxy.proxy_server import StreamingCallbackError
+    from token_iq.gateway.proxy.proxy_server import StreamingCallbackError
 
     class HangingWebSocket:
         async def recv(self):
@@ -2554,7 +2554,7 @@ async def test_streaming_iterator_surfaces_sender_stream_error():
             pass
 
     with patch(
-        "litellm.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
+        "token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networks.connect",
         return_value=HangingWebSocket(),
     ):
         with pytest.raises(StreamingCallbackError, match="upstream stream failed"):

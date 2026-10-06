@@ -10,10 +10,10 @@ from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import litellm
-from litellm.types.vector_stores import LiteLLM_ManagedVectorStore
-from litellm.vector_stores.main import search
-from litellm.vector_stores.vector_store_registry import VectorStoreRegistry
+from token_iq import gateway as litellm
+from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
+from token_iq.gateway.vector_stores.main import search
+from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
 
 
 @pytest.fixture(autouse=True)
@@ -56,7 +56,7 @@ def test_get_credentials_for_vector_store():
 
     # Mock CredentialAccessor.get_credential_values
     with patch(
-        "litellm.litellm_core_utils.credential_accessor.CredentialAccessor.get_credential_values"
+        "token_iq.gateway.core_utils.credential_accessor.CredentialAccessor.get_credential_values"
     ) as mock_get_creds:
         mock_get_creds.return_value = {"api_key": "test_key_1", "env": "test"}
 
@@ -130,7 +130,7 @@ def test_add_vector_store_to_registry():
 def test_search_uses_registry_credentials():
     """search() should pull credentials from vector_store_registry when available"""
     # Import the module to get the actual handler instance
-    import litellm.vector_stores.main as vector_stores_main
+    import token_iq.gateway.vector_stores.main as vector_stores_main
 
     vector_store = LiteLLM_ManagedVectorStore(
         vector_store_id="vs1",
@@ -165,7 +165,7 @@ def test_search_uses_registry_credentials():
                 },
             ) as mock_get_creds,
             patch(
-                "litellm.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
+                "token_iq.gateway.vector_stores.main.ProviderConfigManager.get_provider_vector_stores_config",
                 return_value=MagicMock(),
             ),
             patch.object(

@@ -3,12 +3,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.google_genai.streaming_iterator import (
+from token_iq.gateway.google_genai.streaming_iterator import (
     AsyncGoogleGenAIGenerateContentStreamingIterator,
     GoogleGenAIGenerateContentStreamingIterator,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 
 
 @pytest.mark.parametrize(

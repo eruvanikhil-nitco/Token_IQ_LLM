@@ -11,10 +11,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.proxy._types import LiteLLM_BudgetTable, LiteLLM_EndUserTable
-from litellm.proxy.auth.auth_checks import get_end_user_object
-from litellm.caching import DualCache
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_EndUserTable
+from token_iq.gateway.proxy.auth.auth_checks import get_end_user_object
+from token_iq.gateway.caching import DualCache
 
 
 @pytest.mark.asyncio
@@ -137,7 +137,7 @@ async def test_budget_enforcement_blocks_over_budget_users():
     Note: Budget enforcement happens in common_checks() via _check_end_user_budget(),
     not in get_end_user_object(). get_end_user_object only fetches the user data.
     """
-    from litellm.proxy.auth.auth_checks import _check_end_user_budget
+    from token_iq.gateway.proxy.auth.auth_checks import _check_end_user_budget
     
     end_user_id = f"test_user_{uuid.uuid4().hex}"
     default_budget_id = str(uuid.uuid4())

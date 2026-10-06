@@ -7,8 +7,8 @@ import httpx
 import pytest
 from aiohttp import ClientSession
 
-from litellm.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
 def _closed_local_port() -> int:

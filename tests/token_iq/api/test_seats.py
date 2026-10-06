@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.seats import user_cost_response
 from token_iq.seats.user_cost import SeatLine, UserCost
 from token_iq.api.types.seats import SeatBody

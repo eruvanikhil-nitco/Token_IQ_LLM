@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.types.llms.openai import HttpxBinaryResponseContent
-from litellm.types.utils import SpecialEnums
+from token_iq import gateway as litellm
+from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
+from token_iq.gateway.types.utils import SpecialEnums
 
 
 class TestBedrockFilesIntegration:
@@ -37,7 +37,7 @@ class TestBedrockFilesIntegration:
         # Mock the base_llm_http_handler.retrieve_file_content since the code
         # now routes through ProviderConfigManager -> base_llm_http_handler
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             new_callable=MagicMock,
         ) as mock_retrieve:
             mock_retrieve.return_value = mock_result
@@ -90,7 +90,7 @@ class TestBedrockFilesIntegration:
 
         # Mock the base_llm_http_handler.retrieve_file_content
         with patch(
-            "litellm.files.main.base_llm_http_handler.retrieve_file_content",
+            "token_iq.gateway.files.main.base_llm_http_handler.retrieve_file_content",
             new_callable=MagicMock,
         ) as mock_retrieve:
             mock_retrieve.return_value = mock_result

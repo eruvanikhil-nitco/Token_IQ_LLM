@@ -1,16 +1,16 @@
 import pytest
 
-import litellm
-from litellm.interactions.utils import get_provider_interactions_api_config
-from litellm.llms.gemini.interactions.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.interactions.utils import get_provider_interactions_api_config
+from token_iq.gateway.llms.gemini.interactions.transformation import (
     GoogleAIStudioInteractionsConfig,
 )
-from litellm.llms.vertex_ai.interactions.transformation import (
+from token_iq.gateway.llms.vertex_ai.interactions.transformation import (
     VertexAIInteractionsConfig,
 )
-from litellm.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
-from litellm.types.router import GenericLiteLLMParams
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.utils import LlmProviders
 
 GLOBAL_BASE = "https://aiplatform.googleapis.com/v1beta1/projects/test-proj/locations/global/interactions"
 

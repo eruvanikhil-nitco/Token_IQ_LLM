@@ -19,10 +19,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import Request, Response
 
-from litellm.exceptions import RejectedRequestError
-from litellm.integrations.custom_guardrail import ModifyResponseException
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.proxy_server import chat_completion
+from token_iq.gateway.exceptions import RejectedRequestError
+from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.proxy_server import chat_completion
 
 
 async def _run_streaming_block_and_get_wrapper(exception):
@@ -40,20 +40,20 @@ async def _run_streaming_block_and_get_wrapper(exception):
     outer_body = {"model": "gpt-4o", "messages": [], "stream": True}
 
     with patch(
-        "litellm.proxy.proxy_server._read_request_body",
+        "token_iq.gateway.proxy.proxy_server._read_request_body",
         new_callable=AsyncMock,
         return_value=outer_body,
     ), patch(
-        "litellm.proxy.proxy_server.ProxyBaseLLMRequestProcessing.base_process_llm_request",
+        "token_iq.gateway.proxy.proxy_server.ProxyBaseLLMRequestProcessing.base_process_llm_request",
         new_callable=AsyncMock,
         side_effect=exception,
     ), patch(
-        "litellm.proxy.proxy_server.proxy_logging_obj"
+        "token_iq.gateway.proxy.proxy_server.proxy_logging_obj"
     ) as mock_proxy_logging, patch(
-        "litellm.proxy.proxy_server.select_data_generator",
+        "token_iq.gateway.proxy.proxy_server.select_data_generator",
         return_value=iter([]),
     ), patch(
-        "litellm.CustomStreamWrapper"
+        "token_iq.gateway.CustomStreamWrapper"
     ) as mock_csw:
         mock_proxy_logging.post_call_failure_hook = AsyncMock()
 

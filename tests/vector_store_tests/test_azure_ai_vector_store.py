@@ -6,13 +6,13 @@ import httpx
 import pytest
 import respx
 
-import litellm
-from litellm.llms.azure_ai.vector_stores.transformation import AzureAIVectorStoreConfig
-from litellm.types.utils import EmbeddingResponse
-from litellm.vector_stores import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure_ai.vector_stores.transformation import AzureAIVectorStoreConfig
+from token_iq.gateway.types.utils import EmbeddingResponse
+from token_iq.gateway.vector_stores import (
     asearch as vector_store_asearch,
 )
-from litellm.vector_stores import (
+from token_iq.gateway.vector_stores import (
     search as vector_store_search,
 )
 

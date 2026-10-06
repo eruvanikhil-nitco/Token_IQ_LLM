@@ -2,7 +2,7 @@
 Tests for the grace-period key-rotation feature (MLI-6358).
 
 Two bugs are confirmed in LiteLLM v1.83.7-stable (upstream BerriAI/litellm#27193).
-Both live in _lookup_deprecated_key() (litellm/proxy/utils.py):
+Both live in _lookup_deprecated_key() (token_iq/gateway/proxy/utils.py):
 
   Bug 1 — duplicate cache read (cosmetic, no functional impact on its own):
       The cache is fetched twice in a row with no state change between the calls.
@@ -50,7 +50,7 @@ def _make_db(active_token_id: Optional[str]) -> MagicMock:
 @pytest.mark.asyncio
 async def test_lookup_deprecated_key_db_miss_returns_none():
     """Token absent from deprecated table → returns None without error."""
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     db = _make_db(active_token_id=None)
@@ -68,7 +68,7 @@ async def test_lookup_deprecated_key_db_hit_returns_active_token_id():
     active_token_id correctly.  The DB path itself works; the bug is on the
     second call when the result is read back from cache.
     """
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     db = _make_db(active_token_id=ACTIVE_TOKEN_HASH)
@@ -88,7 +88,7 @@ async def test_lookup_deprecated_key_cache_hit_returns_on_second_call():
     Regression guard: after first call warms the cache with a 3-tuple,
     second call should return from cache without raising.
     """
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     db = _make_db(active_token_id=ACTIVE_TOKEN_HASH)
@@ -110,7 +110,7 @@ async def test_lookup_deprecated_key_pre_warmed_cache_returns():
     """
     Pre-warmed 3-tuple cache entry should be served directly from cache.
     """
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     now_ts = datetime.now(timezone.utc).timestamp()
@@ -140,7 +140,7 @@ async def test_grace_period_three_requests_mirrors_demo():
       Request 2 (cache hit)                → succeeds
       Request 3 (cache hit)                → succeeds
     """
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     db = _make_db(active_token_id=ACTIVE_TOKEN_HASH)
@@ -160,7 +160,7 @@ async def test_grace_period_three_requests_mirrors_demo():
 @pytest.mark.asyncio
 async def test_cache_hit_respects_revoke_at_timestamp():
     """Cache entries should not remain valid past revoke_at even if cache TTL is still live."""
-    from litellm.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
+    from token_iq.gateway.proxy.utils import _lookup_deprecated_key, _deprecated_key_cache
 
     _deprecated_key_cache.clear()
     now_ts = datetime.now(timezone.utc).timestamp()

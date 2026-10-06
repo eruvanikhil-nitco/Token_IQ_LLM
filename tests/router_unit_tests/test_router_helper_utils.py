@@ -4,14 +4,14 @@ from dotenv import load_dotenv
 from fastapi import Request
 from datetime import datetime
 
-from litellm import Router
+from token_iq.gateway import Router
 import pytest
-import litellm
+from token_iq import gateway as litellm
 from unittest.mock import patch, MagicMock, AsyncMock
 from create_mock_standard_logging_payload import create_standard_logging_payload
-from litellm.types.utils import StandardLoggingPayload
-from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
-from litellm.constants import DEFAULT_AUTO_ROUTER_MAX_INPUT_CHARS
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
+from token_iq.gateway.constants import DEFAULT_AUTO_ROUTER_MAX_INPUT_CHARS
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_validate_fallbacks(model_list):
 
 def test_routing_strategy_init(model_list):
     """Test if all routing strategies are initialized correctly"""
-    from litellm.types.router import RoutingStrategy
+    from token_iq.gateway.types.router import RoutingStrategy
 
     router = Router(model_list=model_list)
     for strategy in RoutingStrategy:
@@ -114,7 +114,7 @@ def test_routing_strategy_init_valid_string_strategies(model_list):
 
     Valid strategies are derived from RoutingStrategy enum values plus 'simple-shuffle'.
     """
-    from litellm.types.router import RoutingStrategy
+    from token_iq.gateway.types.router import RoutingStrategy
 
     router = Router(model_list=model_list)
 
@@ -145,7 +145,7 @@ def test_print_deployment(model_list):
 
 def test_print_deployment_with_redact_enabled(model_list):
     """Test if sensitive credentials are masked when redact_user_api_key_info is enabled"""
-    import litellm
+    from token_iq import gateway as litellm
 
     router = Router(model_list=model_list)
     deployment = {
@@ -186,7 +186,7 @@ def test_completion(model_list):
 @pytest.mark.asyncio
 async def test_image_generation(model_list, sync_mode):
     """Test if the underlying '_image_generation' function is working correctly"""
-    from litellm.types.utils import ImageResponse
+    from token_iq.gateway.types.utils import ImageResponse
 
     router = Router(model_list=model_list)
     if sync_mode:
@@ -248,7 +248,7 @@ async def test_router_schedule_acompletion(model_list):
 @pytest.mark.asyncio
 async def test_router_schedule_atext_completion(model_list):
     """Test if the 'schedule_atext_completion' function is working correctly"""
-    from litellm.types.utils import TextCompletionResponse
+    from token_iq.gateway.types.utils import TextCompletionResponse
 
     router = Router(model_list=model_list)
     with patch.object(
@@ -267,7 +267,7 @@ async def test_router_schedule_atext_completion(model_list):
 @pytest.mark.asyncio
 async def test_router_schedule_factory(model_list):
     """Test if the 'schedule_atext_completion' function is working correctly"""
-    from litellm.types.utils import TextCompletionResponse
+    from token_iq.gateway.types.utils import TextCompletionResponse
 
     router = Router(model_list=model_list)
     with patch.object(
@@ -616,7 +616,7 @@ def test_deployment_callback_respects_cooldown_time(model_list):
         },
     }
 
-    with patch("litellm.router._set_cooldown_deployments") as mock_set:
+    with patch("token_iq.gateway.router._set_cooldown_deployments") as mock_set:
         router.deployment_callback_on_failure(
             kwargs=kwargs,
             completion_response=None,
@@ -711,8 +711,8 @@ def test_get_healthy_deployments(model_list):
 @pytest.mark.asyncio
 async def test_routing_strategy_pre_call_checks(model_list, sync_mode):
     """Test if the '_routing_strategy_pre_call_checks' function is working correctly"""
-    from litellm.integrations.custom_logger import CustomLogger
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.integrations.custom_logger import CustomLogger
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     callback = CustomLogger()
     litellm.callbacks = [callback]
@@ -1001,8 +1001,8 @@ async def test_get_model_group_io_token_usage_sums_across_deployments():
     in the model group (not just the first), reading the same per-deployment
     cache keys the pre-call reservation writes to.
     """
-    from litellm.types.router import RouterCacheEnum
-    from litellm.utils import get_utc_datetime
+    from token_iq.gateway.types.router import RouterCacheEnum
+    from token_iq.gateway.utils import get_utc_datetime
 
     router = Router(
         model_list=[
@@ -1082,7 +1082,7 @@ async def test_get_remaining_model_group_usage_merges_io_and_tpm_headers(model_l
     """
     from unittest.mock import Mock
 
-    from litellm.types.router import ModelGroupInfo
+    from token_iq.gateway.types.router import ModelGroupInfo
 
     router = Router(model_list=model_list)
     router._cached_get_model_group_info = Mock(
@@ -1318,7 +1318,7 @@ def test_filter_cooldown_deployments(model_list):
 
 def test_track_deployment_metrics(model_list):
     """Test if the 'track_deployment_metrics' function is working correctly"""
-    from litellm.types.utils import ModelResponse
+    from token_iq.gateway.types.utils import ModelResponse
 
     router = Router(model_list=model_list)
     router._track_deployment_metrics(
@@ -1350,7 +1350,7 @@ def test_get_num_retries_from_retry_policy(
     model_list, exception_type, exception_name, num_retries
 ):
     """Test if the 'get_num_retries_from_retry_policy' function is working correctly"""
-    from litellm.router import RetryPolicy
+    from token_iq.gateway.router import RetryPolicy
 
     data = {exception_name + "Retries": num_retries}
     print("data", data)
@@ -1384,7 +1384,7 @@ def test_get_allowed_fails_from_policy(
     model_list, exception_type, exception_name, allowed_fails
 ):
     """Test if the 'get_allowed_fails_from_policy' function is working correctly"""
-    from litellm.types.router import AllowedFailsPolicy
+    from token_iq.gateway.types.router import AllowedFailsPolicy
 
     data = {exception_name + "AllowedFails": allowed_fails}
     router = Router(
@@ -1400,8 +1400,8 @@ def test_get_allowed_fails_from_policy(
 
 def test_initialize_alerting(model_list):
     """Test if the 'initialize_alerting' function is working correctly"""
-    from litellm.types.router import AlertingConfig
-    from litellm.integrations.SlackAlerting.slack_alerting import SlackAlerting
+    from token_iq.gateway.types.router import AlertingConfig
+    from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 
     router = Router(
         model_list=model_list, alerting_config=AlertingConfig(webhook_url="test")
@@ -1568,7 +1568,7 @@ def test_pattern_match_deployment_set_model_name(
     user_request_model, model_name, litellm_model, expected_model
 ):
     from re import Match
-    from litellm.router_utils.pattern_match_deployments import PatternMatchRouter
+    from token_iq.gateway.router_utils.pattern_match_deployments import PatternMatchRouter
 
     pattern_router = PatternMatchRouter()
 
@@ -1637,7 +1637,7 @@ def test_add_optional_pre_call_checks(model_list):
 
 @pytest.mark.asyncio
 async def test_async_callback_filter_deployments(model_list):
-    from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
+    from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 
     router = Router(model_list=model_list)
 
@@ -1708,7 +1708,7 @@ def test_mock_router_testing_params_str_to_bool_conversion(
     expected_content_policy,
 ):
     """Test if MockRouterTestingParams.from_kwargs correctly converts string values to booleans using str_to_bool"""
-    from litellm.types.router import MockRouterTestingParams
+    from token_iq.gateway.types.router import MockRouterTestingParams
 
     kwargs = {
         "mock_testing_fallbacks": mock_testing_fallbacks,
@@ -1757,7 +1757,7 @@ def test_is_auto_router_deployment(model_list):
     assert router._is_auto_router_deployment(litellm_params_contains) is False
 
 
-@patch("litellm.router_strategy.auto_router.auto_router.AutoRouter")
+@patch("token_iq.gateway.router_strategy.auto_router.auto_router.AutoRouter")
 def test_init_auto_router_deployment_success(mock_auto_router, model_list):
     """Test if the 'init_auto_router_deployment' function successfully initializes auto-router when all params provided"""
     router = Router(model_list=model_list)
@@ -1798,7 +1798,7 @@ def test_init_auto_router_deployment_success(mock_auto_router, model_list):
     assert router.auto_routers["test-auto-router"][0].strategy == mock_auto_router_instance
 
 
-@patch("litellm.router_strategy.auto_router.auto_router.AutoRouter")
+@patch("token_iq.gateway.router_strategy.auto_router.auto_router.AutoRouter")
 def test_init_auto_router_deployment_duplicate_model_name(mock_auto_router, model_list):
     """Test if the 'init_auto_router_deployment' function raises ValueError when model_name already exists"""
     router = Router(model_list=model_list)
@@ -1808,7 +1808,7 @@ def test_init_auto_router_deployment_duplicate_model_name(mock_auto_router, mode
     mock_auto_router.return_value = mock_auto_router_instance
 
     # Add an existing auto-router
-    from litellm.types.router import TaggedPreRoutingStrategy
+    from token_iq.gateway.types.router import TaggedPreRoutingStrategy
 
     router.auto_routers["test-auto-router"] = [
         TaggedPreRoutingStrategy(tags=(), strategy=mock_auto_router_instance)
@@ -2114,7 +2114,7 @@ def test_handle_clientside_credential_metadata_variable_name(
     model_list, function_name, metadata_key
 ):
     """Test that _handle_clientside_credential uses the correct metadata variable name based on function name"""
-    from litellm.router_utils.batch_utils import _get_router_metadata_variable_name
+    from token_iq.gateway.router_utils.batch_utils import _get_router_metadata_variable_name
 
     router = Router(model_list=model_list)
 
@@ -2319,7 +2319,7 @@ async def test_asearch_with_fallbacks(search_tools):
     - Calls async_function_with_fallbacks with correct configuration
     - Returns SearchResponse
     """
-    from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+    from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
     router = Router(search_tools=search_tools)
 
@@ -2373,7 +2373,7 @@ async def test_asearch_with_fallbacks_helper(search_tools):
     - Calls the original search function with correct provider parameters
     - Returns SearchResponse
     """
-    from litellm.llms.base_llm.search.transformation import SearchResponse, SearchResult
+    from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
     router = Router(search_tools=search_tools)
 

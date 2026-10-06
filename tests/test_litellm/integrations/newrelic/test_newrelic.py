@@ -18,9 +18,9 @@ _mock_newrelic.agent = _mock_newrelic_agent
 sys.modules["newrelic"] = _mock_newrelic
 sys.modules["newrelic.agent"] = _mock_newrelic_agent
 
-import litellm
-import litellm.integrations.newrelic.newrelic as nr_module
-from litellm.integrations.newrelic.newrelic import NewRelicLogger
+from token_iq import gateway as litellm
+import token_iq.gateway.integrations.newrelic.newrelic as nr_module
+from token_iq.gateway.integrations.newrelic.newrelic import NewRelicLogger
 
 
 def _rendered_log_message(call):
@@ -201,12 +201,12 @@ class TestNewRelicLoggerInit:
     def test_constructor_kwargs_take_priority_over_global_params(self):
         """Constructor turn_off_message_logging=True must not be overwritten by
         litellm.newrelic_params which defaults turn_off_message_logging to False."""
-        from litellm.types.integrations.newrelic import NewRelicInitParams
+        from token_iq.gateway.types.integrations.newrelic import NewRelicInitParams
 
         with patch("newrelic.agent.register_application"):
             with patch.dict(os.environ, NR_ENV):
                 with patch(
-                    "litellm.newrelic_params",
+                    "token_iq.gateway.newrelic_params",
                     NewRelicInitParams(turn_off_message_logging=False),
                 ):
                     logger = NewRelicLogger(turn_off_message_logging=True)
@@ -218,7 +218,7 @@ class TestNewRelicLoggerInit:
         with patch("newrelic.agent.register_application"):
             with patch.dict(os.environ, NR_ENV):
                 with patch(
-                    "litellm.newrelic_params",
+                    "token_iq.gateway.newrelic_params",
                     {"turn_off_message_logging": True},
                 ):
                     logger = NewRelicLogger()
@@ -950,7 +950,7 @@ class TestEmitSupportabilityMetric:
         fake_now = 9_999_999.0
         with patch("newrelic.agent.application", return_value=mock_app):
             with patch(
-                "litellm.integrations.newrelic.newrelic.time.time",
+                "token_iq.gateway.integrations.newrelic.newrelic.time.time",
                 return_value=fake_now,
             ):
                 self.logger._emit_supportability_metric()
@@ -993,7 +993,7 @@ class TestCheckAndEmitPeriodicMetric:
         """_last_metric_emission_time starts at 0.0; any real time satisfies 27-hour window."""
         with patch.object(self.logger, "_emit_supportability_metric") as mock_emit:
             with patch(
-                "litellm.integrations.newrelic.newrelic.time.time",
+                "token_iq.gateway.integrations.newrelic.newrelic.time.time",
                 return_value=100_000.0,
             ):
                 self.logger._check_and_emit_periodic_metric()
@@ -1004,7 +1004,7 @@ class TestCheckAndEmitPeriodicMetric:
         NewRelicLogger._last_metric_emission_time = recent
         with patch.object(self.logger, "_emit_supportability_metric") as mock_emit:
             with patch(
-                "litellm.integrations.newrelic.newrelic.time.time",
+                "token_iq.gateway.integrations.newrelic.newrelic.time.time",
                 return_value=recent + 3600,  # 1 hour later
             ):
                 self.logger._check_and_emit_periodic_metric()
@@ -1015,7 +1015,7 @@ class TestCheckAndEmitPeriodicMetric:
         NewRelicLogger._last_metric_emission_time = old
         with patch.object(self.logger, "_emit_supportability_metric") as mock_emit:
             with patch(
-                "litellm.integrations.newrelic.newrelic.time.time",
+                "token_iq.gateway.integrations.newrelic.newrelic.time.time",
                 return_value=old + 97201,  # 27 hours + 1 second
             ):
                 self.logger._check_and_emit_periodic_metric()
@@ -1026,7 +1026,7 @@ class TestCheckAndEmitPeriodicMetric:
         NewRelicLogger._last_metric_emission_time = old
         with patch.object(self.logger, "_emit_supportability_metric") as mock_emit:
             with patch(
-                "litellm.integrations.newrelic.newrelic.time.time",
+                "token_iq.gateway.integrations.newrelic.newrelic.time.time",
                 return_value=old + 97200,
             ):
                 self.logger._check_and_emit_periodic_metric()

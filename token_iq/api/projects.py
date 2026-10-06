@@ -21,8 +21,8 @@ import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import ReadOnly, TypedDict
 
-from litellm.models.project import LiteLLM_ProjectTable
-from litellm.proxy._types import (
+from token_iq.gateway.models.project import LiteLLM_ProjectTable
+from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_TeamTable,
     LitellmUserRoles,
@@ -31,18 +31,18 @@ from litellm.proxy._types import (
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.management_endpoints.common_daily_activity import get_daily_activity
-from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
-from litellm.repositories.project_repository import ProjectRepository
-from litellm.repositories.team_repository import TeamRepository
-from litellm.types.llms.base import LiteLLMPydanticObjectBase
-from litellm.types.proxy.management_endpoints.common_daily_activity import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.management_endpoints.common_daily_activity import get_daily_activity
+from token_iq.gateway.proxy.management_endpoints.common_utils import _is_user_team_admin
+from token_iq.gateway.repositories.project_repository import ProjectRepository
+from token_iq.gateway.repositories.team_repository import TeamRepository
+from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import (
     SpendAnalyticsPaginatedResponse,
 )
 
 if TYPE_CHECKING:
-    from litellm.proxy.utils import PrismaClient
+    from token_iq.gateway.proxy.utils import PrismaClient
 
 router: Final = APIRouter()
 
@@ -52,7 +52,7 @@ class _ErrorDetail(TypedDict):
 
 
 def _prisma_or_500() -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-    from litellm.proxy.proxy_server import prisma_client
+    from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if prisma_client is None:
         raise HTTPException(

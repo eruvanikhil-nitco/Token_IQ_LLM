@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from datetime import datetime
 from unittest.mock import AsyncMock
 
-from litellm.caching.caching_handler import LLMCachingHandler
+from token_iq.gateway.caching.caching_handler import LLMCachingHandler
 
 
 @pytest.mark.asyncio
@@ -167,7 +167,7 @@ async def test_embedding_cache_aggregates_multiple_image_counts():
 
 def test_combine_usage_merges_prompt_tokens_details():
     """Test that combine_usage merges prompt_tokens_details from both Usage objects."""
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     llm_caching_handler = LLMCachingHandler(
         original_function=MagicMock(),
@@ -198,7 +198,7 @@ def test_combine_usage_merges_prompt_tokens_details():
 
 def test_combine_usage_handles_none_details():
     """Test that combine_usage works when one or both sides have null prompt_tokens_details."""
-    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+    from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     llm_caching_handler = LLMCachingHandler(
         original_function=MagicMock(),
@@ -230,7 +230,7 @@ def test_combine_usage_handles_none_details():
 
 
 def test_is_chat_completion_cached_dict():
-    from litellm.caching.caching_handler import _is_chat_completion_cached_dict
+    from token_iq.gateway.caching.caching_handler import _is_chat_completion_cached_dict
 
     assert _is_chat_completion_cached_dict(
         {"id": "chatcmpl-abc", "object": "chat.completion", "choices": []}
@@ -249,7 +249,7 @@ def test_is_chat_completion_cached_dict():
 def _build_logging_obj(call_type: str, stream: bool):
     import uuid as _uuid
 
-    from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     return LiteLLMLogging(
         litellm_call_id=str(datetime.now()),
@@ -264,9 +264,9 @@ def _build_logging_obj(call_type: str, stream: bool):
 
 def test_convert_cached_aresponses_bridge_chat_completion_stream():
     """openai/responses chat-completions bridge: streaming cache hit replays as chat stream."""
-    from litellm import aresponses
-    from litellm.litellm_core_utils.streaming_handler import CustomStreamWrapper
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway import aresponses
+    from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
+    from token_iq.gateway.types.utils import CallTypes
 
     caching_handler = LLMCachingHandler(
         original_function=aresponses, request_kwargs={}, start_time=datetime.now()
@@ -304,8 +304,8 @@ def test_convert_cached_aresponses_bridge_chat_completion_stream():
 
 def test_convert_cached_responses_bridge_chat_completion_nonstream():
     """openai/responses chat-completions bridge: non-streaming cache hit replays as ModelResponse."""
-    from litellm import responses
-    from litellm.types.utils import CallTypes, ModelResponse
+    from token_iq.gateway import responses
+    from token_iq.gateway.types.utils import CallTypes, ModelResponse
 
     caching_handler = LLMCachingHandler(
         original_function=responses, request_kwargs={}, start_time=datetime.now()
@@ -344,9 +344,9 @@ def test_convert_cached_responses_bridge_chat_completion_nonstream():
 
 def test_convert_cached_responses_legacy_nonstream_path():
     """Genuine ResponsesAPIResponse dict (no chatcmpl/choices) falls through legacy path."""
-    from litellm import responses
-    from litellm.types.llms.openai import ResponsesAPIResponse
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway import responses
+    from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
+    from token_iq.gateway.types.utils import CallTypes
 
     caching_handler = LLMCachingHandler(
         original_function=responses, request_kwargs={}, start_time=datetime.now()
@@ -389,11 +389,11 @@ def test_convert_cached_responses_legacy_nonstream_path():
 
 def test_convert_cached_responses_legacy_stream_path():
     """Genuine ResponsesAPIResponse dict (no chatcmpl/choices) on stream falls through legacy path."""
-    from litellm import responses
-    from litellm.responses.streaming_iterator import (
+    from token_iq.gateway import responses
+    from token_iq.gateway.responses.streaming_iterator import (
         CachedResponsesAPIStreamingIterator,
     )
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.types.utils import CallTypes
 
     caching_handler = LLMCachingHandler(
         original_function=responses, request_kwargs={}, start_time=datetime.now()
@@ -557,7 +557,7 @@ async def test_embedding_cache_falls_back_to_token_counter_for_legacy_entries():
 async def test_embedding_cache_hit_sets_custom_llm_provider_on_logging_obj():
     """A full embedding cache hit must stamp the resolved provider onto the logging
     obj so spend logs record the provider instead of None/unknown."""
-    from litellm.types.utils import CallTypes
+    from token_iq.gateway.types.utils import CallTypes
 
     llm_caching_handler = LLMCachingHandler(
         original_function=MagicMock(),
@@ -626,7 +626,7 @@ def test_async_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypatc
     asyncio.run cancelled it at loop close before the write landed (LIT-6184,
     deterministic with hiredis installed). The write must survive loop shutdown.
     """
-    import litellm
+    from token_iq import gateway as litellm
 
     writes = []
 

@@ -8,8 +8,8 @@ Regression tests for https://github.com/BerriAI/litellm/issues/36493
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 PNG_BYTES = b"\x89PNG\r\n\x1a\nfakepng"
 

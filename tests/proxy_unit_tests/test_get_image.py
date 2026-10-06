@@ -4,7 +4,7 @@ from unittest import mock
 
 import httpx
 import pytest
-from litellm.proxy.proxy_server import app
+from token_iq.gateway.proxy.proxy_server import app
 
 
 @pytest.mark.asyncio
@@ -15,7 +15,7 @@ async def test_get_image_redirects_remote_logo_without_server_fetch(monkeypatch)
     monkeypatch.setenv("UI_LOGO_PATH", "http://invalid-url-12345.com/logo.jpg")
 
     with mock.patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
     ) as mock_get:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://testserver"
@@ -37,7 +37,7 @@ async def test_get_image_remote_logo_does_not_use_stale_cache(monkeypatch, tmp_p
     (tmp_path / "cached_logo.jpg").write_bytes(b"\xff\xd8\xff cached logo")
 
     with mock.patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
     ) as mock_get:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://testserver"

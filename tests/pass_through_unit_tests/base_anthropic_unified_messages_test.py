@@ -5,20 +5,20 @@ import asyncio
 import unittest.mock
 from unittest.mock import AsyncMock, MagicMock
 
-import litellm
+from token_iq import gateway as litellm
 import pytest
 from dotenv import load_dotenv
-from litellm.llms.anthropic.experimental_pass_through.messages.handler import (
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
     anthropic_messages,
 )
 
 from typing import Optional
-from litellm.types.utils import StandardLoggingPayload
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
-from litellm.router import Router
+from token_iq.gateway.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq.gateway.router import Router
 import importlib
-from litellm.llms.bedrock.base_aws_llm import BaseAWSLLM
+from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
 
 class TestCustomLogger(CustomLogger):

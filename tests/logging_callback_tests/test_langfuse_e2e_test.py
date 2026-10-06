@@ -11,10 +11,10 @@ import httpx
 
 logging.basicConfig(level=logging.DEBUG)
 
-import litellm
-from litellm import completion
-from litellm.caching import InMemoryCache
-from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway.caching import InMemoryCache
+from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 litellm.num_retries = 3
 litellm.success_callback = ["langfuse"]
@@ -144,7 +144,7 @@ class TestLangfuseLogging:
     @pytest_asyncio.fixture
     async def mock_setup(self):
         """Common setup for Langfuse logging tests"""
-        from litellm._uuid import uuid
+        from token_iq.gateway._uuid import uuid
         from unittest.mock import AsyncMock, patch
         import httpx
 

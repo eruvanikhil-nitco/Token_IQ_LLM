@@ -4,11 +4,11 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from litellm.proxy.openai_files_endpoints.common_utils import (
+from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     apply_unified_file_ids,
     map_raw_file_ids_to_unified,
 )
-from litellm.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import LiteLLMBatch
 
 
 def _batch(input_file_id, output_file_id, error_file_id) -> LiteLLMBatch:
@@ -135,9 +135,10 @@ def _job_for(poller):
     ],
 )
 def test_batch_cost_poller_is_active(monkeypatch, polling_enabled, job, expected):
-    import litellm.constants
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    import token_iq.gateway.constants
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
@@ -148,9 +149,10 @@ def test_batch_cost_poller_is_active(monkeypatch, polling_enabled, job, expected
 
 
 def test_batch_cost_poller_is_active_is_false_when_no_scheduler_exists(monkeypatch):
-    import litellm.constants
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    import token_iq.gateway.constants
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
@@ -174,7 +176,7 @@ def _completed_batch() -> LiteLLMBatch:
 
 
 async def _run_update(monkeypatch, poller_active: bool) -> dict:
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     monkeypatch.setattr(cu, "batch_cost_poller_is_active", lambda: poller_active)
     monkeypatch.setattr(cu, "ensure_batch_response_managed_file_ids", AsyncMock())
@@ -218,9 +220,10 @@ async def test_retrieving_a_completed_batch_still_marks_processed_without_a_cost
 
 
 def test_batch_cost_poller_is_active_is_false_when_the_job_has_no_bound_poller(monkeypatch):
-    import litellm.constants
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    import token_iq.gateway.constants
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
@@ -237,9 +240,10 @@ def test_batch_cost_poller_is_active_is_false_when_the_job_has_no_bound_poller(m
 
 
 def test_batch_cost_poller_is_active_is_false_when_get_job_raises(monkeypatch):
-    import litellm.constants
-    import litellm.proxy.proxy_server as proxy_server_module
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    import token_iq.gateway.constants
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.proxy_server as proxy_server_module
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
@@ -255,7 +259,7 @@ def test_batch_cost_poller_is_active_is_false_when_get_job_raises(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_retrieving_a_batch_whose_status_is_unchanged_writes_nothing(monkeypatch):
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     monkeypatch.setattr(cu, "batch_cost_poller_is_active", lambda: False)
     monkeypatch.setattr(cu, "ensure_batch_response_managed_file_ids", AsyncMock())
@@ -283,7 +287,7 @@ async def test_retrieving_a_batch_whose_status_is_unchanged_writes_nothing(monke
 
 @pytest.mark.asyncio
 async def test_update_batch_in_database_is_a_noop_for_unmanaged_batches(monkeypatch):
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
@@ -304,7 +308,7 @@ async def test_update_batch_in_database_is_a_noop_for_unmanaged_batches(monkeypa
 
 @pytest.mark.asyncio
 async def test_the_caller_s_accounting_decision_wins_over_a_later_poller_transition(monkeypatch):
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     monkeypatch.setattr(cu, "batch_cost_poller_is_active", lambda: True)
     monkeypatch.setattr(cu, "ensure_batch_response_managed_file_ids", AsyncMock())
@@ -334,7 +338,7 @@ async def test_the_caller_s_accounting_decision_wins_over_a_later_poller_transit
 
 @pytest.mark.asyncio
 async def test_a_caller_that_handed_off_accounting_still_leaves_the_marker_alone(monkeypatch):
-    import litellm.proxy.openai_files_endpoints.common_utils as cu
+    import token_iq.gateway.proxy.openai_files_endpoints.common_utils as cu
 
     monkeypatch.setattr(cu, "batch_cost_poller_is_active", lambda: False)
     monkeypatch.setattr(cu, "ensure_batch_response_managed_file_ids", AsyncMock())
@@ -372,7 +376,7 @@ def test_add_internal_model_credentials_attaches_an_immutable_snapshot():
     """Cost accounting for a completed batch reads its output file, and Bedrock resolves
     that bucket only from this snapshot. It must be immutable so nothing downstream can
     redirect the bucket that managed file ids are validated against."""
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         add_internal_model_credentials,
     )
 
@@ -400,7 +404,7 @@ def test_add_internal_model_credentials_attaches_an_immutable_snapshot():
 def test_add_internal_model_credentials_is_a_noop_without_a_resolvable_deployment(model_id, credentials):
     """An unroutable batch must be left alone rather than given an empty snapshot, which
     would look like a configured bucket of nothing."""
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         add_internal_model_credentials,
     )
 
@@ -417,7 +421,7 @@ def test_add_internal_model_credentials_survives_a_failing_deployment_lookup():
     """The snapshot only enables cost accounting, so a batch whose deployment no longer
     resolves, which happens when a model group is removed while batches are in flight,
     must still be retrievable rather than failing the request on the lookup."""
-    from litellm.proxy.openai_files_endpoints.common_utils import (
+    from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         add_internal_model_credentials,
     )
 
@@ -432,7 +436,7 @@ def test_add_internal_model_credentials_survives_a_failing_deployment_lookup():
 
 from openai.types.batch import BatchRequestCounts
 
-from litellm.proxy.openai_files_endpoints.common_utils import (
+from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     _completed_batch_safe_to_retire,
 )
 

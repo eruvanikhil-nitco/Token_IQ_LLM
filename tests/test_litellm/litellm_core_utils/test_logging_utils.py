@@ -1,10 +1,10 @@
 """
-Tests for litellm.litellm_core_utils.logging_utils — base64 truncation helpers.
+Tests for litellm.core_utils.logging_utils — base64 truncation helpers.
 """
 
 import pytest
 
-from litellm.litellm_core_utils.logging_utils import (
+from token_iq.gateway.core_utils.logging_utils import (
     _format_base64_size,
     _truncate_base64_in_string,
     truncate_base64_in_messages,

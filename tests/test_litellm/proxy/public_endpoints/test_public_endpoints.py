@@ -8,12 +8,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.public_endpoints import router
-from litellm.types.proxy.management_endpoints.model_management_endpoints import (
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.public_endpoints import router
+from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoints import (
     ModelGroupInfoProxy,
 )
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.types.utils import LlmProviders
 
 
 def test_get_supported_providers_returns_enum_values():
@@ -94,8 +94,8 @@ def test_public_ai_hub_info_is_public_by_default(monkeypatch):
     app.include_router(router)
     client = TestClient(app)
 
-    monkeypatch.setattr("litellm.proxy.proxy_server.general_settings", {})
-    monkeypatch.setattr("litellm.proxy.proxy_server.master_key", "sk-master")
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
+    monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-master")
 
     response = client.get("/public/model_hub/info")
 
@@ -409,12 +409,12 @@ def test_public_model_hub_with_healthy_model():
     )
 
     with (
-        patch("litellm.public_model_groups", ["gpt-3.5-turbo"]),
-        patch("litellm.proxy.proxy_server._get_model_group_info") as mock_get_info,
-        patch("litellm.proxy.proxy_server.llm_router", mock_llm_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.public_model_groups", ["gpt-3.5-turbo"]),
+        patch("token_iq.gateway.proxy.proxy_server._get_model_group_info") as mock_get_info,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_llm_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
         ) as mock_convert,
     ):
 
@@ -467,12 +467,12 @@ def test_public_model_hub_with_unhealthy_model():
     )
 
     with (
-        patch("litellm.public_model_groups", ["gpt-4"]),
-        patch("litellm.proxy.proxy_server._get_model_group_info") as mock_get_info,
-        patch("litellm.proxy.proxy_server.llm_router", mock_llm_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.public_model_groups", ["gpt-4"]),
+        patch("token_iq.gateway.proxy.proxy_server._get_model_group_info") as mock_get_info,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_llm_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
         ) as mock_convert,
     ):
 
@@ -516,10 +516,10 @@ def test_public_model_hub_without_health_check():
     mock_prisma.get_all_latest_health_checks = AsyncMock(return_value=[])
 
     with (
-        patch("litellm.public_model_groups", ["claude-3"]),
-        patch("litellm.proxy.proxy_server._get_model_group_info") as mock_get_info,
-        patch("litellm.proxy.proxy_server.llm_router", mock_llm_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.public_model_groups", ["claude-3"]),
+        patch("token_iq.gateway.proxy.proxy_server._get_model_group_info") as mock_get_info,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_llm_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
     ):
 
         mock_get_info.return_value = [mock_model_group]
@@ -598,12 +598,12 @@ def test_public_model_hub_mixed_health_statuses():
         return {}
 
     with (
-        patch("litellm.public_model_groups", ["gpt-3.5-turbo", "gpt-4", "claude-3"]),
-        patch("litellm.proxy.proxy_server._get_model_group_info") as mock_get_info,
-        patch("litellm.proxy.proxy_server.llm_router", mock_llm_router),
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+        patch("token_iq.gateway.public_model_groups", ["gpt-3.5-turbo", "gpt-4", "claude-3"]),
+        patch("token_iq.gateway.proxy.proxy_server._get_model_group_info") as mock_get_info,
+        patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_llm_router),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
         patch(
-            "litellm.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._convert_health_check_to_dict"
         ) as mock_convert,
     ):
 
@@ -651,7 +651,7 @@ def test_public_agent_hub_rewrites_upstream_url_to_proxy():
     stored card. The ``url`` field has to be overwritten with the proxy
     ``/a2a/{agent_id}`` entrypoint, matching the well-known card endpoint, so
     an unauthenticated client cannot call the backend directly."""
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     upstream_url = "https://upstream.internal.example.com/a2a"
     agent = AgentResponse(
@@ -669,9 +669,9 @@ def test_public_agent_hub_rewrites_upstream_url_to_proxy():
     mock_registry.ids_for_agent = MagicMock(side_effect=lambda agent_id: frozenset({agent_id}))
 
     with (
-        patch("litellm.public_agent_groups", ["agent-123"]),
+        patch("token_iq.gateway.public_agent_groups", ["agent-123"]),
         patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ),
     ):
@@ -692,7 +692,7 @@ def test_public_agent_hub_serializes_http_security_scheme_without_bearer_format(
     optional-field-omitted scheme; otherwise response validation raises and
     /public/agent_hub returns 500, which the frontend swallows into an empty
     list and hides the Agent Hub tab."""
-    from litellm.types.agents import AgentResponse
+    from token_iq.gateway.types.agents import AgentResponse
 
     agent = AgentResponse(
         agent_id="agent-123",
@@ -719,9 +719,9 @@ def test_public_agent_hub_serializes_http_security_scheme_without_bearer_format(
     mock_registry.ids_for_agent = MagicMock(side_effect=lambda agent_id: frozenset({agent_id}))
 
     with (
-        patch("litellm.public_agent_groups", ["agent-123"]),
+        patch("token_iq.gateway.public_agent_groups", ["agent-123"]),
         patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ),
     ):
@@ -745,9 +745,9 @@ def test_public_agent_hub_returns_empty_when_no_public_groups():
     mock_registry.get_public_agent_list.return_value = []
 
     with (
-        patch("litellm.public_agent_groups", None),
+        patch("token_iq.gateway.public_agent_groups", None),
         patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry",
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry",
             mock_registry,
         ),
     ):
@@ -800,8 +800,8 @@ def test_bedrock_agentcore_runtime_arn_validation_pattern_accepts_full_resource_
 # /public/endpoints
 # ---------------------------------------------------------------------------
 
-import litellm.proxy.public_endpoints.public_endpoints as _pe_module
-from litellm.proxy.public_endpoints.public_endpoints import (
+import token_iq.gateway.proxy.public_endpoints.public_endpoints as _pe_module
+from token_iq.gateway.proxy.public_endpoints.public_endpoints import (
     _build_endpoints,
     _clean_display_name,
 )
@@ -890,7 +890,7 @@ def test_get_supported_endpoints_is_cached(reset_endpoints_cache):
     """`_load_endpoints` is called only once; subsequent requests use the cache."""
     client = _make_client()
     with patch(
-        "litellm.proxy.public_endpoints.public_endpoints._load_endpoints",
+        "token_iq.gateway.proxy.public_endpoints.public_endpoints._load_endpoints",
         wraps=_pe_module._load_endpoints,
     ) as mock_load:
         client.get("/public/endpoints")
@@ -979,8 +979,8 @@ def test_public_mcp_hub_returns_only_whitelisted_servers():
     litellm.public_mcp_servers, mirroring /public/model_hub and
     /public/agent_hub. Servers with available_on_public_internet=True that
     are not on the whitelist must not leak."""
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
-    from litellm.proxy._types import MCPTransport
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._types import MCPTransport
 
     app = FastAPI()
     app.include_router(router)
@@ -999,9 +999,9 @@ def test_public_mcp_hub_returns_only_whitelisted_servers():
     mock_manager.get_public_mcp_servers.return_value = [listed]
 
     with (
-        patch("litellm.public_mcp_servers", ["listed"]),
+        patch("token_iq.gateway.public_mcp_servers", ["listed"]),
         patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
             mock_manager,
         ),
     ):
@@ -1025,9 +1025,9 @@ def test_public_mcp_hub_returns_empty_when_whitelist_unset():
     mock_manager.get_public_mcp_servers.return_value = []
 
     with (
-        patch("litellm.public_mcp_servers", None),
+        patch("token_iq.gateway.public_mcp_servers", None),
         patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
             mock_manager,
         ),
     ):
@@ -1041,8 +1041,8 @@ def test_public_mcp_hub_returns_empty_when_whitelist_unset():
 def test_public_mcp_hub_does_not_expose_upstream_url():
     """Regression: /public/mcp_hub is unauthenticated, so the gateway-internal
     upstream url must never appear in its response even when the server has one."""
-    from litellm.types.mcp_server.mcp_server_manager import MCPServer
-    from litellm.proxy._types import MCPTransport
+    from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
+    from token_iq.gateway.proxy._types import MCPTransport
 
     app = FastAPI()
     app.include_router(router)
@@ -1063,9 +1063,9 @@ def test_public_mcp_hub_does_not_expose_upstream_url():
     mock_manager.get_public_mcp_servers.return_value = [server]
 
     with (
-        patch("litellm.public_mcp_servers", ["listed"]),
+        patch("token_iq.gateway.public_mcp_servers", ["listed"]),
         patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager",
             mock_manager,
         ),
     ):
@@ -1082,7 +1082,7 @@ def test_public_mcp_hub_does_not_expose_upstream_url():
 
 @pytest.fixture
 def reset_autorouter_presets_cache():
-    from litellm.proxy.public_endpoints.public_endpoints import _AutoRouterPresetsCache
+    from token_iq.gateway.proxy.public_endpoints.public_endpoints import _AutoRouterPresetsCache
 
     _AutoRouterPresetsCache.presets = None
     _AutoRouterPresetsCache.lock = None
@@ -1124,7 +1124,7 @@ def test_get_autorouter_presets_local_mode_serves_bundled_catalog(
 async def test_autorouter_presets_adapter_rejects_wrong_shapes():
     from pydantic import ValidationError
 
-    from litellm.proxy.public_endpoints.public_endpoints import _AUTOROUTER_PRESETS_ADAPTER
+    from token_iq.gateway.proxy.public_endpoints.public_endpoints import _AUTOROUTER_PRESETS_ADAPTER
 
     with pytest.raises(ValidationError):
         _AUTOROUTER_PRESETS_ADAPTER.validate_python({"bad": {"label": "no description or config"}})
@@ -1177,7 +1177,7 @@ async def test_autorouter_presets_adapter_rejects_wrong_shapes():
 def test_get_autorouter_presets_passes_unknown_catalog_fields_through(
     monkeypatch, reset_autorouter_presets_cache
 ):
-    from litellm.proxy.public_endpoints.public_endpoints import (
+    from token_iq.gateway.proxy.public_endpoints.public_endpoints import (
         _AUTOROUTER_PRESETS_ADAPTER,
         _AutoRouterPresetsCache,
     )
@@ -1219,7 +1219,7 @@ async def test_autorouter_presets_are_read_from_the_bundle_once_per_process(
     There is no remote catalog any more, so the thing being avoided is re-reading and
     re-validating the bundled file on every request rather than a network round trip.
     """
-    from litellm.proxy.public_endpoints import public_endpoints as module
+    from token_iq.gateway.proxy.public_endpoints import public_endpoints as module
 
     calls = 0
     real = module._load_bundled_autorouter_presets

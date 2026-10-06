@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pytest
 
-from litellm.llms.searxng.search.transformation import SearXNGSearchConfig
+from token_iq.gateway.llms.searxng.search.transformation import SearXNGSearchConfig
 
 
 class TestSearXNGSearchRequestTransformation:
@@ -154,7 +154,7 @@ class TestSearXNGSearchURLConstruction:
         """Test URL construction falls back to SEARXNG_API_BASE env var."""
         data = {"_searxng_params": {"q": "test", "format": "json"}}
         with patch(
-            "litellm.llms.searxng.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.searxng.search.transformation.get_secret_str",
             return_value="https://env-searxng.example.com",
         ):
             url = self.config.get_complete_url(
@@ -168,7 +168,7 @@ class TestSearXNGSearchURLConstruction:
     def test_url_missing_api_base_raises(self):
         """Test that missing api_base and env var raises ValueError."""
         with patch(
-            "litellm.llms.searxng.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.searxng.search.transformation.get_secret_str",
             return_value=None,
         ):
             with pytest.raises(ValueError, match="SEARXNG_API_BASE is not set"):
@@ -303,7 +303,7 @@ class TestSearXNGSearchHeaders:
     def test_headers_without_api_key(self):
         """Test that headers are set correctly without an API key."""
         with patch(
-            "litellm.llms.searxng.search.transformation.get_secret_str",
+            "token_iq.gateway.llms.searxng.search.transformation.get_secret_str",
             return_value=None,
         ):
             headers = self.config.validate_environment(headers={})

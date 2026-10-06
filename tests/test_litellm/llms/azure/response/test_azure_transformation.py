@@ -6,12 +6,12 @@ import pytest
 
 from unittest.mock import MagicMock
 
-from litellm.llms.azure.responses.o_series_transformation import (
+from token_iq.gateway.llms.azure.responses.o_series_transformation import (
     AzureOpenAIOSeriesResponsesAPIConfig,
 )
-from litellm.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
-from litellm.types.router import GenericLiteLLMParams
+from token_iq.gateway.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.router import GenericLiteLLMParams
 
 
 @pytest.mark.serial
@@ -32,7 +32,7 @@ def test_validate_environment_api_key_within_litellm_params():
 def test_validate_environment_api_key_within_litellm():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
 
-    with patch("litellm.api_key", "test-api-key"):
+    with patch("token_iq.gateway.api_key", "test-api-key"):
         litellm_params = GenericLiteLLMParams()
         result = azure_openai_responses_apiconfig.validate_environment(
             headers={}, model="", litellm_params=litellm_params
@@ -47,7 +47,7 @@ def test_validate_environment_api_key_within_litellm():
 def test_validate_environment_azure_key_within_litellm():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
 
-    with patch("litellm.azure_key", "test-azure-key"):
+    with patch("token_iq.gateway.azure_key", "test-azure-key"):
         litellm_params = GenericLiteLLMParams()
         result = azure_openai_responses_apiconfig.validate_environment(
             headers={}, model="", litellm_params=litellm_params
@@ -220,8 +220,8 @@ def test_o_series_model_detection():
 @pytest.mark.serial
 def test_provider_config_manager_o_series_selection():
     """Test that ProviderConfigManager returns the correct config for O-series vs regular models."""
-    import litellm
-    from litellm.utils import ProviderConfigManager
+    from token_iq import gateway as litellm
+    from token_iq.gateway.utils import ProviderConfigManager
 
     # Test O-series model selection
     o_series_config = ProviderConfigManager.get_provider_responses_api_config(
@@ -286,7 +286,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_get_complete_url_with_default_api_version(self):
         """Test Azure get_complete_url uses default API version when none is provided"""
-        from litellm.constants import AZURE_DEFAULT_RESPONSES_API_VERSION
+        from token_iq.gateway.constants import AZURE_DEFAULT_RESPONSES_API_VERSION
 
         base_url = "https://litellm8397336933.openai.azure.com"
 
@@ -314,7 +314,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_cancel_response_api_request(self):
         """Test Azure cancel response API request transformation"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         response_id = "resp_test123"
         api_base = "https://test.openai.azure.com/openai/responses?api-version=2024-05-01-preview"
@@ -333,7 +333,7 @@ class TestAzureResponsesAPIConfig:
         assert data == {}
 
     def test_azure_list_input_items_request_url_path_before_query(self):
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         api_base = "https://test.openai.azure.com/openai/responses?api-version=2025-03-01-preview"
 
@@ -354,7 +354,7 @@ class TestAzureResponsesAPIConfig:
         """Test Azure cancel response API response transformation"""
         from unittest.mock import Mock
 
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         # Mock response
         mock_response = Mock()
@@ -385,7 +385,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_nested_to_flat(self):
         """Test that nested tools are flattened correctly"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Setup
         nested_tools = [
@@ -424,7 +424,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_already_flat(self):
         """Test that already flat tools are passed through unchanged"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Setup
         flat_tools = [
@@ -454,7 +454,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_preserves_original(self):
         """Test that the original tool dictionary is not mutated"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Setup
         original_tool = {
@@ -479,7 +479,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_mixed_tools(self):
         """Test mixed nested and flat tools"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Setup
         nested_tool = {
@@ -512,7 +512,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_no_tools(self):
         """Test handling when no tools are present"""
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Setup
         response_api_params = {}

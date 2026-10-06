@@ -6,7 +6,7 @@ import requests
 
 
 
-from litellm.proxy.client.users import (
+from token_iq.gateway.proxy.client.users import (
     NotFoundError,
     UnauthorizedError,
     UsersManagementClient,

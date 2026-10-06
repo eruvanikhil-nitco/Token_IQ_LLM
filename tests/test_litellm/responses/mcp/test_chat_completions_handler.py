@@ -1,16 +1,16 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
-from litellm.responses.mcp import chat_completions_handler
-from litellm.responses.mcp.chat_completions_handler import (
+from token_iq.gateway.responses.mcp import chat_completions_handler
+from token_iq.gateway.responses.mcp.chat_completions_handler import (
     acompletion_with_mcp,
 )
-from litellm.responses.mcp.litellm_proxy_mcp_handler import (
+from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import (
     LiteLLM_Proxy_MCP_Handler,
 )
-from litellm.responses.utils import ResponsesAPIRequestUtils
+from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_acompletion_with_mcp_returns_normal_completion_without_tools(
 ):
     mock_acompletion = AsyncMock(return_value="normal_response")
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         result = await acompletion_with_mcp(
             model="test-model",
             messages=[],
@@ -76,7 +76,7 @@ async def test_acompletion_with_mcp_without_auto_execution_calls_model(monkeypat
         staticmethod(mock_extract),
     )
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         result = await acompletion_with_mcp(
             model="test-model",
             messages=[],
@@ -144,7 +144,7 @@ async def test_acompletion_with_mcp_passes_mcp_server_auth_headers_to_process_to
         },
     }
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         await acompletion_with_mcp(
             model="test-model",
             messages=[],
@@ -164,8 +164,8 @@ async def test_acompletion_with_mcp_passes_mcp_server_auth_headers_to_process_to
 
 @pytest.mark.asyncio
 async def test_acompletion_with_mcp_auto_exec_performs_follow_up(monkeypatch):
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import (
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
@@ -366,7 +366,7 @@ async def test_acompletion_with_mcp_auto_exec_performs_follow_up(monkeypatch):
 
     # Patch litellm.acompletion at module level to catch function-level imports
     with (
-        patch("litellm.acompletion", mock_acompletion_func),
+        patch("token_iq.gateway.acompletion", mock_acompletion_func),
         patch.object(
             chat_completions_handler,
             "litellm_acompletion",
@@ -415,9 +415,9 @@ async def test_acompletion_with_mcp_adds_metadata_to_streaming(monkeypatch):
     Test that acompletion_with_mcp adds MCP metadata to CustomStreamWrapper
     and it appears in the final chunk's delta.provider_specific_fields.
     """
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import ModelResponseStream, StreamingChoices, Delta
-    from litellm.litellm_core_utils.litellm_logging import Logging
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import ModelResponseStream, StreamingChoices, Delta
+    from token_iq.gateway.core_utils.litellm_logging import Logging
 
     tools = [{"type": "mcp", "server_url": "litellm_proxy/mcp/local"}]
     openai_tools = [{"type": "function", "function": {"name": "local_search"}}]
@@ -524,7 +524,7 @@ async def test_acompletion_with_mcp_adds_metadata_to_streaming(monkeypatch):
         staticmethod(lambda **_: (None, None, None, None)),
     )
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         result = await acompletion_with_mcp(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
@@ -571,8 +571,8 @@ async def test_acompletion_with_mcp_streaming_initial_call_is_streaming(monkeypa
     Test that acompletion_with_mcp makes the initial LLM call with streaming=True
     when stream=True is requested, instead of making a non-streaming call first.
     """
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import ModelResponseStream, StreamingChoices, Delta
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import ModelResponseStream, StreamingChoices, Delta
 
     tools = [{"type": "mcp", "server_url": "litellm_proxy/mcp/local"}]
     openai_tools = [{"type": "function", "function": {"name": "local_search"}}]
@@ -712,7 +712,7 @@ async def test_acompletion_with_mcp_streaming_initial_call_is_streaming(monkeypa
 
     # Patch litellm.acompletion at module level to catch function-level imports
     with (
-        patch("litellm.acompletion", mock_acompletion),
+        patch("token_iq.gateway.acompletion", mock_acompletion),
         patch.object(
             chat_completions_handler,
             "litellm_acompletion",
@@ -745,8 +745,8 @@ async def test_acompletion_with_mcp_streaming_metadata_in_correct_chunks(monkeyp
     - mcp_list_tools should be in the first chunk
     - mcp_tool_calls and mcp_call_results should be in the final chunk of initial response
     """
-    from litellm.utils import CustomStreamWrapper
-    from litellm.types.utils import (
+    from token_iq.gateway.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import (
         ModelResponseStream,
         StreamingChoices,
         Delta,
@@ -946,7 +946,7 @@ async def test_acompletion_with_mcp_streaming_metadata_in_correct_chunks(monkeyp
 
     # Patch litellm.acompletion at module level to catch function-level imports
     with (
-        patch("litellm.acompletion", mock_acompletion_func),
+        patch("token_iq.gateway.acompletion", mock_acompletion_func),
         patch.object(
             chat_completions_handler,
             "litellm_acompletion",
@@ -1062,11 +1062,11 @@ async def test_execute_tool_calls_sets_proxy_server_request_arguments(monkeypatc
     # exported as a function on the top-level `litellm` package, which can confuse
     # pytest's dotted-path resolver.
     mcp_handler_module = importlib.import_module(
-        "litellm.responses.mcp.litellm_proxy_mcp_handler"
+        "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler"
     )
     monkeypatch.setattr(mcp_handler_module, "function_setup", mock_function_setup)
     monkeypatch.setattr(
-        "litellm.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager.call_tool",
+        "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.global_mcp_server_manager.call_tool",
         mock_call_tool,
     )
 
@@ -1118,8 +1118,8 @@ async def test_acompletion_with_mcp_streaming_drain_error_does_not_drop_final_ch
     """
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
-    from litellm.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.utils import CustomStreamWrapper
 
     tools = [{"type": "mcp", "server_url": "litellm_proxy/mcp/local"}]
     openai_tools = [{"type": "function", "function": {"name": "local_search"}}]
@@ -1212,7 +1212,7 @@ async def test_acompletion_with_mcp_streaming_drain_error_does_not_drop_final_ch
         staticmethod(lambda **_: (None, None, None, None)),
     )
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         result = await acompletion_with_mcp(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
@@ -1237,8 +1237,8 @@ async def test_acompletion_with_mcp_streaming_drain_error_does_not_drop_final_ch
 async def test_acompletion_with_mcp_streaming_drains_inner_stream_after_exhaustion(monkeypatch):
     from unittest.mock import MagicMock
 
-    from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
-    from litellm.utils import CustomStreamWrapper
+    from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
+    from token_iq.gateway.utils import CustomStreamWrapper
 
     tools = [{"type": "mcp", "server_url": "litellm_proxy/mcp/local"}]
     openai_tools = [{"type": "function", "function": {"name": "local_search"}}]
@@ -1330,7 +1330,7 @@ async def test_acompletion_with_mcp_streaming_drains_inner_stream_after_exhausti
         staticmethod(lambda **_: (None, None, None, None)),
     )
 
-    with patch("litellm.acompletion", mock_acompletion):
+    with patch("token_iq.gateway.acompletion", mock_acompletion):
         result = await acompletion_with_mcp(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],

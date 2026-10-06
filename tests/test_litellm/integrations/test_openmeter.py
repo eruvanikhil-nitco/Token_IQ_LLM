@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.integrations.openmeter import OpenMeterLogger
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.openmeter import OpenMeterLogger
 
 
 class TestOpenMeterIntegration:
@@ -131,7 +131,7 @@ class TestOpenMeterIntegration:
         assert isinstance(result["subject"], str)
         assert result["subject"] == ""
 
-    @patch("litellm.integrations.openmeter.HTTPHandler")
+    @patch("token_iq.gateway.integrations.openmeter.HTTPHandler")
     def test_log_success_event(self, mock_http_handler):
         """Test synchronous log_success_event method"""
         mock_post = MagicMock()
@@ -164,7 +164,7 @@ class TestOpenMeterIntegration:
         assert isinstance(data["subject"], str)
         assert data["data"]["model"] == "gpt-3.5-turbo"
 
-    @patch("litellm.integrations.openmeter.get_async_httpx_client")
+    @patch("token_iq.gateway.integrations.openmeter.get_async_httpx_client")
     @pytest.mark.asyncio
     async def test_async_log_success_event(self, mock_get_client):
         """Test asynchronous log_success_event method"""
@@ -443,7 +443,7 @@ class TestOpenMeterIntegration:
         result = logger._common_logic(kwargs, response_obj)
         assert result["subject"] == "request-user"
 
-    @patch("litellm.integrations.openmeter.HTTPHandler")
+    @patch("token_iq.gateway.integrations.openmeter.HTTPHandler")
     def test_integration_token_user_id_scenario(self, mock_http_handler):
         """Integration test simulating the exact scenario that was failing"""
         mock_post = MagicMock()

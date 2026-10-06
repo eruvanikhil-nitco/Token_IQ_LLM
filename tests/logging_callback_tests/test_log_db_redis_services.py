@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-import litellm
-from litellm import completion
-from litellm._logging import verbose_logger
-from litellm.proxy.utils import log_db_metrics, ServiceTypes
+from token_iq import gateway as litellm
+from token_iq.gateway import completion
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.proxy.utils import log_db_metrics, ServiceTypes
 from datetime import datetime
 import httpx
 from prisma.errors import ClientNotConnectedError
@@ -33,7 +33,7 @@ async def sample_proxy_function(*args, **kwargs):
 @pytest.mark.asyncio
 async def test_log_db_metrics_success():
     # Mock the proxy_logging_obj
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         # Setup mock
         mock_proxy_logging.service_logging_obj.async_service_success_hook = AsyncMock()
 
@@ -66,7 +66,7 @@ async def test_log_db_metrics_event_metadata_is_safe():
     Regression guard for #28909: a previous version dumped function_kwargs and
     function_args onto the span.
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         mock_proxy_logging.service_logging_obj.async_service_success_hook = AsyncMock()
 
         @log_db_metrics
@@ -92,7 +92,7 @@ async def test_log_db_metrics_event_metadata_is_safe():
 @pytest.mark.asyncio
 async def test_log_db_metrics_duration():
     # Mock the proxy_logging_obj
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         # Setup mock
         mock_proxy_logging.service_logging_obj.async_service_success_hook = AsyncMock()
 
@@ -131,7 +131,7 @@ async def test_log_db_metrics_failure():
     # Mock the proxy_logging_obj
     from prisma.errors import ClientNotConnectedError
 
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         # Setup mock
         mock_proxy_logging.service_logging_obj.async_service_failure_hook = AsyncMock()
 
@@ -185,7 +185,7 @@ async def test_log_db_metrics_failure_error_types(exception, should_log):
     - DB-related errors (Prisma, httpx) are logged as service failures
     - Non-DB errors (ValueError, KeyError, etc.) are not logged
     """
-    with patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
+    with patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_proxy_logging:
         mock_proxy_logging.service_logging_obj.async_service_failure_hook = AsyncMock()
 
         @log_db_metrics
@@ -216,8 +216,8 @@ async def test_log_db_metrics_failure_error_types(exception, should_log):
 
 @pytest.mark.asyncio
 async def test_dd_log_db_spend_failure_metrics():
-    from litellm._service_logger import ServiceLogging
-    from litellm.integrations.datadog.datadog import DataDogLogger
+    from token_iq.gateway._service_logger import ServiceLogging
+    from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
 
     dd_logger = DataDogLogger()
     with patch.object(dd_logger, "async_service_failure_hook", new_callable=AsyncMock):

@@ -7,12 +7,12 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Router
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 from typing import Any, Dict, List
 
-from litellm.router_utils.fallback_event_handlers import (
+from token_iq.gateway.router_utils.fallback_event_handlers import (
     run_async_fallback,
     log_success_fallback_event,
     log_failure_fallback_event,

@@ -7,7 +7,7 @@ forwards to ``post_call_failure_hook``. No otel dependency here, so these run
 everywhere and pin the helper's contract directly.
 """
 
-from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
+from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     _carry_guardrail_logging_info,
 )
 

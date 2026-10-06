@@ -5,9 +5,9 @@ import httpx
 import pytest
 from httpx import Request, Response
 
-from litellm.integrations.datadog.datadog import DataDogLogger
-from litellm.llms.custom_httpx.http_handler import MaskedHTTPStatusError
-from litellm.types.integrations.datadog import (
+from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
+from token_iq.gateway.llms.custom_httpx.http_handler import MaskedHTTPStatusError
+from token_iq.gateway.types.integrations.datadog import (
     DD_MAX_BATCH_SIZE,
     DD_MAX_PAYLOAD_SIZE_BYTES,
     DatadogPayload,
@@ -197,7 +197,7 @@ def _make_recording_send(sent_batches, delivered):
 async def test_oversized_payload_splits_before_any_send(datadog_env):
     """Regression for LIT-4325: a batch above Datadog's uncompressed payload limit is
     split proactively, so the intake never has to reject it with a 413."""
-    from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
+    from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 
     with patch("asyncio.create_task"):
         logger = DataDogLogger()

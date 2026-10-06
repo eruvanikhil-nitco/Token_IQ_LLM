@@ -4,10 +4,10 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.llms.bedrock.chat.invoke_agent.transformation import (
+from token_iq.gateway.llms.bedrock.chat.invoke_agent.transformation import (
     AmazonInvokeAgentConfig,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 class TestAmazonInvokeAgentConfig:
@@ -86,7 +86,7 @@ class TestAmazonInvokeAgentConfig:
                 config._get_agent_id_and_alias_id(invalid_model)
 
     @patch(
-        "litellm.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
+        "token_iq.gateway.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
     )
     def test_transform_request(self, mock_convert, config, sample_messages):
         """Test transform_request method"""
@@ -231,7 +231,7 @@ class TestAmazonInvokeAgentConfig:
         assert result.usage.total_tokens == 30
 
     @patch(
-        "litellm.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
+        "token_iq.gateway.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
     )
     @patch.object(AmazonInvokeAgentConfig, "get_runtime_endpoint")
     @patch.object(AmazonInvokeAgentConfig, "_get_aws_region_name")
@@ -259,7 +259,7 @@ class TestAmazonInvokeAgentConfig:
         )
 
     @patch(
-        "litellm.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
+        "token_iq.gateway.llms.bedrock.chat.invoke_agent.transformation.convert_content_list_to_str"
     )
     @patch.object(AmazonInvokeAgentConfig, "get_runtime_endpoint")
     @patch.object(AmazonInvokeAgentConfig, "_get_aws_region_name")

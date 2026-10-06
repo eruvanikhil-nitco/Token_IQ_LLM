@@ -10,9 +10,9 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import litellm
-from litellm import Router
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 from tests.fake_openai_endpoint import FAKE_OPENAI_API_BASE
 
@@ -731,7 +731,7 @@ async def test_async_fallbacks_max_retries_per_request():
 @pytest.mark.flaky(retries=6, delay=2)
 def test_ausage_based_routing_fallbacks():
     try:
-        import litellm
+        from token_iq import gateway as litellm
 
         litellm.set_verbose = False
         # [Prod Test]
@@ -742,8 +742,8 @@ def test_ausage_based_routing_fallbacks():
 
         from dotenv import load_dotenv
 
-        import litellm
-        from litellm import Router
+        from token_iq import gateway as litellm
+        from token_iq.gateway import Router
 
         load_dotenv()
 
@@ -1177,7 +1177,7 @@ async def test_using_default_fallback(sync_mode):
 
     import logging
 
-    from litellm._logging import verbose_logger, verbose_router_logger
+    from token_iq.gateway._logging import verbose_logger, verbose_router_logger
 
     verbose_logger.setLevel(logging.DEBUG)
     verbose_router_logger.setLevel(logging.DEBUG)
@@ -1215,7 +1215,7 @@ async def test_using_default_working_fallback(sync_mode):
 
     import logging
 
-    from litellm._logging import verbose_logger, verbose_router_logger
+    from token_iq.gateway._logging import verbose_logger, verbose_router_logger
 
     verbose_logger.setLevel(logging.DEBUG)
     verbose_router_logger.setLevel(logging.DEBUG)
@@ -1260,7 +1260,7 @@ def mock_post_streaming(url, **kwargs):
 @pytest.mark.asyncio
 async def test_anthropic_streaming_fallbacks(sync_mode):
     litellm.set_verbose = True
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
     if sync_mode:
         client = HTTPHandler(concurrent_limit=1)
@@ -1432,7 +1432,7 @@ async def test_router_fallbacks_default_and_model_specific_fallbacks(sync_mode):
 
 @pytest.mark.asyncio
 async def test_router_disable_fallbacks_dynamically():
-    from litellm.router import run_async_fallback
+    from token_iq.gateway.router import run_async_fallback
 
     router = Router(
         model_list=[
@@ -1529,7 +1529,7 @@ def test_router_fallbacks_with_wildcard_model_name():
 
 
 def test_get_fallback_model_group():
-    from litellm.router_utils.fallback_event_handlers import get_fallback_model_group
+    from token_iq.gateway.router_utils.fallback_event_handlers import get_fallback_model_group
 
     args = {
         "fallbacks": [

@@ -12,10 +12,10 @@ from typing import cast
 
 import pytest
 
-from litellm.llms.docker_model_runner.chat.transformation import (
+from token_iq.gateway.llms.docker_model_runner.chat.transformation import (
     DockerModelRunnerChatConfig,
 )
-from litellm.types.llms.openai import AllMessageValues
+from token_iq.gateway.types.llms.openai import AllMessageValues
 
 
 class TestDockerModelRunnerTransformation:

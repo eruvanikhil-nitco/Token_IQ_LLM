@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from litellm.proxy._types import LiteLLM_UserTable
-from litellm.proxy.management_endpoints.scim.scim_v2 import _apply_patch_ops, patch_user
-from litellm.types.proxy.management_endpoints.scim_v2 import (
+from token_iq.gateway.proxy._types import LiteLLM_UserTable
+from token_iq.gateway.proxy.management_endpoints.scim.scim_v2 import _apply_patch_ops, patch_user
+from token_iq.gateway.types.proxy.management_endpoints.scim_v2 import (
     SCIMPatchOp,
     SCIMPatchOperation,
     SCIMUser,
@@ -66,9 +66,9 @@ async def test_patch_user_updates_fields():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -138,17 +138,17 @@ async def test_patch_user_manages_group_memberships():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.team_member_add",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.team_member_add",
             AsyncMock(side_effect=mock_add),
         ) as mock_add_fn,
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.team_member_delete",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.team_member_delete",
             AsyncMock(side_effect=mock_delete),
         ) as mock_del_fn,
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -219,9 +219,9 @@ async def test_patch_user_deprovision_without_path():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -305,9 +305,9 @@ async def test_patch_user_multiple_fields_without_path():
     )
 
     with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_client),
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "litellm.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):

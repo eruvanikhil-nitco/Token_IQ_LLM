@@ -13,8 +13,8 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 import httpx
 
-from litellm.experimental_mcp_client.client import MCPSigV4Auth, MCPClient
-from litellm.types.mcp import MCPAuth, MCPTransport
+from token_iq.gateway.experimental_mcp_client.client import MCPSigV4Auth, MCPClient
+from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
 
 
 class TestMCPSigV4Auth:
@@ -377,7 +377,7 @@ class TestMCPServerManagerSigV4:
     @pytest.mark.asyncio
     async def test_load_config_with_aws_sigv4(self):
         """Config loading correctly parses aws_sigv4 auth type and AWS fields."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
 
@@ -406,10 +406,10 @@ class TestMCPServerManagerSigV4:
     @pytest.mark.asyncio
     async def test_create_mcp_client_with_sigv4(self):
         """_create_mcp_client creates client with SigV4 auth when auth_type is aws_sigv4."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
         server = MCPServer(
             server_id="test-sigv4",
@@ -433,10 +433,10 @@ class TestMCPServerManagerSigV4:
     @pytest.mark.asyncio
     async def test_create_mcp_client_without_sigv4(self):
         """_create_mcp_client does not create SigV4 auth for non-SigV4 servers."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
         server = MCPServer(
             server_id="test-bearer",
@@ -456,7 +456,7 @@ class TestMCPServerManagerSigV4:
     @pytest.mark.asyncio
     async def test_load_config_with_aws_role_name(self):
         """Config loading correctly parses aws_role_name and aws_session_name."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
 
@@ -481,10 +481,10 @@ class TestMCPServerManagerSigV4:
     @pytest.mark.asyncio
     async def test_create_mcp_client_with_role_assumption(self):
         """_create_mcp_client passes aws_role_name to MCPSigV4Auth."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
         mock_sts = MagicMock()
         mock_sts.assume_role.return_value = {
@@ -517,7 +517,7 @@ class TestMCPServerManagerSigV4:
 
     def test_extract_aws_credentials_includes_role_fields(self):
         """_extract_aws_credentials extracts aws_role_name and aws_session_name."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
 
@@ -539,7 +539,7 @@ class TestSigV4CredentialEncryption:
 
     def test_encrypt_credentials_handles_aws_fields(self):
         """AWS credential fields are encrypted in the credentials dict."""
-        from litellm.proxy._experimental.mcp_server.db import encrypt_credentials
+        from token_iq.gateway.proxy._experimental.mcp_server.db import encrypt_credentials
 
         creds = {
             "aws_access_key_id": "AKIAIOSFODNN7EXAMPLE",
@@ -550,7 +550,7 @@ class TestSigV4CredentialEncryption:
         }
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
             side_effect=lambda value, new_encryption_key: f"enc:{value}",
         ):
             result = encrypt_credentials(credentials=creds, encryption_key="test-key")
@@ -565,12 +565,12 @@ class TestSigV4CredentialEncryption:
 
     def test_encrypt_credentials_skips_absent_aws_fields(self):
         """encrypt_credentials does not fail when AWS fields are absent."""
-        from litellm.proxy._experimental.mcp_server.db import encrypt_credentials
+        from token_iq.gateway.proxy._experimental.mcp_server.db import encrypt_credentials
 
         creds = {"auth_value": "some-token"}
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
             side_effect=lambda value, new_encryption_key: f"enc:{value}",
         ):
             result = encrypt_credentials(credentials=creds, encryption_key="test-key")
@@ -585,8 +585,8 @@ class TestCredentialMergeOnUpdate:
     @pytest.mark.asyncio
     async def test_partial_update_preserves_existing_credentials(self):
         """Updating only aws_region_name should not wipe aws_secret_access_key."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         existing_record = MagicMock()
         existing_record.auth_type = "aws_sigv4"
@@ -610,11 +610,11 @@ class TestCredentialMergeOnUpdate:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: value,
             ),
         ):
@@ -635,8 +635,8 @@ class TestCredentialMergeOnUpdate:
     @pytest.mark.asyncio
     async def test_update_without_credentials_preserves_all(self):
         """Update with no credentials field should not touch existing credentials."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
@@ -647,7 +647,7 @@ class TestCredentialMergeOnUpdate:
         )
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+            "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
             return_value=None,
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
@@ -658,8 +658,8 @@ class TestCredentialMergeOnUpdate:
     @pytest.mark.asyncio
     async def test_update_new_server_no_merge(self):
         """Update with credentials on a server that has no existing credentials."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         existing_record = MagicMock()
         existing_record.auth_type = "aws_sigv4"
@@ -677,11 +677,11 @@ class TestCredentialMergeOnUpdate:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: value,
             ),
         ):
@@ -694,8 +694,8 @@ class TestCredentialMergeOnUpdate:
     @pytest.mark.asyncio
     async def test_auth_type_change_replaces_credentials_entirely(self):
         """Switching auth_type should replace credentials, not merge."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         existing_record = MagicMock()
         existing_record.auth_type = "aws_sigv4"
@@ -719,11 +719,11 @@ class TestCredentialMergeOnUpdate:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: f"enc:{value}",
             ),
         ):
@@ -737,8 +737,8 @@ class TestCredentialMergeOnUpdate:
     @pytest.mark.asyncio
     async def test_same_auth_type_merges_credentials(self):
         """Same auth_type should merge credentials (preserve untouched fields)."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         existing_record = MagicMock()
         existing_record.auth_type = "oauth2"
@@ -762,11 +762,11 @@ class TestCredentialMergeOnUpdate:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value=None,
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: value,
             ),
         ):
@@ -785,7 +785,7 @@ class TestSigV4BuildFromTable:
     @pytest.mark.asyncio
     async def test_build_mcp_server_from_table_with_sigv4_credentials(self):
         """SigV4 credentials from DB are decrypted and mapped to MCPServer fields."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
 
@@ -839,7 +839,7 @@ class TestSigV4BuildFromTable:
         manager = MCPServerManager()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.decrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.decrypt_value_helper",
             side_effect=lambda value, key, exception_type, return_original_value: value.replace("enc:", ""),
         ):
             server = await manager.build_mcp_server_from_table(table_record)
@@ -854,7 +854,7 @@ class TestSigV4BuildFromTable:
     @pytest.mark.asyncio
     async def test_build_mcp_server_from_table_without_sigv4_credentials(self):
         """Non-SigV4 servers still work — AWS fields default to None."""
-        from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             MCPServerManager,
         )
 
@@ -900,7 +900,7 @@ class TestSigV4BuildFromTable:
         manager = MCPServerManager()
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.mcp_server_manager.decrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.decrypt_value_helper",
             side_effect=lambda value, key, exception_type, return_original_value: value.replace("enc:", ""),
         ):
             server = await manager.build_mcp_server_from_table(table_record)
@@ -918,7 +918,7 @@ class TestDecryptCredentials:
 
     def test_decrypt_credentials_handles_all_secret_fields(self):
         """All secret fields are decrypted; non-secret fields are left as-is."""
-        from litellm.proxy._experimental.mcp_server.db import decrypt_credentials
+        from token_iq.gateway.proxy._experimental.mcp_server.db import decrypt_credentials
 
         creds = {
             "auth_value": "enc:tok",
@@ -932,7 +932,7 @@ class TestDecryptCredentials:
         }
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db.decrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.decrypt_value_helper",
             side_effect=lambda value, key, exception_type="error", return_original_value=False: value.replace(
                 "enc:", ""
             ),
@@ -951,12 +951,12 @@ class TestDecryptCredentials:
 
     def test_decrypt_credentials_skips_absent_fields(self):
         """Absent fields are not touched."""
-        from litellm.proxy._experimental.mcp_server.db import decrypt_credentials
+        from token_iq.gateway.proxy._experimental.mcp_server.db import decrypt_credentials
 
         creds = {"aws_access_key_id": "enc:AKI"}
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db.decrypt_value_helper",
+            "token_iq.gateway.proxy._experimental.mcp_server.db.decrypt_value_helper",
             side_effect=lambda value, key, exception_type="error", return_original_value=False: value.replace(
                 "enc:", ""
             ),
@@ -973,7 +973,7 @@ class TestRotateCredentials:
     @pytest.mark.asyncio
     async def test_rotation_decrypts_then_reencrypts(self):
         """Key rotation should decrypt with old key then encrypt with new key."""
-        from litellm.proxy._experimental.mcp_server.db import (
+        from token_iq.gateway.proxy._experimental.mcp_server.db import (
             rotate_mcp_server_credentials_master_key,
         )
 
@@ -993,17 +993,17 @@ class TestRotateCredentials:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value="old-key",
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.decrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.decrypt_value_helper",
                 side_effect=lambda value, key, exception_type="error", return_original_value=False: value.replace(
                     "enc_old:", ""
                 ),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: f"enc_new:{value}",
             ),
         ):
@@ -1022,7 +1022,7 @@ class TestRotateCredentials:
     async def test_rotation_reencrypts_global_env_vars(self):
         """Global env var values are re-encrypted under the new key; user-scope
         placeholders are left untouched."""
-        from litellm.proxy._experimental.mcp_server.db import (
+        from token_iq.gateway.proxy._experimental.mcp_server.db import (
             rotate_mcp_server_credentials_master_key,
         )
 
@@ -1041,17 +1041,17 @@ class TestRotateCredentials:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+                "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
                 return_value="old-key",
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.decrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.decrypt_value_helper",
                 side_effect=lambda value, key, exception_type="error", return_original_value=False: value.replace(
                     "enc_old:", ""
                 ),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.db.encrypt_value_helper",
+                "token_iq.gateway.proxy._experimental.mcp_server.db.encrypt_value_helper",
                 side_effect=lambda value, new_encryption_key: f"enc_new:{value}",
             ),
         ):
@@ -1074,8 +1074,8 @@ class TestAuthTypeSwitchClearsCredentials:
     @pytest.mark.asyncio
     async def test_auth_type_change_without_credentials_clears_stale(self):
         """Changing auth_type without providing credentials should clear old ones."""
-        from litellm.proxy._experimental.mcp_server.db import update_mcp_server
-        from litellm.proxy._types import UpdateMCPServerRequest
+        from token_iq.gateway.proxy._experimental.mcp_server.db import update_mcp_server
+        from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         existing_record = MagicMock()
         existing_record.auth_type = "oauth2"
@@ -1092,7 +1092,7 @@ class TestAuthTypeSwitchClearsCredentials:
         )
 
         with patch(
-            "litellm.proxy._experimental.mcp_server.db._get_salt_key",
+            "token_iq.gateway.proxy._experimental.mcp_server.db._get_salt_key",
             return_value=None,
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
@@ -1111,11 +1111,11 @@ class TestInheritCredentials:
 
     def test_inherits_sigv4_credentials(self):
         """SigV4 fields are copied from existing server to inherited credentials."""
-        from litellm.proxy.management_endpoints.mcp_management_endpoints import (
+        from token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints import (
             _inherit_credentials_from_existing_server,
         )
-        from litellm.proxy._types import NewMCPServerRequest
-        from litellm.types.mcp_server.mcp_server_manager import MCPServer
+        from token_iq.gateway.proxy._types import NewMCPServerRequest
+        from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
         existing = MCPServer(
             server_id="existing-sigv4",
@@ -1140,7 +1140,7 @@ class TestInheritCredentials:
         )
 
         with patch(
-            "litellm.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
+            "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.global_mcp_server_manager"
         ) as mock_manager:
             mock_manager.get_mcp_server_by_id.return_value = existing
             result = _inherit_credentials_from_existing_server(payload)

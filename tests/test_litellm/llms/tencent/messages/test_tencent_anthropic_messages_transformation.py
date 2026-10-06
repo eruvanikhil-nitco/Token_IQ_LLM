@@ -1,11 +1,11 @@
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
-from litellm.llms.tencent.messages.transformation import (
+from token_iq.gateway.llms.tencent.messages.transformation import (
     TencentAnthropicMessagesConfig,
 )
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_tencent_provider_uses_anthropic_messages_config():

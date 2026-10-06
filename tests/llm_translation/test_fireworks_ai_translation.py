@@ -1,11 +1,11 @@
 import json
 import pytest
 
-import litellm
-from litellm.litellm_core_utils.get_supported_openai_params import (
+from token_iq import gateway as litellm
+from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
 )
-from litellm.llms.fireworks_ai.chat.transformation import FireworksAIConfig
+from token_iq.gateway.llms.fireworks_ai.chat.transformation import FireworksAIConfig
 
 fireworks = FireworksAIConfig()
 
@@ -88,8 +88,8 @@ def test_document_inlining_example(disable_add_transform_inline_image_block):
     """
     from unittest.mock import patch
 
-    from litellm import completion
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import completion
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
     pdf_url = "https://storage.googleapis.com/fireworks-public/test/sample_resume.pdf"
@@ -191,8 +191,8 @@ def test_global_disable_flag_no_longer_adds_transform_inline(is_disabled):
 
 def test_global_disable_flag_with_transform_messages_helper(monkeypatch):
     from unittest.mock import patch
-    from litellm import completion
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq.gateway import completion
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 

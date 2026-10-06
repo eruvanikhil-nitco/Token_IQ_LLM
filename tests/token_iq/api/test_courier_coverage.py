@@ -28,7 +28,7 @@ def test_providers_priced_by_the_dispatch_are_reported_covered_too():
 
 def test_route_coverage_is_read_from_the_list_the_request_path_gates_on():
     """A hand-maintained table drifts from the code and then lies to an admin."""
-    from litellm.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import LiteLLMRoutes
 
     for provider in ("openrouter", "anthropic", "bedrock", "voyage"):
         expected = f"/{provider}" in LiteLLMRoutes.mapped_pass_through_routes.value
@@ -39,7 +39,7 @@ def test_every_pricing_branch_in_the_dispatch_is_accounted_for():
     """The guard that stops this rotting. Adding a provider branch to the success
     handler without teaching this module about it fails here, rather than silently
     reporting that provider as billing nothing."""
-    from litellm.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import LiteLLMRoutes
 
     known_prefixes = {route.lstrip("/") for route in LiteLLMRoutes.mapped_pass_through_routes.value}
     unresolved = [p for p in pricing_branch_providers() if p not in known_prefixes]

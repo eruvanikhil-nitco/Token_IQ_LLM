@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.management_endpoints.common_daily_activity import (
+from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
     _adjust_dates_for_timezone,
     _build_aggregated_sql_query,
     _build_entity_rollup_sql_query,
@@ -16,9 +16,9 @@ from litellm.proxy.management_endpoints.common_daily_activity import (
     get_daily_activity_aggregated,
     update_metrics,
 )
-from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
-from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
-from litellm.types.proxy.management_endpoints.common_daily_activity import (
+from token_iq.gateway.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import (
     DailySpendMetadata,
     SpendMetrics,
 )
@@ -1302,9 +1302,9 @@ def test_update_metrics_accumulates_ptu_flat_cost(ptu_cost_attribution_enabled):
 
 
 def test_ptu_sentinel_excluded_from_key_breakdown_but_flat_cost_aggregates(ptu_cost_attribution_enabled):
-    from litellm.constants import PTU_SENTINEL_API_KEY
-    from litellm.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
-    from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+    from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
+    from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
     breakdown = BreakdownMetrics()
     update_breakdown_metrics(breakdown, _spend_record("real-key", spend=5.0, ptu_flat_cost=0.0), {}, {}, {})
@@ -1331,7 +1331,7 @@ def _grouping_row(
     spend=0.0,
     ptu_flat_cost=0.0,
 ):
-    from litellm.proxy.management_endpoints.common_daily_activity import _GroupingSetsRow
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import _GroupingSetsRow
 
     return _GroupingSetsRow(
         date="2024-01-01",
@@ -1362,8 +1362,8 @@ def _grouping_row(
 def test_grouping_sets_dispatcher_excludes_ptu_sentinel_from_key_breakdowns(ptu_cost_attribution_enabled):
     """The GROUPING SETS path must mirror the per-row path: the flat-cost sentinel
     aggregates into the date/model/total metrics but never surfaces as an api_key."""
-    from litellm.constants import PTU_SENTINEL_API_KEY
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _GROUP_DATE_API_KEY,
         _GROUP_DATE_MODEL,
         _GROUP_DATE_MODEL_API_KEY,
@@ -1399,8 +1399,8 @@ def test_grouping_sets_dispatcher_excludes_ptu_sentinel_from_key_breakdowns(ptu_
 def test_grouping_sets_dispatcher_populates_every_breakdown_level(ptu_cost_attribution_enabled):
     """Every GROUPING SETS level lands in its bucket, and the flat-cost sentinel
     is kept out of the model_group and provider api_key sub-breakdowns too."""
-    from litellm.constants import PTU_SENTINEL_API_KEY
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _GROUP_DATE_ENDPOINT,
         _GROUP_DATE_ENDPOINT_API_KEY,
         _GROUP_DATE_MCP,
@@ -1451,7 +1451,7 @@ def test_grouping_sets_dispatcher_populates_every_breakdown_level(ptu_cost_attri
 def test_grouping_sets_dispatcher_keeps_ptu_flat_cost_out_of_the_provider_breakdown():
     """Sentinel rows carry no provider, so their flat cost must not surface under the
     "unknown" provider - the per-row path skips them for exactly the same reason."""
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _GROUP_DATE_PROVIDER,
         _aggregate_grouping_sets_records_sync,
     )
@@ -1474,7 +1474,7 @@ def test_grouping_sets_dispatcher_keeps_ptu_flat_cost_out_of_the_provider_breakd
 def test_grouping_sets_dispatcher_keeps_a_real_provider_row_that_shares_the_sentinel_shape():
     """A request row whose provider is empty still gets its "unknown" bucket - only the
     flat cost is withheld, so provider attribution of real spend is unchanged."""
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _GROUP_DATE_PROVIDER,
         _aggregate_grouping_sets_records_sync,
     )
@@ -1491,9 +1491,9 @@ def test_grouping_sets_dispatcher_keeps_a_real_provider_row_that_shares_the_sent
 def test_update_breakdown_metrics_covers_mcp_endpoint_and_entity(ptu_cost_attribution_enabled):
     """A full request record fans out into the mcp, endpoint, provider and entity
     breakdowns, while the flat-cost sentinel stays out of the entity api_key sub-map."""
-    from litellm.constants import PTU_SENTINEL_API_KEY
-    from litellm.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
-    from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+    from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
+    from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
     breakdown = BreakdownMetrics()
     record = SimpleNamespace(
@@ -1539,7 +1539,7 @@ def test_grouping_sets_dispatcher_keeps_an_all_zero_legacy_provider_bucket():
     """LiteLLM_DailyTeamSpend predates its api_requests column; the migration that added it
     backfilled NOT NULL DEFAULT 0, so a legacy keyless row is all zeroes. Dropping those
     would silently remove a provider the base build reported."""
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _GROUP_DATE_PROVIDER,
         _aggregate_grouping_sets_records_sync,
     )
@@ -1568,8 +1568,8 @@ class TestSentinelRowsDisplayTheirModelName:
 
     @staticmethod
     def _breakdown(records):
-        from litellm.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
-        from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
+        from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
         breakdown = BreakdownMetrics()
         for record in records:
@@ -1578,7 +1578,7 @@ class TestSentinelRowsDisplayTheirModelName:
 
     @staticmethod
     def _sentinel(*, model_id, model_group, flat_cost=480.0):
-        from litellm.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
 
         record = _spend_record(PTU_SENTINEL_API_KEY, model=model_id, spend=0.0, ptu_flat_cost=flat_cost)
         record.model_group = model_group
@@ -1649,7 +1649,7 @@ class TestPtuCostAttributionDisabled:
         assert metrics.spend == 1.0
 
     def test_aggregated_path_reports_zero_flat_cost(self):
-        from litellm.proxy.management_endpoints.common_daily_activity import _GROUP_GRAND_TOTAL
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import _GROUP_GRAND_TOTAL
 
         metrics = _record_to_spend_metrics(_grouping_row(_GROUP_GRAND_TOTAL, spend=5.0, ptu_flat_cost=240.0))
 
@@ -1657,8 +1657,8 @@ class TestPtuCostAttributionDisabled:
         assert metrics.spend == 5.0
 
     def test_aggregated_totals_and_buckets_report_zero_flat_cost(self):
-        from litellm.constants import PTU_SENTINEL_API_KEY
-        from litellm.proxy.management_endpoints.common_daily_activity import (
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
             _GROUP_DATE_API_KEY,
             _GROUP_DATE_MODEL,
             _GROUP_GRAND_TOTAL,
@@ -1678,9 +1678,9 @@ class TestPtuCostAttributionDisabled:
         assert aggregated["results"][0].breakdown.models["gpt-4o-mini-ptu"].metrics.flat_cost == 0.0
 
     def test_sentinel_still_excluded_from_the_api_key_breakdown(self):
-        from litellm.constants import PTU_SENTINEL_API_KEY
-        from litellm.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
-        from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
+        from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
         breakdown = BreakdownMetrics()
         update_breakdown_metrics(breakdown, _spend_record("real-key", spend=5.0), {}, {}, {})
@@ -1693,9 +1693,9 @@ class TestPtuCostAttributionDisabled:
         assert "real-key" in breakdown.models["gpt-4o-mini-ptu"].api_key_breakdown
 
     def test_sentinel_still_excluded_from_the_provider_breakdown(self):
-        from litellm.constants import PTU_SENTINEL_API_KEY
-        from litellm.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
-        from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import update_breakdown_metrics
+        from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
         breakdown = BreakdownMetrics()
         update_breakdown_metrics(breakdown, _spend_record(PTU_SENTINEL_API_KEY, ptu_flat_cost=240.0), {}, {}, {})
@@ -1703,8 +1703,8 @@ class TestPtuCostAttributionDisabled:
         assert breakdown.providers == {}
 
     def test_grouping_sets_sentinel_still_excluded_from_breakdowns(self):
-        from litellm.constants import PTU_SENTINEL_API_KEY
-        from litellm.proxy.management_endpoints.common_daily_activity import (
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
             _GROUP_DATE_API_KEY,
             _GROUP_DATE_MODEL,
             _GROUP_DATE_MODEL_API_KEY,
@@ -1731,7 +1731,7 @@ class TestPtuCostAttributionDisabled:
     async def test_team_daily_activity_endpoint_reports_zero_flat_cost(self):
         """/team/daily/activity reads rows with find_many rather than the aggregated SQL, so
         forcing the SQL select to a constant zero would leave this path reporting flat cost."""
-        from litellm.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
@@ -1767,7 +1767,7 @@ class TestPtuCostAttributionDisabled:
 
     @pytest.mark.asyncio
     async def test_team_daily_activity_endpoint_reports_flat_cost_once_enabled(self, monkeypatch):
-        from litellm.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
 
         monkeypatch.setenv(PTU_COST_ATTRIBUTION_ENV_VAR, "true")
 
@@ -1810,8 +1810,8 @@ class TestFlagIsNotReadOnTheHotPath:
 
     @staticmethod
     def _count_flag_reads(records):
-        import litellm.proxy.management_endpoints.common_daily_activity as cda
-        from litellm.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
+        import token_iq.gateway.proxy.management_endpoints.common_daily_activity as cda
+        from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import BreakdownMetrics
 
         reads = []
         real = cda.is_ptu_cost_attribution_enabled
@@ -1838,7 +1838,7 @@ class TestFlagIsNotReadOnTheHotPath:
         assert self._count_flag_reads(rows) == 0
 
     def test_a_sentinel_row_still_consults_the_flag(self):
-        from litellm.constants import PTU_SENTINEL_API_KEY
+        from token_iq.gateway.constants import PTU_SENTINEL_API_KEY
 
         reads = self._count_flag_reads([_spend_record(PTU_SENTINEL_API_KEY, spend=0.0, ptu_flat_cost=240.0)])
         assert reads > 0
@@ -1849,7 +1849,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     by GROUPING(api_key), shares the WHERE builder (list api_key becomes a
     parameterized IN, an empty list must match nothing), and the main
     aggregated query stays entity-free."""
-    from litellm.proxy.management_endpoints.common_daily_activity import (
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import (
         _build_entity_rollup_sql_query,
     )
 
@@ -2052,8 +2052,8 @@ def test_where_conditions_drop_the_internal_health_check_account():
     /spend/logs/v2 already let an operator drop them; the analytics rollups had no
     such control, and once aggregated the spend could not be separated out again.
     """
-    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
-    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 
     where = _build_where_conditions(
         entity_id_field="user_id",
@@ -2069,8 +2069,8 @@ def test_where_conditions_drop_the_internal_health_check_account():
 
 def test_health_check_exclusion_composes_with_an_explicit_api_key_filter():
     """Filtering to one key must still exclude the probes, not replace the filter."""
-    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
-    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 
     where = _build_where_conditions(
         entity_id_field="team_id",
@@ -2088,8 +2088,8 @@ def test_health_check_exclusion_composes_with_an_explicit_api_key_filter():
 def test_aggregated_where_clause_drops_the_internal_health_check_account():
     """The SQL path serves the aggregated routes; it must agree with the prisma path
     about what counts as tenant traffic, or the two reads of one window disagree."""
-    from litellm.proxy.management_endpoints.common_daily_activity import _build_aggregated_where_clause
-    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+    from token_iq.gateway.proxy.management_endpoints.common_daily_activity import _build_aggregated_where_clause
+    from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 
     clause, params = _build_aggregated_where_clause(
         entity_id_field="team_id",

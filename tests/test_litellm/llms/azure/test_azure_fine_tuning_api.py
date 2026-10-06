@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from openai import AsyncAzureOpenAI
 
-import litellm
-from litellm.llms.azure.fine_tuning.handler import AzureOpenAIFineTuningAPI
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.fine_tuning.handler import AzureOpenAIFineTuningAPI
 
 
 def _expected_dir() -> Path:

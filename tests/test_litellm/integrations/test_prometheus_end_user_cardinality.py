@@ -3,13 +3,13 @@ from time import monotonic
 import pytest
 from prometheus_client import REGISTRY
 
-import litellm
-from litellm.integrations.prometheus import PrometheusLogger
-from litellm.integrations.prometheus_helpers import bounded_prometheus_series_tracker
-from litellm.integrations.prometheus_helpers.bounded_prometheus_series_tracker import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.prometheus import PrometheusLogger
+from token_iq.gateway.integrations.prometheus_helpers import bounded_prometheus_series_tracker
+from token_iq.gateway.integrations.prometheus_helpers.bounded_prometheus_series_tracker import (
     BoundedPrometheusSeriesTracker,
 )
-from litellm.types.integrations.prometheus import UserAPIKeyLabelValues
+from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
 
 @pytest.fixture(autouse=True)
@@ -175,7 +175,7 @@ def test_prometheus_end_user_not_tracked_by_default():
     assert "end_user" in labels
 
     label_values = UserAPIKeyLabelValues(end_user="not-exported")
-    from litellm.integrations.prometheus import prometheus_label_factory
+    from token_iq.gateway.integrations.prometheus import prometheus_label_factory
 
     prometheus_labels = prometheus_label_factory(labels, label_values)
     assert prometheus_labels["end_user"] is None

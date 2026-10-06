@@ -21,9 +21,9 @@ the new behavior:
 import pytest
 from fastapi import HTTPException
 
-import litellm
-from litellm.exceptions import RateLimitError, RateLimitErrorCategory, RateLimitType
-from litellm.proxy.common_utils.proxy_rate_limit_error import (
+from token_iq import gateway as litellm
+from token_iq.gateway.exceptions import RateLimitError, RateLimitErrorCategory, RateLimitType
+from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import (
     ProxyRateLimitError,
     map_v3_rate_limit_type,
 )
@@ -222,7 +222,7 @@ class TestProxyHookCategoryWiring:
     class with a sensible category, not a bare HTTPException."""
 
     def test_max_budget_limiter_raises_proxy_rate_limit_error(self):
-        from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
+        from token_iq.gateway.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
 
         limiter = _PROXY_MaxBudgetLimiter()
         # The simplest deterministic path: directly raise from the conditional
@@ -237,7 +237,7 @@ class TestProxyHookCategoryWiring:
         assert isinstance(exc_info.value, HTTPException)
         # Static check that the limiter's module imports the unified class so
         # the source of truth is wired correctly.
-        from litellm.proxy.hooks import max_budget_limiter
+        from token_iq.gateway.proxy.hooks import max_budget_limiter
 
         assert hasattr(max_budget_limiter, "ProxyRateLimitError")
         assert max_budget_limiter.ProxyRateLimitError is ProxyRateLimitError
@@ -246,14 +246,14 @@ class TestProxyHookCategoryWiring:
     @pytest.mark.parametrize(
         "module_path",
         [
-            "litellm.proxy.hooks.parallel_request_limiter",
-            "litellm.proxy.hooks.parallel_request_limiter_v3",
-            "litellm.proxy.hooks.dynamic_rate_limiter",
-            "litellm.proxy.hooks.dynamic_rate_limiter_v3",
-            "litellm.proxy.hooks.batch_rate_limiter",
-            "litellm.proxy.hooks.max_budget_limiter",
-            "litellm.proxy.hooks.max_budget_per_session_limiter",
-            "litellm.proxy.hooks.max_iterations_limiter",
+            "token_iq.gateway.proxy.hooks.parallel_request_limiter",
+            "token_iq.gateway.proxy.hooks.parallel_request_limiter_v3",
+            "token_iq.gateway.proxy.hooks.dynamic_rate_limiter",
+            "token_iq.gateway.proxy.hooks.dynamic_rate_limiter_v3",
+            "token_iq.gateway.proxy.hooks.batch_rate_limiter",
+            "token_iq.gateway.proxy.hooks.max_budget_limiter",
+            "token_iq.gateway.proxy.hooks.max_budget_per_session_limiter",
+            "token_iq.gateway.proxy.hooks.max_iterations_limiter",
         ],
     )
     def test_every_proxy_rate_limit_hook_uses_unified_class(self, module_path):
@@ -284,7 +284,7 @@ class TestStandardLoggingPayloadCarriesCategory:
     """
 
     def test_should_propagate_category_for_proxy_rate_limit_error(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -297,7 +297,7 @@ class TestStandardLoggingPayloadCarriesCategory:
         assert info["error_code"] == "429"
 
     def test_should_propagate_vendor_category_for_plain_rate_limit_error(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -311,7 +311,7 @@ class TestStandardLoggingPayloadCarriesCategory:
         assert info["error_rate_limit_category"] == "vendor_rate_limit"
 
     def test_should_propagate_litellm_batch_rate_limit_category(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -326,7 +326,7 @@ class TestStandardLoggingPayloadCarriesCategory:
         # Non-rate-limit exceptions don't carry a `.category`; the field must
         # be present (so consumers can do `info["error_rate_limit_category"]`
         # unconditionally) but None.
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -336,7 +336,7 @@ class TestStandardLoggingPayloadCarriesCategory:
         assert info["error_rate_limit_category"] is None
 
     def test_should_be_none_when_no_exception(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -358,7 +358,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         helper used internally — it must raise the unified class."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -388,7 +388,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -446,7 +446,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         translate an OVER_LIMIT response into a ProxyRateLimitError."""
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
             _PROXY_MaxParallelRequestsHandler_v3,
         )
 
@@ -495,13 +495,13 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import patch
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.max_iterations_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.max_iterations_limiter import (
             _PROXY_MaxIterationsHandler,
         )
-        from litellm.proxy.utils import InternalUsageCache
-        from litellm.types.agents import AgentResponse
+        from token_iq.gateway.proxy.utils import InternalUsageCache
+        from token_iq.gateway.types.agents import AgentResponse
 
         cache = DualCache()
         handler = _PROXY_MaxIterationsHandler(
@@ -518,7 +518,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
             agent_card_params={"name": "iter-agent", "version": "1.0.0"},
         )
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
         ) as mock_registry:
             mock_registry.get_agent_by_id.return_value = agent
             # First call within budget.
@@ -551,9 +551,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import patch
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.max_budget_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.max_budget_limiter import (
             _PROXY_MaxBudgetLimiter,
         )
 
@@ -565,7 +565,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
             user_spend=2.0,
         )
         with patch(
-            "litellm.proxy.proxy_server.get_current_spend",
+            "token_iq.gateway.proxy.proxy_server.get_current_spend",
             return_value=5.0,
         ):
             with pytest.raises(ProxyRateLimitError) as exc_info:
@@ -589,9 +589,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.dynamic_rate_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.dynamic_rate_limiter import (
             _PROXY_DynamicRateLimitHandler,
         )
 
@@ -628,9 +628,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         meets the limits."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -692,9 +692,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -750,9 +750,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -781,9 +781,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         branch is covered by the test above)."""
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.dynamic_rate_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.dynamic_rate_limiter import (
             _PROXY_DynamicRateLimitHandler,
         )
 
@@ -828,8 +828,8 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import AsyncMock, MagicMock
 
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.dynamic_rate_limiter_v3 import (
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.dynamic_rate_limiter_v3 import (
             _PROXY_DynamicRateLimitHandlerV3,
         )
 
@@ -894,9 +894,9 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         assert the unified class is raised."""
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from litellm.caching.caching import DualCache
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.hooks.max_budget_per_session_limiter import (
+        from token_iq.gateway.caching.caching import DualCache
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.hooks.max_budget_per_session_limiter import (
             _PROXY_MaxBudgetPerSessionHandler,
         )
 
@@ -912,7 +912,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         agent = MagicMock()
         agent.litellm_params = {"max_budget_per_session": 1.0}
         with patch(
-            "litellm.proxy.agent_endpoints.agent_registry.global_agent_registry"
+            "token_iq.gateway.proxy.agent_endpoints.agent_registry.global_agent_registry"
         ) as mock_registry:
             mock_registry.get_agent_by_id.return_value = agent
             with pytest.raises(ProxyRateLimitError) as exc_info:
@@ -935,7 +935,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         """
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.batch_rate_limiter import (
+        from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
             BatchFileUsage,
             _PROXY_BatchRateLimiter,
         )
@@ -1095,7 +1095,7 @@ class TestStandardLoggingPayloadCarriesType:
     """
 
     def test_should_propagate_type_for_proxy_rate_limit_error(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1107,7 +1107,7 @@ class TestStandardLoggingPayloadCarriesType:
         assert info["error_rate_limit_type"] == "tokens"
 
     def test_should_propagate_type_for_plain_rate_limit_error(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1121,7 +1121,7 @@ class TestStandardLoggingPayloadCarriesType:
         assert info["error_rate_limit_type"] == "requests"
 
     def test_should_be_none_when_unspecified(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1138,7 +1138,7 @@ class TestStandardLoggingPayloadCarriesType:
         # Symmetry with `error_rate_limit_category`: the field must be
         # present on every payload so consumers can read it
         # unconditionally, but None for non-rate-limit exceptions.
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1185,7 +1185,7 @@ class TestProxyHooksWireTypeCorrectly:
         # the explicit-type override paths.
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -1197,7 +1197,7 @@ class TestProxyHooksWireTypeCorrectly:
     def test_parallel_request_limiter_v1_helper_accepts_explicit_type(self):
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter import (
             _PROXY_MaxParallelRequestsHandler,
         )
 
@@ -1242,7 +1242,7 @@ class TestProxyHooksWireTypeCorrectly:
         """
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
             _PROXY_MaxParallelRequestsHandler_v3,
         )
 
@@ -1293,7 +1293,7 @@ class TestProxyHooksWireTypeCorrectly:
     async def test_v3_limiter_max_parallel_requests_maps_to_concurrent(self):
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.parallel_request_limiter_v3 import (
+        from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
             _PROXY_MaxParallelRequestsHandler_v3,
         )
 
@@ -1336,7 +1336,7 @@ class TestProxyHooksWireTypeCorrectly:
     def test_batch_rate_limiter_emits_tokens_type_for_tpm_violation(self):
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.batch_rate_limiter import (
+        from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
             BatchFileUsage,
             _PROXY_BatchRateLimiter,
         )
@@ -1379,7 +1379,7 @@ class TestProxyHooksWireTypeCorrectly:
     def test_batch_rate_limiter_emits_requests_type_for_rpm_violation(self):
         from unittest.mock import MagicMock
 
-        from litellm.proxy.hooks.batch_rate_limiter import (
+        from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
             BatchFileUsage,
             _PROXY_BatchRateLimiter,
         )
@@ -1485,7 +1485,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
         assert not isinstance(e, RateLimitError)
 
     def test_should_propagate_category_to_standard_logging_payload(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1497,7 +1497,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
         assert info["error_class"] == "BudgetExceededError"
 
     def test_should_propagate_llm_provider_to_standard_logging_payload(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1518,7 +1518,7 @@ class TestThirdPartyAttrLeakageGuard:
     """
 
     def test_should_drop_unknown_category_string_on_third_party_exception(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1529,7 +1529,7 @@ class TestThirdPartyAttrLeakageGuard:
         assert info["error_rate_limit_category"] is None
 
     def test_should_drop_unknown_rate_limit_type_string_on_third_party_exception(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1540,7 +1540,7 @@ class TestThirdPartyAttrLeakageGuard:
         assert info["error_rate_limit_type"] is None
 
     def test_should_drop_non_string_garbage_attrs(self):
-        from litellm.litellm_core_utils.litellm_logging import (
+        from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
 
@@ -1553,7 +1553,7 @@ class TestThirdPartyAttrLeakageGuard:
         assert info["error_rate_limit_type"] is None
 
     def test_should_drop_garbage_on_prometheus_label_extraction(self):
-        from litellm.integrations.prometheus import PrometheusLogger
+        from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         class Foreign(Exception):
             category = "spam"
@@ -1568,7 +1568,7 @@ class TestThirdPartyAttrLeakageGuard:
     def test_should_still_accept_legitimate_rate_limit_categories(self):
         # The guard must not over-correct — every documented enum value
         # is a valid string and must pass through.
-        from litellm.exceptions import (
+        from token_iq.gateway.exceptions import (
             validate_rate_limit_category,
             validate_rate_limit_type,
         )
@@ -1598,7 +1598,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
     ):
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from litellm.proxy.auth.auth_exception_handler import (
+        from token_iq.gateway.proxy.auth.auth_exception_handler import (
             UserAPIKeyAuthExceptionHandler,
         )
 
@@ -1610,7 +1610,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
 
         with (
             patch(
-                "litellm.proxy.proxy_server.proxy_logging_obj",
+                "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
                 MagicMock(
                     post_call_failure_hook=AsyncMock(
                         side_effect=fake_post_call_failure_hook
@@ -1618,11 +1618,11 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
                 ),
             ),
             patch(
-                "litellm.proxy.proxy_server.general_settings",
+                "token_iq.gateway.proxy.proxy_server.general_settings",
                 {"use_x_forwarded_for": False},
             ),
             patch(
-                "litellm.proxy.auth.auth_exception_handler._get_request_ip_address",
+                "token_iq.gateway.proxy.auth.auth_exception_handler._get_request_ip_address",
                 return_value="127.0.0.1",
             ),
         ):

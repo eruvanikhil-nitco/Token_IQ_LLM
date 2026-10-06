@@ -9,14 +9,14 @@ import pytest
 from fastapi import HTTPException, status
 
 
-from litellm.constants import (
+from token_iq.gateway.constants import (
     EXPIRED_UI_SESSION_KEY_CLEANUP_JOB_NAME,
     LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE,
     LITELLM_INTERNAL_JOBS_SERVICE_ACCOUNT_NAME,
     UI_SESSION_TOKEN_TEAM_ID,
 )
-from litellm.proxy._types import LiteLLM_VerificationToken
-from litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager import (
+from token_iq.gateway.proxy._types import LiteLLM_VerificationToken
+from token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager import (
     ExpiredUISessionKeyCleanupManager,
 )
 
@@ -46,7 +46,7 @@ class TestExpiredUISessionKeyCleanupManager:
         )
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.datetime"
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.datetime"
         ) as mock_datetime:
             mock_datetime.now.return_value = now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(
@@ -80,7 +80,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=[expired_key])
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             mock_delete_verification_tokens.return_value = (
@@ -88,7 +88,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 [expired_key],
             )
             with patch(
-                "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
+                "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
                 new_callable=AsyncMock,
             ) as mock_key_deleted_hook:
                 deleted_count = await manager.cleanup_expired_keys()
@@ -140,7 +140,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=expired_keys)
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             mock_delete_verification_tokens.return_value = (
@@ -148,7 +148,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 expired_keys,
             )
             with patch(
-                "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
+                "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
                 new_callable=AsyncMock,
             ) as mock_key_deleted_hook:
                 deleted_count = await manager.cleanup_expired_keys()
@@ -184,7 +184,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=expired_keys)
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             mock_delete_verification_tokens.return_value = (
@@ -195,7 +195,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 [expired_keys[0]],
             )
             with patch(
-                "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
+                "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
                 new_callable=AsyncMock,
             ):
                 deleted_count = await manager.cleanup_expired_keys()
@@ -227,7 +227,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=expired_keys)
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             mock_delete_verification_tokens.return_value = (
@@ -238,7 +238,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 expired_keys,
             )
             with patch(
-                "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
+                "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
                 new_callable=AsyncMock,
             ):
                 deleted_count = await manager.cleanup_expired_keys()
@@ -261,7 +261,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=[expired_key])
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             mock_delete_verification_tokens.side_effect = HTTPException(
@@ -269,7 +269,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 detail={"error": "No keys found"},
             )
             with patch(
-                "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
+                "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.KeyManagementEventHooks.async_key_deleted_hook",
                 new_callable=AsyncMock,
             ) as mock_key_deleted_hook:
                 deleted_count = await manager.cleanup_expired_keys()
@@ -288,7 +288,7 @@ class TestExpiredUISessionKeyCleanupManager:
         manager._find_expired_ui_session_keys = AsyncMock(return_value=[])
 
         with patch(
-            "litellm.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
+            "token_iq.gateway.proxy.common_utils.expired_ui_session_key_cleanup_manager.delete_verification_tokens",
             new_callable=AsyncMock,
         ) as mock_delete_verification_tokens:
             deleted_count = await manager.cleanup_expired_keys()

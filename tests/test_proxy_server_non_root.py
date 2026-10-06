@@ -10,7 +10,8 @@ def test_restructure_ui_html_files_skipped_in_non_root(monkeypatch):
     - ui_path is "/var/lib/litellm/ui"
     """
     # 1. Setup environment variables and variables
-    import litellm.proxy.proxy_server
+    import token_iq.gateway.proxy.proxy_server
+    from token_iq import gateway as litellm
 
     monkeypatch.setenv("LITELLM_NON_ROOT", "true")
 
@@ -25,7 +26,7 @@ def test_restructure_ui_html_files_skipped_in_non_root(monkeypatch):
     # or if the function doesn't exist (it's defined inside a try/except block)
     # spec=False prevents spec checking which can fail during import resolution
     with patch(
-        "litellm.proxy.proxy_server._restructure_ui_html_files",
+        "token_iq.gateway.proxy.proxy_server._restructure_ui_html_files",
         create=True,
         spec=False,
     ) as mock_restructure:
@@ -54,7 +55,7 @@ def test_restructure_ui_html_files_NOT_skipped_locally(monkeypatch):
     # or if the function doesn't exist (it's defined inside a try/except block)
     # spec=False prevents spec checking which can fail during import resolution
     with patch(
-        "litellm.proxy.proxy_server._restructure_ui_html_files",
+        "token_iq.gateway.proxy.proxy_server._restructure_ui_html_files",
         create=True,
         spec=False,
     ) as mock_restructure:

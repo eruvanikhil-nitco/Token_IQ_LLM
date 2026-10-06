@@ -23,21 +23,21 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-import litellm
-from litellm.integrations import opentelemetry as otel_module
-from litellm.integrations.opentelemetry import (
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations import opentelemetry as otel_module
+from token_iq.gateway.integrations.opentelemetry import (
     OpenTelemetry,
     OpenTelemetryConfig,
     OTELMetricAttributeFilter,
     OTELSemconvCategory,
     _normalize_team_metadata_keys,
 )
-from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
-from litellm.types.services import ServiceLoggerPayload, ServiceTypes
+from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
+from token_iq.gateway.types.services import ServiceLoggerPayload, ServiceTypes
 
 
 class TestOpenTelemetryGuardrails(unittest.TestCase):
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_create_guardrail_span_with_valid_info(self, mock_datetime):
         # Setup
         otel = OpenTelemetry()
@@ -96,7 +96,7 @@ class TestOpenTelemetryGuardrails(unittest.TestCase):
         # Verify that start_span was never called
         otel.tracer.start_span.assert_not_called()
 
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_guardrail_response_dict_is_json_serialized(self, mock_datetime):
         """Dict guardrail_response (e.g. OpenAI moderation result) must reach
         the span as a JSON string so downstream pipelines can parse it for
@@ -128,7 +128,7 @@ class TestOpenTelemetryGuardrails(unittest.TestCase):
             "guardrail_response", safe_dumps(moderation_payload)
         )
 
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_guardrail_response_none_is_skipped(self, mock_datetime):
         """When guardrail_response is None, the attribute must not be set —
         guards against round-tripping ``"null"`` into traces."""
@@ -166,7 +166,7 @@ class TestOpenTelemetryTeamAttributesOnChildSpans(unittest.TestCase):
             "user_api_key_team_alias": "my-team",
         }
 
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_guardrail_span_has_team_attributes(self, mock_datetime):
         otel = OpenTelemetry()
         otel.tracer = MagicMock()
@@ -197,7 +197,7 @@ class TestOpenTelemetryTeamAttributesOnChildSpans(unittest.TestCase):
         )
 
     @patch.dict(os.environ, {"OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": ""})
-    @patch("litellm.turn_off_message_logging", False)
+    @patch("token_iq.gateway.turn_off_message_logging", False)
     def test_raw_request_span_has_team_attributes(self):
         otel = OpenTelemetry()
         otel.message_logging = True
@@ -756,7 +756,7 @@ class TestOpenTelemetryCaptureMessageContent(unittest.TestCase):
         self.assertEqual(mode, "SPAN_ONLY")
 
     def test_turn_off_message_logging_forces_no_content(self):
-        with patch("litellm.turn_off_message_logging", True):
+        with patch("token_iq.gateway.turn_off_message_logging", True):
             _, mode = self._make(env="SPAN_AND_EVENT", message_logging=True)
             self.assertEqual(mode, "NO_CONTENT")
 
@@ -1096,7 +1096,7 @@ class TestOpenTelemetrySemconvStability(unittest.TestCase):
                 os.environ,
                 {"OTEL_SEMCONV_STABILITY_OPT_IN": "gen_ai_latest_experimental"},
             ),
-            patch("litellm.turn_off_message_logging", True),
+            patch("token_iq.gateway.turn_off_message_logging", True),
             patch.object(
                 _logs, "get_logger_provider", return_value=ProxyLoggerProvider()
             ),
@@ -1233,7 +1233,7 @@ class TestOpenTelemetry(unittest.TestCase):
             time.sleep(self.POLL_INTERVAL)
         return []
 
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_create_guardrail_span_with_valid_info(self, mock_datetime):
         # Setup
         otel = OpenTelemetry()
@@ -1754,7 +1754,7 @@ class TestOpenTelemetry(unittest.TestCase):
 
     def test_get_span_name_without_generation_name(self):
         """Test _get_span_name returns default when generation_name missing"""
-        from litellm.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
 
         otel = OpenTelemetry()
         kwargs = {"litellm_params": {"metadata": {}}}
@@ -1762,10 +1762,10 @@ class TestOpenTelemetry(unittest.TestCase):
         self.assertEqual(result, LITELLM_REQUEST_SPAN_NAME)
 
     @patch.dict(os.environ, {"OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": ""})
-    @patch("litellm.turn_off_message_logging", False)
+    @patch("token_iq.gateway.turn_off_message_logging", False)
     def test_maybe_log_raw_request_creates_span(self):
         """Test _maybe_log_raw_request creates span when logging enabled"""
-        from litellm.integrations.opentelemetry import RAW_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import RAW_REQUEST_SPAN_NAME
 
         otel = OpenTelemetry()
         otel.message_logging = True
@@ -1787,7 +1787,7 @@ class TestOpenTelemetry(unittest.TestCase):
             mock_tracer.start_span.call_args[1]["name"], RAW_REQUEST_SPAN_NAME
         )
 
-    @patch("litellm.turn_off_message_logging", True)
+    @patch("token_iq.gateway.turn_off_message_logging", True)
     def test_maybe_log_raw_request_skips_when_logging_disabled(self):
         """Test _maybe_log_raw_request skips when logging disabled"""
         otel = OpenTelemetry()
@@ -1821,7 +1821,7 @@ class TestOpenTelemetryToNs(unittest.TestCase):
     def test_int_epoch_seconds_scaled_to_ns(self):
         self.assertEqual(self.otel._to_ns(1700), 1_700_000_000_000)
 
-    @patch("litellm.integrations.opentelemetry.datetime")
+    @patch("token_iq.gateway.integrations.opentelemetry.datetime")
     def test_none_falls_back_to_current_time(self, mock_datetime):
         mock_datetime.now.return_value.timestamp.return_value = 1700.0
         self.assertEqual(self.otel._to_ns(None), 1_700_000_000_000)
@@ -2013,7 +2013,7 @@ class TestOpenTelemetryEndpointNormalization(unittest.TestCase):
         otel = OpenTelemetry()
         endpoint = "http://collector:4318/v1/traces"
 
-        with patch("litellm._logging.verbose_logger.warning") as mock_warning:
+        with patch("token_iq.gateway._logging.verbose_logger.warning") as mock_warning:
             result = otel._normalize_otel_endpoint(endpoint, "invalid")
 
             # Should return endpoint unchanged
@@ -2249,7 +2249,7 @@ class TestOpenTelemetryProtocolSelection(unittest.TestCase):
         config = OpenTelemetryConfig(exporter="unknown_protocol", enable_events=True)
         otel = OpenTelemetry(config=config)
 
-        with patch("litellm._logging.verbose_logger.warning") as mock_warning:
+        with patch("token_iq.gateway._logging.verbose_logger.warning") as mock_warning:
             exporter = otel._get_log_exporter()
 
             # Verify the exporter defaults to console
@@ -3440,7 +3440,7 @@ class TestRawSpanAttributeIsolation(unittest.TestCase):
     """Issue #3: raw_gen_ai_request span should only contain provider-specific
     llm.{provider}.* attributes, not the duplicated gen_ai.* / metadata.* attrs."""
 
-    @patch("litellm.turn_off_message_logging", False)
+    @patch("token_iq.gateway.turn_off_message_logging", False)
     def test_raw_span_does_not_duplicate_parent_attributes(self):
         span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
@@ -3518,7 +3518,7 @@ class TestNoParentSpanDuplication(unittest.TestCase):
 
         # Simulate proxy flow: create a parent proxy span
         tracer = tracer_provider.get_tracer(__name__)
-        from litellm.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
 
         parent_span = tracer.start_span(name=LITELLM_PROXY_REQUEST_SPAN_NAME)
         # Inject parent span into kwargs so _get_span_context finds it
@@ -4473,7 +4473,7 @@ class TestOpenTelemetryProxyParentSpanChildEmission(unittest.TestCase):
     def test_litellm_request_emitted_as_child_of_proxy_parent_span(self):
         """End-to-end: proxy span in metadata should yield exactly one
         litellm_request span parented to it, with no extra root span."""
-        from litellm.integrations.opentelemetry import (
+        from token_iq.gateway.integrations.opentelemetry import (
             LITELLM_PROXY_REQUEST_SPAN_NAME,
             LITELLM_REQUEST_SPAN_NAME,
         )
@@ -4514,7 +4514,7 @@ class TestOpenTelemetryProxyParentSpanChildEmission(unittest.TestCase):
         )
 
     def test_end_proxy_span_from_kwargs_closes_recording_proxy_span(self):
-        from litellm.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
 
         span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
@@ -4570,8 +4570,8 @@ class TestOpenTelemetryProxyLoggerFirstRegisteredWins(unittest.TestCase):
         import importlib
         import types
 
-        proxy_pkg_name = "litellm.proxy"
-        proxy_server_name = "litellm.proxy.proxy_server"
+        proxy_pkg_name = "token_iq.gateway.proxy"
+        proxy_server_name = "token_iq.gateway.proxy.proxy_server"
 
         previous_pkg = sys.modules.get(proxy_pkg_name)
         previous_mod = sys.modules.get(proxy_server_name)
@@ -4852,7 +4852,7 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
     def test_handle_success_emits_single_litellm_request_span_on_double_call(self):
         """Sync + async callback paths firing for the same kwargs must
         result in exactly one litellm_request span."""
-        from litellm.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
 
         span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
@@ -4879,7 +4879,7 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
     def test_handle_success_dedupe_skip_still_closes_proxy_span(self):
         """When the success path is short-circuited as a duplicate, the
         proxy span must still be closed so traces don't leak."""
-        from litellm.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
 
         span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()
@@ -4909,7 +4909,7 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
         must result in exactly one ERROR litellm_request span."""
         from opentelemetry.trace import StatusCode
 
-        from litellm.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
+        from token_iq.gateway.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
 
         span_exporter = InMemorySpanExporter()
         tracer_provider = TracerProvider()

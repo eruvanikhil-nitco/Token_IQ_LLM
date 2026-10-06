@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-import litellm
-from litellm.proxy.auth.user_api_key_auth import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _run_post_custom_auth_checks,
     update_valid_token_with_end_user_params,
 )
-from litellm.proxy._types import (
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     UserAPIKeyAuth,
@@ -22,7 +22,7 @@ async def test_custom_auth_run_post_custom_auth_checks_without_end_user_id():
 
     # Default: common_checks should NOT be called inside the helper
     with patch(
-        "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+        "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
     ) as mock_common:
         mock_common.return_value = True
         result = await _run_post_custom_auth_checks(
@@ -40,10 +40,10 @@ async def test_custom_auth_run_post_custom_auth_checks_without_end_user_id():
     # in the wrapper handles it.
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+            "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
         ) as mock_common,
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
         ),
     ):
@@ -71,10 +71,10 @@ async def test_custom_auth_run_post_custom_auth_checks_with_end_user_budget_exce
     request_data = {"model": "gpt-4"}
 
     with patch(
-        "litellm.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
+        "token_iq.gateway.proxy.auth.user_api_key_auth.common_checks", new_callable=AsyncMock
     ):
         with patch(
-            "litellm.proxy.proxy_server.model_max_budget_limiter.is_end_user_within_model_budget",
+            "token_iq.gateway.proxy.proxy_server.model_max_budget_limiter.is_end_user_within_model_budget",
             new_callable=AsyncMock,
         ) as mock_budget_check:
             mock_budget_check.side_effect = litellm.BudgetExceededError(
@@ -115,12 +115,12 @@ async def test_custom_auth_enforces_end_user_budget_when_common_checks_skipped()
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
             new_callable=AsyncMock,
             return_value=over_budget_end_user,
         ),
-        patch("litellm.proxy.proxy_server.get_current_spend", mock_get_current_spend),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
         with pytest.raises(litellm.BudgetExceededError):
             await _run_post_custom_auth_checks(
@@ -146,20 +146,20 @@ async def test_custom_auth_defers_end_user_budget_to_common_checks_when_enabled(
 
     with (
         patch(
-            "litellm.proxy.auth.user_api_key_auth.get_end_user_object",
+            "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
             new_callable=AsyncMock,
             return_value=end_user_obj,
         ),
         patch(
-            "litellm.proxy.auth.user_api_key_auth._check_end_user_budget",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._check_end_user_budget",
             new_callable=AsyncMock,
         ) as mock_check,
         patch(
-            "litellm.proxy.auth.user_api_key_auth._enforce_key_and_fallback_model_access",
+            "token_iq.gateway.proxy.auth.user_api_key_auth._enforce_key_and_fallback_model_access",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {"custom_auth_run_common_checks": True},
         ),
     ):
@@ -185,8 +185,8 @@ async def test_custom_auth_token_budget_still_loads_and_caches_unrestricted_end_
     """
     from unittest.mock import MagicMock
 
-    from litellm.proxy.auth.user_api_key_auth import _lookup_end_user_and_apply_budget
-    from litellm.proxy.common_utils.user_api_key_cache import (
+    from token_iq.gateway.proxy.auth.user_api_key_auth import _lookup_end_user_and_apply_budget
+    from token_iq.gateway.proxy.common_utils.user_api_key_cache import (
         UserApiKeyCache,
         end_user_cache_key,
     )

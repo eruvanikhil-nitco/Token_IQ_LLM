@@ -1,10 +1,10 @@
 
 
-import litellm
-from litellm.llms.azure_ai.image_edit.flux2_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure_ai.image_edit.flux2_transformation import (
     AzureFoundryFlux2ImageEditConfig,
 )
-from litellm.llms.azure_ai.image_edit.transformation import (
+from token_iq.gateway.llms.azure_ai.image_edit.transformation import (
     AzureFoundryFluxImageEditConfig,
 )
 

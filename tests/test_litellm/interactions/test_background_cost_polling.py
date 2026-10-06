@@ -5,7 +5,7 @@ from typing import Optional
 
 import pytest
 
-from litellm.interactions.background_cost_polling import (
+from token_iq.gateway.interactions.background_cost_polling import (
     _SETTLED_KEY,
     _poll_intervals,
     BackgroundInteractionPollContext,
@@ -13,8 +13,8 @@ from litellm.interactions.background_cost_polling import (
     maybe_settle_background_interaction_before_delete,
     poll_and_log_background_interaction_cost,
 )
-from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
-from litellm.types.interactions import InteractionsAPIResponse
+from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
 USAGE_BLOCK = {
     "total_tokens": 175,
@@ -281,7 +281,7 @@ async def test_schedule_skips_non_pollable_results(response, create_kwargs):
 
 
 def _register_poll(logging_obj: LitellmLogging, poll_fetch=None) -> asyncio.Task:
-    import litellm.interactions.background_cost_polling as bg
+    import token_iq.gateway.interactions.background_cost_polling as bg
 
     if poll_fetch is None:
         poll_fetch, _ = _fetch_sequence(_response("in_progress", with_usage=False))
@@ -437,7 +437,7 @@ async def test_poller_exits_without_billing_once_settled_elsewhere():
 
 @pytest.mark.asyncio
 async def test_schedule_respects_kill_switch(monkeypatch):
-    import litellm.interactions.background_cost_polling as module
+    import token_iq.gateway.interactions.background_cost_polling as module
 
     monkeypatch.setattr(module, "BACKGROUND_INTERACTION_COST_POLLING_ENABLED", False)
 
@@ -462,8 +462,8 @@ def test_every_status_the_api_can_return_is_either_pollable_or_terminal():
     a status Google adds later breaks this test instead of silently shipping
     another unbilled path.
     """
-    from litellm.interactions.background_cost_polling import _POLLABLE_STATUSES, _TERMINAL_STATUSES
-    from litellm.types.interactions.generated import Status1
+    from token_iq.gateway.interactions.background_cost_polling import _POLLABLE_STATUSES, _TERMINAL_STATUSES
+    from token_iq.gateway.types.interactions.generated import Status1
 
     spec_statuses = {member.value for member in Status1}
     handled = _POLLABLE_STATUSES | _TERMINAL_STATUSES
@@ -529,7 +529,7 @@ async def test_giving_up_on_an_unrecognized_status_says_which_status_it_was(monk
     The give-up line is the only trace it leaves, so it has to name the status
     rather than reporting it as an interaction that was merely still running.
     """
-    import litellm.interactions.background_cost_polling as bg
+    import token_iq.gateway.interactions.background_cost_polling as bg
 
     errors = []
     monkeypatch.setattr(bg.verbose_logger, "error", lambda *args, **kwargs: errors.append(args))

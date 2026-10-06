@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pydantic import ValidationError
 
-from litellm.caching.in_memory_cache import InMemoryCache
-from litellm.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
-from litellm.integrations.shadow_eval_logger import (
+from token_iq.gateway.caching.in_memory_cache import InMemoryCache
+from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
+from token_iq.gateway.integrations.shadow_eval_logger import (
     _MAX_CONCURRENT_SHADOW_TASKS,
     _MAX_ERROR_CHARS,
     _MAX_JUDGE_PROMPT_CHARS,
@@ -23,8 +23,8 @@ from litellm.integrations.shadow_eval_logger import (
     _sample_hits,
     _unmask_preference,
 )
-from litellm.types.guardrails import GuardrailEventHooks
-from litellm.types.utils import SHADOW_EVAL_JUDGE_CALL_ORIGIN, SHADOW_EVAL_ROUTER_CALL_ORIGIN, ModelResponse
+from token_iq.gateway.types.guardrails import GuardrailEventHooks
+from token_iq.gateway.types.utils import SHADOW_EVAL_JUDGE_CALL_ORIGIN, SHADOW_EVAL_ROUTER_CALL_ORIGIN, ModelResponse
 
 
 def _job(**overrides) -> ActiveShadowEvalJob:
@@ -301,7 +301,7 @@ class TestSurfaceNormalization:
         assert shadow_call["metadata"][INTERNAL_CALL_ORIGIN_METADATA_KEY] == SHADOW_EVAL_ROUTER_CALL_ORIGIN
 
     async def test_responses_arm_translates_wire_body_params_and_drops_surface_only_keys(self):
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         hook_kwargs = _success_kwargs(call_type="aresponses")
         hook_kwargs["messages"] = "what is 8+8"
@@ -339,7 +339,7 @@ class TestSurfaceNormalization:
     @pytest.mark.parametrize("payload_shape", ["typed", "dict"])
     @pytest.mark.parametrize("call_type", ["aresponses", "responses"])
     async def test_responses_arms_normalize_bare_string_input_and_instructions(self, call_type, payload_shape):
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         hook_kwargs = _success_kwargs(call_type=call_type)
         hook_kwargs["messages"] = "what is 8+8"
@@ -369,7 +369,7 @@ class TestSurfaceNormalization:
         ids=["tool-final-chat-turn", "tool-final-responses-turn"],
     )
     async def test_unjudgeable_turns_are_skipped_without_consuming_budget(self, response_mutation, kwargs_mutation):
-        from litellm.types.llms.openai import ResponsesAPIResponse
+        from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
         hook_kwargs = _success_kwargs(**({"call_type": "acompletion"} | kwargs_mutation))
         response = RESPONSE
@@ -506,15 +506,15 @@ def test_call_cost_prefers_the_billed_figure_over_the_public_price_map(monkeypat
     """The router client stamps _hidden_params.response_cost from the deployment's own
     pricing; the public map reads 0 for deployment-priced models, so budgets gated on it
     would never close. The map is only the fallback for responses with no stamp."""
-    import litellm as litellm_module
-    from litellm.integrations.shadow_eval_logger import _call_cost
+    from token_iq import gateway as litellm_module
+    from token_iq.gateway.integrations.shadow_eval_logger import _call_cost
 
     monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
     stamped = MagicMock()
     stamped._hidden_params = {"response_cost": 0.04}
     assert _call_cost(stamped) == 0.04
 
-    from litellm.types.utils import HiddenParams
+    from token_iq.gateway.types.utils import HiddenParams
 
     object_stamped = MagicMock()
     object_stamped._hidden_params = HiddenParams(response_cost=0.03)
@@ -532,7 +532,7 @@ async def test_a_cold_or_reset_counter_degrades_to_the_fill_floor_not_zero(monke
     reseed by design), get_current_spend returns the caller's fill-sum fallback whenever
     the counter reads lower. A reset counter therefore degrades to the <=10s-stale DB
     sum, never to zero, so a Redis expiry cannot re-open a spent budget by a full cap."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     counter_key = "spend:shadow_eval:job-cold-test"
     monkeypatch.setattr(proxy_server, "prisma_client", None)
@@ -581,7 +581,7 @@ def test_judge_prompt_is_bounded_however_large_the_inputs():
 @pytest.mark.asyncio
 class TestSuccessHookSkipChain:
     async def test_happy_path_writes_exactly_one_attempt_row(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         prisma = _prisma()
@@ -610,7 +610,7 @@ class TestSuccessHookSkipChain:
         assert prisma.db.litellm_shadowevaljob.find_many.await_count == 0
 
     async def test_judge_call_carries_the_verdict_schema(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         router = _router()
@@ -632,7 +632,7 @@ class TestSuccessHookSkipChain:
     async def test_shadow_call_messages_survive_in_place_provider_rewrites(self, monkeypatch: pytest.MonkeyPatch):
         """Provider transforms (anthropic factory, cache-control hook) rewrite messages with
         `messages[i] = ...`; the logger's immutable snapshot must never reach them directly."""
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         prisma = _prisma()
@@ -654,7 +654,7 @@ class TestSuccessHookSkipChain:
         assert row["outcome"] in ("real", "shadow", "tie")
 
     async def test_pipeline_continues_judging_after_a_failed_attempt(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         prisma = _prisma()
@@ -738,7 +738,7 @@ class TestSuccessHookSkipChain:
         """An attempt's recorded cost lands in the spend counter immediately, so the
         second sample is skipped before any provider call even though the cached fill
         still reads spend 0."""
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         prisma = _prisma()
@@ -755,7 +755,7 @@ class TestSuccessHookSkipChain:
     async def test_a_sibling_pod_sees_spend_through_the_shared_counter(self, monkeypatch):
         """Two pods share the cross-pod counter: once pod A's attempts spend the budget,
         pod B skips before its shadow call even though pod B's cached fill reads 0."""
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         shared = {}
@@ -1007,9 +1007,9 @@ class TestShadowPipeline:
     async def test_over_budget_key_skips_before_any_call(self, monkeypatch: pytest.MonkeyPatch):
         """The gate delegates to the auth path's own budget owner, so an over-budget
         verdict there (BudgetExceededError) skips the shadow before any provider call."""
-        from litellm.exceptions import BudgetExceededError
-        from litellm.proxy._types import UserAPIKeyAuth
-        from litellm.proxy.auth import auth_checks
+        from token_iq.gateway.exceptions import BudgetExceededError
+        from token_iq.gateway.proxy._types import UserAPIKeyAuth
+        from token_iq.gateway.proxy.auth import auth_checks
 
         monkeypatch.setattr(
             auth_checks,
@@ -1063,7 +1063,7 @@ class TestShadowPipeline:
     async def test_failures_become_error_rows_and_keep_billed_judge_cost(
         self, router_factory, expected_error, expected_cost, expected_shadow_cost, monkeypatch: pytest.MonkeyPatch
     ):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.007)
         prisma = _prisma()
@@ -1093,7 +1093,7 @@ class TestShadowPipeline:
     async def test_an_empty_shadow_reply_still_bills_its_cost(self, monkeypatch: pytest.MonkeyPatch):
         """A shadow call that returns no extractable text has still billed; pricing it at
         zero would keep the dollar gate open while shadow calls keep charging the key."""
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.007)
         prisma = _prisma()
@@ -1122,8 +1122,8 @@ class TestShadowPipeline:
     async def test_a_pipeline_error_after_the_shadow_call_keeps_its_billed_cost(self, monkeypatch: pytest.MonkeyPatch):
         """An unexpected error between the billed shadow call and the attempt write must
         still record the shadow cost, or the per-key dollar gate undercounts forever."""
-        import litellm as litellm_module
-        import litellm.integrations.shadow_eval_logger as shadow_eval_module
+        from token_iq import gateway as litellm_module
+        import token_iq.gateway.integrations.shadow_eval_logger as shadow_eval_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.007)
 
@@ -1508,8 +1508,8 @@ async def test_judge_call_resolves_its_arm_under_the_shadowed_keys_team(monkeypa
     anybody else. Choosing the arm without the team sends the literal name to the SDK, which
     has never heard of it, so every judge call fails on a job validation just accepted.
     """
-    import litellm
-    from litellm.litellm_core_utils.llm_judge import judge_acompletion
+    from token_iq import gateway as litellm
+    from token_iq.gateway.core_utils.llm_judge import judge_acompletion
 
     router = litellm.Router(
         model_list=[
@@ -1539,7 +1539,7 @@ class TestCostComparison:
     its write-back classifier cost, and the exact-cache flag that voids the comparison."""
 
     async def test_success_row_records_both_arms_and_the_classifier(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         router = _router(classifier_cost=0.0007)
@@ -1557,7 +1557,7 @@ class TestCostComparison:
         assert logger._test_funnel == []
 
     async def test_reverse_job_prices_the_real_arms_classifier(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         router = _router()
@@ -1578,7 +1578,7 @@ class TestCostComparison:
         assert row["shadow_classifier_cost"] == 0.0
 
     async def test_shadow_classifier_cost_charges_the_eval_budget_counter(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         logger = _logger(router=_router(classifier_cost=0.0007), prisma=_prisma(), jobs=(_job(),))
@@ -1589,7 +1589,7 @@ class TestCostComparison:
         assert logger._test_counter["spend:shadow_eval:job-1"] == pytest.approx(0.005 + 0.005 + 0.0007)
 
     async def test_real_cost_never_charges_the_eval_budget_counter(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         logger = _logger(router=_router(), prisma=_prisma(), jobs=(_job(),))
@@ -1600,7 +1600,7 @@ class TestCostComparison:
         assert logger._test_counter["spend:shadow_eval:job-1"] == pytest.approx(0.005 + 0.005)
 
     async def test_cache_served_turn_is_flagged_on_the_row(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         prisma = _prisma()
@@ -1614,7 +1614,7 @@ class TestCostComparison:
         assert row["real_cost"] == 0.0
 
     async def test_failed_shadow_call_still_records_its_classifier_cost(self, monkeypatch: pytest.MonkeyPatch):
-        import litellm as litellm_module
+        from token_iq import gateway as litellm_module
 
         monkeypatch.setattr(litellm_module, "completion_cost", lambda completion_response: 0.005)
         router = _router(classifier_cost=0.0007)
@@ -1660,7 +1660,7 @@ class TestSamplingFunnel:
     judged rows can be weighed against the eligible traffic they stand for."""
 
     async def test_a_lost_sampling_dice_roll_counts_not_sampled(self):
-        from litellm.integrations.shadow_eval_logger import _sample_hits
+        from token_iq.gateway.integrations.shadow_eval_logger import _sample_hits
 
         job = _job(shadow_percentage=1.0)
         missing_id = next(

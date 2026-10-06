@@ -1,13 +1,13 @@
 import pytest
 
-import litellm
-from litellm.llms.fal_ai.cost_calculator import cost_calculator
-from litellm.llms.fal_ai.image_generation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.fal_ai.cost_calculator import cost_calculator
+from token_iq.gateway.llms.fal_ai.image_generation import (
     FalAIGPTImage2Config,
     FalAINanoBananaConfig,
     get_fal_ai_image_generation_config,
 )
-from litellm.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
 @pytest.mark.parametrize(

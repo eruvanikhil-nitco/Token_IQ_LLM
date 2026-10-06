@@ -7,8 +7,8 @@ from fastapi import Request
 from datetime import datetime
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from litellm import Router, CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway import Router, CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 ## Get the current directory of the file being run
 pwd = os.path.dirname(os.path.realpath(__file__))
@@ -18,7 +18,7 @@ file_path = os.path.join(pwd, "gettysburg.wav")
 
 audio_file = open(file_path, "rb")
 from pathlib import Path
-import litellm
+from token_iq import gateway as litellm
 import pytest
 import asyncio
 
@@ -153,7 +153,7 @@ async def test_audio_speech_router(mode):
     litellm.set_verbose = True
     test_logger = MyCustomHandler()
     litellm.callbacks = [test_logger]
-    from litellm import Router
+    from token_iq.gateway import Router
 
     client = Router(
         model_list=[
@@ -182,7 +182,7 @@ async def test_audio_speech_router(mode):
 
     await asyncio.sleep(3)
 
-    from litellm.llms.openai.openai import HttpxBinaryResponseContent
+    from token_iq.gateway.llms.openai.openai import HttpxBinaryResponseContent
 
     assert isinstance(response, HttpxBinaryResponseContent)
 
@@ -223,7 +223,7 @@ async def test_aspeech_fallbacks_on_deployment_failure():
             )
         return MagicMock()
 
-    with patch("litellm.aspeech", side_effect=mock_aspeech):
+    with patch("token_iq.gateway.aspeech", side_effect=mock_aspeech):
         response = await router.aspeech(
             model="tts-main",
             input="the quick brown fox jumped over the lazy dogs",
@@ -246,7 +246,7 @@ async def test_aspeech_success_returns_response():
     )
 
     mock_response = MagicMock()
-    with patch("litellm.aspeech", return_value=mock_response) as mock_aspeech:
+    with patch("token_iq.gateway.aspeech", return_value=mock_response) as mock_aspeech:
         response = await router.aspeech(
             model="tts",
             input="the quick brown fox jumped over the lazy dogs",
@@ -270,7 +270,7 @@ async def test_aspeech_sets_deployment_metadata():
     )
 
     mock_response = MagicMock()
-    with patch("litellm.aspeech", return_value=mock_response) as mock_aspeech:
+    with patch("token_iq.gateway.aspeech", return_value=mock_response) as mock_aspeech:
         response = await router._aspeech(
             model="tts",
             input="the quick brown fox jumped over the lazy dogs",
@@ -286,7 +286,7 @@ async def test_aspeech_sets_deployment_metadata():
 
 @pytest.mark.asyncio()
 async def test_rerank_endpoint(model_list):
-    from litellm.types.utils import RerankResponse
+    from token_iq.gateway.types.utils import RerankResponse
 
     router = Router(model_list=model_list)
 
@@ -369,7 +369,7 @@ async def test_moderation_endpoint_with_api_base():
 
     # Mock the OpenAI client to verify api_base is passed
     with patch(
-        "litellm.main.openai_chat_completions._get_openai_client"
+        "token_iq.gateway.main.openai_chat_completions._get_openai_client"
     ) as mock_get_client:
         mock_client = AsyncMock()
         mock_response = MagicMock()
@@ -608,7 +608,7 @@ async def test__aadapter_completion():
 
     # Create a router with a mocked litellm.aadapter_completion
     with patch(
-        "litellm.aadapter_completion", new_callable=AsyncMock
+        "token_iq.gateway.aadapter_completion", new_callable=AsyncMock
     ) as mock_adapter_completion:
         mock_adapter_completion.return_value = mock_response
 
@@ -711,7 +711,7 @@ async def test_init_responses_api_endpoints():
     """
     A simpler test for _init_responses_api_endpoints that focuses on the basic functionality
     """
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     # Create a router with a basic model
     router = Router(
@@ -1221,7 +1221,7 @@ async def test_init_containers_api_endpoints_managed_id_routes_via_generic_fallb
     Managed ``cntr_`` IDs embed ``model_id``; router should decode and use
     ``_ageneric_api_call_with_fallbacks`` so deployment credentials apply.
     """
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     router = Router(
         model_list=[
@@ -1266,7 +1266,7 @@ async def test_init_containers_api_endpoints_managed_id_without_model_id_unwraps
     managed ID before calling the upstream provider — otherwise the raw
     ``cntr_...`` token leaks downstream and the provider rejects it.
     """
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     router = Router(model_list=[])
     mock_original_function = AsyncMock(return_value={"ok": True})
@@ -1299,7 +1299,7 @@ async def test_init_containers_api_endpoints_managed_id_without_model_id_applies
     The router must still apply the decoded provider so the request routes to
     the correct upstream — not stay on the default ``openai``.
     """
-    from litellm.responses.utils import ResponsesAPIRequestUtils
+    from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 
     router = Router(model_list=[])
     mock_original_function = AsyncMock(return_value={"ok": True})
@@ -1417,10 +1417,10 @@ async def test_init_containers_api_endpoints_create_with_unknown_model_passes_th
 
 
 def test_router_model_group_encrypted_content_affinity_callback_registration():
-    from litellm.router_utils.pre_call_checks.deployment_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
         DeploymentAffinityCheck,
     )
-    from litellm.router_utils.pre_call_checks.encrypted_content_affinity_check import (
+    from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_check import (
         EncryptedContentAffinityCheck,
     )
 

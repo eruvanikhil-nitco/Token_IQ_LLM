@@ -1,7 +1,7 @@
 from typing import Final
 
-from litellm import stream_chunk_builder
-from litellm.types.utils import Delta, ModelResponseStream, StreamingChoices
+from token_iq.gateway import stream_chunk_builder
+from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
 _CITATION_ONE: Final = {
     "type": "char_location",

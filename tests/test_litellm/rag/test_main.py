@@ -1,5 +1,5 @@
 """
-Tests for the RAG query pipeline in litellm/rag/main.py.
+Tests for the RAG query pipeline in token_iq/gateway/rag/main.py.
 
 The RAG pipeline forwards its kwargs (including the parent litellm_logging_obj)
 into @client-decorated sub-calls (vector store search, completion). Each logging
@@ -15,11 +15,11 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm._internal_context import is_internal_call
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
-from litellm.types.utils import CallTypes, ModelResponse
+from token_iq import gateway as litellm
+from token_iq.gateway._internal_context import is_internal_call
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+from token_iq.gateway.types.utils import CallTypes, ModelResponse
 
 
 async def _drain_logging_worker() -> None:
@@ -135,7 +135,7 @@ async def test_aquery_billed_cost_includes_priced_vector_store_search():
     litellm.callbacks = [recording_logger]
 
     try:
-        with patch("litellm.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)):
+        with patch("token_iq.gateway.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)):
             response = await litellm.aquery(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hello"}],
@@ -164,7 +164,7 @@ async def test_aquery_with_rerank_bills_once_and_folds_rerank_cost():
     context (no standalone billing event) and its cost must be folded into
     the single aquery billing event.
     """
-    from litellm.types.rerank import RerankResponse
+    from token_iq.gateway.types.rerank import RerankResponse
 
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
@@ -179,7 +179,7 @@ async def test_aquery_with_rerank_bills_once_and_folds_rerank_cost():
         return rerank_result
 
     try:
-        with patch("litellm.arerank", side_effect=fake_arerank):
+        with patch("token_iq.gateway.arerank", side_effect=fake_arerank):
             response = await litellm.aquery(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hello"}],
@@ -216,7 +216,7 @@ async def test_aquery_streaming_bills_sub_call_costs_into_final_event():
     billing event includes it; otherwise a caller passing stream=true incurs
     priced vector search and rerank costs that never reach spend tracking.
     """
-    from litellm.types.rerank import RerankResponse
+    from token_iq.gateway.types.rerank import RerankResponse
 
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
@@ -232,8 +232,8 @@ async def test_aquery_streaming_bills_sub_call_costs_into_final_event():
 
     try:
         with (
-            patch("litellm.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)),
-            patch("litellm.arerank", side_effect=fake_arerank),
+            patch("token_iq.gateway.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)),
+            patch("token_iq.gateway.arerank", side_effect=fake_arerank),
         ):
             response = await litellm.aquery(
                 model="gpt-4o-mini",
@@ -270,7 +270,7 @@ async def test_aquery_forwards_provider_retrieval_config_and_router_to_search():
     """
     from unittest.mock import AsyncMock
 
-    from litellm.types.vector_stores import VectorStoreSearchResponse
+    from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
     router = litellm.Router(
         model_list=[
@@ -286,7 +286,7 @@ async def test_aquery_forwards_provider_retrieval_config_and_router_to_search():
             object="vector_store.search_results.page", search_query="q", data=[]
         )
     )
-    with patch("litellm.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
+    with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
         response = await litellm.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
@@ -325,14 +325,14 @@ async def test_aquery_minimal_retrieval_config_forwards_no_extras():
     """
     from unittest.mock import AsyncMock
 
-    from litellm.types.vector_stores import VectorStoreSearchResponse
+    from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
     fake_search = AsyncMock(
         return_value=VectorStoreSearchResponse(
             object="vector_store.search_results.page", search_query="q", data=[]
         )
     )
-    with patch("litellm.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
+    with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
         await litellm.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
@@ -359,14 +359,14 @@ async def test_aquery_does_not_forward_connection_override_keys_to_search():
     """
     from unittest.mock import AsyncMock
 
-    from litellm.types.vector_stores import VectorStoreSearchResponse
+    from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
     fake_search = AsyncMock(
         return_value=VectorStoreSearchResponse(
             object="vector_store.search_results.page", search_query="q", data=[]
         )
     )
-    with patch("litellm.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
+    with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
         await litellm.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],

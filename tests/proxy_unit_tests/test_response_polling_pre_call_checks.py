@@ -12,9 +12,9 @@ import pytest
 from fastapi import HTTPException, Request, Response
 
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
 
 class TestSkipPreCallLogic:
@@ -39,7 +39,7 @@ class TestSkipPreCallLogic:
                 processor, "common_processing_pre_call_logic", new_callable=AsyncMock
             ) as mock_pre_call,
             patch(
-                "litellm.proxy.common_request_processing.route_request",
+                "token_iq.gateway.proxy.common_request_processing.route_request",
                 new_callable=AsyncMock,
                 return_value=MagicMock(),
             ),
@@ -79,7 +79,7 @@ class TestSkipPreCallLogic:
                 return_value=(data, mock_logging_obj),
             ) as mock_pre_call,
             patch(
-                "litellm.proxy.common_request_processing.route_request",
+                "token_iq.gateway.proxy.common_request_processing.route_request",
                 new_callable=AsyncMock,
             ),
         ):
@@ -106,8 +106,8 @@ class TestPollingEndpointPreCallGuard:
     @pytest.mark.asyncio
     async def test_rate_limit_error_prevents_polling_id_creation(self):
         """responses_api() must raise 429 and never call generate_polling_id when rate-limited"""
-        from litellm.proxy.response_api_endpoints.endpoints import responses_api
-        from litellm.proxy.response_polling.polling_handler import (
+        from token_iq.gateway.proxy.response_api_endpoints.endpoints import responses_api
+        from token_iq.gateway.proxy.response_polling.polling_handler import (
             ResponsePollingHandler,
         )
 
@@ -119,33 +119,33 @@ class TestPollingEndpointPreCallGuard:
         generate_polling_id_mock = MagicMock(return_value="litellm_poll_test")
 
         proxy_server_patches = {
-            "litellm.proxy.proxy_server._read_request_body": AsyncMock(
+            "token_iq.gateway.proxy.proxy_server._read_request_body": AsyncMock(
                 return_value={"model": "gpt-4", "background": True}
             ),
-            "litellm.proxy.proxy_server.general_settings": {},
-            "litellm.proxy.proxy_server.llm_router": MagicMock(),
-            "litellm.proxy.proxy_server.native_background_mode": None,
-            "litellm.proxy.proxy_server.polling_cache_ttl": 3600,
-            "litellm.proxy.proxy_server.polling_via_cache_enabled": True,
-            "litellm.proxy.proxy_server.proxy_config": MagicMock(),
-            "litellm.proxy.proxy_server.proxy_logging_obj": AsyncMock(),
-            "litellm.proxy.proxy_server.redis_usage_cache": AsyncMock(),
-            "litellm.proxy.proxy_server.select_data_generator": None,
-            "litellm.proxy.proxy_server.user_api_base": None,
-            "litellm.proxy.proxy_server.user_max_tokens": None,
-            "litellm.proxy.proxy_server.user_model": None,
-            "litellm.proxy.proxy_server.user_request_timeout": None,
-            "litellm.proxy.proxy_server.user_temperature": None,
-            "litellm.proxy.proxy_server.version": "1.0.0",
+            "token_iq.gateway.proxy.proxy_server.general_settings": {},
+            "token_iq.gateway.proxy.proxy_server.llm_router": MagicMock(),
+            "token_iq.gateway.proxy.proxy_server.native_background_mode": None,
+            "token_iq.gateway.proxy.proxy_server.polling_cache_ttl": 3600,
+            "token_iq.gateway.proxy.proxy_server.polling_via_cache_enabled": True,
+            "token_iq.gateway.proxy.proxy_server.proxy_config": MagicMock(),
+            "token_iq.gateway.proxy.proxy_server.proxy_logging_obj": AsyncMock(),
+            "token_iq.gateway.proxy.proxy_server.redis_usage_cache": AsyncMock(),
+            "token_iq.gateway.proxy.proxy_server.select_data_generator": None,
+            "token_iq.gateway.proxy.proxy_server.user_api_base": None,
+            "token_iq.gateway.proxy.proxy_server.user_max_tokens": None,
+            "token_iq.gateway.proxy.proxy_server.user_model": None,
+            "token_iq.gateway.proxy.proxy_server.user_request_timeout": None,
+            "token_iq.gateway.proxy.proxy_server.user_temperature": None,
+            "token_iq.gateway.proxy.proxy_server.version": "1.0.0",
         }
 
         with (
             patch.multiple(
-                "litellm.proxy.proxy_server",
+                "token_iq.gateway.proxy.proxy_server",
                 **{k.split(".")[-1]: v for k, v in proxy_server_patches.items()},
             ),
             patch(
-                "litellm.proxy.response_polling.polling_handler.should_use_polling_for_request",
+                "token_iq.gateway.proxy.response_polling.polling_handler.should_use_polling_for_request",
                 return_value=True,
             ),
             patch.object(

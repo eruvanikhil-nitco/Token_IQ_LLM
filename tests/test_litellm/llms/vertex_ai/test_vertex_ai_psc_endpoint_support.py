@@ -13,7 +13,7 @@ import pytest
 # Add the litellm package to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
 
-from litellm.llms.vertex_ai.vertex_llm_base import VertexBase
+from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
 
 class TestVertexAIPSCEndpointSupport:

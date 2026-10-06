@@ -9,7 +9,7 @@ from typing import Any, Optional, List, Literal
 
 # The proxy strips client-supplied `mock_response` unless the calling key or
 # team has this admin-metadata flag set. See `_UNTRUSTED_ROOT_CONTROL_FIELDS`
-# in litellm/proxy/litellm_pre_call_utils.py.
+# in token_iq/gateway/proxy/litellm_pre_call_utils.py.
 _ALLOW_CLIENT_MOCK_METADATA = {"allow_client_mock_response": True}
 
 
@@ -42,7 +42,7 @@ async def generate_team(session, models: Optional[List[str]] = None):
 async def mock_chat_completion(session, key: str, model: str):
     """Make a chat completion request using OpenAI SDK"""
     from openai import AsyncOpenAI
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     client = AsyncOpenAI(api_key=key, base_url="http://0.0.0.0:4000/v1")
 

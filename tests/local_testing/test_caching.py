@@ -1,7 +1,7 @@
 import os
 import time
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 
@@ -14,11 +14,11 @@ import random
 
 import pytest
 
-import litellm
-from litellm import aembedding, completion, embedding
-from litellm.caching.caching import Cache
+from token_iq import gateway as litellm
+from token_iq.gateway import aembedding, completion, embedding
+from token_iq.gateway.caching.caching import Cache
 from redis.asyncio import RedisCluster
-from litellm.caching.redis_cluster_cache import RedisClusterCache
+from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
 from unittest.mock import AsyncMock, patch, MagicMock, call
 import datetime
 from datetime import timedelta
@@ -48,7 +48,7 @@ async def test_dual_cache_async_batch_get_cache():
     - hit redis for the other -> expect to return None
     - expect result = [in_memory_result, None]
     """
-    from litellm.caching.caching import DualCache, InMemoryCache, RedisCache
+    from token_iq.gateway.caching.caching import DualCache, InMemoryCache, RedisCache
 
     in_memory_cache = InMemoryCache()
     redis_cache = RedisCache()  # get credentials from environment
@@ -73,7 +73,7 @@ def test_dual_cache_batch_get_cache():
     - hit redis for the other -> expect to return None
     - expect result = [in_memory_result, None]
     """
-    from litellm.caching.caching import DualCache, InMemoryCache, RedisCache
+    from token_iq.gateway.caching.caching import DualCache, InMemoryCache, RedisCache
 
     in_memory_cache = InMemoryCache()
     redis_cache = RedisCache()  # get credentials from environment
@@ -97,7 +97,7 @@ async def test_batch_get_cache_with_none_keys(sync_mode):
     - test with None keys. Ensure it can safely handle when keys are None.
     - expect result = {key: None}
     """
-    from litellm.caching.caching import RedisCache
+    from token_iq.gateway.caching.caching import RedisCache
 
     litellm._turn_on_debug()
 
@@ -713,7 +713,7 @@ async def test_embedding_caching_base_64():
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
     )
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     inputs = [
         f"{uuid.uuid4()} hello this is ishaan",
@@ -843,7 +843,7 @@ async def test_redis_batch_cache_write():
     - read from client
     """
     litellm.set_verbose = True
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     messages = [
         {"role": "user", "content": f"write a one sentence poem about: {uuid.uuid4()}"},
@@ -1039,7 +1039,7 @@ async def test_redis_cache_cluster_init_unit_test():
         from redis.asyncio import RedisCluster as AsyncRedisCluster
         from redis.cluster import RedisCluster
 
-        from litellm.caching.caching import RedisCache
+        from token_iq.gateway.caching.caching import RedisCache
 
         litellm.set_verbose = True
 
@@ -1073,7 +1073,7 @@ async def test_redis_cache_cluster_init_with_env_vars_unit_test():
         from redis.asyncio import RedisCluster as AsyncRedisCluster
         from redis.cluster import RedisCluster
 
-        from litellm.caching.caching import RedisCache
+        from token_iq.gateway.caching.caching import RedisCache
 
         litellm.set_verbose = True
 
@@ -1556,7 +1556,7 @@ async def test_cache_control_overrides():
     )
     print("Testing cache override")
     litellm.set_verbose = True
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     unique_num = str(uuid.uuid4())
 
@@ -1606,7 +1606,7 @@ def test_sync_cache_control_overrides():
     )
     print("Testing cache override")
     litellm.set_verbose = True
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     unique_num = str(uuid.uuid4())
 
@@ -1666,7 +1666,7 @@ def test_custom_redis_cache_params():
 
 
 def test_get_cache_key():
-    from litellm.caching.caching import Cache
+    from token_iq.gateway.caching.caching import Cache
 
     try:
         print("Testing get_cache_key")
@@ -1977,11 +1977,11 @@ async def test_cache_default_off_acompletion():
     litellm.set_verbose = True
     import logging
 
-    from litellm._logging import verbose_logger
+    from token_iq.gateway._logging import verbose_logger
 
     verbose_logger.setLevel(logging.DEBUG)
 
-    from litellm.caching.caching import CacheMode
+    from token_iq.gateway.caching.caching import CacheMode
 
     random_number = random.randint(
         1, 100000
@@ -2118,9 +2118,9 @@ async def test_redis_proxy_batch_redis_get_cache():
     - make 2nd call -> expect hit
     """
 
-    from litellm.caching.caching import Cache, DualCache
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.hooks.batch_redis_get import _PROXY_BatchRedisRequests
+    from token_iq.gateway.caching.caching import Cache, DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.hooks.batch_redis_get import _PROXY_BatchRedisRequests
 
     litellm.cache = Cache(
         type="redis",
@@ -2136,7 +2136,7 @@ async def test_redis_proxy_batch_redis_get_cache():
 
     user_api_key_cache = DualCache()
 
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     batch_redis_get_obj.in_memory_cache = user_api_key_cache.in_memory_cache
 
@@ -2225,7 +2225,7 @@ async def test_logging_turn_off_message_logging_streaming(sync_mode):
 
 
 def test_basic_caching_import():
-    from litellm.caching import Cache
+    from token_iq.gateway.caching import Cache
 
     assert Cache is not None
     print("Cache imported successfully")
@@ -2234,9 +2234,9 @@ def test_basic_caching_import():
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio()
 async def test_caching_kwargs_input(sync_mode):
-    from litellm import acompletion
-    from litellm.caching.caching_handler import LLMCachingHandler
-    from litellm.types.utils import (
+    from token_iq.gateway import acompletion
+    from token_iq.gateway.caching.caching_handler import LLMCachingHandler
+    from token_iq.gateway.types.utils import (
         Choices,
         EmbeddingResponse,
         Message,
@@ -2331,7 +2331,7 @@ def test_redis_caching_default_ttl():
     """
     Ensure that the default redis cache TTL is 60s
     """
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     litellm.default_redis_ttl = 120
 
@@ -2345,7 +2345,7 @@ async def test_redis_caching_llm_caching_ttl(sync_mode):
     """
     Ensure default redis cache ttl is used for a sample redis cache object
     """
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     litellm.default_redis_ttl = 120
     cache_obj = RedisCache()
@@ -2401,7 +2401,7 @@ async def test_redis_caching_ttl_pipeline():
     Ensure that a default ttl is set for all redis functions
     """
 
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     litellm.default_redis_ttl = 120
     expected_timedelta = timedelta(seconds=120)
@@ -2436,7 +2436,7 @@ async def test_redis_caching_ttl_sadd():
     """
     Ensure that a default ttl is set for all redis functions
     """
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     litellm.default_redis_ttl = 120
     expected_timedelta = timedelta(seconds=120)
@@ -2457,8 +2457,8 @@ async def test_dual_cache_caching_batch_get_cache():
     - check redis cache called for initial batch get cache
     - check redis cache not called for consecutive batch get cache with same keys
     """
-    from litellm.caching.dual_cache import DualCache
-    from litellm.caching.redis_cache import RedisCache
+    from token_iq.gateway.caching.dual_cache import DualCache
+    from token_iq.gateway.caching.redis_cache import RedisCache
 
     dc = DualCache(redis_cache=MagicMock(spec=RedisCache))
 
@@ -2482,7 +2482,7 @@ async def test_dual_cache_caching_batch_get_cache():
 async def test_redis_increment_pipeline():
     """Test Redis increment pipeline functionality"""
     try:
-        from litellm.caching.redis_cache import RedisCache
+        from token_iq.gateway.caching.redis_cache import RedisCache
 
         litellm.set_verbose = True
         litellm._turn_on_debug()
@@ -2534,7 +2534,7 @@ async def test_redis_get_ttl():
     test that litellm redis caching wrapper handles -1 and -2 values and returns them as None
     """
     try:
-        from litellm.caching.redis_cache import RedisCache
+        from token_iq.gateway.caching.redis_cache import RedisCache
 
         redis_cache = RedisCache(
             host=os.environ["REDIS_HOST"],
@@ -2580,11 +2580,11 @@ def test_redis_caching_multiple_namespaces():
 
     The same request with different namespaces should not be cached under the same key
     """
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
     from unittest.mock import patch, MagicMock
-    import litellm
-    from litellm.caching import Cache
-    from litellm import completion
+    from token_iq import gateway as litellm
+    from token_iq.gateway.caching import Cache
+    from token_iq.gateway import completion
 
     # Use a fixed uuid to ensure consistent cache keys
     test_uuid = "12345678-1234-1234-1234-123456789abc"
@@ -2592,9 +2592,9 @@ def test_redis_caching_multiple_namespaces():
 
     # Mock the Redis client creation from the _redis module
     with (
-        patch("litellm._redis.get_redis_client") as mock_get_redis_client,
+        patch("token_iq.gateway._redis.get_redis_client") as mock_get_redis_client,
         patch(
-            "litellm._redis.get_redis_connection_pool"
+            "token_iq.gateway._redis.get_redis_connection_pool"
         ) as mock_get_redis_connection_pool,
     ):
         # Create a mock Redis client that simulates real Redis behavior
@@ -2729,7 +2729,7 @@ def test_caching_with_reasoning_content():
     Test that reasoning content is cached
     """
 
-    from litellm._uuid import uuid
+    from token_iq.gateway._uuid import uuid
 
     try:
         messages = [{"role": "user", "content": f"what is litellm? {uuid.uuid4()}"}]

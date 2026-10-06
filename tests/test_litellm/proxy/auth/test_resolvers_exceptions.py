@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from litellm.proxy._types import ProxyErrorTypes, ProxyException
-from litellm.proxy.auth.resolvers.exceptions import (
+from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
+from token_iq.gateway.proxy.auth.resolvers.exceptions import (
     IdentityResolutionError,
     KeyNotFoundError,
     KeyNotInCacheError,

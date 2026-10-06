@@ -1,7 +1,7 @@
 """
 Tests for the declarative fallback-generalizations mechanism.
 
-Covers the pure module (litellm.litellm_core_utils.fallback_generalizations): the
+Covers the pure module (litellm.core_utils.fallback_generalizations): the
 routing/capability rule split, install-time validation, capability unioning; and
 its end-to-end wiring into provider routing (get_llm_provider) and model-info
 resolution (get_model_info) including the shipped rules in the bundled cost map.
@@ -12,9 +12,9 @@ import logging
 import pytest
 
 
-import litellm
-from litellm._logging import verbose_logger
-from litellm.litellm_core_utils.fallback_generalizations import (
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
+from token_iq.gateway.core_utils.fallback_generalizations import (
     get_fallback_generalization_rules,
     match_capability_generalizations,
     match_routing_generalization,
@@ -502,8 +502,8 @@ def test_shipped_rules_lose_to_exact_entries_across_cost_ladder_variants(shipped
     whose bare form is exactly mapped under anthropic) would zero out the bill even
     though the exact priced bedrock entry is one variant later. An exactly-mapped id
     under a mismatched provider raises instead of resolving from rules."""
-    from litellm import completion_cost
-    from litellm.types.utils import ModelResponse, Usage
+    from token_iq.gateway import completion_cost
+    from token_iq.gateway.types.utils import ModelResponse, Usage
 
     assert "claude-haiku-4-5-20251001" in litellm.model_cost
     with pytest.raises(Exception, match="This model isn't mapped yet"):
@@ -524,7 +524,7 @@ def test_shipped_adaptive_rule_gates_on_version_not_pricing(shipped_cost_map):
     """The version-gated adaptive-thinking capability rule marks an unmapped Claude
     adaptive only from >= 4.6, including provider-prefixed ids the anchored routing
     rule cannot match, while leaving the dated Opus 4.0 form non-adaptive."""
-    from litellm.llms.anthropic.common_utils import AnthropicModelInfo
+    from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     adaptive = "us.anthropic.claude-opus-4-9"
     non_adaptive = "us.anthropic.claude-opus-4-20250514"

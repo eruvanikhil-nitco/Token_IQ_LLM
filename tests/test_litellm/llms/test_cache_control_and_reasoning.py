@@ -11,9 +11,9 @@ This test file verifies the fixes for Issue #19923:
 import pytest
 
 
-from litellm.llms.minimax.chat.transformation import MinimaxChatConfig
-from litellm.llms.openrouter.chat.transformation import OpenrouterConfig
-from litellm.llms.zai.chat.transformation import ZAIChatConfig
+from token_iq.gateway.llms.minimax.chat.transformation import MinimaxChatConfig
+from token_iq.gateway.llms.openrouter.chat.transformation import OpenrouterConfig
+from token_iq.gateway.llms.zai.chat.transformation import ZAIChatConfig
 
 
 def test_minimax_preserves_cache_control_in_messages():

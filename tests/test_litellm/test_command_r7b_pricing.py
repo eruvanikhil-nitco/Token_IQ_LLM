@@ -13,7 +13,7 @@ import json
 import os
 
 
-import litellm
+from token_iq import gateway as litellm
 
 MODEL = "command-r7b-12-2024"
 EXPECTED_INPUT_COST = 3.75e-08

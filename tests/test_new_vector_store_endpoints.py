@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_vector_store_retrieve_basic():
     }
 
     with patch(
-        "litellm.vector_stores.main.aretrieve",
+        "token_iq.gateway.vector_stores.main.aretrieve",
         new=AsyncMock(return_value=mock_response),
     ) as mock_retrieve:
         router = litellm.Router(model_list=[])
@@ -73,7 +73,7 @@ async def test_vector_store_list_basic():
     }
 
     with patch(
-        "litellm.vector_stores.main.alist",
+        "token_iq.gateway.vector_stores.main.alist",
         new=AsyncMock(return_value=mock_response),
     ) as mock_list:
         router = litellm.Router(model_list=[])
@@ -102,7 +102,7 @@ async def test_vector_store_update_basic():
     }
 
     with patch(
-        "litellm.vector_stores.main.aupdate",
+        "token_iq.gateway.vector_stores.main.aupdate",
         new=AsyncMock(return_value=mock_response),
     ) as mock_update:
         router = litellm.Router(model_list=[])
@@ -129,7 +129,7 @@ async def test_vector_store_delete_basic():
     }
 
     with patch(
-        "litellm.vector_stores.main.adelete",
+        "token_iq.gateway.vector_stores.main.adelete",
         new=AsyncMock(return_value=mock_response),
     ) as mock_delete:
         router = litellm.Router(model_list=[])
@@ -154,7 +154,7 @@ async def test_async_vector_store_retrieve():
     }
 
     with patch(
-        "litellm.vector_stores.main.aretrieve",
+        "token_iq.gateway.vector_stores.main.aretrieve",
         new=AsyncMock(return_value=mock_response),
     ) as mock_aretrieve:
         router = litellm.Router(model_list=[])
@@ -176,7 +176,7 @@ async def test_async_vector_store_list():
     }
 
     with patch(
-        "litellm.vector_stores.main.alist",
+        "token_iq.gateway.vector_stores.main.alist",
         new=AsyncMock(return_value=mock_response),
     ) as mock_alist:
         router = litellm.Router(model_list=[])
@@ -198,7 +198,7 @@ async def test_async_vector_store_update():
     }
 
     with patch(
-        "litellm.vector_stores.main.aupdate",
+        "token_iq.gateway.vector_stores.main.aupdate",
         new=AsyncMock(return_value=mock_response),
     ) as mock_aupdate:
         router = litellm.Router(model_list=[])
@@ -221,7 +221,7 @@ async def test_async_vector_store_delete():
     }
 
     with patch(
-        "litellm.vector_stores.main.adelete",
+        "token_iq.gateway.vector_stores.main.adelete",
         new=AsyncMock(return_value=mock_response),
     ) as mock_adelete:
         router = litellm.Router(model_list=[])
@@ -246,7 +246,7 @@ async def test_vector_store_list_with_pagination():
     }
 
     with patch(
-        "litellm.vector_stores.main.list",
+        "token_iq.gateway.vector_stores.main.list",
         return_value=mock_response,
     ) as mock_list:
         router = litellm.Router(model_list=[])
@@ -282,7 +282,7 @@ async def test_vector_store_update_with_expires_after():
     }
 
     with patch(
-        "litellm.vector_stores.main.update",
+        "token_iq.gateway.vector_stores.main.update",
         return_value=mock_response,
     ) as mock_update:
         router = litellm.Router(model_list=[])

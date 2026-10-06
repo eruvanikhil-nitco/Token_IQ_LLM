@@ -15,7 +15,7 @@ import pytest
 import websockets
 
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class RealTimeWebSocketClient:
@@ -252,7 +252,7 @@ class BaseRealtimeTest(ABC):
         if self.should_skip():
             pytest.skip(self.get_skip_reason())
 
-        from litellm.types.realtime import RealtimeQueryParams
+        from token_iq.gateway.types.realtime import RealtimeQueryParams
 
         websocket_client = RealTimeWebSocketClient()
         caught_exception = None
@@ -449,7 +449,7 @@ class BaseRealtimeTest(ABC):
 
     def test_query_params_construction(self):
         """Test that query params are constructed correctly"""
-        from litellm.types.realtime import RealtimeQueryParams
+        from token_iq.gateway.types.realtime import RealtimeQueryParams
 
         # Strip provider prefix from model name
         model_name = self.get_model()

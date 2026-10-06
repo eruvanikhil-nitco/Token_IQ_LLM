@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 REPO_ROOT = Path(__file__).parents[2]
 MAIN_PATH = REPO_ROOT / "model_prices_and_context_window.json"

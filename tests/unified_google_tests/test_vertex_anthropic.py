@@ -6,11 +6,11 @@ from unittest.mock import MagicMock, AsyncMock, patch
 import httpx
 
 
-import litellm
-from litellm.google_genai import agenerate_content, agenerate_content_stream
+from token_iq import gateway as litellm
+from token_iq.gateway.google_genai import agenerate_content, agenerate_content_stream
 from google.genai.types import ContentDict, PartDict, GenerateContentResponse
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 
 async def vertex_anthropic_mock_response(*args, **kwargs):
@@ -53,7 +53,7 @@ async def test_vertex_anthropic_mocked():
 
     # Patch the AsyncHTTPHandler.post method at the module level
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = await vertex_anthropic_mock_response()
@@ -238,7 +238,7 @@ async def test_vertex_anthropic_streaming_mocked():
 
     # Patch the AsyncHTTPHandler.post method at the module level
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = await vertex_anthropic_streaming_mock_response()

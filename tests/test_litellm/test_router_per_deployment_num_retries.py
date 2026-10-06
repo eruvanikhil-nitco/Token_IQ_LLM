@@ -8,10 +8,10 @@ import pytest
 import pytest_asyncio
 from unittest.mock import patch
 
-import litellm
-from litellm import Router
-from litellm.types.router import RetryPolicy
-from litellm.integrations.custom_logger import CustomLogger
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.types.router import RetryPolicy
+from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
 class TestPerDeploymentNumRetries:

@@ -23,8 +23,8 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 )
 
 
-import litellm
-from litellm.integrations.opentelemetry import OpenTelemetry
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
 
 # ---------------------------------------------------------------------------

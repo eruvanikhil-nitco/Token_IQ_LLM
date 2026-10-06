@@ -4,16 +4,16 @@ from unittest.mock import ANY, AsyncMock
 
 import pytest
 
-from litellm.constants import CLI_JWT_EXPIRATION_HOURS
-from litellm.models.user import LiteLLM_UserTable
-from litellm.proxy._experimental.mcp_server.gateway_dcr_flow import ConsentTeam, MintedProxyCredential
-from litellm.proxy._experimental.mcp_server.proxy_api_credentials import lookup_consent_teams, mint_proxy_credential
-from litellm.proxy.auth.auth_checks import ExperimentalUIJWTToken
-from litellm.proxy.management_endpoints.ui_sso import CliSsoTeamDetail
+from token_iq.gateway.constants import CLI_JWT_EXPIRATION_HOURS
+from token_iq.gateway.models.user import LiteLLM_UserTable
+from token_iq.gateway.proxy._experimental.mcp_server.gateway_dcr_flow import ConsentTeam, MintedProxyCredential
+from token_iq.gateway.proxy._experimental.mcp_server.proxy_api_credentials import lookup_consent_teams, mint_proxy_credential
+from token_iq.gateway.proxy.auth.auth_checks import ExperimentalUIJWTToken
+from token_iq.gateway.proxy.management_endpoints.ui_sso import CliSsoTeamDetail
 
-_LOAD_USER = "litellm.proxy._experimental.mcp_server.proxy_api_credentials.load_active_user_by_id"
-_FETCH_TEAMS = "litellm.proxy._experimental.mcp_server.proxy_api_credentials.fetch_cli_sso_team_details"
-_PRISMA = "litellm.proxy.proxy_server.prisma_client"
+_LOAD_USER = "token_iq.gateway.proxy._experimental.mcp_server.proxy_api_credentials.load_active_user_by_id"
+_FETCH_TEAMS = "token_iq.gateway.proxy._experimental.mcp_server.proxy_api_credentials.fetch_cli_sso_team_details"
+_PRISMA = "token_iq.gateway.proxy.proxy_server.prisma_client"
 TEAM_DETAILS = (
     CliSsoTeamDetail(team_id="team-a", team_alias="Team A", team_models=("gpt-5.4-mini",)),
     CliSsoTeamDetail(team_id="team-b", team_models=(), team_model_aliases={"fast": "gpt-5.4-mini"}),

@@ -4,7 +4,7 @@ https://github.com/BerriAI/litellm/issues/18520
 """
 
 import pytest
-from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
 
 def test_cached_tokens_extraction():

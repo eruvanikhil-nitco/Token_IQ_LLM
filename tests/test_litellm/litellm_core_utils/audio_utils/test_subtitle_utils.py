@@ -1,4 +1,4 @@
-from litellm.litellm_core_utils.audio_utils.subtitle_utils import (
+from token_iq.gateway.core_utils.audio_utils.subtitle_utils import (
     SubtitleToken,
     _merge_tokens_into_words,
     render_subtitle_tokens_as_srt,

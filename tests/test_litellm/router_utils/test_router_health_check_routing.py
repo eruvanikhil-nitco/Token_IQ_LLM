@@ -6,8 +6,8 @@ import time
 
 import pytest
 
-from litellm.caching.caching import DualCache
-from litellm.router_utils.health_state_cache import DeploymentHealthCache
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.router_utils.health_state_cache import DeploymentHealthCache
 
 
 def _make_deployment(model_id: str, model_name: str = "gpt-4") -> dict:
@@ -59,7 +59,7 @@ class TestFilterHealthCheckUnhealthyDeployments:
                 self.background_health_check_model_groups = model_groups
 
         # Import the actual method and bind it
-        from litellm.router import Router
+        from token_iq.gateway.router import Router
 
         fake = FakeRouter()
         # Use the unbound method
@@ -165,7 +165,7 @@ class TestAsyncFilterHealthCheckUnhealthyDeployments:
         health_cache: DeploymentHealthCache,
         model_groups: frozenset[str] | None = None,
     ):
-        from litellm.router import Router
+        from token_iq.gateway.router import Router
 
         class FakeRouter:
             def __init__(self):
@@ -242,7 +242,7 @@ class TestBuildDeploymentHealthStates:
     """Test the build_deployment_health_states function."""
 
     def test_builds_states_from_endpoints(self):
-        from litellm.proxy.health_check import build_deployment_health_states
+        from token_iq.gateway.proxy.health_check import build_deployment_health_states
 
         healthy = [{"model": "gpt-4", "model_id": "deploy-1"}]
         unhealthy = [{"model": "gpt-4", "model_id": "deploy-2", "error": "timeout"}]
@@ -252,7 +252,7 @@ class TestBuildDeploymentHealthStates:
         assert states["deploy-2"]["is_healthy"] is False
 
     def test_no_model_id_skipped(self):
-        from litellm.proxy.health_check import build_deployment_health_states
+        from token_iq.gateway.proxy.health_check import build_deployment_health_states
 
         healthy = [{"model": "gpt-4"}]  # no model_id
         unhealthy = [{"model": "gpt-4", "model_id": "deploy-2"}]
@@ -262,7 +262,7 @@ class TestBuildDeploymentHealthStates:
         assert states["deploy-2"]["is_healthy"] is False
 
     def test_empty_endpoints(self):
-        from litellm.proxy.health_check import build_deployment_health_states
+        from token_iq.gateway.proxy.health_check import build_deployment_health_states
 
         states = build_deployment_health_states([], [])
         assert states == {}

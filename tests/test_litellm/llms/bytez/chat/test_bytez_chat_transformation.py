@@ -3,7 +3,7 @@ import json
 
 # Adds the parent directory to the system path
 
-from litellm.llms.bytez.chat.transformation import BytezChatConfig, API_BASE, version
+from token_iq.gateway.llms.bytez.chat.transformation import BytezChatConfig, API_BASE, version
 
 TEST_API_KEY = "MOCK_BYTEZ_API_KEY"
 TEST_MODEL_NAME = "google/gemma-3-4b-it"
@@ -51,7 +51,7 @@ class TestBytezChatConfig:
         )
 
     def test_bytez_completion_mock_sync(self, respx_mock):
-        import litellm
+        from token_iq import gateway as litellm
 
         input_messages = [
             {"role": "user", "content": "What is your favorite kind of cat?"}

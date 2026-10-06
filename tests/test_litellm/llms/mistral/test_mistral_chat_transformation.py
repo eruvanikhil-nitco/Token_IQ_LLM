@@ -3,15 +3,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from litellm.litellm_core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
-from litellm.types.llms.openai import AllMessageValues
+from token_iq.gateway.core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
+from token_iq.gateway.types.llms.openai import AllMessageValues
 
 
-from litellm.llms.mistral.chat.transformation import (
+from token_iq.gateway.llms.mistral.chat.transformation import (
     MistralChatResponseIterator,
     MistralConfig,
 )
-from litellm.types.utils import ModelResponse
+from token_iq.gateway.types.utils import ModelResponse
 
 
 @pytest.mark.asyncio
@@ -474,7 +474,7 @@ class TestMistralThinkingContentHandling:
         import json
         from unittest.mock import Mock
 
-        import litellm
+        from token_iq import gateway as litellm
 
         # Raw response from Mistral with thinking content
         raw_response_data = {

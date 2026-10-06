@@ -11,14 +11,14 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-import litellm
-from litellm.llms.dashscope.image_generation.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.dashscope.image_generation.transformation import (
     DashScopeImageGenerationConfig,
     DEFAULT_API_BASE,
 )
-from litellm.types.utils import ImageObject, ImageResponse
-from litellm.utils import get_llm_provider
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.types.utils import ImageObject, ImageResponse
+from token_iq.gateway.utils import get_llm_provider
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
 
 # ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ class TestDashScopeImageGenerationConfig:
 
     def test_validate_environment_raises_without_key(self):
         with patch(
-            "litellm.llms.dashscope.image_generation.transformation.get_secret_str",
+            "token_iq.gateway.llms.dashscope.image_generation.transformation.get_secret_str",
             return_value=None,
         ):
             with pytest.raises(ValueError, match="DASHSCOPE_API_KEY"):
@@ -454,7 +454,7 @@ def test_litellm_image_generation_dashscope_end_to_end(model: str):
     }
 
     with patch(
-        "litellm.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
+        "token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post"
     ) as mock_post:
         mock_http_response = MagicMock()
         mock_http_response.json.return_value = mock_response_body

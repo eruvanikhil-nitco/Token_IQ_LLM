@@ -10,8 +10,8 @@ import pytest
 
 from typing import Optional
 
-import litellm
-from litellm.utils import calculate_max_parallel_requests
+from token_iq import gateway as litellm
+from token_iq.gateway.utils import calculate_max_parallel_requests
 
 """
 - only rpm
@@ -158,7 +158,7 @@ async def test_max_parallel_requests_rpm_rate_limiting():
     """
     - make sure requests > model limits are retried successfully.
     """
-    from litellm import Router
+    from token_iq.gateway import Router
 
     router = Router(
         routing_strategy="usage-based-routing-v2",
@@ -183,7 +183,7 @@ async def test_max_parallel_requests_tpm_rate_limiting_base_case():
     """
     - check error raised if defined tpm limit crossed.
     """
-    from litellm import Router, token_counter
+    from token_iq.gateway import Router, token_counter
 
     _messages = [{"role": "user", "content": "Hey, how's it going?"}]
     router = Router(

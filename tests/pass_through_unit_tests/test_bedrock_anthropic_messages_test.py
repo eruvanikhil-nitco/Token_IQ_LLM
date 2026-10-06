@@ -6,9 +6,9 @@ import asyncio
 import unittest.mock
 from unittest.mock import MagicMock
 import pytest
-from litellm.router import Router
+from token_iq.gateway.router import Router
 
-import litellm
+from token_iq import gateway as litellm
 from base_anthropic_unified_messages_test import BaseAnthropicMessagesTest
 
 INSTANCE_BASE_ANTHROPIC_MESSAGES_TEST = BaseAnthropicMessagesTest()

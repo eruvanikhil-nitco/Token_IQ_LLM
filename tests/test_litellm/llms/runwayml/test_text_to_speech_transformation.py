@@ -4,7 +4,7 @@ Test RunwayML text-to-speech transformation
 
 
 
-from litellm.llms.runwayml.text_to_speech.transformation import (
+from token_iq.gateway.llms.runwayml.text_to_speech.transformation import (
     RunwayMLTextToSpeechConfig,
 )
 

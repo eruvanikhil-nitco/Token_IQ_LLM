@@ -13,13 +13,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.common_utils.encrypt_decrypt_utils import (
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
+from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
     encrypt_value_helper,
 )
-from litellm.proxy.realtime_endpoints.endpoints import (
+from token_iq.gateway.proxy.realtime_endpoints.endpoints import (
     _decode_realtime_token_payload,
     _encode_realtime_token_payload,
 )
@@ -111,7 +111,7 @@ def test_decode_realtime_token_payload_ephemeral_key_not_string():
 
 @pytest.fixture
 def proxy_app(monkeypatch):
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.setattr(proxy_server, "master_key", "sk-test-master-key")
     return proxy_server.app
@@ -209,14 +209,14 @@ async def test_client_secrets_success_with_mock(
         client = TestClient(proxy_app)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=mock_route_request_client_secrets,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()
@@ -249,8 +249,8 @@ async def test_client_secrets_transcription_rejects_disallowed_nested_model(
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.post_call_failure_hook = AsyncMock()
 
@@ -318,14 +318,14 @@ async def test_client_secrets_transcription_routes_on_nested_model(
         client = TestClient(proxy_app)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_capturing_route,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()
@@ -423,14 +423,14 @@ async def test_realtime_calls_success_with_valid_encrypted_token(
     client = TestClient(proxy_app)
     with (
         patch(
-            "litellm.proxy.proxy_server.route_request",
+            "token_iq.gateway.proxy.proxy_server.route_request",
             side_effect=mock_route_request_realtime_calls,
         ),
         patch(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             side_effect=mock_add_litellm_data,
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
     ):
         mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
         mock_logging.post_call_failure_hook = AsyncMock()
@@ -498,14 +498,14 @@ async def test_realtime_calls_replays_transcription_session_type(
     client = TestClient(proxy_app)
     with (
         patch(
-            "litellm.proxy.proxy_server.route_request",
+            "token_iq.gateway.proxy.proxy_server.route_request",
             side_effect=_capturing_route,
         ),
         patch(
-            "litellm.proxy.proxy_server.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
             side_effect=mock_add_litellm_data,
         ),
-        patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+        patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
     ):
         mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
         mock_logging.post_call_failure_hook = AsyncMock()
@@ -584,8 +584,8 @@ async def test_transcription_sessions_rejects_disallowed_resolved_model(
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.post_call_failure_hook = AsyncMock()
 
@@ -608,7 +608,7 @@ async def test_transcription_sessions_rejects_disallowed_resolved_model(
 async def test_transcription_sessions_rejects_disallowed_team_model_scope(
     proxy_app,
 ):
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     team = LiteLLM_TeamTableCachedObj(
         team_id="team-a",
@@ -622,14 +622,14 @@ async def test_transcription_sessions_rejects_disallowed_team_model_scope(
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_object",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
                 new=AsyncMock(return_value=team),
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_membership",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
                 new=AsyncMock(return_value=None),
             ),
         ):
@@ -655,7 +655,7 @@ async def test_transcription_sessions_rejects_disallowed_team_model_scope(
 async def test_transcription_sessions_rejects_disallowed_project_model_scope(
     proxy_app,
 ):
-    from litellm.proxy._types import LiteLLM_ProjectTableCachedObj
+    from token_iq.gateway.proxy._types import LiteLLM_ProjectTableCachedObj
 
     project = LiteLLM_ProjectTableCachedObj(
         project_id="project-a",
@@ -671,10 +671,10 @@ async def test_transcription_sessions_rejects_disallowed_project_model_scope(
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
             patch(
-                "litellm.proxy.auth.auth_checks.get_project_object",
+                "token_iq.gateway.proxy.auth.auth_checks.get_project_object",
                 new=AsyncMock(return_value=project),
             ),
         ):
@@ -700,7 +700,7 @@ async def test_transcription_sessions_rejects_disallowed_project_model_scope(
 async def test_transcription_sessions_rejects_disallowed_team_member_model_scope(
     proxy_app,
 ):
-    from litellm.proxy._types import (
+    from token_iq.gateway.proxy._types import (
         LiteLLM_BudgetTable,
         LiteLLM_TeamMembership,
         LiteLLM_TeamTableCachedObj,
@@ -722,14 +722,14 @@ async def test_transcription_sessions_rejects_disallowed_team_member_model_scope
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_object",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
                 new=AsyncMock(return_value=team),
             ),
             patch(
-                "litellm.proxy.auth.auth_checks.get_team_membership",
+                "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
                 new=AsyncMock(return_value=membership),
             ),
         ):
@@ -752,7 +752,7 @@ async def test_transcription_sessions_rejects_disallowed_team_member_model_scope
 
 @pytest.mark.asyncio
 async def test_realtime_transcription_websocket_default_model_checks_key_scope():
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     websocket = MagicMock()
     websocket.headers = {}
@@ -775,8 +775,8 @@ async def test_realtime_transcription_websocket_default_model_checks_key_scope()
 
 @pytest.mark.asyncio
 async def test_realtime_transcription_websocket_default_model_checks_team_scope():
-    from litellm.proxy import proxy_server
-    from litellm.proxy._types import LiteLLM_TeamTableCachedObj
+    from token_iq.gateway.proxy import proxy_server
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTableCachedObj
 
     team = LiteLLM_TeamTableCachedObj(
         team_id="team-a",
@@ -789,11 +789,11 @@ async def test_realtime_transcription_websocket_default_model_checks_team_scope(
 
     with (
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_object",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_object",
             new=AsyncMock(return_value=team),
         ),
         patch(
-            "litellm.proxy.auth.auth_checks.get_team_membership",
+            "token_iq.gateway.proxy.auth.auth_checks.get_team_membership",
             new=AsyncMock(return_value=None),
         ),
     ):
@@ -822,7 +822,7 @@ async def test_realtime_websocket_phase2_failure_sends_error_event_and_reasoned_
     reason "Internal server error" and no error event, leaving the client with
     no clue what happened. The client must get an OpenAI-style error event and
     a close reason naming the failure."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     events = []
 
@@ -840,15 +840,15 @@ async def test_realtime_websocket_phase2_failure_sends_error_event_and_reasoned_
 
     with (
         patch(
-            "litellm.proxy.proxy_server.can_key_call_resolved_model",
+            "token_iq.gateway.proxy.proxy_server.can_key_call_resolved_model",
             new=AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.proxy_server.ProxyBaseLLMRequestProcessing",
+            "token_iq.gateway.proxy.proxy_server.ProxyBaseLLMRequestProcessing",
             return_value=mock_processor,
         ),
         patch(
-            "litellm.proxy.proxy_server.route_request",
+            "token_iq.gateway.proxy.proxy_server.route_request",
             new=AsyncMock(side_effect=RuntimeError("vertex token refresh exploded")),
         ),
     ):
@@ -881,7 +881,7 @@ async def test_realtime_websocket_phase2_failure_on_closed_socket_does_not_escap
     re-raise). Send and close must each be guarded: the close is still
     attempted after a failed send, and neither failure escapes to the ASGI
     layer."""
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     websocket = MagicMock()
     websocket.headers = {}
@@ -897,15 +897,15 @@ async def test_realtime_websocket_phase2_failure_on_closed_socket_does_not_escap
 
     with (
         patch(
-            "litellm.proxy.proxy_server.can_key_call_resolved_model",
+            "token_iq.gateway.proxy.proxy_server.can_key_call_resolved_model",
             new=AsyncMock(return_value=None),
         ),
         patch(
-            "litellm.proxy.proxy_server.ProxyBaseLLMRequestProcessing",
+            "token_iq.gateway.proxy.proxy_server.ProxyBaseLLMRequestProcessing",
             return_value=mock_processor,
         ),
         patch(
-            "litellm.proxy.proxy_server.route_request",
+            "token_iq.gateway.proxy.proxy_server.route_request",
             new=AsyncMock(side_effect=RuntimeError("vertex token refresh exploded")),
         ),
     ):
@@ -947,14 +947,14 @@ async def test_transcription_sessions_encrypts_client_secret(
         client = TestClient(proxy_app)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_capturing_route,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()
@@ -1022,8 +1022,8 @@ async def test_client_secrets_realtime_default_model_blocked_when_not_in_key_sco
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.post_call_failure_hook = AsyncMock()
 
@@ -1052,8 +1052,8 @@ async def test_client_secrets_realtime_explicit_model_blocked_when_not_in_key_sc
     try:
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
-            patch("litellm.proxy.proxy_server.route_request") as mock_route_request,
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.route_request") as mock_route_request,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.post_call_failure_hook = AsyncMock()
 
@@ -1086,14 +1086,14 @@ async def test_client_secrets_realtime_default_model_allowed_when_in_key_scope(
         client = TestClient(proxy_app)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=mock_route_request_client_secrets,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()
@@ -1136,14 +1136,14 @@ async def test_transcription_sessions_returns_upstream_error_verbatim(
         client = TestClient(proxy_app)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_mock_route,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()
@@ -1178,14 +1178,14 @@ async def test_transcription_sessions_wraps_route_exception(
         client = TestClient(proxy_app, raise_server_exceptions=False)
         with (
             patch(
-                "litellm.proxy.proxy_server.route_request",
+                "token_iq.gateway.proxy.proxy_server.route_request",
                 side_effect=_raise_http,
             ),
             patch(
-                "litellm.proxy.proxy_server.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
                 side_effect=mock_add_litellm_data,
             ),
-            patch("litellm.proxy.proxy_server.proxy_logging_obj") as mock_logging,
+            patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
             mock_logging.pre_call_hook = AsyncMock(side_effect=mock_pre_call_hook)
             mock_logging.post_call_failure_hook = AsyncMock()

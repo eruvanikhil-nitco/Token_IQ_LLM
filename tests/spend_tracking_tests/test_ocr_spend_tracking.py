@@ -11,7 +11,7 @@ from unittest.mock import Mock
 from pydantic import BaseModel
 from typing import Optional
 
-from litellm.proxy.spend_tracking.spend_tracking_utils import (
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
     get_logging_payload,
     _extract_usage_for_ocr_call,
 )

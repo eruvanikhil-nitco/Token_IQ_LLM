@@ -10,9 +10,9 @@ load_dotenv()
 import copy
 
 import pytest
-from litellm import Router
-from litellm.router_strategy.lowest_cost import LowestCostLoggingHandler
-from litellm.caching.caching import DualCache
+from token_iq.gateway import Router
+from token_iq.gateway.router_strategy.lowest_cost import LowestCostLoggingHandler
+from token_iq.gateway.caching.caching import DualCache
 
 ### UNIT TESTS FOR cost ROUTING ###
 
@@ -48,7 +48,7 @@ async def test_get_available_deployments():
 
 @pytest.mark.asyncio
 async def test_get_available_deployments_custom_price():
-    from litellm._logging import verbose_router_logger
+    from token_iq.gateway._logging import verbose_router_logger
     import logging
 
     verbose_router_logger.setLevel(logging.DEBUG)
@@ -161,7 +161,7 @@ async def test_get_available_endpoints_tpm_rpm_check_async(ans_rpm):
 
     assert that only the valid model is returned
     """
-    from litellm._logging import verbose_router_logger
+    from token_iq.gateway._logging import verbose_router_logger
     import logging
 
     verbose_router_logger.setLevel(logging.DEBUG)

@@ -101,7 +101,7 @@ async def clear_expired_bodies(
     if not is_enabled(retention_days):
         return 0
 
-    from litellm._logging import verbose_proxy_logger
+    from token_iq.gateway._logging import verbose_proxy_logger
 
     cutoff: Final = cutoff_for(int(retention_days or DEFAULT_RETENTION_DAYS), now=now)
     sql: Final = build_clear_bodies_sql(batch_size)

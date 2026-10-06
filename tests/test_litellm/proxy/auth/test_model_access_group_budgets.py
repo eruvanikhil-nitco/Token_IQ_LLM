@@ -12,9 +12,9 @@ from unittest.mock import patch
 
 import pytest
 
-import litellm
-from litellm import Router
-from litellm.proxy._types import (
+from token_iq import gateway as litellm
+from token_iq.gateway import Router
+from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     Litellm_EntityType,
     LiteLLM_OrganizationTable,
@@ -23,20 +23,20 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     UserAPIKeyAuth,
 )
-from litellm.proxy.auth.auth_checks import (
+from token_iq.gateway.proxy.auth.auth_checks import (
     _model_access_group_max_budget_check,
     collect_matched_model_access_groups,
     common_checks,
     stamp_matched_model_access_groups,
 )
-from litellm.proxy.common_utils.reset_budget_job import _model_access_group_counter_key
-from litellm.proxy.common_utils.user_api_key_cache import (
+from token_iq.gateway.proxy.common_utils.reset_budget_job import _model_access_group_counter_key
+from token_iq.gateway.proxy.common_utils.user_api_key_cache import (
     UserApiKeyCache,
     model_access_group_registry_cache_key,
     model_access_group_spend_counter_key,
     team_membership_reservation_cache_key,
 )
-from litellm.proxy.utils import ProxyLogging
+from token_iq.gateway.proxy.utils import ProxyLogging
 
 TEAM_ID = "team-1"
 USER_ID = "user-1"
@@ -345,7 +345,7 @@ async def _enforce(
     read, seen = _spend_reader(spend_by_counter_key or {})
     # The check takes its client and cache as arguments, injected just below. get_current_spend is the
     # one collaborator it reaches by a lazy `from litellm.proxy.proxy_server import`, with no parameter.
-    with patch("litellm.proxy.proxy_server.get_current_spend", read):  # test-quality-ok: get_current_spend is lazily imported inside _model_access_group_max_budget_check and has no injection point
+    with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", read):  # test-quality-ok: get_current_spend is lazily imported inside _model_access_group_max_budget_check and has no injection point
         await _model_access_group_max_budget_check(
             matched_model_access_groups=matched,
             prisma_client=prisma_client if prisma_client is not None else _RecordingPrismaClient(*rows),
@@ -509,9 +509,9 @@ async def _common_checks_with_over_budget_group(*, skip_budget_checks: bool) -> 
     with (
         # common_checks resolves all three off the proxy_server module at call time; its signature
         # has no client, cache or spend-reader parameter to pass them through instead.
-        patch("litellm.proxy.proxy_server.prisma_client", prisma_client),  # test-quality-ok: common_checks lazily imports prisma_client from proxy_server and takes no client parameter
-        patch("litellm.proxy.proxy_server.user_api_key_cache", cache),  # test-quality-ok: common_checks lazily imports user_api_key_cache from proxy_server and takes no cache parameter
-        patch("litellm.proxy.proxy_server.get_current_spend", read),  # test-quality-ok: get_current_spend is lazily imported inside the budget check and has no injection point
+        patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client),  # test-quality-ok: common_checks lazily imports prisma_client from proxy_server and takes no client parameter
+        patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", cache),  # test-quality-ok: common_checks lazily imports user_api_key_cache from proxy_server and takes no cache parameter
+        patch("token_iq.gateway.proxy.proxy_server.get_current_spend", read),  # test-quality-ok: get_current_spend is lazily imported inside the budget check and has no injection point
     ):
         return await common_checks(
             request_body={"model": "gpt-4o", "messages": []},

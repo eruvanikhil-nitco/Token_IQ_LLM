@@ -11,10 +11,10 @@ import json
 from abc import ABC, abstractmethod
 
 
-import litellm
-from litellm.utils import ImageResponse
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq import gateway as litellm
+from token_iq.gateway.utils import ImageResponse
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 
 # Configure pytest marks to avoid warnings
 pytestmark = pytest.mark.asyncio
@@ -197,7 +197,7 @@ async def test_openai_image_edit_litellm_router():
 @pytest.mark.asyncio
 async def test_openai_image_edit_with_bytesio():
     """Test image editing using BytesIO objects instead of file readers"""
-    from litellm import image_edit, aimage_edit
+    from token_iq.gateway import image_edit, aimage_edit
 
     litellm._turn_on_debug()
     try:
@@ -233,7 +233,7 @@ async def test_openai_image_edit_with_bytesio():
 @pytest.mark.asyncio
 async def test_azure_image_edit_litellm_sdk():
     """Test Azure image edit with mocked httpx request to validate request body and URL"""
-    from litellm import aimage_edit
+    from token_iq.gateway import aimage_edit
 
     # Mock response for Azure image edit
     mock_response = {
@@ -255,7 +255,7 @@ async def test_azure_image_edit_litellm_sdk():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -343,7 +343,7 @@ async def test_azure_image_edit_litellm_sdk():
 @pytest.mark.asyncio
 async def test_openai_image_edit_cost_tracking():
     """Test OpenAI image edit cost tracking with custom logger"""
-    from litellm import image_edit, aimage_edit
+    from token_iq.gateway import image_edit, aimage_edit
 
     test_custom_logger = TestCustomLogger()
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -375,7 +375,7 @@ async def test_openai_image_edit_cost_tracking():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -433,7 +433,7 @@ async def test_openai_image_edit_cost_tracking():
 @pytest.mark.asyncio
 async def test_azure_image_edit_cost_tracking():
     """Test Azure image edit cost tracking with custom logger"""
-    from litellm import image_edit, aimage_edit
+    from token_iq.gateway import image_edit, aimage_edit
 
     test_custom_logger = TestCustomLogger()
     litellm.logging_callback_manager._reset_all_callbacks()
@@ -465,7 +465,7 @@ async def test_azure_image_edit_cost_tracking():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         # Configure the mock to return our response
@@ -527,7 +527,7 @@ async def test_azure_image_edit_cost_tracking():
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Recraft image edit API only tested locally")
 async def test_recraft_image_edit_api():
-    from litellm import aimage_edit
+    from token_iq.gateway import aimage_edit
     import requests
 
     litellm._turn_on_debug()
@@ -560,9 +560,9 @@ def test_recraft_image_edit_config():
     """
     Test Recraft image edit configuration parameter mapping and request transformation.
     """
-    from litellm.llms.recraft.image_edit.transformation import RecraftImageEditConfig
-    from litellm.types.images.main import ImageEditOptionalRequestParams
-    from litellm.types.router import GenericLiteLLMParams
+    from token_iq.gateway.llms.recraft.image_edit.transformation import RecraftImageEditConfig
+    from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
+    from token_iq.gateway.types.router import GenericLiteLLMParams
 
     config = RecraftImageEditConfig()
 
@@ -624,7 +624,7 @@ def test_recraft_image_edit_config():
 @pytest.mark.asyncio
 async def test_multiple_vs_single_image_edit(sync_mode):
     """Test that both single and multiple image editing work correctly"""
-    from litellm import image_edit, aimage_edit
+    from token_iq.gateway import image_edit, aimage_edit
 
     litellm._turn_on_debug()
 
@@ -681,7 +681,7 @@ async def test_multiple_vs_single_image_edit(sync_mode):
 @pytest.mark.asyncio
 async def test_multiple_image_edit_with_different_formats():
     """Test multiple images editing with different file formats and types"""
-    from litellm import aimage_edit
+    from token_iq.gateway import aimage_edit
 
     litellm._turn_on_debug()
 
@@ -720,7 +720,7 @@ async def test_multiple_image_edit_with_different_formats():
 @pytest.mark.asyncio
 async def test_image_edit_array_handling():
     """Test that the image parameter correctly handles both single items and arrays"""
-    from litellm import aimage_edit
+    from token_iq.gateway import aimage_edit
 
     # Mock response
     mock_response = {
@@ -742,7 +742,7 @@ async def test_image_edit_array_handling():
             return self._json_data
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(mock_response, 200)

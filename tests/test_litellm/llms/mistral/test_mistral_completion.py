@@ -1,5 +1,5 @@
 import pytest
-import litellm
+from token_iq import gateway as litellm
 
 
 @pytest.fixture(autouse=True)

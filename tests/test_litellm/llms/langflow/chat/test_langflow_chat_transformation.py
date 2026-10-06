@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.langflow.chat.transformation import LangFlowConfig, LangFlowError
-from litellm.types.utils import LlmProviders, ModelResponse
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.llms.langflow.chat.transformation import LangFlowConfig, LangFlowError
+from token_iq.gateway.types.utils import LlmProviders, ModelResponse
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_flow_id_cannot_be_overridden_via_optional_params():
@@ -215,8 +215,8 @@ def test_langflow_config_validate_environment_sets_api_key_header():
 def test_langflow_extra_body_cannot_inject_tweaks_into_run_payload():
     import json
 
-    import litellm
-    from litellm.llms.custom_httpx.http_handler import HTTPHandler
+    from token_iq import gateway as litellm
+    from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     posted_bodies = []
 

@@ -4,7 +4,7 @@ Tests for Perplexity Responses API transformation
 Tests the PerplexityResponsesConfig class that handles Perplexity-specific
 transformations for the Agent API (Responses API).
 
-Source: litellm/llms/perplexity/responses/transformation.py
+Source: token_iq/gateway/llms/perplexity/responses/transformation.py
 """
 
 import json
@@ -13,12 +13,12 @@ import httpx
 import pytest
 
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
-from litellm.llms.perplexity.responses.transformation import PerplexityResponsesConfig
-from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
-from litellm.types.utils import LlmProviders
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.llms.perplexity.responses.transformation import PerplexityResponsesConfig
+from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
+from token_iq.gateway.types.utils import LlmProviders
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 class TestPerplexityResponsesTransformation:
@@ -285,7 +285,7 @@ class TestPerplexityResponsesTransformation:
 
     def test_cost_dict_to_float_via_validator(self):
         """Perplexity cost dict is parsed by generic ResponseAPIUsage.parse_cost validator"""
-        from litellm.types.llms.openai import ResponseAPIUsage
+        from token_iq.gateway.types.llms.openai import ResponseAPIUsage
 
         usage = ResponseAPIUsage(
             input_tokens=100,
@@ -306,7 +306,7 @@ class TestPerplexityResponsesTransformation:
 
     def test_cost_float_passthrough_via_validator(self):
         """Cost already float passes through validator unchanged"""
-        from litellm.types.llms.openai import ResponseAPIUsage
+        from token_iq.gateway.types.llms.openai import ResponseAPIUsage
 
         usage = ResponseAPIUsage(
             input_tokens=100,

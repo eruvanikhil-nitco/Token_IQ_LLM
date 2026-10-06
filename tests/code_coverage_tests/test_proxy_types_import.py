@@ -5,10 +5,10 @@ import sys
 
 def test_proxy_types_not_imported():
     """
-    Test that proxy._types is not directly imported in litellm/__init__.py
+    Test that proxy._types is not directly imported in token_iq/gateway/__init__.py
     by examining the source code using AST parsing.
     """
-    # Read the litellm/__init__.py file
+    # Read the token_iq/gateway/__init__.py file
     # local_init_file = "../litellm/"
     init_file_path = os.path.join("./litellm", "__init__.py")
     if not os.path.exists(init_file_path):
@@ -69,7 +69,7 @@ def test_proxy_types_not_imported():
 
     if found_imports:
         print(
-            "❌ BAD, this can import time to import litellm. Found direct imports of proxy._types in litellm/__init__.py:"
+            "❌ BAD, this can import time to import litellm. Found direct imports of proxy._types in token_iq/gateway/__init__.py:"
         )
         print("=" * 80)
         for imp in found_imports:
@@ -81,10 +81,10 @@ def test_proxy_types_not_imported():
         print("To fix this, please conditionally import this TYPE using TYPE_CHECKING")
 
         raise Exception(
-            f"Found {len(found_imports)} direct import(s) of proxy._types in litellm/__init__.py"
+            f"Found {len(found_imports)} direct import(s) of proxy._types in token_iq/gateway/__init__.py"
         )
 
-    print("✓ No direct imports of proxy._types found in litellm/__init__.py")
+    print("✓ No direct imports of proxy._types found in token_iq/gateway/__init__.py")
     return True
 
 
@@ -95,7 +95,7 @@ def main():
     print("=" * 60)
     print("Testing litellm import performance")
     print(
-        "Checking that proxy._types is not directly imported from litellm/__init__.py"
+        "Checking that proxy._types is not directly imported from token_iq/gateway/__init__.py"
     )
     print("=" * 60)
 
@@ -103,7 +103,7 @@ def main():
         test_proxy_types_not_imported()
         print("\n" + "=" * 60)
         print(
-            "✓ Test passed! proxy._types is not directly imported from litellm/__init__.py"
+            "✓ Test passed! proxy._types is not directly imported from token_iq/gateway/__init__.py"
         )
         print("=" * 60)
     except Exception as e:

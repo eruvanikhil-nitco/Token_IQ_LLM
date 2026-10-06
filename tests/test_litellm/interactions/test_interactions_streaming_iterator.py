@@ -10,13 +10,13 @@ import time
 import httpx
 import pytest
 
-import litellm
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.interactions import streaming_iterator as interactions_streaming_iterator_module
-from litellm.interactions.streaming_iterator import InteractionsAPIStreamingIterator
-from litellm.litellm_core_utils import thread_pool_executor as thread_pool_executor_module
-from litellm.litellm_core_utils.litellm_logging import Logging as LitellmLogging
-from litellm.types.interactions import InteractionsAPIStreamingResponse
+from token_iq import gateway as litellm
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.interactions import streaming_iterator as interactions_streaming_iterator_module
+from token_iq.gateway.interactions.streaming_iterator import InteractionsAPIStreamingIterator
+from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
+from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.types.interactions import InteractionsAPIStreamingResponse
 
 
 class RecordingCustomLogger(CustomLogger):

@@ -15,8 +15,8 @@ from unittest.mock import patch
 import pytest
 
 
-from litellm.llms.base_llm.base_utils import BaseTokenCounter
-from litellm.llms.bedrock.count_tokens.bedrock_token_counter import BedrockTokenCounter
+from token_iq.gateway.llms.base_llm.base_utils import BaseTokenCounter
+from token_iq.gateway.llms.bedrock.count_tokens.bedrock_token_counter import BedrockTokenCounter
 from tests.litellm_utils_tests.base_token_counter_test import BaseTokenCounterTest
 
 
@@ -69,7 +69,7 @@ class TestBedrockTokenCounter(BaseTokenCounterTest):
 
         Override to handle models that don't support token counting.
         """
-        from litellm.types.utils import TokenCountResponse
+        from token_iq.gateway.types.utils import TokenCountResponse
 
         token_counter = self.get_token_counter()
         model = self.get_test_model()
@@ -112,7 +112,7 @@ class TestBedrockCountTokensEndpoint:
     """Unit tests for custom endpoint URL resolution in BedrockCountTokensConfig."""
 
     def _make_handler(self):
-        from litellm.llms.bedrock.count_tokens.transformation import (
+        from token_iq.gateway.llms.bedrock.count_tokens.transformation import (
             BedrockCountTokensConfig,
         )
 

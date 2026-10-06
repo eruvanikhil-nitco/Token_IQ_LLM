@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from litellm.integrations.gitlab.gitlab_client import GitLabClient
-from litellm.integrations.gitlab.gitlab_prompt_manager import (
+from token_iq.gateway.integrations.gitlab.gitlab_client import GitLabClient
+from token_iq.gateway.integrations.gitlab.gitlab_prompt_manager import (
     GitLabPromptCache,
     GitLabPromptManager,
     GitLabPromptTemplate,
@@ -88,7 +88,7 @@ def test_gitlab_client_missing_required_fields():
 # -----------------------
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_get_file_content_raw_success(mock_get):
     """Successful file content retrieval via RAW endpoint."""
     mock_response = MagicMock()
@@ -105,7 +105,7 @@ def test_gitlab_client_get_file_content_raw_success(mock_get):
     mock_get.assert_called_once()
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_get_file_content_raw_404_fallback_json_base64(mock_get):
     """When RAW returns 404, fallback to JSON endpoint and decode base64 content."""
     import base64
@@ -137,7 +137,7 @@ def test_gitlab_client_get_file_content_raw_404_fallback_json_base64(mock_get):
     assert content == "json-content"
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_get_file_content_not_found(mock_get):
     """File not found returns None."""
     # Simulate RAW 404 and JSON 404
@@ -155,7 +155,7 @@ def test_gitlab_client_get_file_content_not_found(mock_get):
     assert content is None
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_get_file_content_access_denied(mock_get):
     """403 raises a helpful message."""
     import httpx
@@ -172,7 +172,7 @@ def test_gitlab_client_get_file_content_access_denied(mock_get):
         client.get_file_content("test.prompt")
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_get_file_content_auth_failed(mock_get):
     """401 raises auth error."""
     import httpx
@@ -192,7 +192,7 @@ def test_gitlab_client_get_file_content_auth_failed(mock_get):
 # -----------------------
 
 
-@patch("litellm.integrations.gitlab.gitlab_client.HTTPHandler.get")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_client.HTTPHandler.get")
 def test_gitlab_client_list_files_success(mock_get):
     """List .prompt files via repository tree API."""
     mock_response = MagicMock()
@@ -284,7 +284,7 @@ def test_gitlab_prompt_manager_render_template_and_errors():
 # -----------------------
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_integration(mock_client_class):
     """Load prompt on init and render."""
     mock_client = MagicMock()
@@ -330,7 +330,7 @@ Assistant: Hello!"""
     assert msgs[2]["role"] == "assistant" and msgs[2]["content"] == "Hello!"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_pre_call_hook_basic(mock_client_class):
     """Pre-call hook parses messages and injects params."""
     mock_client = MagicMock()
@@ -384,7 +384,7 @@ def test_gitlab_prompt_manager_get_available_prompts():
     assert set(mgr.get_available_prompts()) == {"p1", "p2"}
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_reload_prompts(mock_client_class):
     """Ensure reload resets and re-inits manager."""
     mock_client = MagicMock()
@@ -435,7 +435,7 @@ rate: 0.5"""
 # -----------------------
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_prompts_path_resolution_and_version(mock_client_class):
     """prompts_path + explicit prompt_version should produce correct repo path and ref."""
     mock_client = MagicMock()
@@ -463,7 +463,7 @@ def test_gitlab_prompt_manager_prompts_path_resolution_and_version(mock_client_c
     )
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabClient")
 def test_gitlab_prompt_manager_version_precedence(mock_client_class):
     """
     prompt_version > git_ref kwarg > manager _ref_override.
@@ -742,7 +742,7 @@ def fake_managers():
 # -----------------------
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
 def test_cache_load_all_encodes_ids_and_populates_maps(mock_pm_cls, fake_managers):
     tm, wrapper = fake_managers
     # Simulate two files discovered under prompts_path
@@ -772,7 +772,7 @@ def test_cache_load_all_encodes_ids_and_populates_maps(mock_pm_cls, fake_manager
     assert a_entry["metadata"]["model"] == "gpt-4"
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
 def test_cache_get_by_id_accepts_encoded_and_decoded(mock_pm_cls, fake_managers):
     tm, wrapper = fake_managers
     tm._discoverable_ids = ["x/y"]
@@ -796,7 +796,7 @@ def test_cache_get_by_id_accepts_encoded_and_decoded(mock_pm_cls, fake_managers)
     assert by_encoded["path"].endswith("prompts/chat/x/y.prompt")
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
 def test_cache_reload_clears_then_reloads(mock_pm_cls, fake_managers):
     tm, wrapper = fake_managers
     tm._discoverable_ids = ["p1"]
@@ -816,7 +816,7 @@ def test_cache_reload_clears_then_reloads(mock_pm_cls, fake_managers):
     assert cache.list_ids() == [encode_prompt_id("p2")]
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
 def test_cache_skips_when_template_missing_even_after_reload_attempt(
     mock_pm_cls, fake_managers
 ):
@@ -846,7 +846,7 @@ def test_cache_skips_when_template_missing_even_after_reload_attempt(
     assert cache.list_ids() == []
 
 
-@patch("litellm.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
+@patch("token_iq.gateway.integrations.gitlab.gitlab_prompt_manager.GitLabPromptManager")
 def test_cache_get_by_file_returns_exact_entry(mock_pm_cls, fake_managers):
     tm, wrapper = fake_managers
     tm._discoverable_ids = ["alpha", "nested/beta"]

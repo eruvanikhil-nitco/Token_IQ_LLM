@@ -1,5 +1,5 @@
 import traceback
-from litellm._uuid import uuid
+from token_iq.gateway._uuid import uuid
 
 from dotenv import load_dotenv
 from fastapi import Request
@@ -9,7 +9,7 @@ load_dotenv()
 import io
 import time
 
-# this file is to test litellm/proxy
+# this file is to test token_iq/gateway/proxy
 
 import asyncio
 import datetime
@@ -18,12 +18,12 @@ import logging
 from typing import Optional
 import pytest
 
-import litellm
-from litellm.proxy.spend_tracking.spend_tracking_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
     get_logging_payload,
     _sanitize_request_body_for_spend_logs_payload,
 )
-from litellm.proxy._types import SpendLogsMetadata, SpendLogsPayload
+from token_iq.gateway.proxy._types import SpendLogsMetadata, SpendLogsPayload
 
 
 @pytest.mark.parametrize(
@@ -319,7 +319,7 @@ def test_spend_logs_payload_with_prompts_enabled(monkeypatch):
     Test that messages and responses are logged in spend logs when store_prompts_in_spend_logs is enabled
     """
     # Mock general_settings
-    from litellm.proxy.proxy_server import general_settings
+    from token_iq.gateway.proxy.proxy_server import general_settings
 
     general_settings["store_prompts_in_spend_logs"] = True
 
@@ -399,7 +399,7 @@ def test_large_request_no_truncation_threshold():
     Test that MAX_STRING_LENGTH_PROMPT_IN_DB constant is used for request body sanitization
     and that the new truncation logic keeps beginning (35%) and end (65%) of the string
     """
-    from litellm.constants import (
+    from token_iq.gateway.constants import (
         MAX_STRING_LENGTH_PROMPT_IN_DB,
         LITELLM_TRUNCATED_PAYLOAD_FIELD,
     )
@@ -440,7 +440,7 @@ def test_small_request_no_truncation():
     """
     Test that small strings are not truncated by MAX_STRING_LENGTH_PROMPT_IN_DB
     """
-    from litellm.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
+    from token_iq.gateway.constants import MAX_STRING_LENGTH_PROMPT_IN_DB
 
     # Create a small string that's under the threshold
     small_content = "x" * (MAX_STRING_LENGTH_PROMPT_IN_DB - 100)
@@ -468,17 +468,19 @@ def test_configurable_string_length_env_var(monkeypatch):
 
     # Import after setting env var to ensure it picks up the new value
     import importlib
-    import litellm.constants
-    import litellm.proxy.spend_tracking.spend_tracking_utils
+    import token_iq.gateway.constants
+    from token_iq import gateway as litellm
+    import token_iq.gateway.proxy.spend_tracking.spend_tracking_utils
+    from token_iq import gateway as litellm
 
     importlib.reload(litellm.constants)
     importlib.reload(litellm.proxy.spend_tracking.spend_tracking_utils)
 
-    from litellm.constants import (
+    from token_iq.gateway.constants import (
         MAX_STRING_LENGTH_PROMPT_IN_DB,
         LITELLM_TRUNCATED_PAYLOAD_FIELD,
     )
-    from litellm.proxy.spend_tracking.spend_tracking_utils import (
+    from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
         _sanitize_request_body_for_spend_logs_payload,
     )
 
@@ -511,7 +513,7 @@ def test_truncation_preserves_beginning_and_end():
     """
     Test that truncation preserves the beginning (35%) and end (65%) of content for better debugging
     """
-    from litellm.constants import (
+    from token_iq.gateway.constants import (
         MAX_STRING_LENGTH_PROMPT_IN_DB,
         LITELLM_TRUNCATED_PAYLOAD_FIELD,
     )

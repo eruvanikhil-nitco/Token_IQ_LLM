@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 def test_braintrust_logging():
@@ -28,7 +28,7 @@ def test_braintrust_logging():
     http_client = HTTPHandler()
 
     with patch(
-        "litellm.integrations.braintrust_logging.HTTPHandler.post",
+        "token_iq.gateway.integrations.braintrust_logging.HTTPHandler.post",
         new=MagicMock(),
     ) as mock_client:
         # set braintrust as a callback, litellm will send the data to braintrust
@@ -49,7 +49,7 @@ def test_braintrust_logging_specific_project_id():
     litellm.set_verbose = True
 
     with patch(
-        "litellm.integrations.braintrust_logging.HTTPHandler.post",
+        "token_iq.gateway.integrations.braintrust_logging.HTTPHandler.post",
         new=MagicMock(),
     ) as mock_client:
         # set braintrust as a callback, litellm will send the data to braintrust

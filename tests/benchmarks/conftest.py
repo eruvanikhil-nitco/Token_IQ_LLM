@@ -14,7 +14,7 @@ from typing import ParamSpec, TypeVar
 
 import pytest
 
-from litellm.litellm_core_utils.thread_pool_executor import executor
+from token_iq.gateway.core_utils.thread_pool_executor import executor
 
 P = ParamSpec("P")
 R = TypeVar("R")

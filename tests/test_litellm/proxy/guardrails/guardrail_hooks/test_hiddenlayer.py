@@ -11,16 +11,16 @@ from httpx import Request, Response
 import requests
 
 
-import litellm
-from litellm import ModelResponse
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
+from token_iq import gateway as litellm
+from token_iq.gateway import ModelResponse
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
     HiddenlayerGuardrail,
     HiddenlayerGuardrailV2,
     _get_jwt,
 )
-from litellm.proxy.guardrails.init_guardrails import init_guardrails_v2
-from litellm.types.utils import (
+from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Choices,
     GenericGuardrailAPIInputs,

@@ -11,7 +11,7 @@ catch-all handler in _update_llm_router.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from litellm.proxy.proxy_server import ProxyConfig
+from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
 
 def _make_db_model(model_name: str, model_id: str):
@@ -58,10 +58,10 @@ class TestUpdateLlmRouterResilience:
                 new_callable=AsyncMock,
                 return_value=0,
             ),
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-            patch("litellm.proxy.proxy_server.llm_model_list", []),
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_model_list", []),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         ):
             await proxy_config._update_llm_router(
                 new_models=db_models,
@@ -98,10 +98,10 @@ class TestUpdateLlmRouterResilience:
                 new_callable=AsyncMock,
                 return_value=0,
             ),
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.master_key", "sk-test"),
-            patch("litellm.proxy.proxy_server.llm_model_list", []),
-            patch("litellm.proxy.proxy_server.general_settings", {}),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-test"),
+            patch("token_iq.gateway.proxy.proxy_server.llm_model_list", []),
+            patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
         ):
             await proxy_config._update_llm_router(
                 new_models=db_models,
@@ -133,8 +133,8 @@ class TestDeleteDeploymentResilience:
                 new_callable=AsyncMock,
                 side_effect=Exception("httpcore.ReadTimeout"),
             ),
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         ):
             result = await proxy_config._delete_deployment(db_models=db_models)
 
@@ -171,8 +171,8 @@ class TestDeleteDeploymentResilience:
                     ]
                 },
             ),
-            patch("litellm.proxy.proxy_server.llm_router", mock_router),
-            patch("litellm.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         ):
             result = await proxy_config._delete_deployment(db_models=db_models)
 
@@ -227,8 +227,8 @@ class TestDeleteDeploymentKeepsPluginConfigModels:
     async def test_plugin_bearing_config_model_survives_reconcile_and_stale_ids_still_evict(self, tmp_path):
         import copy
 
-        from litellm import Router
-        from litellm.proxy.proxy_server import (
+        from token_iq.gateway import Router
+        from token_iq.gateway.proxy.proxy_server import (
             pin_complexity_router_model_id,
             resolve_complexity_router_plugins,
         )
@@ -266,9 +266,9 @@ class TestDeleteDeploymentKeepsPluginConfigModels:
         proxy_config = ProxyConfig()
         with (
             patch.object(proxy_config, "get_config", new_callable=AsyncMock, return_value=raw_config),
-            patch("litellm.proxy.proxy_server.llm_router", router),
-            patch("litellm.proxy.proxy_server.user_config_file_path", config_file_path),
-            patch("litellm.proxy.proxy_server.premium_user", False),
+            patch("token_iq.gateway.proxy.proxy_server.llm_router", router),
+            patch("token_iq.gateway.proxy.proxy_server.user_config_file_path", config_file_path),
+            patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
         ):
             result = await proxy_config._delete_deployment(db_models=[])
 
@@ -277,7 +277,7 @@ class TestDeleteDeploymentKeepsPluginConfigModels:
         assert "stale-model" not in router.model_names
 
     def test_pin_respects_an_explicit_model_id(self):
-        from litellm.proxy.proxy_server import pin_complexity_router_model_id
+        from token_iq.gateway.proxy.proxy_server import pin_complexity_router_model_id
 
         entry = self._raw_model_entry()
         entry["model_info"] = {"id": "operator-pinned"}
@@ -285,7 +285,7 @@ class TestDeleteDeploymentKeepsPluginConfigModels:
         assert entry["model_info"]["id"] == "operator-pinned"
 
     def test_pin_is_a_noop_without_a_complexity_router_config(self):
-        from litellm.proxy.proxy_server import pin_complexity_router_model_id
+        from token_iq.gateway.proxy.proxy_server import pin_complexity_router_model_id
 
         entry = {"model_name": "gpt-4o-mini", "litellm_params": {"model": "gpt-4o-mini"}}
         pin_complexity_router_model_id(entry)

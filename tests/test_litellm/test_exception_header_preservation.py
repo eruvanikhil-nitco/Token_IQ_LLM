@@ -11,7 +11,7 @@ x-ms-region, rate limit headers, etc. should be available even when errors occur
 import httpx
 import pytest
 
-from litellm.exceptions import (
+from token_iq.gateway.exceptions import (
     BadRequestError,
     ContentPolicyViolationError,
     ContextWindowExceededError,
@@ -260,7 +260,7 @@ class TestProxyHeaderExtraction:
 
     def test_get_response_headers_adds_llm_provider_prefix(self):
         """get_response_headers should prefix non-OpenAI headers with llm_provider-."""
-        from litellm.litellm_core_utils.llm_response_utils.get_headers import (
+        from token_iq.gateway.core_utils.llm_response_utils.get_headers import (
             get_response_headers,
         )
 
@@ -280,7 +280,7 @@ class TestProxyHeaderExtraction:
 
     def test_proxy_can_extract_headers_from_exception_response(self):
         """Simulate how proxy extracts headers from exception.response.headers."""
-        from litellm.litellm_core_utils.llm_response_utils.get_headers import (
+        from token_iq.gateway.core_utils.llm_response_utils.get_headers import (
             get_response_headers,
         )
 

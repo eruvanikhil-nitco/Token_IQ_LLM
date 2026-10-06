@@ -6,23 +6,23 @@ import pytest
 
 pytest.importorskip("opentelemetry")
 
-from litellm.integrations.otel import (  # noqa: E402
+from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
     HTTP,
     LiteLLM,
     OpenTelemetryV2Config,
     promoted_baggage,
 )
-from litellm.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
-from litellm.integrations.otel.plumbing import providers  # noqa: E402
-from litellm.integrations.otel.emitter import SpanEmitter  # noqa: E402
-from litellm.integrations.otel.model.payloads import (  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
+from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
+from token_iq.gateway.integrations.otel.emitter import SpanEmitter  # noqa: E402
+from token_iq.gateway.integrations.otel.model.payloads import (  # noqa: E402
     GuardrailSpanData,
     LLMCallSpanData,
     ServiceSpanData,
 )
-from litellm.integrations.otel.model.baggage import BAGGAGE_PROMOTED_KEYS  # noqa: E402
-from litellm.integrations.otel.model.spans import SpanRole  # noqa: E402
+from token_iq.gateway.integrations.otel.model.baggage import BAGGAGE_PROMOTED_KEYS  # noqa: E402
+from token_iq.gateway.integrations.otel.model.spans import SpanRole  # noqa: E402
 
 
 def _payload():

@@ -12,9 +12,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.custom_httpx.http_handler import HTTPHandler
-from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
+from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
     _filter_embed_params,
     _is_multimodal_input,
     _parse_data_url,
@@ -23,7 +23,7 @@ from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation
     transform_openai_input_gemini_content,
     transform_openai_input_gemini_embed_content,
 )
-from litellm.types.utils import EmbeddingResponse
+from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 def test_gemini_batch_embeddings_with_custom_api_base_and_auth_header():
@@ -42,11 +42,11 @@ def test_gemini_batch_embeddings_with_custom_api_base_and_auth_header():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
             side_effect=mock_auth_token,
         ),
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
         ) as mock_get_token,
     ):
         # Mock the _get_token_and_url to return auth_header dict and URL
@@ -102,11 +102,11 @@ def test_gemini_batch_embeddings_with_extra_headers():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
             side_effect=mock_auth_token,
         ),
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
         ) as mock_get_token,
     ):
         # Mock the _get_token_and_url to return auth_header dict and URL
@@ -298,11 +298,11 @@ def test_gemini_multimodal_embedding_e2e():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
             side_effect=mock_auth_token,
         ),
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
         ) as mock_get_token,
     ):
         mock_get_token.return_value = (
@@ -463,7 +463,7 @@ def test_dimensions_mapped_to_output_dimensionality():
 
 def test_is_gcs_url():
     """Test GCS URL detection."""
-    from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
         _is_gcs_url,
     )
 
@@ -477,7 +477,7 @@ def test_is_gcs_url():
 
 def test_infer_mime_type_from_gcs_url():
     """Test MIME type inference from GCS URL."""
-    from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
         _infer_mime_type_from_gcs_url,
     )
 
@@ -514,7 +514,7 @@ def test_transform_multimodal_with_gcs_url():
 
 def test_multimodal_input_detection_with_gcs():
     """Test that GCS URLs are detected as multimodal."""
-    from litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
+    from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
         _is_multimodal_input,
     )
 
@@ -537,11 +537,11 @@ def test_vertex_ai_text_only_embedding_uses_embed_content():
     with (
         patch.object(client, "post") as mock_post,
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._ensure_access_token",
             side_effect=mock_auth_token,
         ),
         patch(
-            "litellm.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
+            "token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_handler.GoogleBatchEmbeddings._get_token_and_url"
         ) as mock_get_token,
     ):
         mock_get_token.return_value = (

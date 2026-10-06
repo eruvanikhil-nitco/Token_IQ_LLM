@@ -11,9 +11,9 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException, Request
 
-import litellm
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.litellm_pre_call_utils import (
+from token_iq import gateway as litellm
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy.litellm_pre_call_utils import (
     _reject_url_valued_destinations,
     add_litellm_data_to_request,
 )

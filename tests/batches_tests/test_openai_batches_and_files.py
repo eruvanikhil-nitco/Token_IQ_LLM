@@ -13,14 +13,14 @@ import time
 
 import pytest
 from typing import Optional
-import litellm
-from litellm._logging import verbose_logger
+from token_iq import gateway as litellm
+from token_iq.gateway._logging import verbose_logger
 import openai
 
 verbose_logger.setLevel(logging.DEBUG)
 
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.types.utils import StandardLoggingPayload
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.types.utils import StandardLoggingPayload
 import socket
 import httpx
 from unittest.mock import patch, MagicMock, AsyncMock
@@ -44,7 +44,7 @@ skip_if_no_openai_network = pytest.mark.skipif(
 async def _wait_for_standard_logging_object(
     custom_logger: "TestCustomLogger", timeout: float = 15.0
 ) -> StandardLoggingPayload:
-    from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
+    from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -478,7 +478,7 @@ async def test_avertex_batch_prediction(monkeypatch):
         lambda *args, **kwargs: (mock_creds, "mock-project"),
     )
 
-    from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
+    from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Configure mock response object
     mock_response = MagicMock()
@@ -501,7 +501,7 @@ async def test_avertex_batch_prediction(monkeypatch):
     # mocked; AsyncHTTPHandler.post still handles the batch-prediction call.
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             side_effect=mock_side_effect,
         ),
         patch.object(
@@ -561,7 +561,7 @@ async def test_avertex_batch_prediction(monkeypatch):
 
         # Mock the retrieve batch response
         with patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get:
             mock_get_response = MagicMock()
             mock_get_response.json.return_value = mock_vertex_batch_response
@@ -587,7 +587,7 @@ async def test_vertex_list_batches(monkeypatch):
     monkeypatch.setenv("VERTEXAI_LOCATION", "us-central1")
 
     monkeypatch.setattr(
-        "litellm.llms.vertex_ai.batches.handler.VertexAIBatchPrediction._ensure_access_token",
+        "token_iq.gateway.llms.vertex_ai.batches.handler.VertexAIBatchPrediction._ensure_access_token",
         lambda self, credentials, project_id, custom_llm_provider: (
             "mock-token",
             "litellm-test-project",
@@ -595,7 +595,7 @@ async def test_vertex_list_batches(monkeypatch):
     )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
     ) as mock_get:
         mock_get_response = MagicMock()
         mock_get_response.json.return_value = mock_vertex_list_response
@@ -626,7 +626,7 @@ async def test_vertex_async_create_batch_logs_error_body_on_http_error():
     calls raise_for_status() internally, raising before the handler's own
     status-code check could log the body.
     """
-    from litellm.llms.vertex_ai.batches.handler import VertexAIBatchPrediction
+    from token_iq.gateway.llms.vertex_ai.batches.handler import VertexAIBatchPrediction
 
     handler = VertexAIBatchPrediction(gcs_bucket_name="test-bucket")
 
@@ -644,7 +644,7 @@ async def test_vertex_async_create_batch_logs_error_body_on_http_error():
     )
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         side_effect=http_error,
     ):
         with pytest.raises(httpx.HTTPStatusError) as exc_info:

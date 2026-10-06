@@ -5,9 +5,9 @@ Test DynamoAI Guardrails integration
 import pytest
 
 
-from litellm.proxy.guardrails.guardrail_hooks.dynamoai import DynamoAIGuardrails
-from litellm.proxy._types import UserAPIKeyAuth
-from litellm.caching.caching import DualCache
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.dynamoai import DynamoAIGuardrails
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.caching.caching import DualCache
 from unittest.mock import AsyncMock, MagicMock, patch
 
 

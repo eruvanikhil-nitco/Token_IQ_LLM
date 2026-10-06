@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import litellm
-from litellm.llms.azure.chat.o_series_transformation import AzureOpenAIO1Config
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.azure.chat.o_series_transformation import AzureOpenAIO1Config
 
 
 @pytest.mark.asyncio

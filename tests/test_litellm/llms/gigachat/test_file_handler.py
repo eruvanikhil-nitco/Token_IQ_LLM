@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from litellm.llms.gigachat import file_handler
-from litellm.llms.gigachat.file_handler import (
+from token_iq.gateway.llms.gigachat import file_handler
+from token_iq.gateway.llms.gigachat.file_handler import (
     _file_cache,
     _get_url_hash,
     _parse_data_url,
@@ -21,7 +21,7 @@ from litellm.llms.gigachat.file_handler import (
     upload_file_sync,
 )
 
-FILE_MODULE = "litellm.llms.gigachat.file_handler"
+FILE_MODULE = "token_iq.gateway.llms.gigachat.file_handler"
 
 # A valid 1x1 red PNG as base64
 _RED_PNG_B64 = (

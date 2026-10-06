@@ -23,22 +23,22 @@ import pytest
 from fastapi import Request, Response
 from starlette.datastructures import URL
 
-import litellm
-from litellm import Router, mock_completion
-from litellm.caching.caching import DualCache
-from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq import gateway as litellm
+from token_iq.gateway import Router, mock_completion
+from token_iq.gateway.caching.caching import DualCache
+from token_iq.gateway.integrations.custom_logger import CustomLogger
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from litellm_enterprise.enterprise_callbacks.secret_detection import (
     _ENTERPRISE_SecretDetection,
 )
-from litellm.proxy.proxy_server import (
+from token_iq.gateway.proxy.proxy_server import (
     Depends,
     HTTPException,
     chat_completion,
     completion,
     embeddings,
 )
-from litellm.proxy.utils import ProxyLogging, hash_token
+from token_iq.gateway.proxy.utils import ProxyLogging, hash_token
 
 
 class testLogger(CustomLogger):
@@ -137,7 +137,7 @@ async def test_chat_completion_request_with_redaction(route, body):
 
     Ensures that the secret is redacted EVEN on the callback
     """
-    from litellm.proxy import proxy_server
+    from token_iq.gateway.proxy import proxy_server
 
     setattr(proxy_server, "llm_router", router)
     _test_logger = testLogger()

@@ -25,7 +25,7 @@ import httpx
 import pytest
 
 
-from litellm.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
 
 # The OpenAI BatchJobStatus literal set - every provider must map into this.
 VALID_BATCH_STATUSES = {

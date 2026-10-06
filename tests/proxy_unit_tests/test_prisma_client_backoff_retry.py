@@ -14,7 +14,7 @@ import sys
 
 # Add project root to path
 
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 from prisma.errors import PrismaError, ClientNotConnectedError
 import httpx
 import backoff
@@ -226,7 +226,7 @@ class TestPrismaClientBackoffRetry:
         client.proxy_logging_obj = mock_prisma_client.proxy_logging_obj
 
         # Mock proxy_state
-        with patch("litellm.proxy.proxy_server.proxy_state") as mock_proxy_state:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_state") as mock_proxy_state:
             mock_proxy_state.set_proxy_state_variable = Mock()
 
             await client._set_spend_logs_row_count_in_proxy_state()
@@ -252,7 +252,7 @@ class TestPrismaClientBackoffRetry:
         client.db = mock_prisma_client.db
         client.proxy_logging_obj = mock_prisma_client.proxy_logging_obj
 
-        with patch("litellm.proxy.proxy_server.proxy_state") as mock_proxy_state:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_state") as mock_proxy_state:
             mock_proxy_state.set_proxy_state_variable = Mock()
 
             await client._set_spend_logs_row_count_in_proxy_state()
@@ -338,7 +338,7 @@ class TestPrismaClientBackoffRetry:
 
         mock_prisma_client.db.query_raw.side_effect = mock_query_side_effect
 
-        with patch("litellm.proxy.proxy_server.proxy_state") as mock_proxy_state:
+        with patch("token_iq.gateway.proxy.proxy_server.proxy_state") as mock_proxy_state:
             mock_proxy_state.set_proxy_state_variable = Mock()
 
             # Execute the two critical calls from _setup_prisma_client

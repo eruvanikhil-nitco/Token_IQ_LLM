@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from litellm.integrations.custom_guardrail import ModifyResponseException
-from litellm.integrations.rubrik import (
+from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
+from token_iq.gateway.integrations.rubrik import (
     RubrikLogger,
     _MalformedToolBlockingResponseError,
 )
-from litellm.proxy._types import UserAPIKeyAuth
+from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 from tests.test_litellm.integrations.rubrik_test_helpers import (
     make_inputs_with_tools,
@@ -181,7 +181,7 @@ class TestInitialization:
         periodic flush task on first use to drain low-traffic batches."""
         # Simulate sync-init by hiding the running loop from the constructor.
         with patch(
-            "litellm.integrations.rubrik.asyncio.get_running_loop",
+            "token_iq.gateway.integrations.rubrik.asyncio.get_running_loop",
             side_effect=RuntimeError("no running loop"),
         ):
             handler = RubrikLogger()
@@ -206,14 +206,14 @@ class TestInitialization:
         (which is ``None`` when the user omits ``mode``). The logger must coerce
         a None ``event_hook`` to ``post_call`` rather than leaving it as None,
         which would otherwise cause the guardrail to run on every event hook."""
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         with patch("asyncio.create_task", Mock()):
             handler = RubrikLogger(event_hook=None)
             assert handler.event_hook == GuardrailEventHooks.post_call
 
     def test_explicit_event_hook_preserved(self, mock_env):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         with patch("asyncio.create_task", Mock()):
             handler = RubrikLogger(event_hook=GuardrailEventHooks.pre_call)
@@ -540,7 +540,7 @@ class TestApplyGuardrail:
         assert result is inputs
 
     async def test_no_tool_calls(self, handler):
-        from litellm.types.utils import GenericGuardrailAPIInputs
+        from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
         inputs = GenericGuardrailAPIInputs(texts=["hello"])
         result = await handler.apply_guardrail(
@@ -813,7 +813,7 @@ class TestApplyGuardrailAnthropicFormat:
     async def test_text_only_response_sent_to_moderation(self, handler):
         """Text-only responses (no tool calls) are sent to the response
         moderation service to check the assistant's text content."""
-        from litellm.types.utils import GenericGuardrailAPIInputs
+        from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
         inputs = GenericGuardrailAPIInputs(texts=["Hello! I'm Claude."])
 
@@ -853,7 +853,7 @@ class TestNormalizeToolCalls:
         assert result[0].function.arguments == '{"a": 1}'
 
     def test_typed_object_input(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tc = ChatCompletionMessageToolCall(
             id="call_2",
@@ -878,7 +878,7 @@ class TestExtractResponseBlock:
     _extract_blocked_tools and handles both text blocks and tool blocks."""
 
     def test_all_allowed_returns_none(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tc = ChatCompletionMessageToolCall(
             id="call_1", type="function", function=Function(name="fn", arguments="{}")
@@ -897,7 +897,7 @@ class TestExtractResponseBlock:
         assert result is None
 
     def test_some_blocked_returns_explanation(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tc1 = ChatCompletionMessageToolCall(
             id="call_1",
@@ -928,7 +928,7 @@ class TestExtractResponseBlock:
             RubrikLogger._extract_response_block({"choices": []}, [], "")
 
     def test_null_tool_calls_treated_as_all_blocked(self):
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tc = ChatCompletionMessageToolCall(
             id="call_1", type="function", function=Function(name="fn", arguments="{}")
@@ -949,7 +949,7 @@ class TestExtractResponseBlock:
 
     def test_text_block_detected(self):
         """When the service replaces the response text wholesale, it's a text block."""
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         service_resp = {
             "choices": [
@@ -970,7 +970,7 @@ class TestExtractResponseBlock:
     def test_tool_block_with_appended_explanation(self):
         """When the service appends an explanation to the original text, only the
         appended part is returned as the explanation."""
-        from litellm.types.utils import ChatCompletionMessageToolCall, Function
+        from token_iq.gateway.types.utils import ChatCompletionMessageToolCall, Function
 
         tc = ChatCompletionMessageToolCall(
             id="call_1", type="function", function=Function(name="fn", arguments="{}")
@@ -1133,7 +1133,7 @@ class TestApplyGuardrailEdgeCases:
 
     async def test_response_with_no_texts_and_no_tool_calls_returns_inputs(self, handler):
         """_moderate_response early-returns when both texts and tool_calls are empty."""
-        from litellm.types.utils import GenericGuardrailAPIInputs
+        from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
         inputs = GenericGuardrailAPIInputs()
         result = await handler.apply_guardrail(
@@ -1273,7 +1273,7 @@ class TestNormalizeToolCallsDuckTyped:
     def test_duck_typed_object_with_id_and_function_attrs(self):
         """Objects that have .id and .function attrs but are not
         ChatCompletionMessageToolCall are handled by the third branch."""
-        from litellm.types.utils import Function
+        from token_iq.gateway.types.utils import Function
 
         tc = Mock()
         tc.id = "call_duck"
@@ -1289,7 +1289,7 @@ class TestNormalizeToolCallsDuckTyped:
 
     def test_duck_typed_without_type_defaults_to_function(self):
         """getattr(tc, "type", None) falls back to "function" when absent."""
-        from litellm.types.utils import Function
+        from token_iq.gateway.types.utils import Function
 
         tc = Mock(spec=["id", "function"])  # no .type attr
         tc.id = "call_no_type"
@@ -1839,7 +1839,7 @@ class TestBlockPayloadCallerAttribution:
 
     def test_metadata_covers_the_full_caller_key_set(self, handler, user_api_key_dict):
         """A block log and a success log agree on the caller key set."""
-        from litellm.types.utils import StandardLoggingUserAPIKeyMetadata
+        from token_iq.gateway.types.utils import StandardLoggingUserAPIKeyMetadata
 
         payload = handler._build_fallback_payload(self._blocked_call_details(), user_api_key_dict)
 

@@ -8,13 +8,13 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import httpx
 
-import litellm
+from token_iq import gateway as litellm
 
 from tests.vector_store_tests.base_vector_store_test import BaseVectorStoreTest
-from litellm.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.types.vector_stores import VectorStoreCreateOptionalRequestParams
-from litellm.llms.base_llm.chat.transformation import BaseLLMException
+from token_iq.gateway.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.types.vector_stores import VectorStoreCreateOptionalRequestParams
+from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
 
 class TestRAGFlowVectorStore(BaseVectorStoreTest):
@@ -81,7 +81,7 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
     def test_validate_environment(self):
         """Test environment validation and header setting."""
         config = RAGFlowVectorStoreConfig()
-        from litellm.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Test with api_key in litellm_params
         litellm_params = GenericLiteLLMParams(api_key="test-key")

@@ -1,12 +1,12 @@
-import litellm
-from litellm.llms.anthropic.experimental_pass_through.messages.transformation import (
+from token_iq import gateway as litellm
+from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
-from litellm.llms.deepseek.messages.transformation import (
+from token_iq.gateway.llms.deepseek.messages.transformation import (
     DeepSeekAnthropicMessagesConfig,
 )
-from litellm.types.router import GenericLiteLLMParams
-from litellm.utils import ProviderConfigManager
+from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.utils import ProviderConfigManager
 
 
 def test_deepseek_provider_uses_anthropic_messages_config():

@@ -19,7 +19,7 @@ async def test_invoke_agent_a2a_adds_litellm_data():
     Test that invoke_agent_a2a calls add_litellm_data_to_request
     and the resulting data includes proxy_server_request.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     # Track the data passed to add_litellm_data_to_request
     captured_data = {}
@@ -126,32 +126,32 @@ async def test_invoke_agent_a2a_adds_litellm_data():
     # so we need to patch it there, not at litellm_pre_call_utils
     with (
         patch(
-            "litellm.proxy.agent_endpoints.a2a_endpoints._get_agent",
+            "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._get_agent",
             return_value=mock_agent,
         ),
         patch(
-            "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
             side_effect=mock_add_litellm_data,
         ) as mock_add_data,
         patch(
-            "litellm.a2a_protocol.create_a2a_client",
+            "token_iq.gateway.a2a_protocol.create_a2a_client",
             new_callable=AsyncMock,
         ),
         patch(
-            "litellm.a2a_protocol.asend_message",
+            "token_iq.gateway.a2a_protocol.asend_message",
             new_callable=AsyncMock,
             return_value=mock_response,
         ),
         patch(
-            "litellm.proxy.proxy_server.general_settings",
+            "token_iq.gateway.proxy.proxy_server.general_settings",
             {},
         ),
         patch(
-            "litellm.proxy.proxy_server.proxy_config",
+            "token_iq.gateway.proxy.proxy_server.proxy_config",
             MagicMock(),
         ),
         patch(
-            "litellm.proxy.proxy_server.version",
+            "token_iq.gateway.proxy.proxy_server.version",
             "1.0.0",
         ),
         patch.dict(
@@ -159,11 +159,11 @@ async def test_invoke_agent_a2a_adds_litellm_data():
             {"a2a": MagicMock(), "a2a.types": mock_a2a_types},
         ),
         patch(
-            "litellm.a2a_protocol.main.A2A_SDK_AVAILABLE",
+            "token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE",
             True,
         ),
     ):
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         mock_fastapi_response = MagicMock()
 
@@ -192,7 +192,7 @@ async def test_invoke_agent_a2a_handles_none_agent_card_params():
     through the A2A endpoint by mistake) must not raise ``AttributeError`` on
     ``agent_card_params.get(...)`` — they should return a JSON-RPC error.
     """
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     mock_agent = MagicMock()
     mock_agent.agent_card_params = None
@@ -222,16 +222,16 @@ async def test_invoke_agent_a2a_handles_none_agent_card_params():
 
     with (
         patch(
-            "litellm.proxy.agent_endpoints.a2a_endpoints._get_agent",
+            "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._get_agent",
             return_value=mock_agent,
         ),
         patch(
-            "litellm.a2a_protocol.main.A2A_SDK_AVAILABLE",
+            "token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE",
             True,
         ),
         patch.dict(sys.modules, {"a2a": MagicMock(), "a2a.types": MagicMock()}),
     ):
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         mock_fastapi_response = MagicMock()
 
@@ -255,10 +255,10 @@ async def test_invoke_agent_a2a_injects_authenticated_key_hash_for_bridge():
     """Completion-bridge agents must receive the authenticated key hash in
     litellm_params so provider configs (e.g. LangFlow) can scope provider-side
     session memory per key. Regression for cross-key A2A session bleed."""
-    from litellm.a2a_protocol.litellm_completion_bridge.handler import (
+    from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
         A2A_USER_API_KEY_HASH_PARAM,
     )
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     captured = {}
 
@@ -316,28 +316,28 @@ async def test_invoke_agent_a2a_injects_authenticated_key_hash_for_bridge():
 
     with (
         patch(
-            "litellm.proxy.agent_endpoints.a2a_endpoints._get_agent",
+            "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._get_agent",
             return_value=mock_agent,
         ),
         patch(
-            "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
             side_effect=mock_add_litellm_data,
         ),
         patch(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "litellm.a2a_protocol.asend_message",
+            "token_iq.gateway.a2a_protocol.asend_message",
             new=AsyncMock(side_effect=capture_asend_message),
         ),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.proxy_config", MagicMock()),
-        patch("litellm.proxy.proxy_server.version", "1.0.0"),
-        patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.version", "1.0.0"),
+        patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True),
         patch.dict(sys.modules, {"a2a": MagicMock(), "a2a.types": MagicMock()}),
     ):
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         await invoke_agent_a2a(
             agent_id="lf-agent",
@@ -382,20 +382,20 @@ def _make_request_mock(
 def _base_patches(agent: MagicMock):
     return [
         patch(
-            "litellm.proxy.agent_endpoints.a2a_endpoints._get_agent",
+            "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._get_agent",
             return_value=agent,
         ),
         patch(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
             new=AsyncMock(return_value=True),
         ),
         patch(
-            "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+            "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
             new=AsyncMock(side_effect=_add_proxy_data),
         ),
-        patch("litellm.proxy.proxy_server.general_settings", {}),
-        patch("litellm.proxy.proxy_server.proxy_config", MagicMock()),
-        patch("litellm.proxy.proxy_server.version", "1.0.0"),
+        patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
+        patch("token_iq.gateway.proxy.proxy_server.proxy_config", MagicMock()),
+        patch("token_iq.gateway.proxy.proxy_server.version", "1.0.0"),
     ]
 
 
@@ -414,7 +414,7 @@ async def _add_proxy_data(data, **kwargs):
 @pytest.mark.parametrize("method", ["message/send", "message/stream"])
 async def test_message_methods_preserve_numeric_zero_request_id(method: str):
     from fastapi.responses import JSONResponse
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     class MessageSendParams:
         def __init__(self, **kwargs):
@@ -457,7 +457,7 @@ async def test_message_methods_preserve_numeric_zero_request_id(method: str):
     with ExitStack() as stack:
         for p in _base_patches(agent):
             stack.enter_context(p)
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         if method == "message/send":
             stack.enter_context(
                 patch.dict(
@@ -467,19 +467,19 @@ async def test_message_methods_preserve_numeric_zero_request_id(method: str):
             )
             stack.enter_context(
                 patch(
-                    "litellm.a2a_protocol.asend_message",
+                    "token_iq.gateway.a2a_protocol.asend_message",
                     new=AsyncMock(side_effect=capture_asend_message),
                 )
             )
         else:
             stack.enter_context(
                 patch(
-                    "litellm.proxy.agent_endpoints.a2a_endpoints._handle_stream_message",
+                    "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints._handle_stream_message",
                     new=AsyncMock(side_effect=capture_stream_message),
                 )
             )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         await invoke_agent_a2a(
             agent_id="test-agent",
@@ -508,7 +508,7 @@ async def test_message_methods_preserve_numeric_zero_request_id(method: str):
     ],
 )
 async def test_task_methods_forward_jsonrpc(method: str, params: dict):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_response = {
         "jsonrpc": "2.0",
@@ -534,18 +534,18 @@ async def test_task_methods_forward_jsonrpc(method: str, params: dict):
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
         stack.enter_context(
             patch(
-                "litellm.proxy.agent_endpoints.a2a_endpoints.validate_url",
+                "token_iq.gateway.proxy.agent_endpoints.a2a_endpoints.validate_url",
                 return_value=("https://webhook.example.com", "webhook.example.com"),
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -567,7 +567,7 @@ async def test_task_methods_forward_jsonrpc(method: str, params: dict):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method", ["tasks/get", "tasks/resubscribe"])
 async def test_task_methods_extract_litellm_params_before_forwarding(method: str):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     params = {
@@ -613,18 +613,18 @@ async def test_task_methods_extract_litellm_params_before_forwarding(method: str
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
                 new=AsyncMock(side_effect=capture_proxy_data),
             )
         )
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -647,7 +647,7 @@ async def test_task_methods_extract_litellm_params_before_forwarding(method: str
 
 @pytest.mark.asyncio
 async def test_subscribe_to_task_returns_sse_stream():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("SubscribeToTask", {"id": "task-1"})
@@ -681,12 +681,12 @@ async def test_subscribe_to_task_returns_sse_stream():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -708,7 +708,7 @@ async def test_subscribe_to_task_returns_sse_stream():
 async def test_subscribe_to_task_calls_pre_call_hook():
     """tasks/resubscribe must run pre_call_hook so guardrails configured on
     the agent are enforced before streaming begins."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("tasks/resubscribe", {"id": "task-1"})
@@ -746,18 +746,18 @@ async def test_subscribe_to_task_calls_pre_call_hook():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
         stack.enter_context(
             patch(
-                "litellm.proxy.proxy_server.proxy_logging_obj",
+                "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
                 mock_proxy_logging,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -782,9 +782,9 @@ async def test_subscribe_to_task_runs_post_call_streaming_guardrail():
     streaming hook so output guardrails configured on the agent inspect the
     streamed task content. Regression: the SSE path previously returned the raw
     upstream stream and bypassed guardrails entirely."""
-    import litellm
-    from litellm.integrations.custom_guardrail import CustomGuardrail
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq import gateway as litellm
+    from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     inspected: list = []
 
@@ -825,13 +825,13 @@ async def test_subscribe_to_task_runs_post_call_streaming_guardrail():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
         stack.enter_context(patch.object(litellm, "callbacks", [guardrail]))
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -852,7 +852,7 @@ async def test_subscribe_to_task_runs_post_call_streaming_guardrail():
 
 @pytest.mark.asyncio
 async def test_task_method_failure_hook_uses_enriched_request_data():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("tasks/get", {"id": "task-1"})
@@ -883,24 +883,24 @@ async def test_task_method_failure_hook_uses_enriched_request_data():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
                 new=AsyncMock(side_effect=add_proxy_data_copy),
             )
         )
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
         stack.enter_context(
             patch(
-                "litellm.proxy.proxy_server.proxy_logging_obj",
+                "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
                 mock_proxy_logging,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -920,7 +920,7 @@ async def test_task_method_failure_hook_uses_enriched_request_data():
 
 @pytest.mark.asyncio
 async def test_agentcore_invalid_context_id_returns_jsonrpc_invalid_params_400():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     agent.litellm_params = {
@@ -952,11 +952,11 @@ async def test_agentcore_invalid_context_id_returns_jsonrpc_invalid_params_400()
             stack.enter_context(p)
         stack.enter_context(
             patch(  # test-quality-ok: same proxy_logging_obj injection the sibling failure-hook test uses; no HTTP call is made because the request is rejected before signing
-                "litellm.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging
+                "token_iq.gateway.proxy.proxy_server.proxy_logging_obj", mock_proxy_logging
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -976,7 +976,7 @@ async def test_agentcore_invalid_context_id_returns_jsonrpc_invalid_params_400()
 
 @pytest.mark.asyncio
 async def test_get_extended_agent_card_rewrites_url():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("GetExtendedAgentCard", {})
@@ -1004,12 +1004,12 @@ async def test_get_extended_agent_card_rewrites_url():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1026,7 +1026,7 @@ async def test_get_extended_agent_card_rewrites_url():
 @pytest.mark.asyncio
 async def test_get_agent_card_uses_proxy_base_url_when_set(monkeypatch):
     """Regression: discovery must expose the public proxy URL, not the internal one."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     monkeypatch.setenv("PROXY_BASE_URL", "https://litellm.example.com")
     agent = _make_agent_mock()
@@ -1046,7 +1046,7 @@ async def test_get_agent_card_uses_proxy_base_url_when_set(monkeypatch):
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import get_agent_card
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import get_agent_card
 
         response = await get_agent_card(
             agent_id="test-agent",
@@ -1064,7 +1064,7 @@ async def test_get_agent_card_uses_proxy_base_url_when_set(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_agent_card_normalizes_0_3_discovery_card():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     agent.agent_card_params["protocolVersion"] = "0.3"
@@ -1083,7 +1083,7 @@ async def test_get_agent_card_normalizes_0_3_discovery_card():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import get_agent_card
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import get_agent_card
 
         response = await get_agent_card(
             agent_id="test-agent",
@@ -1100,7 +1100,7 @@ async def test_get_agent_card_normalizes_0_3_discovery_card():
 @pytest.mark.asyncio
 async def test_get_agent_card_0_3_card_with_a2a_version_1_0_header():
     """Regression: 0.3 card normalized to 1.0 must not KeyError on debug log."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     agent.agent_card_params = {
@@ -1124,7 +1124,7 @@ async def test_get_agent_card_0_3_card_with_a2a_version_1_0_header():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import get_agent_card
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import get_agent_card
 
         response = await get_agent_card(
             agent_id="test-agent",
@@ -1142,7 +1142,7 @@ async def test_get_agent_card_0_3_card_with_a2a_version_1_0_header():
 @pytest.mark.asyncio
 async def test_get_extended_agent_card_uses_proxy_base_url_when_set(monkeypatch):
     """Regression: proxied extended cards must rewrite url to the public proxy base."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     monkeypatch.setenv("PROXY_BASE_URL", "https://litellm.example.com")
     agent = _make_agent_mock()
@@ -1171,12 +1171,12 @@ async def test_get_extended_agent_card_uses_proxy_base_url_when_set(monkeypatch)
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1193,7 +1193,7 @@ def test_build_merged_agent_card_uses_proxy_base_url_for_supported_interfaces(
     monkeypatch,
 ):
     """Regression: agent create/update must front supportedInterfaces with the public base."""
-    from litellm.proxy.agent_endpoints.endpoints import _build_merged_agent_card
+    from token_iq.gateway.proxy.agent_endpoints.endpoints import _build_merged_agent_card
 
     monkeypatch.setenv("PROXY_BASE_URL", "https://litellm.example.com")
     mock_request = MagicMock()
@@ -1212,7 +1212,7 @@ def test_build_merged_agent_card_uses_proxy_base_url_for_supported_interfaces(
 
 @pytest.mark.asyncio
 async def test_unknown_method_returns_jsonrpc_error():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("SomeUnknownMethod", {})
@@ -1222,7 +1222,7 @@ async def test_unknown_method_returns_jsonrpc_error():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1254,7 +1254,7 @@ async def test_unknown_method_returns_jsonrpc_error():
 async def test_pascal_method_names_normalize_to_wire_format(
     pascal_method: str, expected_wire_method: str
 ):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(pascal_method, {"id": "task-1"})
@@ -1288,12 +1288,12 @@ async def test_pascal_method_names_normalize_to_wire_format(
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1340,7 +1340,7 @@ async def test_pascal_method_names_normalize_to_wire_format(
     ],
 )
 def test_build_message_send_params_accepts_wire_and_a2a_10(params):
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _build_message_send_params
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _build_message_send_params
 
     result = _build_message_send_params(params)
     assert result.message.role.value == "user"
@@ -1348,7 +1348,7 @@ def test_build_message_send_params_accepts_wire_and_a2a_10(params):
 
 
 def test_build_message_send_params_proto_fallback_ignores_unknown_fields():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _build_message_send_params
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _build_message_send_params
 
     result = _build_message_send_params(
         {
@@ -1366,7 +1366,7 @@ def test_build_message_send_params_proto_fallback_ignores_unknown_fields():
 
 @pytest.mark.asyncio
 async def test_handle_stream_message_rejects_invalid_params_with_32602():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     response = await _handle_stream_message(
         api_base="http://upstream.local",
@@ -1390,7 +1390,7 @@ async def test_handle_stream_message_frames_events_as_sse():
     """message/stream must return text/event-stream with each JSON-RPC object
     framed as ``data: <json>\\n\\n``. Regression for #35027: NDJSON framing
     breaks the official a2a-sdk client, which requires SSE."""
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     events = [
         {
@@ -1410,10 +1410,10 @@ async def test_handle_stream_message_frames_events_as_sse():
             yield event
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
             patch(
-                "litellm.a2a_protocol.asend_message_streaming",
+                "token_iq.gateway.a2a_protocol.asend_message_streaming",
                 new=fake_stream,
             )
         )
@@ -1447,9 +1447,9 @@ async def test_handle_stream_message_frames_events_as_sse():
 async def test_handle_stream_message_sdk_unavailable_frames_error_as_sse():
     """When the a2a package is unavailable the -32603 error must still be
     emitted as a single SSE event so the a2a-sdk client can parse it."""
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
-    with patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", False):
+    with patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", False):
         response = await _handle_stream_message(
             api_base="http://upstream.local",
             request_id="req-1",
@@ -1474,10 +1474,10 @@ async def test_handle_stream_message_proxy_hook_path_frames_events_as_sse():
     """When proxy hooks are wired the events are routed through
     async_streaming_data_generator; that path must also frame each JSON-RPC
     object as ``data: <json>\\n\\n`` (regression for #35027)."""
-    from litellm.caching.caching import DualCache
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     events = [
         {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}},
@@ -1495,9 +1495,9 @@ async def test_handle_stream_message_proxy_hook_path_frames_events_as_sse():
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1534,7 +1534,7 @@ async def test_handle_stream_message_frames_preserialized_jsonrpc_error_once():
     guardrail may yield when it terminates an A2A stream mid-flight) must be
     framed as one SSE event carrying that object, not JSON-encoded a second time
     into a bare string."""
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     error_event = {
         "jsonrpc": "2.0",
@@ -1546,9 +1546,9 @@ async def test_handle_stream_message_frames_preserialized_jsonrpc_error_once():
         yield json.dumps(error_event) + "\n"
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1577,19 +1577,19 @@ async def test_handle_stream_message_frames_preserialized_jsonrpc_error_once():
 async def test_handle_stream_message_proxy_hook_path_frames_errors_as_sse():
     """A failure while the hooked generator is streaming must reach the client as
     a ``data:``-framed JSON-RPC error, not as a bare NDJSON line."""
-    from litellm.caching.caching import DualCache
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     async def fake_stream(**kwargs):
         yield {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}}
         raise ValueError("upstream died")
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1624,18 +1624,18 @@ async def test_handle_stream_message_proxy_hook_path_frames_errors_as_sse():
 async def test_handle_stream_message_frames_upstream_call_failure_as_sse_error():
     """A failure raised before any event is streamed (with proxy hooks wired) is
     still delivered as a ``data:``-framed JSON-RPC error."""
-    from litellm.caching.caching import DualCache
-    from litellm.proxy._types import UserAPIKeyAuth
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
-    from litellm.proxy.utils import ProxyLogging
+    from token_iq.gateway.caching.caching import DualCache
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.utils import ProxyLogging
 
     def fake_stream(**kwargs):
         raise ValueError("could not reach agent")
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1669,15 +1669,15 @@ async def test_handle_stream_message_frames_upstream_call_failure_as_sse_error()
 async def test_handle_stream_message_forwards_unparseable_chunk_as_sse_event():
     """A chunk that is not JSON at all still leaves as one well-formed SSE event
     instead of raising and killing the stream."""
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     async def fake_stream(**kwargs):
         yield "not json at all"
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1704,16 +1704,16 @@ async def test_handle_stream_message_forwards_unparseable_chunk_as_sse_event():
 async def test_handle_stream_message_frames_mid_stream_failure_as_sse_error():
     """An upstream failure after the response started is reported as a
     ``data:``-framed JSON-RPC error object, so an SSE client sees the failure."""
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     async def fake_stream(**kwargs):
         yield {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}}
         raise RuntimeError("upstream died")
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _handle_stream_message(
@@ -1742,7 +1742,7 @@ async def test_handle_stream_message_frames_mid_stream_failure_as_sse_error():
 
 @pytest.mark.asyncio
 async def test_send_message_pascal_case_routes_to_asend_message():
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     params = {
@@ -1777,15 +1777,15 @@ async def test_send_message_pascal_case_routes_to_asend_message():
     with ExitStack() as stack:
         for p in _base_patches(agent):
             stack.enter_context(p)
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
             patch(
-                "litellm.a2a_protocol.asend_message",
+                "token_iq.gateway.a2a_protocol.asend_message",
                 new=AsyncMock(side_effect=capture_asend_message),
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1803,7 +1803,7 @@ async def test_send_message_pascal_case_routes_to_asend_message():
 
 
 def test_normalize_response_wraps_flat_message_result_for_1_0():
-    from litellm.proxy.a2a.version_convert import normalize_jsonrpc_response
+    from token_iq.gateway.proxy.a2a.version_convert import normalize_jsonrpc_response
 
     wire_response = {
         "jsonrpc": "2.0",
@@ -1825,7 +1825,7 @@ def test_normalize_response_wraps_flat_message_result_for_1_0():
 
 
 def test_normalize_response_keeps_wire_format_for_0_3():
-    from litellm.proxy.a2a.version_convert import normalize_jsonrpc_response
+    from token_iq.gateway.proxy.a2a.version_convert import normalize_jsonrpc_response
 
     wire_response = {
         "jsonrpc": "2.0",
@@ -1848,7 +1848,7 @@ def test_normalize_response_keeps_wire_format_for_0_3():
 async def test_task_method_upstream_jsonrpc_error_on_http_4xx_is_relayed():
     """When upstream returns HTTP 4xx with a JSON-RPC error body, the error body
     must be relayed to the client unchanged, not replaced with a generic string."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("tasks/get", {"id": "nonexistent"})
@@ -1876,12 +1876,12 @@ async def test_task_method_upstream_jsonrpc_error_on_http_4xx_is_relayed():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1899,7 +1899,7 @@ async def test_task_method_upstream_jsonrpc_error_on_http_4xx_is_relayed():
 async def test_subscribe_to_task_upstream_error_yields_jsonrpc_error_event():
     """When upstream returns a non-2xx response for tasks/resubscribe, the SSE
     stream must yield a JSON-RPC error event instead of silently breaking."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock("tasks/resubscribe", {"id": "task-1"})
@@ -1928,12 +1928,12 @@ async def test_subscribe_to_task_upstream_error_yields_jsonrpc_error_event():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -1970,10 +1970,10 @@ async def test_forward_jsonrpc_sse_fallback_error_uses_jsonrpc_error_code():
     mock_handler.client = mock_async_client
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=mock_handler,
     ):
-        from litellm.proxy.agent_endpoints.a2a_endpoints import _forward_jsonrpc_sse
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _forward_jsonrpc_sse
 
         response = await _forward_jsonrpc_sse(
             agent_url="http://backend-agent:10001",
@@ -1994,7 +1994,7 @@ async def test_forward_jsonrpc_sse_fallback_error_uses_jsonrpc_error_code():
 async def test_task_methods_forward_caller_identity_headers():
     """Task operations must forward X-LiteLLM-User-Id and X-LiteLLM-Team-Id so the
     upstream agent can scope resources to the authenticated caller."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_response = {
         "jsonrpc": "2.0",
@@ -2019,12 +2019,12 @@ async def test_task_methods_forward_caller_identity_headers():
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         await invoke_agent_a2a(
             agent_id="test-agent",
@@ -2041,7 +2041,7 @@ async def test_task_methods_forward_caller_identity_headers():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method", ["tasks/get", "tasks/resubscribe"])
 async def test_task_methods_forward_trace_header(method: str):
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(method, {"id": "task-1"})
@@ -2083,18 +2083,18 @@ async def test_task_methods_forward_trace_header(method: str):
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.proxy.common_request_processing.add_litellm_data_to_request",
+                "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
                 new=AsyncMock(side_effect=add_proxy_data_with_trace),
             )
         )
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         response = await invoke_agent_a2a(
             agent_id="test-agent",
@@ -2118,7 +2118,7 @@ async def test_push_notification_config_set_rejects_http_url():
     """tasks/pushNotificationConfig/set must reject non-HTTPS callback URLs to prevent SSRF."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(
@@ -2131,7 +2131,7 @@ async def test_push_notification_config_set_rejects_http_url():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         with pytest.raises(HTTPException) as exc_info:
             await invoke_agent_a2a(
@@ -2150,7 +2150,7 @@ async def test_push_notification_config_set_rejects_private_ip():
     """tasks/pushNotificationConfig/set must reject callback URLs pointing to private IP ranges."""
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(
@@ -2163,7 +2163,7 @@ async def test_push_notification_config_set_rejects_private_ip():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         with pytest.raises(HTTPException) as exc_info:
             await invoke_agent_a2a(
@@ -2185,7 +2185,7 @@ async def test_push_notification_config_set_validates_nested_url_when_top_level_
     """
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(
@@ -2202,7 +2202,7 @@ async def test_push_notification_config_set_validates_nested_url_when_top_level_
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         with pytest.raises(HTTPException) as exc_info:
             await invoke_agent_a2a(
@@ -2219,12 +2219,12 @@ async def test_push_notification_config_set_validates_nested_url_when_top_level_
 def test_push_notification_config_set_rejects_private_dns_resolution():
     from fastapi import HTTPException
 
-    from litellm.proxy.agent_endpoints.a2a_endpoints import (
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import (
         _validate_push_notification_url,
     )
 
     with patch(
-        "litellm.litellm_core_utils.url_utils.socket.getaddrinfo",
+        "token_iq.gateway.core_utils.url_utils.socket.getaddrinfo",
         return_value=[
             (
                 socket.AF_INET,
@@ -2246,7 +2246,7 @@ def test_push_notification_config_set_rejects_private_dns_resolution():
 async def test_push_notification_config_set_rejects_null_push_config():
     from fastapi import HTTPException
 
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()
     mock_request = _make_request_mock(
@@ -2259,7 +2259,7 @@ async def test_push_notification_config_set_rejects_null_push_config():
         for p in _base_patches(agent):
             stack.enter_context(p)
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         with pytest.raises(HTTPException) as exc_info:
             await invoke_agent_a2a(
@@ -2278,7 +2278,7 @@ async def test_caller_identity_headers_cannot_be_spoofed_via_forwarded_headers()
     """A client must not be able to override X-LiteLLM-User-Id / X-LiteLLM-Team-Id
     by including x-a2a-<agent>-x-litellm-user-id in their request headers.
     The authenticated identity must always win."""
-    from litellm.proxy._types import UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     upstream_response = {
         "jsonrpc": "2.0",
@@ -2307,12 +2307,12 @@ async def test_caller_identity_headers_cannot_be_spoofed_via_forwarded_headers()
             stack.enter_context(p)
         stack.enter_context(
             patch(
-                "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+                "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
                 return_value=mock_handler,
             )
         )
 
-        from litellm.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
+        from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
         await invoke_agent_a2a(
             agent_id="test-agent",
@@ -2345,7 +2345,7 @@ def _request_with_a2a_header(value):
 
 
 def test_served_version_config_governs_over_header():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _served_version
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _served_version
 
     # A 0.3-configured agent serves 0.3 even when the client asks for 1.0.
     agent = _agent("0.3")
@@ -2357,7 +2357,7 @@ def test_served_version_config_governs_over_header():
 
 
 def test_served_version_falls_back_to_header_when_unconfigured():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _served_version
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _served_version
 
     assert _served_version(_agent(None), _request_with_a2a_header("1.0")) == "1.0"
     assert _served_version(_agent(None), _request_with_a2a_header(None)) == "0.3"
@@ -2379,7 +2379,7 @@ def _sse_agent_handler(lines):
 
 
 async def _resubscribe_response():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _forward_jsonrpc_sse
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _forward_jsonrpc_sse
 
     return await _forward_jsonrpc_sse(
         agent_url="http://backend-agent:10001",
@@ -2398,7 +2398,7 @@ async def test_forward_jsonrpc_sse_pings_while_the_upstream_agent_is_still_silen
     connection."""
     import asyncio
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 0.05)
 
@@ -2407,7 +2407,7 @@ async def test_forward_jsonrpc_sse_pings_while_the_upstream_agent_is_still_silen
         yield 'data: {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task"}}'
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=_sse_agent_handler(_slow_lines),
     ):
         response = await _resubscribe_response()
@@ -2426,7 +2426,7 @@ async def test_forward_jsonrpc_sse_is_untouched_while_keepalives_are_unconfigure
     monkeypatch,
 ):
     """Off until an operator sets an interval, so the default stream is unchanged."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", None)
 
@@ -2434,7 +2434,7 @@ async def test_forward_jsonrpc_sse_is_untouched_while_keepalives_are_unconfigure
         yield 'data: {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task"}}'
 
     with patch(
-        "litellm.llms.custom_httpx.http_handler.get_async_httpx_client",
+        "token_iq.gateway.llms.custom_httpx.http_handler.get_async_httpx_client",
         return_value=_sse_agent_handler(_lines),
     ):
         response = await _resubscribe_response()
@@ -2446,7 +2446,7 @@ async def test_forward_jsonrpc_sse_is_untouched_while_keepalives_are_unconfigure
 
 
 async def _stream_message_response():
-    from litellm.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
+    from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import _handle_stream_message
 
     return await _handle_stream_message(
         api_base="http://upstream.local",
@@ -2470,7 +2470,7 @@ async def test_handle_stream_message_pings_while_the_upstream_agent_is_still_sil
     time-to-first-token."""
     import asyncio
 
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 0.05)
 
@@ -2479,9 +2479,9 @@ async def test_handle_stream_message_pings_while_the_upstream_agent_is_still_sil
         yield {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}}
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _stream_message_response()
@@ -2501,7 +2501,7 @@ async def test_handle_stream_message_is_untouched_while_keepalives_are_unconfigu
     monkeypatch,
 ):
     """Off until an operator sets an interval, so the default stream is unchanged."""
-    import litellm
+    from token_iq import gateway as litellm
 
     monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", None)
 
@@ -2509,9 +2509,9 @@ async def test_handle_stream_message_is_untouched_while_keepalives_are_unconfigu
         yield {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}}
 
     with ExitStack() as stack:
-        stack.enter_context(patch("litellm.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
+        stack.enter_context(patch("token_iq.gateway.a2a_protocol.main.A2A_SDK_AVAILABLE", True))
         stack.enter_context(
-            patch("litellm.a2a_protocol.asend_message_streaming", new=fake_stream)
+            patch("token_iq.gateway.a2a_protocol.asend_message_streaming", new=fake_stream)
         )
 
         response = await _stream_message_response()

@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-import litellm
-from litellm import aresponses
-from litellm._uuid import uuid
-from litellm.caching.caching_handler import LLMCachingHandler
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLogging
-from litellm.types.llms import openai as openai_types
-from litellm.types.utils import CallTypes
+from token_iq import gateway as litellm
+from token_iq.gateway import aresponses
+from token_iq.gateway._uuid import uuid
+from token_iq.gateway.caching.caching_handler import LLMCachingHandler
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.types.llms import openai as openai_types
+from token_iq.gateway.types.utils import CallTypes
 
 
 @pytest.mark.asyncio

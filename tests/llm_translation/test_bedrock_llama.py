@@ -1,7 +1,7 @@
 from base_llm_unit_tests import BaseLLMChatTest
 import pytest
 
-import litellm
+from token_iq import gateway as litellm
 
 
 class TestBedrockTestSuite(BaseLLMChatTest):

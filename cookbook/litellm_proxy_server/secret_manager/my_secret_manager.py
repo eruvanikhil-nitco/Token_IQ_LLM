@@ -9,7 +9,7 @@ from typing import Optional, Union
 
 import httpx
 
-from litellm.integrations.custom_secret_manager import CustomSecretManager
+from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
 
 
 class InMemorySecretManager(CustomSecretManager):
@@ -39,7 +39,7 @@ class InMemorySecretManager(CustomSecretManager):
         timeout: Optional[Union[float, httpx.Timeout]] = None,
     ) -> Optional[str]:
         """Read secret synchronously"""
-        from litellm._logging import verbose_proxy_logger
+        from token_iq.gateway._logging import verbose_proxy_logger
 
         verbose_proxy_logger.info(
             f"CUSTOM SECRET MANAGER: LOOKING FOR SECRET: {secret_name}"

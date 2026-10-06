@@ -1,5 +1,5 @@
 """
-Unit tests for litellm/llms/base_llm/batches/transformation.py
+Unit tests for token_iq/gateway/llms/base_llm/batches/transformation.py
 
 BaseBatchesConfig is the abstract base class that every provider-specific
 batches config subclasses. It is almost entirely interface (abstractmethods +
@@ -22,8 +22,8 @@ filter to all single-underscore names) makes a test fail.
 import pytest
 
 
-from litellm.llms.base_llm.batches.transformation import BaseBatchesConfig
-from litellm.types.utils import LlmProviders
+from token_iq.gateway.llms.base_llm.batches.transformation import BaseBatchesConfig
+from token_iq.gateway.types.utils import LlmProviders
 
 
 # --------------------------------------------------------------------------- #

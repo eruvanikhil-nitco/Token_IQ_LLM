@@ -11,13 +11,13 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-from litellm.litellm_core_utils.litellm_logging import Logging as LiteLLMLoggingObj
-from litellm.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
-from litellm.responses.streaming_iterator import (
+from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
+from token_iq.gateway.responses.streaming_iterator import (
     ResponsesAPIStreamingIterator,
     SyncResponsesAPIStreamingIterator,
 )
-from litellm.types.llms.openai import (
+from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
@@ -247,8 +247,8 @@ def test_stream_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypat
     import asyncio
     from types import SimpleNamespace
 
-    import litellm
-    from litellm.types.utils import CallTypes
+    from token_iq import gateway as litellm
+    from token_iq.gateway.types.utils import CallTypes
 
     writes = []
 
@@ -329,7 +329,7 @@ def test_run_post_success_hooks_does_not_report_generation_time_as_overhead():
 
 
 def _responses_api_response_with_usage() -> ResponsesAPIResponse:
-    from litellm.types.llms.openai import ResponseAPIUsage
+    from token_iq.gateway.types.llms.openai import ResponseAPIUsage
 
     return ResponsesAPIResponse(
         id="resp_lit6427",
@@ -343,7 +343,7 @@ def _responses_api_response_with_usage() -> ResponsesAPIResponse:
 
 
 def test_stamp_responses_usage_cost_stamps_computed_cost():
-    from litellm.responses.streaming_iterator import _stamp_responses_usage_cost
+    from token_iq.gateway.responses.streaming_iterator import _stamp_responses_usage_cost
 
     response = _responses_api_response_with_usage()
     logging_obj = Mock(spec=LiteLLMLoggingObj)
@@ -356,7 +356,7 @@ def test_stamp_responses_usage_cost_stamps_computed_cost():
 
 
 def test_stamp_responses_usage_cost_keeps_provider_reported_cost():
-    from litellm.responses.streaming_iterator import _stamp_responses_usage_cost
+    from token_iq.gateway.responses.streaming_iterator import _stamp_responses_usage_cost
 
     response = _responses_api_response_with_usage()
     setattr(response.usage, "cost", 0.5)
@@ -369,7 +369,7 @@ def test_stamp_responses_usage_cost_keeps_provider_reported_cost():
 
 
 def test_stamp_responses_usage_cost_survives_calculator_failure():
-    from litellm.responses.streaming_iterator import _stamp_responses_usage_cost
+    from token_iq.gateway.responses.streaming_iterator import _stamp_responses_usage_cost
 
     response = _responses_api_response_with_usage()
     logging_obj = Mock(spec=LiteLLMLoggingObj)

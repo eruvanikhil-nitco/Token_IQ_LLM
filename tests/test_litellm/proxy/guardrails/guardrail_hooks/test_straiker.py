@@ -5,23 +5,23 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from litellm.exceptions import GuardrailRaisedException, ModifyResponseException
-from litellm.proxy.guardrails.guardrail_hooks.straiker import initialize_guardrail
-from litellm.proxy.guardrails.guardrail_hooks.straiker.straiker import (
+from token_iq.gateway.exceptions import GuardrailRaisedException, ModifyResponseException
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.straiker import initialize_guardrail
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.straiker.straiker import (
     StraikerGuardrail,
     _build_usage,
     _request_structured_messages,
     _response_finish_reason,
 )
-from litellm.proxy.guardrails.guardrail_registry import (
+from token_iq.gateway.proxy.guardrails.guardrail_registry import (
     guardrail_class_registry,
     guardrail_initializer_registry,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.straiker import (
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.straiker import (
     StraikerGuardrailConfigModel,
     StraikerGuardrailConfigModelOptionalParams,
 )
-from litellm.types.utils import (
+from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
     Choices,
     Function,
@@ -100,7 +100,7 @@ def test_init_rejects_invalid_fallback():
 
 
 def test_supported_hooks_limited_to_pre_and_post():
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     assert StraikerGuardrail.get_supported_event_hooks() == [
         GuardrailEventHooks.pre_call,
@@ -127,7 +127,7 @@ def test_streaming_flags_not_configurable():
 
 
 def test_initializer_builds_working_callback():
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     params = LitellmParams(guardrail="straiker", mode="pre_call", api_key="abc", api_base="https://x.straiker.ai")
     callback = initialize_guardrail(params, {"guardrail_name": "straiker"})
@@ -136,7 +136,7 @@ def test_initializer_builds_working_callback():
 
 
 def test_initializer_maps_default_app_to_source():
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     params = LitellmParams(
         guardrail="straiker",
@@ -149,7 +149,7 @@ def test_initializer_maps_default_app_to_source():
 
 
 def test_initializer_reads_optional_params_flattened_like_ui():
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     params = LitellmParams(
         guardrail="straiker",
@@ -171,7 +171,7 @@ def test_initializer_reads_optional_params_flattened_like_ui():
 def test_initializer_reads_nested_optional_params():
     from types import SimpleNamespace
 
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     params = LitellmParams.model_construct(
         guardrail="straiker",
@@ -192,7 +192,7 @@ def test_initializer_reads_nested_optional_params():
 
 
 def test_initializer_reads_dict_optional_params():
-    from litellm.types.guardrails import LitellmParams
+    from token_iq.gateway.types.guardrails import LitellmParams
 
     params = LitellmParams.model_construct(
         guardrail="straiker",
@@ -388,7 +388,7 @@ async def test_context_mode_from_string_event_hook():
 
 @pytest.mark.asyncio
 async def test_context_mode_from_list_event_hook():
-    from litellm.types.guardrails import GuardrailEventHooks
+    from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
     g = _make_guardrail(event_hook=[GuardrailEventHooks.pre_call, GuardrailEventHooks.post_call])
     g.async_handler.post.return_value = _mock_response("NONE")
@@ -403,7 +403,7 @@ async def test_context_mode_from_list_event_hook():
 
 @pytest.mark.asyncio
 async def test_context_mode_from_tagged_mode_is_flattened_and_deduped():
-    from litellm.types.guardrails import Mode
+    from token_iq.gateway.types.guardrails import Mode
 
     g = _make_guardrail(
         event_hook=Mode(tags={"team-a": "pre_call", "team-b": ["post_call", "pre_call"]}, default="post_call")
@@ -1071,7 +1071,7 @@ async def test_anthropic_non_streaming_response_reports_usage():
 
 def test_fail_closed_backend_failure_is_not_reported_as_a_content_verdict():
     """A drop-one-record consumer must be able to tell a verdict from an outage; _fail is not a verdict."""
-    from litellm.exceptions import GuardrailRaisedException
+    from token_iq.gateway.exceptions import GuardrailRaisedException
 
     guardrail = _make_guardrail()
 

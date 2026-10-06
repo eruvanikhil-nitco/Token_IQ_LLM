@@ -2,7 +2,7 @@ import json
 
 from pydantic import BaseModel
 
-from litellm.router_utils.add_retry_fallback_headers import (
+from token_iq.gateway.router_utils.add_retry_fallback_headers import (
     add_fallback_headers_to_response,
     add_retry_headers_to_response,
     get_fallback_errors_from_headers,

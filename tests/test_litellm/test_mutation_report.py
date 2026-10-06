@@ -17,7 +17,7 @@ report = importlib.util.module_from_spec(_spec)
 sys.modules[_spec.name] = report
 _spec.loader.exec_module(report)
 
-_CONFIG = {"paths_to_mutate": ["litellm/proxy/management_endpoints/"], "tests_dir": ["tests/"]}
+_CONFIG = {"paths_to_mutate": ["token_iq/gateway/proxy/management_endpoints/"], "tests_dir": ["tests/"]}
 
 
 def test_a_run_that_reported_nothing_is_not_a_clean_sweep():
@@ -103,7 +103,7 @@ def test_survivors_are_read_out_of_the_verdicts_they_came_with(monkeypatch):
     results = report.get_survivors()
 
     assert results.survivors == (
-        "litellm.proxy.management_endpoints.key_management_endpoints.x_2",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.x_2",
     )
     assert results.reported == 3
 

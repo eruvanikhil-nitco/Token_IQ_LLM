@@ -7,8 +7,8 @@ rebuilding the response from streaming chunks.
 """
 
 import pytest
-import litellm
-from litellm import stream_chunk_builder
+from token_iq import gateway as litellm
+from token_iq.gateway import stream_chunk_builder
 
 
 def test_stream_chunk_builder_preserves_images():

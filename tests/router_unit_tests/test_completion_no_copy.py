@@ -8,7 +8,7 @@ doesn't cause side effects that mutate the deployment in router.model_list.
 import pytest
 
 
-from litellm import Router
+from token_iq.gateway import Router
 from unittest.mock import AsyncMock, Mock, patch
 
 
@@ -37,8 +37,8 @@ async def test_acompletion_deployment_not_mutated():
     assert deployment_before is not None
     original_params = deployment_before.litellm_params.model_dump()
 
-    with patch("litellm.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        from litellm import ModelResponse
+    with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        from token_iq.gateway import ModelResponse
 
         mock_acompletion.return_value = ModelResponse(
             id="test",
@@ -85,8 +85,8 @@ def test_completion_deployment_not_mutated():
     assert deployment_before is not None
     original_params = deployment_before.litellm_params.model_dump()
 
-    with patch("litellm.completion", new_callable=Mock) as mock_completion:
-        from litellm import ModelResponse
+    with patch("token_iq.gateway.completion", new_callable=Mock) as mock_completion:
+        from token_iq.gateway import ModelResponse
 
         mock_completion.return_value = ModelResponse(
             id="test",

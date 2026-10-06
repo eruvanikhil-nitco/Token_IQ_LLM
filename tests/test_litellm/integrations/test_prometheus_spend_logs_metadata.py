@@ -5,7 +5,7 @@ Verifies that metadata from x-litellm-spend-logs-metadata header is available
 in Prometheus custom labels via combined_metadata.
 """
 
-from litellm.integrations.prometheus import (
+from token_iq.gateway.integrations.prometheus import (
     _get_combined_custom_metadata_from_standard_logging_payload,
     get_custom_labels_from_metadata,
 )
@@ -17,7 +17,7 @@ def test_get_custom_labels_includes_spend_logs_metadata(monkeypatch):
     spend_logs_metadata when it is merged into combined_metadata.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["metadata.department", "metadata.env"],
     )
 
@@ -43,7 +43,7 @@ def test_spend_logs_metadata_overrides_earlier_sources(monkeypatch):
     since it is spread last in combined_metadata.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["metadata.team"],
     )
 
@@ -68,7 +68,7 @@ def test_combined_metadata_with_all_three_sources(monkeypatch):
     user_api_key_auth_metadata, and spend_logs_metadata.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["metadata.from_requester", "metadata.from_auth", "metadata.from_spend"],
     )
 
@@ -96,7 +96,7 @@ def test_combined_metadata_with_none_spend_logs(monkeypatch):
     Test that combined_metadata works when spend_logs_metadata is None.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["metadata.foo"],
     )
 
@@ -159,7 +159,7 @@ def test_project_alias_accessible_via_custom_prometheus_labels(monkeypatch):
     should produce a label with the project's alias value.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["metadata.user_api_key_project_alias"],
     )
 
@@ -186,7 +186,7 @@ def test_project_alias_accessible_without_prefix(monkeypatch):
     the "metadata." prefix in custom_prometheus_metadata_labels config.
     """
     monkeypatch.setattr(
-        "litellm.custom_prometheus_metadata_labels",
+        "token_iq.gateway.custom_prometheus_metadata_labels",
         ["user_api_key_project_alias"],
     )
 

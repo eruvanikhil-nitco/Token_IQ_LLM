@@ -1,8 +1,8 @@
-"""Unit tests for the pure merge logic in litellm/proxy/a2a/agent_card.py."""
+"""Unit tests for the pure merge logic in token_iq/gateway/proxy/a2a/agent_card.py."""
 
 import pytest
 
-from litellm.proxy.a2a.agent_card import (
+from token_iq.gateway.proxy.a2a.agent_card import (
     LITELLM_A2A_PROTOCOL_VERSION,
     LITELLM_SECURITY_REQUIREMENTS,
     LITELLM_SECURITY_SCHEMES,

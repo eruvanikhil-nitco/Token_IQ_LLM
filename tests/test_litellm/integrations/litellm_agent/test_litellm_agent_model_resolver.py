@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from litellm.integrations.litellm_agent import LiteLLMAgentModelResolver
+from token_iq.gateway.integrations.litellm_agent import LiteLLMAgentModelResolver
 
 
 class TestLiteLLMAgentModelResolver:

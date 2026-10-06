@@ -13,11 +13,11 @@ import httpx
 import pytest
 
 from fastapi.exceptions import HTTPException
-from litellm.proxy.guardrails.guardrail_hooks.xecguard.xecguard import (
+from token_iq.gateway.proxy.guardrails.guardrail_hooks.xecguard.xecguard import (
     XecGuardGuardrail,
     XecGuardMissingCredentials,
 )
-from litellm.types.proxy.guardrails.guardrail_hooks.xecguard import (
+from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.xecguard import (
     XecGuardConfigModel,
 )
 
@@ -202,7 +202,7 @@ class TestXecGuardConfiguration:
         assert guardrail.policy_names == policies
 
     def test_supported_event_hooks_contains_all_four(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         guardrail = XecGuardGuardrail(api_key="xgs_default")
         hooks = guardrail.supported_event_hooks
@@ -213,7 +213,7 @@ class TestXecGuardConfiguration:
         assert GuardrailEventHooks.logging_only in hooks
 
     def test_supported_event_hooks_override_preserved(self):
-        from litellm.types.guardrails import GuardrailEventHooks
+        from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
         guardrail = XecGuardGuardrail(
             api_key="xgs_default",
@@ -1380,7 +1380,7 @@ class TestXecGuardRequestPayload:
         default set (System Prompt Enforcement + Harmful Content
         Protection) so the request is always acceptable to the server.
         """
-        from litellm.proxy.guardrails.guardrail_hooks.xecguard.xecguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.xecguard.xecguard import (
             _DEFAULT_POLICIES,
         )
 
@@ -1910,7 +1910,7 @@ class TestXecGuardConfigModel:
         """The UI renders policy_names as a multiselect dropdown. Guard
         against accidental removal of the json_schema_extra metadata and
         verify the six default policies are offered."""
-        from litellm.types.proxy.guardrails.guardrail_hooks.xecguard import (
+        from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.xecguard import (
             XECGUARD_DEFAULT_POLICY_OPTIONS,
         )
 
@@ -1938,14 +1938,14 @@ class TestXecGuardConfigModel:
 
 class TestXecGuardInitializer:
     def test_initializer_registry_has_entry(self):
-        from litellm.proxy.guardrails.guardrail_hooks.xecguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.xecguard import (
             guardrail_initializer_registry,
         )
 
         assert "xecguard" in guardrail_initializer_registry
 
     def test_class_registry_has_entry(self):
-        from litellm.proxy.guardrails.guardrail_hooks.xecguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.xecguard import (
             guardrail_class_registry,
         )
 
@@ -1953,15 +1953,15 @@ class TestXecGuardInitializer:
         assert guardrail_class_registry["xecguard"] is XecGuardGuardrail
 
     def test_enum_value_exists(self):
-        from litellm.types.guardrails import SupportedGuardrailIntegrations
+        from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
         assert SupportedGuardrailIntegrations.XECGUARD.value == "xecguard"
 
     def test_initializer_creates_instance(self):
-        from litellm.proxy.guardrails.guardrail_hooks.xecguard import (
+        from token_iq.gateway.proxy.guardrails.guardrail_hooks.xecguard import (
             initialize_guardrail,
         )
-        from litellm.types.guardrails import LitellmParams
+        from token_iq.gateway.types.guardrails import LitellmParams
 
         params = LitellmParams(
             guardrail="xecguard",

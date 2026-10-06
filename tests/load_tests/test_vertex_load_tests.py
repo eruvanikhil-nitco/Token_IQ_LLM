@@ -2,7 +2,7 @@ import os
 
 
 import asyncio
-import litellm
+from token_iq import gateway as litellm
 import pytest
 import time
 import json
