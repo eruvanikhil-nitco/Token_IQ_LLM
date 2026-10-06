@@ -200,24 +200,24 @@ Response from deleting a skill.
 
 The Skills API implementation follows LiteLLM's standard patterns:
 
-1. **Type Definitions** (`litellm/types/llms/anthropic_skills.py`)
+1. **Type Definitions** (`token_iq/gateway/types/llms/anthropic_skills.py`)
    - Pydantic models for request/response types
    - TypedDict definitions for request parameters
 
-2. **Base Configuration** (`litellm/llms/base_llm/skills/transformation.py`)
+2. **Base Configuration** (`token_iq/gateway/llms/base_llm/skills/transformation.py`)
    - Abstract base class `BaseSkillsAPIConfig`
    - Defines transformation interface for provider-specific implementations
 
-3. **Provider Implementation** (`litellm/llms/anthropic/skills/transformation.py`)
+3. **Provider Implementation** (`token_iq/gateway/llms/anthropic/skills/transformation.py`)
    - `AnthropicSkillsConfig` - Anthropic-specific transformations
    - Handles API authentication, URL construction, and response mapping
 
-4. **Main Handler** (`litellm/skills/main.py`)
+4. **Main Handler** (`token_iq/gateway/skills/main.py`)
    - Public API functions (sync and async)
    - Request validation and routing
    - Error handling
 
-5. **HTTP Handlers** (`litellm/llms/custom_httpx/llm_http_handler.py`)
+5. **HTTP Handlers** (`token_iq/gateway/llms/custom_httpx/llm_http_handler.py`)
    - Low-level HTTP request/response handling
    - Connection pooling and retry logic
 

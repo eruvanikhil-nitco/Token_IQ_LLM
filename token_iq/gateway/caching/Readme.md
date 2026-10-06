@@ -16,7 +16,7 @@ The following caching mechanisms are supported:
 ## Folder Structure
 
 ```
-litellm/caching/
+token_iq/gateway/caching/
 ├── base_cache.py
 ├── caching.py
 ├── caching_handler.py

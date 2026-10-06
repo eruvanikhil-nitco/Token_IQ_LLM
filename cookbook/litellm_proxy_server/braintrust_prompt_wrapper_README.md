@@ -16,7 +16,7 @@ This directory contains a wrapper server that enables LiteLLM to use prompts fro
 
 ## Components
 
-### 1. Generic Prompt Manager (`litellm/integrations/generic_prompt_management/`)
+### 1. Generic Prompt Manager (`token_iq/gateway/integrations/generic_prompt_management/`)
 
 A generic client that can work with any API implementing the `/beta/litellm_prompt_management` endpoint.
 

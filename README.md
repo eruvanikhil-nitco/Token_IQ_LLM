@@ -143,7 +143,7 @@ without `/v1`.
 
 ## Configuring it
 
-Models, credentials and settings live in `litellm/proxy/dev_config.yaml`, and models added
+Models, credentials and settings live in `token_iq/gateway/proxy/dev_config.yaml`, and models added
 through the dashboard are stored in Postgres. `general_settings.store_model_in_db` must stay
 enabled for the second kind to load at startup.
 

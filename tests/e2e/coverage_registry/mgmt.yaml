@@ -1,4 +1,4 @@
-# Management/UI endpoint features. Grounded in litellm/proxy/management_endpoints/.
+# Management/UI endpoint features. Grounded in token_iq/gateway/proxy/management_endpoints/.
 - {id: mgmt.key.generate.persists, module: mgmt, tier: P0, surface: api, assertions: [persists], source: "key_management_endpoints.py:1444", rationale: "API key survives DB roundtrip"}
 - {id: mgmt.key.generate.admin_only, module: mgmt, tier: P0, surface: api, assertions: [admin_only], source: "key_management_endpoints.py:1444", rationale: "Only master/team-admin creates keys"}
 - {id: mgmt.key.generate.happy_path, module: mgmt, tier: P0, surface: ui, assertions: [happy_path], source: "ui_sso.py:420", rationale: "SSO-driven key gen (UI path)"}

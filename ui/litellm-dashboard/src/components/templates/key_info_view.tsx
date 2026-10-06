@@ -52,7 +52,7 @@ interface KeyInfoViewProps {
 }
 
 // Premium fields (from LiteLLM_ManagementEndpoint_MetadataFields_Premium in
-// litellm/proxy/_types.py) that the key-edit form submits as arrays/strings, where
+// token_iq/gateway/proxy/_types.py) that the key-edit form submits as arrays/strings, where
 // "empty" means "unset". The loop below drops them when they're empty-and-were-empty
 // so a non-premium edit of unrelated fields doesn't trip the server's premium gate.
 //

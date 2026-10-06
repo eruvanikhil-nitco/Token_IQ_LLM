@@ -79,7 +79,7 @@ All LLM requests will now automatically be sent to Levo!
 ## Code Structure
 
 ```
-litellm/integrations/levo/
+token_iq/gateway/integrations/levo/
 ├── __init__.py          # Exports LevoLogger
 ├── levo.py             # LevoLogger implementation
 └── README.md           # This file
@@ -109,7 +109,7 @@ The integration validates all required environment variables at initialization:
 The Levo callback is registered in:
 - `litellm/litellm_core_utils/custom_logger_registry.py`: Maps `"levo"` to `LevoLogger`
 - `litellm/litellm_core_utils/litellm_logging.py`: Instantiates `LevoLogger` when `callbacks: ["levo"]` is used
-- `litellm/__init__.py`: Added to `_custom_logger_compatible_callbacks_literal`
+- `token_iq/gateway/__init__.py`: Added to `_custom_logger_compatible_callbacks_literal`
 
 ## Documentation
 

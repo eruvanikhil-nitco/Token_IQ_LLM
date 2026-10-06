@@ -1,5 +1,5 @@
 //! Pure-Rust logging integrations. Names map 1:1 to Python
-//! `litellm/integrations/`:
+//! `token_iq/gateway/integrations/`:
 //!   - [`custom_guardrail::CustomGuardrail`] — the guardrail callback trait
 //!   - [`custom_logger::CustomLogger`]  — the callback trait
 //!   - [`litellm_python_proxy_api::LiteLLMPythonProxyAPILogger`] — ships events

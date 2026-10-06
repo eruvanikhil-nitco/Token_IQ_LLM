@@ -81,7 +81,7 @@ jobs:
 
       - name: Generate Prisma client
         if: steps.changes.outputs.relevant == 'true'
-        run: uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+        run: uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       - name: Regenerate the lazy OpenAPI snapshot
         if: steps.changes.outputs.relevant == 'true'
@@ -90,8 +90,8 @@ jobs:
       - name: Fail if the lazy OpenAPI snapshot is stale
         if: steps.changes.outputs.relevant == 'true'
         run: |
-          if ! git diff --exit-code -- litellm/proxy/_lazy_openapi_snapshot.json; then
-            echo "::error file=litellm/proxy/_lazy_openapi_snapshot.json::The lazy OpenAPI snapshot is out of sync with the lazily loaded routes."
+          if ! git diff --exit-code -- token_iq/gateway/proxy/_lazy_openapi_snapshot.json; then
+            echo "::error file=token_iq/gateway/proxy/_lazy_openapi_snapshot.json::The lazy OpenAPI snapshot is out of sync with the lazily loaded routes."
             echo ""
             echo "A lazily loaded route or model changed without regenerating the snapshot that /openapi.json serves for unloaded features."
             echo "To fix, run from the repo root:"

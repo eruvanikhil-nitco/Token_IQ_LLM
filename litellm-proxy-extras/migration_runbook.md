@@ -11,22 +11,22 @@ Before doing anything else, make sure all `schema.prisma` files in the repo are 
 | File | Purpose |
 |------|---------|
 | `schema.prisma` (repo root) | Source of truth |
-| `litellm/proxy/schema.prisma` | Used by the proxy server |
+| `token_iq/gateway/proxy/schema.prisma` | Used by the proxy server |
 | `litellm-proxy-extras/litellm_proxy_extras/schema.prisma` | Used for migration generation |
 
 **Sync process:**
 
 ```bash
 # 1. Diff all schema files against the root source of truth
-diff schema.prisma litellm/proxy/schema.prisma
+diff schema.prisma token_iq/gateway/proxy/schema.prisma
 diff schema.prisma litellm-proxy-extras/litellm_proxy_extras/schema.prisma
 
 # 2. If there are differences, copy the root schema to all locations
-cp schema.prisma litellm/proxy/schema.prisma
+cp schema.prisma token_iq/gateway/proxy/schema.prisma
 cp schema.prisma litellm-proxy-extras/litellm_proxy_extras/schema.prisma
 
 # 3. Verify all files are now identical
-diff schema.prisma litellm/proxy/schema.prisma && echo "proxy schema in sync" || echo "MISMATCH"
+diff schema.prisma token_iq/gateway/proxy/schema.prisma && echo "proxy schema in sync" || echo "MISMATCH"
 diff schema.prisma litellm-proxy-extras/litellm_proxy_extras/schema.prisma && echo "extras schema in sync" || echo "MISMATCH"
 ```
 

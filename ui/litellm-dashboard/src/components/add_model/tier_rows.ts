@@ -19,7 +19,7 @@ export interface CustomTierSet {
   fallback_tier_id: string;
 }
 
-// Mirrors TierDefinition in litellm/router_strategy/complexity_router/config.py
+// Mirrors TierDefinition in token_iq/gateway/router_strategy/complexity_router/config.py
 export const MIN_TIER_COUNT = 2;
 export const MAX_TIER_COUNT = 8;
 export const MAX_TIER_NAME_CHARS = 64;
@@ -69,7 +69,7 @@ export const tierRowById = <T extends TierRow>(rows: readonly T[], id: string | 
 export const tierRowByName = <T extends TierRow>(rows: readonly T[], name: string): T | undefined =>
   rows.find((row) => sameTierIdentity(row.name, name));
 
-// Mirrors init_complexity_router_deployment (litellm/router.py): a pin wins, then the fallback
+// Mirrors init_complexity_router_deployment (token_iq/gateway/router.py): a pin wins, then the fallback
 // tier's pool, then MEDIUM or SIMPLE looked up by exact name, so a row named `medium` is no match.
 export const resolveComplexityDefaultModel = (value: ActiveTierSet, pinned?: string): string | undefined => {
   const rows = activeTierRows(value);

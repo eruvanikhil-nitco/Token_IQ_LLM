@@ -97,8 +97,8 @@ Add your tests under `tests/gateway/`, mirroring the module you changed.
 
 The `tests/gateway/` directory follows the same structure as `litellm/`:
 
-- `litellm/proxy/caching_routes.py` → `tests/gateway/proxy/test_caching_routes.py`
-- `litellm/utils.py` → `tests/gateway/test_utils.py`
+- `token_iq/gateway/proxy/caching_routes.py` → `tests/gateway/proxy/test_caching_routes.py`
+- `token_iq/gateway/utils.py` → `tests/gateway/test_utils.py`
 
 ### Example Test
 

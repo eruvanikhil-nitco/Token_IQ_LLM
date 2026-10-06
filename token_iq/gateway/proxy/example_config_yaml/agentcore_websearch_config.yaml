@@ -1,6 +1,6 @@
 # Claude Code / Anthropic-native web search on Bedrock, backed by
 # Amazon Bedrock AgentCore Web Search (AWS-managed web index, no third-party
-# search API). See litellm/llms/bedrock/search/transformation.py for details.
+# search API). See token_iq/gateway/llms/bedrock/search/transformation.py for details.
 
 model_list:
   - model_name: claude-sonnet

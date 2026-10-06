@@ -8,8 +8,8 @@ on:
       - litellm_oss_staging
       - "litellm_**"
     paths:
-      - "litellm/_redis.py"
-      - "litellm/_redis_credential_provider.py"
+      - "token_iq/gateway/_redis.py"
+      - "token_iq/gateway/_redis_credential_provider.py"
       - "tests/gateway/test_redis.py"
       - "tests/gateway/caching/test_redis_connection_pool.py"
       - ".github/workflows/test-redis-compat.yml"
@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
       matrix:
         # 5.3.1 is the version pinned in uv.lock (redisvl caps it below 6); the
-        # newer legs prove the inspect.signature introspection in litellm/_redis.py
+        # newer legs prove the inspect.signature introspection in token_iq/gateway/_redis.py
         # keeps extracting kwargs on the redis-py releases people actually run now.
         # Only the exact release 6.0.0 is skipped: rq (pulled by the proxy extra)
         # specifies `redis != 6`, which excludes 6.0.0 alone, so 6.4.0 stands in

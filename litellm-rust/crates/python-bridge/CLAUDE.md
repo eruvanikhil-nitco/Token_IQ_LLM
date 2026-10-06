@@ -23,8 +23,8 @@ GIL handling to `litellm-python-interop`.
   raises when the bridge is unavailable, with no fallback.
 - Keep the Python interface minimal (well under 100 lines per route): it only
   marshals inputs and calls Rust. Do not add per-route feature flags, and do
-  not put provider dispatch in `litellm/main.py`; it lives in a thin dispatch
-  class under `litellm/llms/<provider>/<route>/`.
+  not put provider dispatch in `token_iq/gateway/main.py`; it lives in a thin dispatch
+  class under `token_iq/gateway/llms/<provider>/<route>/`.
 
 ## Data Handling
 

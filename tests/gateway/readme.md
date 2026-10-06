@@ -9,7 +9,7 @@ The point of this is to:
 
 ## File name conventions
 
-- `litellm/proxy/test_caching_routes.py` maps to `litellm/proxy/caching_routes.py`
+- `litellm/proxy/test_caching_routes.py` maps to `token_iq/gateway/proxy/caching_routes.py`
 - `test_<filename>.py` maps to `litellm/<filename>.py`
 
 

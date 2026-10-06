@@ -581,7 +581,7 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
       // Unlike the create form, this modal only requires one non-empty tier, so a router can reach
       // here with nothing the backend would pick as a default (see getMissingTiersError in
       // build_complexity_router_config.ts for why create never can). init_complexity_router_deployment
-      // raises in that case (litellm/router.py), so block it rather than saving a router that
+      // raises in that case (token_iq/gateway/router.py), so block it rather than saving a router that
       // fails at init.
       const defaultModel = resolveComplexityDefaultModel(complexityRouterConfig, complexityRouterConfig.default_model);
       if (!defaultModel) {

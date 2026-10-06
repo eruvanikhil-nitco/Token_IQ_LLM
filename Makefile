@@ -106,7 +106,7 @@ install-proxy-dev-ci:
 
 install-test-deps: install-proxy-dev
 	$(UV) sync --frozen --all-groups --all-extras
-	$(UV_RUN) prisma generate --schema litellm/proxy/schema.prisma
+	$(UV_RUN) prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
 # Install git hooks that enforce Conventional Commits and Conventional Branches.
 # Opt-in: not chained into install-dev.
@@ -141,10 +141,10 @@ lint-install:
 # Diff-scoped format check, mirroring test-linting.yml's "Check ruff format" step:
 # only the litellm Python files changed vs the base are checked, so a pre-existing
 # format issue elsewhere doesn't block an unrelated commit. Git pathspecs match
-# recursively, so 'litellm/*.py' covers nested modules and the top-level files that
-# CI's 'litellm/**/*.py' skips, which makes this target a superset of the CI step.
+# recursively, so 'token_iq/gateway/*.py' covers nested modules and the top-level files that
+# CI's 'token_iq/gateway/**/*.py' skips, which makes this target a superset of the CI step.
 lint-format-check-changed: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
-	@files=$$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'litellm/*.py' | grep -v '^litellm/enterprise/' || true); \
+	@files=$$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'token_iq/gateway/*.py' | grep -v '^litellm/enterprise/' || true); \
 	if [ -z "$$files" ]; then \
 		echo "No changed litellm Python files to format-check."; \
 	else \

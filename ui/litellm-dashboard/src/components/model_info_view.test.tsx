@@ -1355,7 +1355,7 @@ describe("ModelInfoView", () => {
   });
 
   // Bugbot finding on #36615: complexity_router_config.default_model is a UI-only bookkeeping
-  // marker — init_complexity_router_deployment (litellm/router.py) never reads it, falling back
+  // marker — init_complexity_router_deployment (token_iq/gateway/router.py) never reads it, falling back
   // to tier-derivation instead when litellm_params.complexity_router_default_model is absent.
   // Probing the blob field here would test a model the running router never calls.
   it("ignores an unused config blob pin when litellm_params has no default, matching the backend's own tier-derivation fallback", async () => {

@@ -12,7 +12,7 @@ Everything for a route lives in `crates/core/src/<route>/`; `crates/core/src/mes
 Before writing new logic, look for an existing base to extend. When a change is
 “the same behavior for one more provider/endpoint/integration”, the codebase
 almost always already has a shared abstraction for it (for example, provider
-`BaseConfig` transformation classes in `litellm/llms/base_llm/`, shared
+`BaseConfig` transformation classes in `token_iq/gateway/llms/base_llm/`, shared
 helpers in `litellm_core_utils/`, typed request/response models, or factory
 functions). Find it first with a search, then add the new variant by inheriting
 from or composing that base, overriding only what genuinely differs (model

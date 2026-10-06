@@ -8,7 +8,7 @@ each row to its tests and the e2e gaps.
 Over-budget surfaces as a `budget_exceeded` error (the live suite
 `tests/otel_tests/test_e2e_budgeting.py` asserts `type == "budget_exceeded"`,
 `code == "429"`); the underlying `BudgetExceededError` is defined in
-`litellm/exceptions.py` (`status_code=400`). Enforcement runs in `common_checks()`
+`token_iq/gateway/exceptions.py` (`status_code=400`). Enforcement runs in `common_checks()`
 / `auth_checks.py` at auth time, plus pre-call reservation in
 `budget_reservation.py`.
 

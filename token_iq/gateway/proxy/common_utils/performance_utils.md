@@ -18,7 +18,7 @@ This module provides performance monitoring and profiling functionality for Lite
 
 ### Example 1: Wrapping a function directly
 
-This is how it's used in `litellm/utils.py` to profile `wrapper_async`:
+This is how it's used in `token_iq/gateway/utils.py` to profile `wrapper_async`:
 
 ```python
 from litellm.proxy.common_utils.performance_utils import (
@@ -107,7 +107,7 @@ Example output:
 Timer unit: 1e-06 s
 
 Total time: 3.73697 s
-File: litellm/utils.py
+File: token_iq/gateway/utils.py
 Function: client.<locals>.wrapper_async at line 1657
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
@@ -177,7 +177,7 @@ On Windows with Python 3.14+, you may need to install Microsoft Visual C++ Build
 - The profiler aggregates stats by source code location, so multiple instances of the same function (e.g., closures) will be profiled together
 - Stats are automatically collected on server shutdown via `atexit` handler when using `register_shutdown_handler()`
 - You can also manually collect stats using `collect_line_profiler_stats()`
-- The line profiler will fail with an `ImportError` if `line_profiler` is not installed (as configured in `litellm/utils.py`)
+- The line profiler will fail with an `ImportError` if `line_profiler` is not installed (as configured in `token_iq/gateway/utils.py`)
 
 ## API Reference
 

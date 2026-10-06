@@ -7,7 +7,7 @@ This file defines the rules for Rust work in LiteLLM.
 Before writing new logic, look for an existing base to extend. When a change is
 “the same behavior for one more provider/endpoint/integration”, the codebase
 almost always already has a shared abstraction for it (for example, provider
-`BaseConfig` transformation classes in `litellm/llms/base_llm/`, shared
+`BaseConfig` transformation classes in `token_iq/gateway/llms/base_llm/`, shared
 helpers in `litellm_core_utils/`, typed request/response models, or factory
 functions). Find it first with a search, then add the new variant by inheriting
 from or composing that base, overriding only what genuinely differs (model
@@ -91,8 +91,8 @@ reference; then the Python interface is a thin dispatch that calls Rust with no
 fallback, and you state the rust-only choice explicitly in the PR. Either way
 the Python side stays minimal (it only marshals inputs and calls the Rust
 interface), never add a per-route feature flag, and never push provider
-dispatch into `litellm/main.py`; put it in a thin dispatch class under
-`litellm/llms/<provider>/<route>/`.
+dispatch into `token_iq/gateway/main.py`; put it in a thin dispatch class under
+`token_iq/gateway/llms/<provider>/<route>/`.
 
 ## Production Bar
 
@@ -155,7 +155,7 @@ The guide also covers conventions rustfmt cannot auto-apply; follow these too:
 ## Constants
 
 Magic numbers and fixed strings go in a crate-level `constants.rs`, never
-hardcoded inline — the Rust mirror of Python's `litellm/constants.py`.
+hardcoded inline — the Rust mirror of Python's `token_iq/gateway/constants.py`.
 
 - Each crate that needs them has `src/constants.rs` (declared `mod constants;`);
   import from it (`use crate::constants::...`). Don't scatter `const` values at

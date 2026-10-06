@@ -138,7 +138,7 @@ The `SkillsInjectionHook` uses two hooks:
 ## File Structure
 
 ```
-litellm/llms/litellm_proxy/skills/
+token_iq/gateway/llms/litellm_proxy/skills/
 ├── __init__.py           # Exports all skill components
 ├── handler.py            # LiteLLMSkillsHandler - database CRUD operations (Prisma)
 ├── transformation.py     # LiteLLMSkillsTransformationHandler - SDK transformation layer
@@ -147,7 +147,7 @@ litellm/llms/litellm_proxy/skills/
 ├── code_execution.py     # CodeExecutionHandler - automatic agentic loop
 └── README.md             # This file
 
-litellm/proxy/hooks/litellm_skills/
+token_iq/gateway/proxy/hooks/litellm_skills/
 ├── __init__.py           # Re-exports from SDK + SkillsInjectionHook
 └── main.py               # SkillsInjectionHook - CustomLogger hook for proxy
 ```
@@ -285,7 +285,7 @@ response = litellm.completion(
 
 ### Step 2: SkillsInjectionHook Processing
 
-The hook (`litellm/proxy/hooks/litellm_skills/main.py`) intercepts the request:
+The hook (`token_iq/gateway/proxy/hooks/litellm_skills/main.py`) intercepts the request:
 
 1. **Detects `litellm_skill_` prefix** → Fetches skill from database
 2. **Checks model provider** → Bedrock is not Anthropic

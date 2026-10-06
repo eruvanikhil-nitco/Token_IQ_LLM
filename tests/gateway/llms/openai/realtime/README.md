@@ -70,11 +70,11 @@ If you see test failures related to header parameters:
    - websockets < 14.0: use `extra_headers`
 
 4. **Ensure consistency** across all files:
-   - `litellm/llms/openai/realtime/handler.py`
-   - `litellm/llms/azure/realtime/handler.py`
-   - `litellm/llms/custom_httpx/llm_http_handler.py`
-   - `litellm/realtime_api/main.py`
-   - `litellm/proxy/pass_through_endpoints/pass_through_endpoints.py`
+   - `token_iq/gateway/llms/openai/realtime/handler.py`
+   - `token_iq/gateway/llms/azure/realtime/handler.py`
+   - `token_iq/gateway/llms/custom_httpx/llm_http_handler.py`
+   - `token_iq/gateway/realtime_api/main.py`
+   - `token_iq/gateway/proxy/pass_through_endpoints/pass_through_endpoints.py`
 
 **Current Status (Feb 2026):**
 - ✅ websockets version: 15.0.1

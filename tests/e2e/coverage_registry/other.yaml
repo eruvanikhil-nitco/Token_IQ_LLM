@@ -1,4 +1,4 @@
-# Other (holding pen). Grounded in litellm/proxy/auth/ + health_endpoints/ + proxy_server.py.
+# Other (holding pen). Grounded in token_iq/gateway/proxy/auth/ + health_endpoints/ + proxy_server.py.
 # PROMOTION NOTE: the auth cluster (~14 cells) is a candidate to promote to its own module once stable.
 - {id: other.auth.master_key.valid_allows, module: other, tier: P0, area: auth, assertions: [valid_allows], source: "user_api_key_auth.py:1569-1588", rationale: "Master key authenticates; timing-safe compare"}
 - {id: other.auth.master_key.invalid_denied, module: other, tier: P0, area: auth, assertions: [invalid_denied], source: "user_api_key_auth.py:1580", rationale: "Invalid master key rejected"}

@@ -80,7 +80,7 @@ The same apply also runs the prisma schema migration via the existing
 `depends_on` the migration so they don't start until the schema is in place.
 
 At runtime, the proxy assembles `DATABASE_URL` from `DATABASE_HOST/PORT/USER/NAME`
-plus a short-lived IAM token — see `litellm/proxy/auth/rds_iam_token.py`. The
+plus a short-lived IAM token — see `token_iq/gateway/proxy/auth/rds_iam_token.py`. The
 task role has `rds-db:connect` scoped to the IAM-authed user on the cluster.
 
 **Break-glass.** If you need to run the bootstrap or migration by hand (e.g.,

@@ -57,7 +57,7 @@ jobs:
           upload: failure-only
 
       # py/weak-sensitive-data-hashing (CWE-328) fires on the OCI signing call at
-      # litellm/llms/oci/common_utils.py, which hashes the HTTP request body to
+      # token_iq/gateway/llms/oci/common_utils.py, which hashes the HTTP request body to
       # produce the x-content-sha256 header required by the OCI HTTP signing spec —
       # a content-integrity hash, not a password or secret hash. SHA-256 is mandated
       # by Oracle for this header; see

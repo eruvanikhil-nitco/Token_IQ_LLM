@@ -171,11 +171,11 @@ cd "$DASHBOARD_DIR"
 npm install
 npm run build
 # Copy the fresh build to the proxy's static UI directory
-cp -r "$DASHBOARD_DIR/out/" "$REPO_ROOT/litellm/proxy/_experimental/out/"
+cp -r "$DASHBOARD_DIR/out/" "$REPO_ROOT/token_iq/gateway/proxy/_experimental/out/"
 
 # Restructure HTML files so extensionless routes work (e.g. /ui/login)
 # Next.js export produces login.html; the proxy expects login/index.html
-find "$REPO_ROOT/litellm/proxy/_experimental/out" -name '*.html' ! -name 'index.html' | while read -r htmlfile; do
+find "$REPO_ROOT/token_iq/gateway/proxy/_experimental/out" -name '*.html' ! -name 'index.html' | while read -r htmlfile; do
   target_dir="${htmlfile%.html}"
   target_path="$target_dir/index.html"
   mkdir -p "$target_dir"
@@ -188,10 +188,10 @@ echo "=== Setting up Python environment ==="
 cd "$REPO_ROOT"
 export UV_PYTHON="${UV_PYTHON:-3.13}"
 uv sync --group dev --group proxy-dev --extra proxy --frozen --quiet
-uv run --no-sync python -m prisma generate --schema litellm/proxy/schema.prisma
+uv run --no-sync python -m prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
 echo "=== Pushing Prisma schema to database ==="
-uv run --no-sync python -m prisma db push --schema litellm/proxy/schema.prisma --accept-data-loss
+uv run --no-sync python -m prisma db push --schema token_iq/gateway/proxy/schema.prisma --accept-data-loss
 
 # --- Mock LLM server ---
 echo "=== Starting mock LLM server ==="

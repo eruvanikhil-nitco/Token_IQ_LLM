@@ -2,7 +2,7 @@
 
 if [ "$USE_DDTRACE" = "true" ]; then
     export DD_TRACE_OPENAI_ENABLED="False"
-    exec ddtrace-run litellm "$@"
+    exec ddtrace-run token-iq "$@"
 else
-    exec litellm "$@"
+    exec token-iq "$@"
 fi

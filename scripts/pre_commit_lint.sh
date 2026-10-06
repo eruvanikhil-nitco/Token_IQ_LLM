@@ -99,7 +99,7 @@ litellm_py_files=$(scope_match "$litellm_py_pattern")
 e2e_py_files=$(scope_match "$e2e_py_pattern")
 # ruff format (and CI's format step) skip enterprise; the rest of make lint covers it.
 fmt_files=$(printf '%s\n' "$litellm_py_files" | grep -v '^litellm/enterprise/' | existing_files)
-# check-ui-api-types.yml triggers on any file under litellm/proxy or litellm/types
+# check-ui-api-types.yml triggers on any file under token_iq/gateway/proxy or token_iq/gateway/types
 # (Prisma schema and configs included, not just Python) plus the generator and its
 # lockfiles, so match that whole trigger set rather than a Python subset.
 spec_files=$(scope_match "$spec_pattern")
@@ -264,8 +264,8 @@ genapi_checks() {
         echo "✗ Could not regenerate the lazy OpenAPI snapshot (python -m litellm.proxy._lazy_openapi_snapshot failed)." >&2
         status=1
     elif ( cd ui/litellm-dashboard && LITELLM_PYTHON="uv run --no-sync python" npm run gen:api ); then
-        if ! git diff --quiet -- litellm/proxy/_lazy_openapi_snapshot.json; then
-            echo "✗ The lazy OpenAPI snapshot is stale; regenerated litellm/proxy/_lazy_openapi_snapshot.json. Stage it and commit; re-run make check only if other checks failed too." >&2
+        if ! git diff --quiet -- token_iq/gateway/proxy/_lazy_openapi_snapshot.json; then
+            echo "✗ The lazy OpenAPI snapshot is stale; regenerated token_iq/gateway/proxy/_lazy_openapi_snapshot.json. Stage it and commit; re-run make check only if other checks failed too." >&2
             status=1
         fi
         if ! git diff --quiet -- ui/litellm-dashboard/src/lib/http/schema.d.ts; then
@@ -313,7 +313,7 @@ echo "check: summary"
 summary_item "Python lint (make lint)" "$litellm_py_files" "no litellm/ Python files in scope"
 summary_item "tests/e2e checks (basedpyright + raw HTTP client ban)" "$e2e_py_files" "no tests/e2e Python files in scope"
 summary_item "dashboard lint (prettier + eslint + lint budgets)" "$ui_prettier_changed$ui_eslint_changed" "no dashboard files in scope"
-summary_item "dashboard API-type sync (npm run gen:api)" "$spec_files" "no litellm/proxy, litellm/types, or generator files in scope"
+summary_item "dashboard API-type sync (npm run gen:api)" "$spec_files" "no token_iq/gateway/proxy, token_iq/gateway/types, or generator files in scope"
 
 if [ -z "$litellm_py_files$e2e_py_files$ui_prettier_changed$ui_eslint_changed$spec_files" ]; then
     echo "check: NOTE - no gating lint check matches the files in scope, so nothing ran:" >&2

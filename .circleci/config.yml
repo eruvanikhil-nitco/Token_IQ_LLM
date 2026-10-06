@@ -1652,7 +1652,7 @@ jobs:
               -e LITELLM_MASTER_KEY="sk-1234" \
               --name schema-seed \
               --add-host=host.docker.internal:host-gateway \
-              -v $(pwd)/litellm/proxy/example_config_yaml/simple_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/simple_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000 \
@@ -1674,9 +1674,9 @@ jobs:
               -e FAKE_OPENAI_API_BASE=http://host.docker.internal:8190 \
               --name my-app \
               --add-host=host.docker.internal:host-gateway \
-              -v $(pwd)/litellm/proxy/example_config_yaml/bad_schema.prisma:/app/schema.prisma \
-              -v $(pwd)/litellm/proxy/example_config_yaml/bad_schema.prisma:/app/litellm/proxy/schema.prisma \
-              -v $(pwd)/litellm/proxy/example_config_yaml/disable_schema_update.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/bad_schema.prisma:/app/schema.prisma \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/bad_schema.prisma:/app/token_iq/gateway/proxy/schema.prisma \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/disable_schema_update.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -1860,7 +1860,7 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/oai_misc_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/oai_misc_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -1941,8 +1941,8 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/otel_test_config.yaml:/app/config.yaml \
-              -v $(pwd)/litellm/proxy/example_config_yaml/custom_guardrail.py:/app/custom_guardrail.py \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/otel_test_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/custom_guardrail.py:/app/custom_guardrail.py \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -1990,7 +1990,7 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app-3 \
-              -v $(pwd)/litellm/proxy/example_config_yaml/enterprise_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/enterprise_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -2073,7 +2073,7 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/spend_tracking_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/spend_tracking_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -2151,7 +2151,7 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -2173,7 +2173,7 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app-2 \
-              -v $(pwd)/litellm/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/multi_instance_simple_config.yaml:/app/config.yaml \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4001
@@ -2246,8 +2246,8 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/store_model_db_config.yaml:/app/config.yaml \
-              -v $(pwd)/litellm/proxy/example_config_yaml/team_metadata_validator_e2e.py:/app/team_metadata_validator_e2e.py \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/store_model_db_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/team_metadata_validator_e2e.py:/app/team_metadata_validator_e2e.py \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -2409,8 +2409,8 @@ jobs:
               -e LITELLM_LOG=ERROR \
               --add-host host.docker.internal:host-gateway \
               --name my-app \
-              -v $(pwd)/litellm/proxy/example_config_yaml/pass_through_config.yaml:/app/config.yaml \
-              -v $(pwd)/litellm/proxy/example_config_yaml/custom_auth_basic.py:/app/custom_auth_basic.py \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/pass_through_config.yaml:/app/config.yaml \
+              -v $(pwd)/token_iq/gateway/proxy/example_config_yaml/custom_auth_basic.py:/app/custom_auth_basic.py \
               litellm-docker-database:ci \
               --config /app/config.yaml \
               --port 4000
@@ -2587,7 +2587,7 @@ jobs:
           name: Install Python dependencies
           command: |
             uv sync --frozen --all-groups --all-extras --python 3.12
-            uv run --no-sync python -m prisma generate --schema litellm/proxy/schema.prisma
+            uv run --no-sync python -m prisma generate --schema token_iq/gateway/proxy/schema.prisma
       - save_cache:
           key: v1-uv-cache-{{ checksum "uv.lock" }}
           paths:
@@ -2616,7 +2616,7 @@ jobs:
             - ~/.cache/ms-playwright
       - run:
           name: Build UI from source
-          # Prior version used `cp -r out/ ../../litellm/proxy/_experimental/out/`.
+          # Prior version used `cp -r out/ ../../token_iq/gateway/proxy/_experimental/out/`.
           # GNU cp (used on CircleCI's Ubuntu image) interprets that as "copy the
           # source directory as a child of the destination" when the destination
           # already exists — silently creating `_experimental/out/out/` instead of
@@ -2627,10 +2627,10 @@ jobs:
           command: |
             cd ui/litellm-dashboard
             npm run build
-            rm -rf ../../litellm/proxy/_experimental/out
-            mv out ../../litellm/proxy/_experimental/out
+            rm -rf ../../token_iq/gateway/proxy/_experimental/out
+            mv out ../../token_iq/gateway/proxy/_experimental/out
             # Restructure HTML so extensionless routes work (login.html -> login/index.html)
-            find ../../litellm/proxy/_experimental/out -name '*.html' ! -name 'index.html' | while read -r f; do
+            find ../../token_iq/gateway/proxy/_experimental/out -name '*.html' ! -name 'index.html' | while read -r f; do
               d="${f%.html}"; mkdir -p "$d"; mv "$f" "$d/index.html"
             done
       - wait_for_service:
@@ -2638,7 +2638,7 @@ jobs:
           timeout: "30"
       - run:
           name: Push Prisma schema
-          command: uv run --no-sync python -m prisma db push --schema litellm/proxy/schema.prisma --accept-data-loss
+          command: uv run --no-sync python -m prisma db push --schema token_iq/gateway/proxy/schema.prisma --accept-data-loss
       - run:
           name: Seed database
           command: |
@@ -2731,7 +2731,7 @@ jobs:
           name: Install Python dependencies
           command: |
             uv sync --frozen --all-groups --all-extras --python 3.12
-            uv run --no-sync python -m prisma generate --schema litellm/proxy/schema.prisma
+            uv run --no-sync python -m prisma generate --schema token_iq/gateway/proxy/schema.prisma
       - save_cache:
           key: v1-uv-cache-{{ checksum "uv.lock" }}
           paths:
@@ -2758,9 +2758,9 @@ jobs:
           command: |
             cd ui/litellm-dashboard
             npm run build
-            rm -rf ../../litellm/proxy/_experimental/out
-            mv out ../../litellm/proxy/_experimental/out
-            find ../../litellm/proxy/_experimental/out -name '*.html' ! -name 'index.html' | while read -r f; do
+            rm -rf ../../token_iq/gateway/proxy/_experimental/out
+            mv out ../../token_iq/gateway/proxy/_experimental/out
+            find ../../token_iq/gateway/proxy/_experimental/out -name '*.html' ! -name 'index.html' | while read -r f; do
               d="${f%.html}"; mkdir -p "$d"; mv "$f" "$d/index.html"
             done
       - wait_for_service:
@@ -2768,7 +2768,7 @@ jobs:
           timeout: "30"
       - run:
           name: Push Prisma schema
-          command: uv run --no-sync python -m prisma db push --schema litellm/proxy/schema.prisma --accept-data-loss
+          command: uv run --no-sync python -m prisma db push --schema token_iq/gateway/proxy/schema.prisma --accept-data-loss
       - run:
           name: Seed database
           command: |

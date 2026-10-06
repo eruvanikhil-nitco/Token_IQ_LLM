@@ -14,7 +14,7 @@ When the API spec changes, regenerate the types with:
 ```bash
 uv tool run --from datamodel-code-generator datamodel-codegen \
     --url "https://ai.google.dev/static/api/interactions.openapi.json" \
-    --output litellm/types/interactions/generated.py \
+    --output token_iq/gateway/types/interactions/generated.py \
     --output-model-type pydantic_v2.BaseModel \
     --target-python-version 3.9
 ```

@@ -511,7 +511,7 @@ Two things need to already be true: you've run `lite login` (or `lite login --pk
 
 ```bash
 lite login
-litellm --config litellm/proxy/dev_config.yaml &
+litellm --config token_iq/gateway/proxy/dev_config.yaml &
 lite up
 ```
 

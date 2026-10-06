@@ -5,7 +5,7 @@
 //!   - `startTime` / `endTime` are camelCase (epoch f64 seconds)
 //!   - `response_cost` / `prompt_tokens` / etc. are snake_case
 //!
-//! Mirrors Python `litellm/integrations/` + the proxy `CallbackLogsRequest`
+//! Mirrors Python `token_iq/gateway/integrations/` + the proxy `CallbackLogsRequest`
 //! contract 1:1.
 
 use serde::Serialize;

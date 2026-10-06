@@ -12,7 +12,7 @@ wiring must change with it.
 Respect the current package boundaries:
 
 ```text
-litellm/proxy/_experimental/mcp_server/
+token_iq/gateway/proxy/_experimental/mcp_server/
   AGENTS.md
   CLAUDE.md
   server.py                  # ASGI/MCP route handling, sessions, tool calls   [PR7: 7-arm only — move BYOK/OAuth pre-fetch into resolver]
@@ -71,7 +71,7 @@ module materially harder to understand.
   `delegate_auth_to_upstream: true`. The local `CLAUDE.md` explains the anonymous
   upstream PKCE path that must remain intentional.
 - Keep database-backed fields in sync across migrations, typed models under
-  `litellm/types/mcp.py` or `litellm/types/mcp_server/`, config loading, this
+  `token_iq/gateway/types/mcp.py` or `token_iq/gateway/types/mcp_server/`, config loading, this
   package, and dashboard state when the field is user-visible.
 - Use the official MCP SDK types and established LiteLLM Pydantic models where
   they exist. Avoid untyped protocol dictionaries at package boundaries.

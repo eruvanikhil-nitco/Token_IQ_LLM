@@ -14,7 +14,7 @@ import type { ComplexityTiers } from "./ComplexityRouterConfig";
 
 // The backend types a tier as `str | list[str]` and widens with
 // `models if isinstance(models, list) else [models]`
-// (litellm/router_strategy/complexity_router/config.py:255, :441). These cases assert the
+// (token_iq/gateway/router_strategy/complexity_router/config.py:255, :441). These cases assert the
 // expected verdict per input rather than just agreement between call sites, so the test still
 // has teeth if every reader were changed at once.
 describe("normalizeTierModels", () => {

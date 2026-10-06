@@ -4,10 +4,10 @@ import { isProxyAdminRole, isUserTeamAdminForAnyTeam, isUserTeamAdminForSingleTe
 
 /**
  * The dashboard's mirror of the two server layers that gate model writes: the role-level
- * route RBAC (`_check_proxy_admin_viewer_access` in litellm/proxy/auth/route_checks.py),
+ * route RBAC (`_check_proxy_admin_viewer_access` in token_iq/gateway/proxy/auth/route_checks.py),
  * which 403s /model/new, /model/update, and /model/delete for every view-only session
  * before the endpoint runs, and ModelManagementAuthChecks in
- * litellm/proxy/management_endpoints/model_management_endpoints.py behind it.
+ * token_iq/gateway/proxy/management_endpoints/model_management_endpoints.py behind it.
  *
  * Past that route gate, both questions below are answered by exactly two inputs: the
  * caller's role, and whether the caller admins the team named in `model_info.team_id`.

@@ -139,7 +139,7 @@ becomes the global, so server spans export to that backend too.
    a phantom CLIENT span.
 5. **Guardrails / services**: the post-call and service hooks emit guardrail and
    service spans the same way — typed data → engine → span. Service spans
-   (Redis/Postgres) are dispatched by `litellm/_service_logger.py`, which
+   (Redis/Postgres) are dispatched by `token_iq/gateway/_service_logger.py`, which
    recognizes the V2 `OpenTelemetryV2` logger (a plain `CustomLogger`, not a
    subclass of the legacy `OpenTelemetry`). It hands every service call to the
    logger — including calls with no parent span — and the V2 adapter decides the

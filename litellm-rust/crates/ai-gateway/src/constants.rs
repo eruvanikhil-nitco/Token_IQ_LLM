@@ -1,7 +1,7 @@
 //! Crate-level constants for the ai-gateway.
 //!
 //! Per `litellm-rust/CLAUDE.md`, magic numbers and fixed strings live here
-//! (the Rust mirror of Python's `litellm/constants.py`), not inline in feature
+//! (the Rust mirror of Python's `token_iq/gateway/constants.py`), not inline in feature
 //! modules. Env-overridable tunables keep their `DEFAULT_*` value here; the env
 //! read + fallback happens at the host/config layer.
 

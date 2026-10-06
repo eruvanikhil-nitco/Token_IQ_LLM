@@ -152,7 +152,7 @@ pin to a specific tag for production:
 
 LiteLLM's proxy runs `prisma migrate deploy` at startup, but on first apply
 the gateway/backend can race the empty database. Both stacks expose a
-one-off migration task that runs `python litellm/proxy/prisma_migration.py`
+one-off migration task that runs `python token_iq/gateway/proxy/prisma_migration.py`
 against the backend image:
 
 - AWS: an `aws_ecs_task_definition` (`litellm-migrations`). Run with

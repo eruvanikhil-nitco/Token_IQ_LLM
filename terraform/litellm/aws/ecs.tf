@@ -41,7 +41,7 @@ resource "aws_cloudwatch_log_group" "migrations" {
 # Shared env block fed to gateway, backend, and the migration task. Mirrors
 # the helm chart's `litellm.serverEnv` helper on the IAM-auth branch: for the
 # module-created Aurora, DATABASE_URL is assembled at runtime by
-# litellm/proxy/auth/rds_iam_token.py::init_iam_db_url_from_env from
+# token_iq/gateway/proxy/auth/rds_iam_token.py::init_iam_db_url_from_env from
 # HOST/PORT/USER/NAME plus an IAM-signed token, so no DB password is needed
 # in the task definition. An existing database instead arrives as a
 # DATABASE_URL secret (var.database_url), which run.py and the proxy both

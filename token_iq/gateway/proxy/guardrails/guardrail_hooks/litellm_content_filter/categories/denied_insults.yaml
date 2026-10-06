@@ -7,7 +7,7 @@
 # self-deprecation, positive slang ("sick!", "killer deal"),
 # literal uses ("clown show", "donkey ride"), or frustration expressions.
 #
-# Eval: pytest litellm/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k InsultsContentFilter -v -s
+# Eval: pytest token_iq/gateway/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k InsultsContentFilter -v -s
 category_name: "denied_insults"
 display_name: "Insults & Personal Attacks"
 description: "Detects insults, name-calling, and personal attacks directed at the chatbot, staff, or other people"

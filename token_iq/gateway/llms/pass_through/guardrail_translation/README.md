@@ -2,9 +2,9 @@
 
 ## Why This Exists Here
 
-This module is located under `litellm/llms/` (instead of with the main passthrough code) because:
+This module is located under `token_iq/gateway/llms/` (instead of with the main passthrough code) because:
 
-1. **Auto-discovery**: The `load_guardrail_translation_mappings()` function in `litellm/llms/__init__.py` scans for `guardrail_translation/` directories under `litellm/llms/`
+1. **Auto-discovery**: The `load_guardrail_translation_mappings()` function in `token_iq/gateway/llms/__init__.py` scans for `guardrail_translation/` directories under `token_iq/gateway/llms/`
 2. **Consistency**: All other guardrail translation handlers follow this pattern (e.g., `openai/chat/guardrail_translation/`, `anthropic/chat/guardrail_translation/`)
 
 ## Main Passthrough Implementation
@@ -12,7 +12,7 @@ This module is located under `litellm/llms/` (instead of with the main passthrou
 The main passthrough endpoint implementation is in:
 
 ```
-litellm/proxy/pass_through_endpoints/
+token_iq/gateway/proxy/pass_through_endpoints/
 ├── pass_through_endpoints.py      # Core passthrough routing logic
 ├── passthrough_guardrails.py      # Guardrail collection and field targeting
 ├── jsonpath_extractor.py          # JSONPath field extraction utility

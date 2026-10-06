@@ -34,7 +34,7 @@ is asserted byte-equal to the upload. Vertex (GCS) and Bedrock (S3) transform li
 upload time, so those assert a 200 with non-empty parseable JSON lines instead. Gemini
 (non-Vertex) raises `NotImplementedError` for file content and has no cell here.
 
-## Routing scenarios (per `litellm/proxy/batches_endpoints/endpoints.py`)
+## Routing scenarios (per `token_iq/gateway/proxy/batches_endpoints/endpoints.py`)
 
 Each create-capable provider runs all four. The test asserts the returned file id
 and batch id carry the shape that scenario must produce (`matches_id_shape`):
@@ -138,7 +138,7 @@ window (25h-73h band, within the newest 100-item list page) must be terminal.
 
 The cost assertion is the LIT-5730 headline: retrieving a completed model-encoded
 batch must write a positive spend row with call_type `aretrieve_batch` and token
-usage. Before the fix in `litellm/batches/batch_utils.py`, the retrieve endpoint
+usage. Before the fix in `token_iq/gateway/batches/batch_utils.py`, the retrieve endpoint
 re-encoded the response's `output_file_id` in place before the queued logging
 worker ran, the worker sent that encoded id to OpenAI, got a 404, and the spend row
 never landed.

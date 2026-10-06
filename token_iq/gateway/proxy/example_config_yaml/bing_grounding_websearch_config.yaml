@@ -2,7 +2,7 @@
 # web_search tool), called through the Foundry Responses API.
 #
 # Configure the provider with env vars (setup and pricing are in the LiteLLM docs;
-# the code lives in litellm/llms/azure/search/transformation.py):
+# the code lives in token_iq/gateway/llms/azure/search/transformation.py):
 #   BING_GROUNDING_PROJECT_ENDPOINT  (required) the Foundry project endpoint
 #   BING_GROUNDING_MODEL             (required) a model deployment in that project
 #   BING_GROUNDING_CONNECTION_ID     (optional) a Grounding with Bing connection id;

@@ -13,7 +13,7 @@ on:
       - "litellm_**"
     paths:
       - "terraform/provider/**"
-      - "litellm/proxy/**"
+      - "token_iq/gateway/proxy/**"
       - ".github/workflows/test-terraform-provider.yml"
 
 permissions:
@@ -100,7 +100,7 @@ jobs:
 
       - name: Generate Prisma client
         run: |
-          uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+          uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       - name: Generate proxy OpenAPI schema
         run: |

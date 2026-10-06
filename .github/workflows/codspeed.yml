@@ -6,7 +6,7 @@ on:
       - main
       - litellm_internal_staging
     paths:
-      - "litellm/**"
+      - "token_iq/gateway/**"
       - "tests/benchmarks/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -18,7 +18,7 @@ on:
       - main
       - litellm_internal_staging
     paths:
-      - "litellm/**"
+      - "token_iq/gateway/**"
       - "tests/benchmarks/**"
       - "pyproject.toml"
       - "uv.lock"

@@ -45,7 +45,7 @@ To add a new container file endpoint (e.g., `get_container_file_content`):
 
 ### Step 2: Add Response Type (if new)
 
-In `litellm/types/containers/main.py`:
+In `token_iq/gateway/types/containers/main.py`:
 
 ```python
 class ContainerFileContentResponse(BaseModel):
@@ -56,7 +56,7 @@ class ContainerFileContentResponse(BaseModel):
 
 ### Step 3: Register Response Type
 
-In `litellm/llms/custom_httpx/container_handler.py`, add to `RESPONSE_TYPES`:
+In `token_iq/gateway/llms/custom_httpx/container_handler.py`, add to `RESPONSE_TYPES`:
 
 ```python
 RESPONSE_TYPES = {
@@ -67,13 +67,13 @@ RESPONSE_TYPES = {
 
 ### Step 4: Update Router (one-time setup)
 
-In `litellm/router.py`, add the call_type to the factory_function Literal and `_init_containers_api_endpoints` condition.
+In `token_iq/gateway/router.py`, add the call_type to the factory_function Literal and `_init_containers_api_endpoints` condition.
 
-In `litellm/proxy/route_llm_request.py`, add to the route mappings and skip-model-routing lists.
+In `token_iq/gateway/proxy/route_llm_request.py`, add to the route mappings and skip-model-routing lists.
 
 ### Step 5: Update Proxy Handler Factory (if new path params)
 
-If your endpoint has a new combination of path parameters, add a handler in `litellm/proxy/container_endpoints/handler_factory.py`:
+If your endpoint has a new combination of path parameters, add a handler in `token_iq/gateway/proxy/container_endpoints/handler_factory.py`:
 
 ```python
 elif path_params == ["container_id", "file_id", "new_param"]:
@@ -87,7 +87,7 @@ elif path_params == ["container_id", "file_id", "new_param"]:
 
 ### Step 1: Create Provider Config
 
-Create `litellm/llms/azure/containers/transformation.py`:
+Create `token_iq/gateway/llms/azure/containers/transformation.py`:
 
 ```python
 from typing import Dict, Optional, Tuple, Any
@@ -162,7 +162,7 @@ class AzureContainerConfig(BaseContainerConfig):
 
 ### Step 2: Register Provider Config
 
-In `litellm/utils.py`, find `ProviderConfigManager.get_provider_container_config()` and add:
+In `token_iq/gateway/utils.py`, find `ProviderConfigManager.get_provider_container_config()` and add:
 
 ```python
 @staticmethod
@@ -220,7 +220,7 @@ Test via proxy:
 
 ```bash
 # Start proxy
-cd litellm/proxy && python proxy_cli.py --config proxy_config.yaml --port 4000
+cd token_iq/gateway/proxy && python proxy_cli.py --config proxy_config.yaml --port 4000
 
 # Test endpoints
 curl -X GET "http://localhost:4000/v1/containers/cntr_123/files" \

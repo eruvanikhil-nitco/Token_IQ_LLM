@@ -6,7 +6,7 @@
 # Must NOT block: ADA accommodation discussions, disability rights advocacy,
 # accessibility improvements, inclusive hiring practices.
 #
-# Eval: pytest litellm/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k DisabilityContentFilter -v -s
+# Eval: pytest token_iq/gateway/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k DisabilityContentFilter -v -s
 category_name: "disability"
 display_name: "Disability Discrimination"
 description: "Detects employment discrimination against people with disabilities"

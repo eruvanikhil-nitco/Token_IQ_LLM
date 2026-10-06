@@ -53,16 +53,16 @@ component_management:
     - component_id: "Batches"
       paths:
         - "*/proxy/batches_endpoints/**"
-        - "litellm/batches/**"
+        - "token_iq/gateway/batches/**"
         - "*/llms/*/batches/**"
     - component_id: "Videos"
       paths:
-        - "litellm/videos/**"
+        - "token_iq/gateway/videos/**"
         - "*/proxy/video_endpoints/**"
         - "*/llms/*/videos/**"
     - component_id: "Realtime"
       paths:
-        - "litellm/realtime_api/**"
+        - "token_iq/gateway/realtime_api/**"
         - "*/proxy/realtime_endpoints/**"
         - "*/llms/*/realtime/**"
         - "litellm/litellm_core_utils/realtime_streaming.py"

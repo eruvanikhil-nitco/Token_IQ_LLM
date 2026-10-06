@@ -1,5 +1,5 @@
 # Quota Management (behavior features): rate limits, budgets, spend tracking. Grounded in
-# litellm/proxy/hooks/ + litellm/proxy/auth/auth_checks.py + litellm/proxy/spend_tracking/.
+# token_iq/gateway/proxy/hooks/ + token_iq/gateway/proxy/auth/auth_checks.py + token_iq/gateway/proxy/spend_tracking/.
 - {id: quota_management.ratelimit.rpm.blocks_over_limit, module: quota_management, tier: P0, behavior: ratelimit, variant: rpm, assertions: [blocks_over_limit], exercised_on: [chat_completions, messages], source: "parallel_request_limiter_v3.py", rationale: "v3 limiter enforces RPM per key/team/model; 429 on breach"}
 - {id: quota_management.ratelimit.batch_rpm.blocks_over_limit, module: quota_management, tier: P0, behavior: ratelimit, variant: batch_rpm, assertions: [blocks_over_limit], exercised_on: [batches], source: "batch_rate_limiter.py", rationale: "Batch create that exceeds key RPM returns mapped 429 with retry-after"}
 - {id: quota_management.ratelimit.batch_enqueued_tokens.accepts_over_rpm, module: quota_management, tier: P0, behavior: ratelimit, variant: batch_enqueued_tokens, assertions: [accepts_over_rpm], exercised_on: [batches], source: "batch_rate_limiter.py + batch_enqueued_tokens.py", rationale: "Key with an enqueued-token allowance submits a batch whose row count exceeds its RPM and the create is accepted"}

@@ -6,7 +6,7 @@
 # Must NOT block: ADEA compliance discussions, age diversity initiatives,
 # mentorship programs, experience-based hiring, general age statistics.
 #
-# Eval: pytest litellm/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k AgeDiscriminationContentFilter -v -s
+# Eval: pytest token_iq/gateway/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -k AgeDiscriminationContentFilter -v -s
 category_name: "age_discrimination"
 display_name: "Age Discrimination"
 description: "Detects age-based employment discrimination against older or younger workers"

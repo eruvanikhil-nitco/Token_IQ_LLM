@@ -123,7 +123,7 @@ jobs:
         if: steps.changes.outputs.decision != 'skip'
         timeout-minutes: 3
         run: |
-          uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+          uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       - name: Run tests
         if: steps.changes.outputs.decision != 'skip'

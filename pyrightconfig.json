@@ -9,8 +9,8 @@
     "**/__pycache__",
     "tests/e2e/claude_code",
     "tests/e2e/ui",
-    "litellm/types/utils.py",
-    "litellm/proxy/_types.py"
+    "token_iq/gateway/types/utils.py",
+    "token_iq/gateway/proxy/_types.py"
   ],
   "pythonVersion": "3.12",
   "typeCheckingMode": "strict",

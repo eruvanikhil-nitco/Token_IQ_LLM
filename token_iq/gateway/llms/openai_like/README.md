@@ -144,7 +144,7 @@ Use a Python config class if you need:
 
 For providers that are *mostly* OpenAI-compatible but need small overrides (e.g. preset model handling),
 you can inherit from `OpenAIResponsesAPIConfig` and override only what's needed — see
-`litellm/llms/perplexity/responses/transformation.py` for a minimal example (~40 lines).
+`token_iq/gateway/llms/perplexity/responses/transformation.py` for a minimal example (~40 lines).
 
 ## Implementation Details
 
@@ -159,6 +159,6 @@ you can inherit from `OpenAIResponsesAPIConfig` and override only what's needed 
 
 The JSON system is integrated at:
 - `litellm/litellm_core_utils/get_llm_provider_logic.py` - Provider resolution
-- `litellm/utils.py` - ProviderConfigManager (chat + responses)
-- `litellm/responses/main.py` - Responses API routing
-- `litellm/constants.py` - openai_compatible_providers list
+- `token_iq/gateway/utils.py` - ProviderConfigManager (chat + responses)
+- `token_iq/gateway/responses/main.py` - Responses API routing
+- `token_iq/gateway/constants.py` - openai_compatible_providers list

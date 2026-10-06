@@ -2,7 +2,7 @@ name: "Mutation Test (manual)"
 
 # Manually-triggered mutation testing. Runs mutmut against the scope
 # configured in [tool.mutmut] in pyproject.toml (currently the
-# litellm/proxy/management_endpoints/ folder). Intended cadence is roughly
+# token_iq/gateway/proxy/management_endpoints/ folder). Intended cadence is roughly
 # weekly — clicked from the Actions tab when someone wants a fresh report.
 #
 # Uploads a structured `mutation-report.md` (Meta ACH-style: original +
@@ -65,7 +65,7 @@ jobs:
 
       - name: Generate Prisma client
         run: |
-          uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+          uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       # mutmut 3.x runs tests inside a `mutants/` sandbox where it injects
       # mutation trampolines. uv installs the project as editable by default,
@@ -140,6 +140,6 @@ jobs:
             mutants/mutmut-stats.json
             mutants/mutmut-cicd-stats.json
             mutants/**/*.meta
-            mutants/litellm/proxy/management_endpoints/**/*.py
+            mutants/token_iq/gateway/proxy/management_endpoints/**/*.py
           if-no-files-found: warn
           retention-days: 14

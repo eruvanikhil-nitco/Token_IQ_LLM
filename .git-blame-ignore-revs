@@ -33,7 +33,7 @@ c9887a1f94bc1e7e4bdfe64d640f0509a0bc19dd
 # feat(lint): enforce Final on locals and freeze function parameters (#35807)
 2708620d6a599cc73c1950a942d26ac26a7ed3d4
 
-# chore(lint): remove litellm/types from the ruff lint exclusion (#35926)
+# chore(lint): remove token_iq/gateway/types from the ruff lint exclusion (#35926)
 4e32a8bf6a1e1af1e04b67c759841ccef44b2235
 
 # chore(lint): strip inert type: ignore comments and zero LIT009/LIT010/LIT011 headroom (#35928)

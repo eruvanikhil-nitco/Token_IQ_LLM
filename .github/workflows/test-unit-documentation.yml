@@ -83,7 +83,7 @@ jobs:
       - name: Generate Prisma client
         if: steps.changes.outputs.decision != 'skip'
         run: |
-          uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+          uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       # Run the same documentation tests that CircleCI ran (as direct Python scripts)
       - name: Run documentation validation tests

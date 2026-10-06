@@ -29,7 +29,7 @@ const asTierEntryObject = (entry: unknown): { model_name: string; litellm_params
 
 /**
  * A complexity tier maps to `str | object | list[str | object]` on the backend
- * (litellm/router_strategy/complexity_router/config.py: string/object = pin; list = random pick;
+ * (token_iq/gateway/router_strategy/complexity_router/config.py: string/object = pin; list = random pick;
  * an object is `{model_name, litellm_params}`), and the router widens a bare value to a list.
  *
  * Every UI reader of a STORED complexity_router_config must widen the same way, so this is the

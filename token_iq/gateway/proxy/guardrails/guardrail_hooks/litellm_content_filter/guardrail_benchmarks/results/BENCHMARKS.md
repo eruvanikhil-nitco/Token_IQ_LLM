@@ -43,7 +43,7 @@ The `denied_financial_advice.yaml` category uses three layers of matching:
 
 ```bash
 # Run content filter eval:
-pytest litellm/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -v -s
+pytest token_iq/gateway/proxy/guardrails/guardrail_hooks/litellm_content_filter/guardrail_benchmarks/test_eval.py -v -s
 
 # Run specific eval:
 pytest ... -k "InvestmentContentFilter" -v -s

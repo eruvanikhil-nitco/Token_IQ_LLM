@@ -123,13 +123,13 @@ jobs:
         if: steps.changes.outputs.decision != 'skip'
         timeout-minutes: 5
         run: |
-          uv run --no-sync prisma generate --schema litellm/proxy/schema.prisma
+          uv run --no-sync prisma generate --schema token_iq/gateway/proxy/schema.prisma
 
       - name: Seed database schema
         if: steps.changes.outputs.decision != 'skip' && matrix.seed != 'none'
         timeout-minutes: 10
         run: |
-          uv run --no-sync prisma db push --schema litellm/proxy/schema.prisma --accept-data-loss
+          uv run --no-sync prisma db push --schema token_iq/gateway/proxy/schema.prisma --accept-data-loss
 
       - name: Run tests
         if: steps.changes.outputs.decision != 'skip'

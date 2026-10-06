@@ -10,7 +10,7 @@ describe("search tool types", () => {
   });
 
   test("a param the backend has not declared does not type-check", () => {
-    // @ts-expect-error search_engine_id type-checks only once litellm/types/search.py declares it
+    // @ts-expect-error search_engine_id type-checks only once token_iq/gateway/types/search.py declares it
     const params: SearchToolLiteLLMParams = { search_provider: "google_pse", search_engine_id: "cx-123" };
     expectTypeOf(params).toExtend<{ search_provider: string }>();
   });

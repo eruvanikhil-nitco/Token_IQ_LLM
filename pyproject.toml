@@ -1,5 +1,5 @@
 [project]
-name = "litellm"
+name = "token-iq"
 version = "1.101.0"
 description = "Token IQ: an observer-only gateway that accounts for what a company spends on AI"
 readme = "README.md"
@@ -161,9 +161,8 @@ proxy-runtime = [
 ]
 
 [project.scripts]
-litellm = "litellm:run_server"
-lite = "litellm.proxy.client.cli:cli"
-litellm-proxy = "litellm.proxy.client.cli:cli"
+token-iq = "token_iq.gateway:run_server"
+token-iq-cli = "token_iq.gateway.proxy.client.cli:cli"
 
 [dependency-groups]
 dev = [
@@ -266,15 +265,15 @@ build-backend = "maturin"
 
 [tool.maturin]
 manifest-path = "litellm-rust/crates/python-bridge/Cargo.toml"
-module-name = "litellm.rust_bridge._native"
+module-name = "token_iq.gateway.rust_bridge._native"
 python-source = "."
 bindings = "pyo3"
 features = ["extension-module"]
 profile = "release"
 editable-profile = "dev"
 include = [
-    "litellm/proxy/_experimental/out/**",
-    "litellm/router_strategy/complexity_router/artifacts/*.json",
+    "token_iq/gateway/proxy/_experimental/out/**",
+    "token_iq/gateway/router_strategy/complexity_router/artifacts/*.json",
     # Prices and their history live outside the Python package, so they ship only because
     # they are named here. Without this the wheel installs with no price list and every
     # cost the product reports is missing.
@@ -356,7 +355,7 @@ filterwarnings = [
 # `also_copy = ["litellm/"]` is required because mutmut runs in a `mutants/`
 # sandbox and the test conftest imports from across the litellm package.
 paths_to_mutate = [
-    "litellm/proxy/management_endpoints/",
+    "token_iq/gateway/proxy/management_endpoints/",
 ]
 # Only the unit tier that maps to paths_to_mutate. mutmut times and
 # coverage-maps this whole set once before mutating, so a tier that needs a

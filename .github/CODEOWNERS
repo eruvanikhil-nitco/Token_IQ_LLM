@@ -1,5 +1,5 @@
 /ui/ @yuneng-berri @ryan-crabbe-berri
-/litellm/proxy/_experimental/out/ @yuneng-berri @ryan-crabbe-berri
+/token_iq/gateway/proxy/_experimental/out/ @yuneng-berri @ryan-crabbe-berri
 /ui/Dockerfile
 /ui/nginx.conf
 /ui/litellm-dashboard/src/lib/http/schema.d.ts

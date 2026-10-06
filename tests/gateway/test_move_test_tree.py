@@ -74,12 +74,15 @@ def test_the_historical_record_is_not_touched() -> None:
     assert "CHANGELOG.md" not in listed
 
 
-def test_the_tree_itself_is_in_scope() -> None:
-    """43 files inside it name the path, and some of those are imports rather than comments. Excluding
-    them would move the files and leave them importing a tree that is no longer there."""
-    listed = {move_test_tree.named(path) for path in move_test_tree.tracked()}
+def test_nothing_under_tests_is_excluded() -> None:
+    """The tree itself had to be in scope: 43 files inside it named the path, and some of those were
+    imports rather than comments, so excluding them would have moved the files and left them importing a
+    tree that is no longer there. Stated as a rule rather than by looking for the old path, which stops
+    existing the moment the move runs."""
+    assert not any(prefix.startswith("tests") for prefix in move_test_tree.HISTORICAL)
 
-    assert any(name.startswith("tests/test_litellm/") for name in listed)
+    listed = {move_test_tree.named(path) for path in move_test_tree.tracked()}
+    assert any(name.startswith("tests/") for name in listed)
 
 
 def test_a_file_with_nothing_to_change_is_not_rewritten(tmp_path: Path) -> None:

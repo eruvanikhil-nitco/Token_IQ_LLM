@@ -1,5 +1,5 @@
 //! The `CustomLogger` trait — the Rust mirror of Python
-//! `litellm/integrations/custom_logger.py::CustomLogger`.
+//! `token_iq/gateway/integrations/custom_logger.py::CustomLogger`.
 //!
 //! The Python-named async terminal methods are the public Rust callback shape.
 

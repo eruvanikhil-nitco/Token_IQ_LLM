@@ -1,4 +1,4 @@
-# Guardrail enforcement (behavior features). Grounded in litellm/proxy/guardrails/guardrail_hooks/.
+# Guardrail enforcement (behavior features). Grounded in token_iq/gateway/proxy/guardrails/guardrail_hooks/.
 # Rolls up into the "Logging & Guardrails" dashboard module together with logging.*
 - {id: guardrail.presidio.pre_call.masks, module: guardrail, tier: P0, hook_point: pre_call, assertions: [masks], exercised_on: [chat_completions, messages], source: "guardrail_hooks/presidio.py", rationale: "PII masking pre-call; data-leak blast radius"}
 - {id: guardrail.presidio.post_call.masks, module: guardrail, tier: P0, hook_point: post_call, assertions: [masks], exercised_on: [chat_completions, messages], source: "guardrail_hooks/presidio.py", rationale: "Mask PII in model output"}

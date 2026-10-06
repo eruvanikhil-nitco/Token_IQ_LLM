@@ -32,7 +32,7 @@
 # Node / UI build output bundled under the python package (not needed to import
 # litellm.proxy.read_model_list).
 **/node_modules/
-litellm/proxy/_experimental/out/
+token_iq/gateway/proxy/_experimental/out/
 # Tests, logs, and local scratch.
 **/tests/
 **/test/

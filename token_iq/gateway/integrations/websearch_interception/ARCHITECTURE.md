@@ -26,7 +26,7 @@ LiteLLM defines a standard web search tool format (`litellm_web_search`) that al
 }
 ```
 
-**Tool Name Constant**: `LITELLM_WEB_SEARCH_TOOL_NAME = "litellm_web_search"` (defined in `litellm/constants.py`)
+**Tool Name Constant**: `LITELLM_WEB_SEARCH_TOOL_NAME = "litellm_web_search"` (defined in `token_iq/gateway/constants.py`)
 
 ### Supported Tool Formats
 
@@ -70,7 +70,7 @@ Claude Code (Anthropic's official CLI) sends web search requests using Anthropic
 
 Native tools are converted to LiteLLM standard format **before** sending to the provider:
 
-1. **Conversion Point** (`litellm/llms/anthropic/experimental_pass_through/messages/handler.py`):
+1. **Conversion Point** (`token_iq/gateway/llms/anthropic/experimental_pass_through/messages/handler.py`):
    - In `anthropic_messages()` function (lines 60-127)
    - Runs BEFORE the API request is made
    - Detects native web search tools using `is_web_search_tool()`

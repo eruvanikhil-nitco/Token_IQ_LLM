@@ -74,8 +74,8 @@ COPY . .
 # Replace the committed UI bundle with the one built from this exact source.
 # Clearing first drops the committed bundle's content-hashed chunks that COPY
 # would otherwise leave behind alongside the fresh ones.
-RUN rm -rf litellm/proxy/_experimental/out
-COPY --from=ui-builder /ui/out/. litellm/proxy/_experimental/out/
+RUN rm -rf token_iq/gateway/proxy/_experimental/out
+COPY --from=ui-builder /ui/out/. token_iq/gateway/proxy/_experimental/out/
 
 # Build Admin UI before final sync (applies the enterprise color override when present)
 RUN sed -i 's/\r$//' docker/build_admin_ui.sh && chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
@@ -120,11 +120,11 @@ ENV PATH="/app/.venv/bin:${PATH}" \
 # Copy only what runtime needs. The application is installed inside the venv;
 # the rest of the builder's /app is source and build metadata that must not
 # ship (manifest-scanning tools attribute everything in it to this image).
-# entrypoint.sh invokes litellm/proxy/prisma_migration.py by source path.
+# entrypoint.sh invokes token_iq/gateway/proxy/prisma_migration.py by source path.
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/docker /app/docker
 COPY --from=builder /app/schema.prisma /app/schema.prisma
-COPY --from=builder /app/litellm/proxy/prisma_migration.py /app/litellm/proxy/prisma_migration.py
+COPY --from=builder /app/token_iq/gateway/proxy/prisma_migration.py /app/token_iq/gateway/proxy/prisma_migration.py
 COPY --from=builder /app/litellm-proxy-extras /app/litellm-proxy-extras
 # Prisma CLI + engines are baked under /opt/prisma, a fixed path every
 # runtime uid can read and that no cache volume mount shadows. The paths are

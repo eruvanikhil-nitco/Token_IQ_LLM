@@ -98,7 +98,7 @@ const buildComplexityRouterTestTargets = (
       ? Object.entries(config.tiers).map(([tier, models]) => [tier, normalizeTierModels(models)])
       : [];
 
-  // Mirrors init_complexity_router_deployment (litellm/router.py): litellm_params wins, otherwise
+  // Mirrors init_complexity_router_deployment (token_iq/gateway/router.py): litellm_params wins, otherwise
   // pure tier-derivation. complexity_router_config.default_model is a UI-only marker the backend
   // never reads — folding it in here could point Test Connection at a model the router never
   // calls (see PR #36615 discussion).
