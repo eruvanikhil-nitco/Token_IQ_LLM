@@ -18,9 +18,11 @@ from __future__ import annotations
 import functools
 import os
 import warnings
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from types import MappingProxyType
-from typing import Final
+from typing import Final, TypeVar
+
+_V = TypeVar("_V")
 
 OLD_PREFIX: Final = "LITELLM_"
 NEW_PREFIX: Final = "TOKEN_IQ_"
@@ -170,3 +172,85 @@ def config(
     return {  # mutable-ok: see the return type
         _config_key(key, said): _config_value(value, said) for key, value in loaded.items()
     }
+
+
+OLD_HEADER_PREFIX: Final = "x-litellm-"
+NEW_HEADER_PREFIX: Final = "x-token-iq-"
+
+HEADER_PREFIXES: Final = (NEW_HEADER_PREFIX, OLD_HEADER_PREFIX)
+"""Both spellings, for the two places that have to recognise a Token IQ header without knowing its name.
+
+One strips them off a request before forwarding it to an agent, so a caller cannot claim to be the proxy.
+The other decides whether a response header is the engine's own or a provider's. Both are about trust, so
+both have to know the old prefix for as long as the old prefix still authenticates anything.
+"""
+
+OLD_API_KEY_HEADER: Final = f"{OLD_HEADER_PREFIX}api-key"
+NEW_API_KEY_HEADER: Final = f"{NEW_HEADER_PREFIX}api-key"
+"""Named, unlike the other 90, because FastAPI wants a header name at import time rather than a lookup.
+
+`APIKeyHeader(name=...)` builds a security dependency per name, so accepting both spellings of the key
+header means two dependencies, and each needs its literal.
+"""
+
+
+def old_header_for(name: str) -> str | None:
+    """What this header used to be called, or None when it was never renamed.
+
+    Lowercased on the way out because that is the form every call site asks for and the form HTTP/2 puts
+    on the wire. Header names are case-insensitive, so `X-LiteLLM-Trace-Id` and `x-litellm-trace-id` are
+    one header, and treating them as two would mean a fallback that fires for one casing and not the other.
+    """
+    lowered: Final = name.lower()
+    if not lowered.startswith(NEW_HEADER_PREFIX):
+        return None
+    return f"{OLD_HEADER_PREFIX}{lowered[len(NEW_HEADER_PREFIX) :]}"
+
+
+def header(
+    headers: Mapping[str, _V],
+    name: str,
+    default: _V | None = None,
+    *,
+    warn: Callable[[str], None] | None = None,
+) -> _V | None:
+    """The value of a request header, falling back to what the header used to be called.
+
+    Every read of a `x-token-iq-…` header goes through here, including the ones that read a dict the
+    engine filled in itself. Sorting reads into "could be a caller's" and "could only be ours" would be a
+    judgement per call site, and getting it wrong in the first direction 401s a customer whose client has
+    not been updated. Getting it wrong the other way costs a dictionary lookup that misses.
+
+    Tries the name as given before the lowercase form, and nothing else. `Headers` from Starlette and
+    httpx are both case-insensitive, and the plain dicts that reach a read here are either `dict(
+    request.headers)`, whose keys Starlette has already lowercased, or built by a reader that lowercases
+    them itself. Guessing a mixed-case spelling instead would be wrong anyway, since `str.title()` turns
+    `x-litellm-trace-id` into `X-Litellm-Trace-Id` and the engine used to write `X-LiteLLM-Trace-Id`.
+    """
+    found: Final = headers.get(name, headers.get(name.lower()))
+    if found is not None:
+        return found
+
+    old: Final = old_header_for(name)
+    if old is None:
+        return default
+    legacy: Final = headers.get(old)
+    if legacy is None:
+        return default
+
+    _warn_once(old, name.lower(), warn or _say)
+    return legacy
+
+
+def both_spellings(names: Iterable[str]) -> tuple[str, ...]:
+    """Every name given, each followed by what it used to be called.
+
+    For the lists of header names the engine matches a request against. A list of headers it *sends* does
+    not go through here: a response carries the new name only, which is what makes the old one droppable.
+    """
+    return tuple(spelling for name in names for spelling in (name, old_header_for(name)) if spelling is not None)
+
+
+def is_gateway_header(name: str) -> bool:
+    """Whether this is one of the engine's own headers, under either spelling of the prefix."""
+    return name.lower().startswith(HEADER_PREFIXES)

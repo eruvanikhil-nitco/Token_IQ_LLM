@@ -258,3 +258,124 @@ def test_the_result_is_a_plain_dict_the_proxy_can_edit() -> None:
     found["general_settings"] = {}
     assert isinstance(found["model_list"], list)
     found["model_list"].append({})
+
+
+# --- Request headers -------------------------------------------------------------------------------
+#
+# The stake here is higher than the environment's. A variable read under the wrong name leaves one
+# feature unconfigured; `x-litellm-api-key` not being accepted 401s every request a customer's client
+# makes, and the client is their code, not their config file.
+
+
+def test_a_caller_still_sending_the_old_header_is_understood() -> None:
+    sent = {"x-litellm-tags": "team-a,prod"}
+
+    assert compat.header(sent, "x-token-iq-tags", warn=lambda _m: None) == "team-a,prod"
+
+
+def test_the_new_header_wins_when_a_caller_sends_both() -> None:
+    sent = {"x-token-iq-tags": "new", "x-litellm-tags": "old"}
+
+    assert compat.header(sent, "x-token-iq-tags", warn=lambda _m: None) == "new"
+
+
+def test_the_default_comes_back_when_the_header_was_not_sent() -> None:
+    assert compat.header({}, "x-token-iq-call-id", "generated") == "generated"
+
+
+def test_a_header_that_was_never_renamed_has_no_fallback() -> None:
+    """`x-api-key` is Anthropic's, not ours. Inventing `x-litellm-api-key` as its old spelling would make
+    one provider's credential header authenticate as another."""
+    assert compat.header({"x-api-key": "sk-ant"}, "x-api-key") == "sk-ant"
+    assert compat.old_header_for("x-api-key") is None
+
+
+@pytest.mark.parametrize("stored", ["x-token-iq-model", "x-litellm-model"])
+def test_the_name_asked_for_is_matched_whatever_its_case(stored: str) -> None:
+    """Header names are case-insensitive in HTTP, so a lookup that is not would accept a request from one
+    client and reject the identical request from another. Both spellings have to be found that way, since
+    a mixed-case name reaches the new one through a plain lookup and the old one through `old_header_for`.
+    """
+    assert compat.header({stored: "gpt-4o"}, "X-Token-IQ-Model", warn=lambda _m: None) == "gpt-4o"
+
+
+def test_the_old_spelling_of_a_header_is_the_prefix_and_nothing_else() -> None:
+    assert compat.old_header_for("x-token-iq-attempted-fallbacks") == "x-litellm-attempted-fallbacks"
+    assert compat.old_header_for("X-Token-IQ-Trace-Id") == "x-litellm-trace-id"
+
+
+def test_a_header_value_that_is_not_a_string_comes_back_as_it_was() -> None:
+    """`x-token-iq-tags` is read from a dict whose values may be a list, and the caller branches on which."""
+    sent: dict[str, object] = {"x-litellm-tags": ["team-a", "prod"]}
+
+    assert compat.header(sent, "x-token-iq-tags", warn=lambda _m: None) == ["team-a", "prod"]
+
+
+def test_an_old_header_says_what_to_change() -> None:
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+
+    _ = compat.header({"x-litellm-tags": "a"}, "x-token-iq-tags", warn=said.append)
+
+    assert len(said) == 1
+    assert "x-litellm-tags" in said[0]
+    assert "x-token-iq-tags" in said[0]
+
+
+def test_a_new_header_says_nothing() -> None:
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+
+    _ = compat.header({"x-token-iq-tags": "a"}, "x-token-iq-tags", warn=said.append)
+
+    assert said == []
+
+
+def test_the_warning_fires_once_however_many_requests_send_the_old_header() -> None:
+    """A header arrives on every request, so warning per read would be a line per request forever."""
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+
+    for _ in range(50):
+        _ = compat.header({"x-litellm-tags": "a"}, "x-token-iq-tags", warn=said.append)
+
+    assert len(said) == 1
+
+
+def test_both_spellings_of_a_list_are_offered_new_first() -> None:
+    """Order matters where the caller stops at the first header it finds: the migrated name has to win."""
+    assert compat.both_spellings(["x-token-iq-customer-id", "x-token-iq-end-user-id"]) == (
+        "x-token-iq-customer-id",
+        "x-litellm-customer-id",
+        "x-token-iq-end-user-id",
+        "x-litellm-end-user-id",
+    )
+
+
+def test_a_list_entry_that_was_never_renamed_is_listed_once() -> None:
+    assert compat.both_spellings(["x-mcp-auth"]) == ("x-mcp-auth",)
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["x-token-iq-model", "X-Token-IQ-Model", "x-litellm-model", "X-LiteLLM-Attempted-Fallbacks"],
+)
+def test_the_engines_own_headers_are_recognised_under_either_prefix(name: str) -> None:
+    """Used to strip them off a forwarded request and to tell them from a provider's. Missing the old
+    prefix would let a caller claim to be the proxy by using the name the proxy used to use."""
+    assert compat.is_gateway_header(name)
+
+
+@pytest.mark.parametrize("name", ["x-api-key", "authorization", "x-token-iq", "x-mcp-auth", "litellm-model"])
+def test_everything_else_is_not_one_of_the_engines_headers(name: str) -> None:
+    assert not compat.is_gateway_header(name)
+
+
+def test_the_two_spellings_of_the_key_header_agree_with_the_prefix_rule() -> None:
+    """They are spelled out for FastAPI rather than derived, so nothing else checks they match."""
+    assert compat.old_header_for(compat.NEW_API_KEY_HEADER) == compat.OLD_API_KEY_HEADER
+
+
+def test_an_empty_new_header_is_a_value_and_not_an_absence() -> None:
+    """A client that deliberately sends the header empty means empty. Falling through to the old spelling
+    would hand it a value it had just cleared."""
+    sent = {"x-token-iq-tags": "", "x-litellm-tags": "old"}
+
+    assert compat.header(sent, "x-token-iq-tags", warn=lambda _m: None) == ""
