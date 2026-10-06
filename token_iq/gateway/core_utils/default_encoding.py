@@ -7,12 +7,12 @@ try:
     # New and recommended way to access resources
     from importlib import resources
 
-    filename = str(resources.files(litellm).joinpath("litellm_core_utils/tokenizers"))
+    filename = str(resources.files(litellm).joinpath("core_utils/tokenizers"))
 except (ImportError, AttributeError):
     # Old way to access resources, which setuptools deprecated some time ago
     import pkg_resources
 
-    filename = pkg_resources.resource_filename(__name__, "litellm_core_utils/tokenizers")
+    filename = pkg_resources.resource_filename(__name__, "core_utils/tokenizers")
 
 # Always default TIKTOKEN_CACHE_DIR to the bundled tokenizers directory
 # unless the user explicitly overrides it via CUSTOM_TIKTOKEN_CACHE_DIR.

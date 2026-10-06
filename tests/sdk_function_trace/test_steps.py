@@ -14,7 +14,7 @@ def test_python_ocr_projection_keeps_pipeline_and_drops_noise() -> None:
         FunctionTraceEvent("utils.py:1747 client.<locals>.wrapper_async", 0),
         FunctionTraceEvent("ocr/main.py:331 aocr", 1),
         FunctionTraceEvent("ocr/main.py:70 _prepare_ocr_request", 2),
-        FunctionTraceEvent("litellm_core_utils/get_llm_provider_logic.py:142 get_llm_provider", 3),
+        FunctionTraceEvent("core_utils/get_llm_provider_logic.py:142 get_llm_provider", 3),
         FunctionTraceEvent("utils.py:9303 ProviderConfigManager.get_provider_ocr_config", 3),
         FunctionTraceEvent("llms/mistral/ocr/transformation.py:34 MistralOCRConfig.get_supported_ocr_params", 4),
         FunctionTraceEvent("llms/mistral/ocr/transformation.py:72 MistralOCRConfig.map_ocr_params", 4),
