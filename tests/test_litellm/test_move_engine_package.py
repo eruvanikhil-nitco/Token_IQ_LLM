@@ -428,3 +428,46 @@ def test_the_pass_leaves_its_own_source_alone() -> None:
 
     assert "move_engine_package.py" not in listed
     assert "dump_route_table.py" in listed, "the filter is too wide and is skipping other files"
+
+
+def test_an_asgi_target_takes_the_absolute_path() -> None:
+    """The string uvicorn and gunicorn import a server by. Nothing imports this one: a worker reads it
+    and resolves it itself, so it cannot carry the bound name. Missing it means the engine imports
+    cleanly, serves 589 routes when imported directly, and refuses to start from the command line."""
+    assert rewrite('"app": "litellm.proxy.proxy_server:app",') == '"app": "token_iq.gateway.proxy.proxy_server:app",'
+    assert rewrite("gunicorn litellm.proxy.proxy_server:app --workers 4") == (
+        "gunicorn token_iq.gateway.proxy.proxy_server:app --workers 4"
+    )
+
+
+@pytest.mark.parametrize(
+    "left_alone",
+    [
+        # Also `name:name`, and both belong to phase 9. Requiring a dot before the colon separates them
+        # from an ASGI target.
+        'PREFIX = "litellm:vcr:cassette:"',
+        'unified_id = "litellm_proxy:test_batch"',
+    ],
+)
+def test_a_colon_separated_key_that_is_not_an_asgi_target_is_left_alone(left_alone: str) -> None:
+    assert rewrite(left_alone) == left_alone
+
+
+def test_a_separator_python_does_not_count_as_a_line_break_does_not_shift_the_edit() -> None:
+    """`str.splitlines` also breaks on U+2028, U+2029, a form feed and four more, which the tokenizer
+    does not. Three files hold one inside a string literal, and every literal after it was written to
+    the wrong line, where the replacement found nothing: fourteen patch targets in one file stayed
+    behind while the count said they had moved."""
+    before = 'x = "a' + chr(0x2028) + 'b"\npatch("litellm.proxy.proxy_server.thing")\n'
+
+    assert rewrite(before).splitlines()[-1] == 'patch("token_iq.gateway.proxy.proxy_server.thing")'
+
+
+def test_a_non_ascii_character_earlier_on_the_line_does_not_shift_the_edit() -> None:
+    """`col_offset` is a byte offset into the line's UTF-8, so indexing it as characters lands in the
+    wrong place on any line holding a non-ASCII character before the literal. 1,207 files have one."""
+    before = 'patch("café 你好", "litellm.proxy.proxy_server.thing")'
+
+    found = rewrite(before)
+    assert found == before.replace("litellm.proxy", "token_iq.gateway.proxy")
+    assert "café 你好" in found

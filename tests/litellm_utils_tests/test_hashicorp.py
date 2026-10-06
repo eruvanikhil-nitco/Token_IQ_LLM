@@ -482,13 +482,13 @@ async def test_hashicorp_secret_manager_rotate_secret_different_names(
     """Test rotating a secret with different names (create new, delete old)."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
         ) as mock_post,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
         ) as mock_delete,
     ):
         # Mock GET for current secret check
@@ -553,13 +553,13 @@ async def test_hashicorp_secret_manager_rotate_secret_same_name(
     """Test rotating a secret with the same name (update value only, no delete)."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
         ) as mock_post,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
         ) as mock_delete,
     ):
         # Mock GET for current secret check
@@ -629,7 +629,7 @@ async def test_hashicorp_secret_manager_rotate_secret_current_not_found(
 ):
     """Test rotating a secret when current secret doesn't exist."""
     with patch(
-        "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+        "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
     ) as mock_get:
         # Mock GET to return 404
         mock_404_response = MagicMock()
@@ -665,10 +665,10 @@ async def test_hashicorp_secret_manager_rotate_secret_write_fails(
     """Test rotating a secret when write fails."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
         ) as mock_post,
     ):
         # Mock GET for current secret check
@@ -706,13 +706,13 @@ async def test_hashicorp_secret_manager_rotate_secret_with_team_overrides(
     """Test rotating a secret with optional_params (team settings)."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
         ) as mock_post,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.delete"
         ) as mock_delete,
     ):
         # Mock GET for current secret check
@@ -800,10 +800,10 @@ async def test_hashicorp_secret_manager_rotate_secret_value_mismatch(
     """Test rotating a secret when verification shows value mismatch."""
     with (
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get"
         ) as mock_get,
         patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
+            "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post"
         ) as mock_post,
     ):
         # Mock GET for current secret check

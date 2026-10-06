@@ -47,7 +47,7 @@
 
 #     # In order for the app to behave well with signals, run it with gunicorn
 #     # The first argument must be the "name of the command run"
-#     cmd = f"gunicorn litellm.proxy.proxy_server:app --workers {num_workers} --worker-class uvicorn.workers.UvicornWorker --bind {host}:{port}"
+#     cmd = f"gunicorn token_iq.gateway.proxy.proxy_server:app --workers {num_workers} --worker-class uvicorn.workers.UvicornWorker --bind {host}:{port}"
 #     cmd = cmd.split()
 #     print(f"Running command: {cmd}")
 #     import sys

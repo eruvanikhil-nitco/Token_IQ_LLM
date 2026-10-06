@@ -216,6 +216,20 @@ NAMED_REFERENCES: Final[Mapping[str, str]] = MappingProxyType(
 pattern that might match it."""
 
 
+APP_TARGET: Final = re.compile(rf"\b{OLD_PACKAGE}((?:\.[A-Za-z_]\w*)+:[A-Za-z_]\w*)")
+"""An ASGI target: the `module:attribute` string uvicorn and gunicorn import a server by.
+
+Rewritten to the absolute new path and never to the bound name, because nothing imports this one: a
+worker reads the string and resolves it itself. The proxy CLI passes
+`"litellm.proxy.proxy_server:app"` to both, so missing it means the engine imports, serves 589 routes
+when imported directly, and refuses to start from the command line. A dotted-path rule does not see it
+because of the colon, and the route dump does not see it because the dump imports the app rather than
+going through the CLI.
+
+The colon is what keeps the Redis key prefixes out: `litellm:vcr:cassette:` and `litellm_proxy:` are
+also `name:name`, and they belong to phase 9. Requiring a dot before the colon separates them."""
+
+
 FILE_PATH: Final = re.compile(rf"(?<![\w./\\]){OLD_PACKAGE}/([A-Za-z_][\w./-]*)")
 """A path into the package written as text, in a string, a comment or a config value.
 
@@ -381,16 +395,31 @@ def rewrite_strings(text: str, *, whole_file: bool, can_import: Importable = imp
     if not found:
         return text, 0
 
-    lines = text.splitlines(keepends=True)  # rebind-ok: edited back to front, so offsets hold
+    # Split on a newline alone, and address each line as UTF-8 bytes. Both are what Python's own line and
+    # column numbers mean, and `str.splitlines` plus character indexing are not:
+    #
+    # - `str.splitlines` also breaks on U+2028, U+2029, a form feed and four more, which the tokenizer
+    #   does not. Three files hold one inside a string literal, and every literal after it was written
+    #   to the wrong line, where the replacement found nothing and the edit silently did nothing while
+    #   the count said it had happened
+    # - `col_offset` is a byte offset into the line's UTF-8, so on any line with a non-ASCII character
+    #   before the literal, slicing by character lands in the wrong place. 1,207 files have such a line
+    lines = text.split(chr(10))  # rebind-ok: edited back to front, so offsets hold
+    edited = 0  # rebind-ok: a tally of literals actually rewritten
     for node in found:
         if node.end_lineno is None or node.end_col_offset is None or node.lineno != node.end_lineno:
             continue
-        line = lines[node.lineno - 1]
-        literal = line[node.col_offset : node.end_col_offset]
+        raw = lines[node.lineno - 1].encode("utf-8")
+        literal = raw[node.col_offset : node.end_col_offset].decode("utf-8")
+        if OLD_PACKAGE not in literal:
+            continue
         lines[node.lineno - 1] = (
-            line[: node.col_offset] + literal.replace(OLD_PACKAGE, NEW_PACKAGE, 1) + line[node.end_col_offset :]
+            raw[: node.col_offset].decode("utf-8")
+            + literal.replace(OLD_PACKAGE, NEW_PACKAGE, 1)
+            + raw[node.end_col_offset :].decode("utf-8")
         )
-    return "".join(lines), len(found)
+        edited += 1
+    return chr(10).join(lines), edited
 
 
 def rewrite(
@@ -412,6 +441,9 @@ def rewrite(
     current, strings = rewrite_strings(current, whole_file=whole_file, can_import=can_import)
     if strings:
         counts["dotted string in a resolving position"] = strings
+    current, targets = APP_TARGET.subn(rf"{NEW_PACKAGE}\g<1>", current)
+    if targets:
+        counts["asgi target a worker resolves itself"] = targets
     exists: Final = on_disk if on_disk is not None else _on_disk
     current, paths = FILE_PATH.subn(lambda m: _moved_path(m, exists), current)
     if paths:

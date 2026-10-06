@@ -3,7 +3,7 @@
 Reuses the existing FastAPI app from `litellm.proxy.proxy_server` and trims its
 route table to just the LLM data-plane surface. The trim is purely additive —
 no existing module is modified, the full app continues to work via the legacy
-entrypoint (`litellm.proxy.proxy_server:app`).
+entrypoint (`token_iq.gateway.proxy.proxy_server:app`).
 
 Run with:
     uvicorn gateway.main:app --host 0.0.0.0 --port 4000

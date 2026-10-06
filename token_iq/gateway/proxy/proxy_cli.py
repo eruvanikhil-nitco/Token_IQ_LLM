@@ -258,7 +258,7 @@ class ProxyInitializationHelpers:
         from token_iq.gateway._logging import _get_uvicorn_json_log_config
 
         uvicorn_args: Final = {
-            "app": "litellm.proxy.proxy_server:app",
+            "app": "token_iq.gateway.proxy.proxy_server:app",
             "host": host,
             "port": port,
             "server_header": False,
@@ -437,7 +437,7 @@ class ProxyInitializationHelpers:
         """
         Run the proxy with Granian (Rust-backed ASGI server, HTTP/1 + HTTP/2).
 
-        Uses a string import path so workers load ``litellm.proxy.proxy_server:app``
+        Uses a string import path so workers load ``token_iq.gateway.proxy.proxy_server:app``
         the same way as uvicorn's ``app=`` string target.
         """
         from granian import Granian
@@ -453,7 +453,7 @@ class ProxyInitializationHelpers:
             print("\033[1;33mLiteLLM: --ciphers is not applied when using --run_granian.\033[0m\n")
 
         kwargs: Final[dict[str, Any]] = {
-            "target": "litellm.proxy.proxy_server:app",
+            "target": "token_iq.gateway.proxy.proxy_server:app",
             "address": host,
             "port": port,
             "workers": max(1, num_workers),

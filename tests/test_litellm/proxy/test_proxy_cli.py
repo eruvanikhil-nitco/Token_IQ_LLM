@@ -92,7 +92,7 @@ class TestProxyInitializationHelpers:
         args = ProxyInitializationHelpers._get_default_unvicorn_init_args(
             "localhost", 8000
         )
-        assert args["app"] == "litellm.proxy.proxy_server:app"
+        assert args["app"] == "token_iq.gateway.proxy.proxy_server:app"
         assert args["host"] == "localhost"
         assert args["port"] == 8000
         assert args["server_header"] is False
@@ -355,7 +355,7 @@ class TestProxyInitializationHelpers:
             )
         mock_granian_cls.assert_called_once()
         call_kwargs = mock_granian_cls.call_args.kwargs
-        assert call_kwargs["target"] == "litellm.proxy.proxy_server:app"
+        assert call_kwargs["target"] == "token_iq.gateway.proxy.proxy_server:app"
         assert call_kwargs["address"] == "0.0.0.0"
         assert call_kwargs["port"] == 4000
         assert call_kwargs["workers"] == 2
@@ -557,7 +557,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -622,7 +622,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.side_effect = lambda *a, **k: {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -732,7 +732,7 @@ class TestProxyInitializationHelpers:
             ) as mock_append_query_params,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -860,7 +860,7 @@ class TestProxyInitializationHelpers:
             ) as mock_append_query_params,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -981,7 +981,7 @@ class TestProxyInitializationHelpers:
             ) as mock_append_query_params,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1042,7 +1042,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1107,7 +1107,7 @@ class TestProxyInitializationHelpers:
             ),
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
                 "timeout_keep_alive": 30,
@@ -1182,7 +1182,7 @@ class TestProxyInitializationHelpers:
             ),
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1245,7 +1245,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1303,7 +1303,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1363,7 +1363,7 @@ class TestProxyInitializationHelpers:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1612,7 +1612,7 @@ class TestProxyInitializationHelpers:
                 ) as mock_get_args,
             ):
                 mock_get_args.return_value = {
-                    "app": "litellm.proxy.proxy_server:app",
+                    "app": "token_iq.gateway.proxy.proxy_server:app",
                     "host": "localhost",
                     "port": 8000,
                 }
@@ -1677,7 +1677,7 @@ class TestQueryEngineReaperWiring:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1775,7 +1775,7 @@ class TestRunServerDbSetup:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -1854,7 +1854,7 @@ class TestRunServerDbSetup:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
@@ -2596,7 +2596,7 @@ class TestTokenAuthCliFlags:
             ) as mock_get_args,
         ):
             mock_get_args.return_value = {
-                "app": "litellm.proxy.proxy_server:app",
+                "app": "token_iq.gateway.proxy.proxy_server:app",
                 "host": "localhost",
                 "port": 8000,
             }
